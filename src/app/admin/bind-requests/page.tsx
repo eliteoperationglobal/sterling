@@ -51,15 +51,8 @@ export default function AdminBindRequestsPage() {
 
   useEffect(() => {
     if (status === "authenticated") {
-      // Initial load
+      // Single load when page mounts (no auto-refresh)
       fetchBindRequests();
-
-      // Auto-refresh periodically so counts stay in sync with agency side
-      const intervalId = setInterval(() => {
-        fetchBindRequests();
-      }, 5000); // every 5 seconds
-
-      return () => clearInterval(intervalId);
     }
   }, [status]);
 
