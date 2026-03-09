@@ -46,6 +46,8 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({
       success: true,
       submissions,
+      // Alias for legacy consumers (admin dashboard expects `requests`)
+      requests: submissions,
       count: submissions.length,
     });
   } catch (error: any) {
