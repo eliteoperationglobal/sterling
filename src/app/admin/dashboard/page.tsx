@@ -32,6 +32,7 @@ export default function AdminDashboard() {
       if (userRole !== "system_admin") {
         router.push("/agency/dashboard");
       } else {
+        // Single load when dashboard mounts
         fetchStats();
       }
     }
