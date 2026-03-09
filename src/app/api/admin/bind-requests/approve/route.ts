@@ -72,15 +72,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Find quote for this submission
-    const quote = await Quote.findOne({ submissionId: submission._id });
-    if (!quote) {
-      return NextResponse.json(
-        { error: "Quote not found for this submission" },
-        { status: 404 }
-      );
-    }
-
     const bindApprovedAt = new Date();
     (submission as any).bindApproved = true;
     (submission as any).bindApprovedAt = bindApprovedAt;
@@ -89,8 +80,12 @@ export async function POST(req: NextRequest) {
 
     await submission.save();
 
-    quote.status = "BOUND";
-    await quote.save();
+    // Try to mark related quote as BOUND, but don't fail if quote is missing
+    const quote = await Quote.findOne({ submissionId: submission._id });
+    if (quote) {
+      quote.status = "BOUND";
+      await quote.save();
+    }
 
     await logActivity(
       createActivityLogData(
@@ -98,7 +93,7 @@ export async function POST(req: NextRequest) {
         "Policy bound by admin",
         {
           submissionId: submissionId,
-          quoteId: quote._id.toString(),
+          quoteId: quote ? quote._id.toString() : undefined,
           user: {
             id: (session.user as any).id,
             name:
