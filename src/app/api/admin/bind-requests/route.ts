@@ -30,8 +30,9 @@ export async function GET(req: NextRequest) {
 
     await connectDB();
 
-    // Ensure models are registered
+    // Ensure models are registered before populate (important on serverless/cold starts)
     await import("@/models/Agency");
+    await import("@/models/FormTemplate");
 
     // Fetch submissions where bindRequested = true && bindApproved = false
     const submissions = await Submission.find({
