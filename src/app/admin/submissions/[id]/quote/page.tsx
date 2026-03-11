@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter, useParams, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { signOut } from "next-auth/react";
@@ -38,6 +38,8 @@ export default function AdminQuotePage() {
   const router = useRouter();
   const params = useParams();
   const submissionId = params?.id as string;
+  const searchParams = useSearchParams();
+  const isRenterQuote = searchParams.get("quoteType") === "renter";
 
   const [submission, setSubmission] = useState<Submission | null>(null);
   const [carriers, setCarriers] = useState<Carrier[]>([]);
@@ -86,6 +88,11 @@ export default function AdminQuotePage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+
+  // Admin document upload
+  const [uploadingDocs, setUploadingDocs] = useState(false);
+  const [uploadError, setUploadError] = useState("");
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
   // Available endorsements
   const availableEndorsements = [
@@ -161,6 +168,21 @@ export default function AdminQuotePage() {
       }
     }
   }, [submission]);
+
+  // Apply renter-quote specific defaults when opened from "Renter Quote" action
+  useEffect(() => {
+    if (!submission || !isRenterQuote) return;
+
+    // If no special notes yet, tag this as a renter quote for clarity
+    if (!specialNotes) {
+      setSpecialNotes("Renter quote – adjust limits and terms as needed.");
+    }
+
+    // Provide a gentle default for general liability if not already set
+    if (!generalLiabilityLimit) {
+      setGeneralLiabilityLimit("1M/1M/1M");
+    }
+  }, [submission, isRenterQuote, specialNotes, generalLiabilityLimit]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -396,6 +418,60 @@ export default function AdminQuotePage() {
   };
 
   const breakdown = calculateBreakdown();
+
+  const handleFilesSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) {
+      setSelectedFiles([]);
+      return;
+    }
+    setSelectedFiles(Array.from(files));
+  };
+
+  const handleUploadDocuments = async () => {
+    if (!submissionId) return;
+    if (!selectedFiles.length) {
+      setUploadError("Please select at least one file to upload.");
+      return;
+    }
+
+    setUploadError("");
+    setUploadingDocs(true);
+
+    try {
+      const formData = new FormData();
+      selectedFiles.forEach((file) => {
+        formData.append("files", file);
+      });
+
+      const res = await fetch(
+        `/api/admin/submissions/${submissionId}/upload-documents`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to upload documents");
+      }
+
+      toast.success(
+        data.uploadedCount
+          ? `${data.uploadedCount} document(s) uploaded successfully`
+          : "Documents uploaded successfully"
+      );
+      setSelectedFiles([]);
+    } catch (err: any) {
+      console.error("Admin document upload error:", err);
+      setUploadError(err.message || "Failed to upload documents");
+      toast.error(err.message || "Failed to upload documents");
+    } finally {
+      setUploadingDocs(false);
+    }
+  };
 
   // Collect all form data for auto-save
   const formData = useMemo(() => ({
@@ -830,9 +906,14 @@ export default function AdminQuotePage() {
                 </svg>
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">Enter Quote</h1>
+                <h1 className="text-3xl font-bold text-gray-900">
+                  {isRenterQuote ? "Enter Renter Quote" : "Enter Quote"}
+                </h1>
                 <p className="text-gray-600 mt-1">
-                  Create a quote for: <span className="font-semibold text-gray-900">{submission.clientContact.name}</span>
+                  Create a quote for:{" "}
+                  <span className="font-semibold text-gray-900">
+                    {submission.clientContact.name}
+                  </span>
                   {submission.programName ? (
                     <> ({submission.programName})</>
                   ) : submission.templateId ? (
@@ -1427,6 +1508,83 @@ export default function AdminQuotePage() {
                     placeholder="Any special conditions, notes, or requirements..."
                   />
                 </div>
+              </div>
+            </div>
+
+            {/* Admin Document Upload (visible to admin only, supports multiple files) */}
+            <div className="bg-gradient-to-br from-slate-50 to-gray-50 rounded-xl p-6 border border-gray-200/80">
+              <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
+                <div className="w-8 h-8 bg-gradient-to-br from-gray-600 to-slate-700 rounded-lg flex items-center justify-center">
+                  <svg
+                    className="w-5 h-5 text-white"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                    />
+                  </svg>
+                </div>
+                Upload Supporting Documents
+              </h3>
+              <p className="text-xs text-gray-600 mb-4">
+                Upload carrier binders, endorsements, or any other supporting
+                documents for this submission. These will be visible to the
+                agency under the quote&apos;s document section.
+              </p>
+
+              <div className="space-y-3">
+                <input
+                  type="file"
+                  multiple
+                  onChange={handleFilesSelected}
+                  className="w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-slate-100 file:text-gray-800 hover:file:bg-slate-200 cursor-pointer"
+                />
+                {selectedFiles.length > 0 && (
+                  <p className="text-xs text-gray-600">
+                    Selected:{" "}
+                    {selectedFiles.map((f) => f.name).join(", ")}
+                  </p>
+                )}
+                {uploadError && (
+                  <p className="text-xs text-red-600 font-semibold">
+                    {uploadError}
+                  </p>
+                )}
+                <button
+                  type="button"
+                  onClick={handleUploadDocuments}
+                  disabled={uploadingDocs || selectedFiles.length === 0}
+                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-gray-800 text-white rounded-xl text-sm font-semibold hover:bg-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                >
+                  {uploadingDocs ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                      Uploading...
+                    </>
+                  ) : (
+                    <>
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5-5m0 0l5 5m-5-5v12"
+                        />
+                      </svg>
+                      Upload Documents
+                    </>
+                  )}
+                </button>
               </div>
             </div>
 

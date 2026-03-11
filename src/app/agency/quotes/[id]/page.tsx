@@ -82,7 +82,7 @@ interface Submission {
 }
 
 interface SignedDocument {
-  documentType: "PROPOSAL" | "FINANCE_AGREEMENT" | "CARRIER_FORM";
+  documentType: "PROPOSAL" | "FINANCE_AGREEMENT" | "CARRIER_FORM" | "ADMIN_UPLOAD";
   documentName: string;
   documentUrl: string;
   generatedAt: string;

@@ -20,7 +20,7 @@ export interface IFileUpload {
 }
 
 export interface ISignedDocument {
-  documentType: "PROPOSAL" | "FINANCE_AGREEMENT" | "CARRIER_FORM";
+  documentType: "PROPOSAL" | "FINANCE_AGREEMENT" | "CARRIER_FORM" | "ADMIN_UPLOAD";
   documentName: string;
   documentUrl: string;
   generatedAt: Date;
@@ -117,7 +117,7 @@ const FileUploadSchema: Schema = new Schema({
 const SignedDocumentSchema: Schema = new Schema({
   documentType: {
     type: String,
-    enum: ["PROPOSAL", "FINANCE_AGREEMENT", "CARRIER_FORM"],
+    enum: ["PROPOSAL", "FINANCE_AGREEMENT", "CARRIER_FORM", "ADMIN_UPLOAD"],
     required: true,
   },
   documentName: { type: String, required: true },

@@ -98,18 +98,13 @@ export async function POST(
       );
     }
 
-    // Check if quote already exists for this submission and carrier
+    // Check if quote already exists for this submission and carrier.
+    // If it does, we'll UPDATE it instead of blocking – this powers the
+    // "Re-enter Quote" flow in the admin UI.
     const existingQuote = await Quote.findOne({
       submissionId,
       carrierId,
     });
-
-    if (existingQuote) {
-      return NextResponse.json(
-        { error: "Quote already exists for this submission and carrier" },
-        { status: 400 }
-      );
-    }
 
     // Calculate final amount (no wholesale fee - removed per user request)
     const brokerFee = parseFloat(brokerFeeAmountUSD) || 0;
@@ -179,62 +174,133 @@ export async function POST(
       paymentOption == "Premium Financial Partners Co."
         ? Math.max(0, totalDepositUSD - totalToRetainUSD)
         : 0;
+    let quote;
 
-    const quote = await Quote.create({
-      submissionId,
-      carrierId,
-      carrierQuoteUSD,
-      // No wholesale fee - removed per user request
-      carrierFeesUSD: carrierFees > 0 ? carrierFees : undefined,
-      sterlingInsuranceServicesFeesUSD: sterlingFees > 0 ? sterlingFees : undefined,
-      brokerFeeAmountUSD: brokerFee,
-      premiumTaxPercent: premiumTaxPercent ? parseFloat(premiumTaxPercent) : undefined,
-      premiumTaxAmountUSD: taxAmount > 0 ? taxAmount : undefined,
-      policyFeeUSD: policyFee > 0 ? policyFee : undefined,
-      stampingFeePercent: stampingFeePercent ? parseFloat(stampingFeePercent) : undefined,
-      stampingFeeAmountUSD: stampingAmount > 0 ? stampingAmount : undefined,
-      finalAmountUSD,
-      fireMarshalTaxPercent: fireMarshalTaxPercent ? parseFloat(fireMarshalTaxPercent) : undefined,
-      fireMarshalTaxAmountUSD: fireMarshalAmount > 0 ? fireMarshalAmount : undefined,
-      depositPremiumUSD,
-      depositCarrierFeesUSD,
-      depositTaxUSD,
-      depositStampingUSD,
-      depositSterlingFeesUSD,
-      depositFireMarshalUSD,
-      totalDepositUSD,
-      totalToRetainUSD,
-      totalToBeSentUSD,
-      totalToFinanceCompanyUSD,
-      limits: limits || undefined,
-      endorsements: endorsements || [],
-      effectiveDate: effectiveDate ? new Date(effectiveDate) : undefined,
-      expirationDate: expirationDate ? new Date(expirationDate) : undefined,
-      policyNumber: policyNumber || undefined,
-      carrierReference: carrierReference || undefined,
-      specialNotes: specialNotes || undefined,
-      status: "POSTED", // Posted to broker
-      enteredByAdminId: (session.user as any).id,
-      enteredAt: new Date(),
-      postedAt: new Date(),
-    });
+    if (existingQuote) {
+      // Re-enter / update existing quote
+      existingQuote.carrierId = carrierId;
+      existingQuote.carrierQuoteUSD = carrierQuoteUSD;
+      existingQuote.carrierFeesUSD = carrierFees > 0 ? carrierFees : undefined;
+      existingQuote.sterlingInsuranceServicesFeesUSD =
+        sterlingFees > 0 ? sterlingFees : undefined;
+      existingQuote.brokerFeeAmountUSD = brokerFee;
+      existingQuote.premiumTaxPercent = premiumTaxPercent
+        ? parseFloat(premiumTaxPercent)
+        : undefined;
+      existingQuote.premiumTaxAmountUSD =
+        taxAmount > 0 ? taxAmount : undefined;
+      existingQuote.policyFeeUSD = policyFee > 0 ? policyFee : undefined;
+      existingQuote.stampingFeePercent = stampingFeePercent
+        ? parseFloat(stampingFeePercent)
+        : undefined;
+      existingQuote.stampingFeeAmountUSD =
+        stampingAmount > 0 ? stampingAmount : undefined;
+      existingQuote.fireMarshalTaxPercent = fireMarshalTaxPercent
+        ? parseFloat(fireMarshalTaxPercent)
+        : undefined;
+      existingQuote.fireMarshalTaxAmountUSD =
+        fireMarshalAmount > 0 ? fireMarshalAmount : undefined;
+      existingQuote.finalAmountUSD = finalAmountUSD;
+      existingQuote.depositPremiumUSD = depositPremiumUSD;
+      existingQuote.depositCarrierFeesUSD = depositCarrierFeesUSD;
+      existingQuote.depositTaxUSD = depositTaxUSD;
+      existingQuote.depositStampingUSD = depositStampingUSD;
+      existingQuote.depositSterlingFeesUSD = depositSterlingFeesUSD;
+      existingQuote.depositFireMarshalUSD = depositFireMarshalUSD;
+      existingQuote.totalDepositUSD = totalDepositUSD;
+      existingQuote.totalToRetainUSD = totalToRetainUSD;
+      existingQuote.totalToBeSentUSD = totalToBeSentUSD;
+      existingQuote.totalToFinanceCompanyUSD = totalToFinanceCompanyUSD;
+      existingQuote.limits = limits || undefined;
+      existingQuote.endorsements = endorsements || [];
+      existingQuote.effectiveDate = effectiveDate
+        ? new Date(effectiveDate)
+        : existingQuote.effectiveDate;
+      existingQuote.expirationDate = expirationDate
+        ? new Date(expirationDate)
+        : existingQuote.expirationDate;
+      existingQuote.policyNumber = policyNumber || undefined;
+      existingQuote.carrierReference = carrierReference || undefined;
+      existingQuote.specialNotes = specialNotes || undefined;
+      existingQuote.status = "POSTED";
+      existingQuote.postedAt = new Date();
 
-    // Update submission status to QUOTED
+      quote = await existingQuote.save();
+    } else {
+      // First-time quote entry
+      quote = await Quote.create({
+        submissionId,
+        carrierId,
+        carrierQuoteUSD,
+        // No wholesale fee - removed per user request
+        carrierFeesUSD: carrierFees > 0 ? carrierFees : undefined,
+        sterlingInsuranceServicesFeesUSD:
+          sterlingFees > 0 ? sterlingFees : undefined,
+        brokerFeeAmountUSD: brokerFee,
+        premiumTaxPercent: premiumTaxPercent
+          ? parseFloat(premiumTaxPercent)
+          : undefined,
+        premiumTaxAmountUSD: taxAmount > 0 ? taxAmount : undefined,
+        policyFeeUSD: policyFee > 0 ? policyFee : undefined,
+        stampingFeePercent: stampingFeePercent
+          ? parseFloat(stampingFeePercent)
+          : undefined,
+        stampingFeeAmountUSD: stampingAmount > 0 ? stampingAmount : undefined,
+        finalAmountUSD,
+        fireMarshalTaxPercent: fireMarshalTaxPercent
+          ? parseFloat(fireMarshalTaxPercent)
+          : undefined,
+        fireMarshalTaxAmountUSD:
+          fireMarshalAmount > 0 ? fireMarshalAmount : undefined,
+        depositPremiumUSD,
+        depositCarrierFeesUSD,
+        depositTaxUSD,
+        depositStampingUSD,
+        depositSterlingFeesUSD,
+        depositFireMarshalUSD,
+        totalDepositUSD,
+        totalToRetainUSD,
+        totalToBeSentUSD,
+        totalToFinanceCompanyUSD,
+        limits: limits || undefined,
+        endorsements: endorsements || [],
+        effectiveDate: effectiveDate ? new Date(effectiveDate) : undefined,
+        expirationDate: expirationDate
+          ? new Date(expirationDate)
+          : undefined,
+        policyNumber: policyNumber || undefined,
+        carrierReference: carrierReference || undefined,
+        specialNotes: specialNotes || undefined,
+        status: "POSTED", // Posted to broker
+        enteredByAdminId: (session.user as any).id,
+        enteredAt: new Date(),
+        postedAt: new Date(),
+      });
+    }
+
+    // Ensure submission status is QUOTED
     await Submission.findByIdAndUpdate(submissionId, {
       status: "QUOTED",
     });
 
-    // Log activity: Quote created
+    // Log activity: Quote created or updated
     await logActivity(
       createActivityLogData(
-        "QUOTE_CREATED",
-        `Quote created and posted by admin for ${submission.clientContact?.name || "client"}`,
+        existingQuote ? "QUOTE_UPDATED" : "QUOTE_CREATED",
+        existingQuote
+          ? `Quote updated and posted by admin for ${
+              submission.clientContact?.name || "client"
+            }`
+          : `Quote created and posted by admin for ${
+              submission.clientContact?.name || "client"
+            }`,
         {
           submissionId: submissionId,
           quoteId: quote._id.toString(),
           user: {
             id: (session.user as any).id,
-            name: (session.user as any).name || (session.user as any).email,
+            name:
+              (session.user as any).name || (session.user as any).email,
             email: (session.user as any).email,
             role: (session.user as any).role || "system_admin",
           },
