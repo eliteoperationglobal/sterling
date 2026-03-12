@@ -1214,7 +1214,7 @@ export default function QuoteFormPage() {
       </div>
 
       {/* Fixed Logo & Header Section */}
-      <div className="sticky top-0 z-40 bg-gray-50 border-b border-gray-200 shadow-sm relative">
+      <div className="sticky top-0 z-40 bg-gray-50 border-b border-gray-200 shadow-sm">
         <div className="max-w-[950px] mx-auto px-8 h-16">
           <div className="relative h-full">
             {/* Centered Logo with Premium Internal Spinner - Positioned at absolute bottom */}
