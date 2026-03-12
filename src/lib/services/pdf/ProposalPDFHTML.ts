@@ -8,51 +8,51 @@ export interface ProposalData {
   // Quote Information
   quoteNumber: string;
   proposalDate: string;
-  desiredCoverageDates: string;	
-  agentName: string;
-  agencyAddress: string;
-  agencyState: string;
-  agencyZip: string;
-  agencyCity: string;
-  classCode: string;
+  desiredCoverageDates?: string;	
+  agentName?: string;
+  agencyAddress?: string;
+  agencyState?: string;
+  agencyZip?: string;
+  agencyCity?: string;
+  classCode?: string;
   // Insured Information
-  companyName: string;
+  companyName?: string;
   dba?: string;
-  firstName: string;
-  lastName: string;
-  entityType: string;
-  companyFEIN: string;
-  phone: string;
-  email: string;
-  streetAddress: string;
-  city: string;
-  state: string;
-  zipCode: string;
-  grossReceipts: string;
+  firstName?: string;
+  lastName?: string;
+  entityType?: string;
+  companyFEIN?: string;
+  phone?: string;
+  email?: string;
+  streetAddress?: string;
+  city?: string;
+  state?: string;
+  zipCode?: string;
+  grossReceipts?: string;
   
   // Agency Information
-  agencyName: string;
+  agencyName?: string;
   agencyEmail?: string;
   agencyPhone?: string;
   
   // Carrier Information
-  carrierName: string;
+  carrierName?: string;
   carrierReference?: string;
   
   // Policy Information
-  programName: string;
-  effectiveDate: string;
-  expirationDate: string;
+  programName?: string;
+  effectiveDate?: string;
+  expirationDate?: string;
   
   // Premium Breakdown
-  carrierQuoteUSD: number;
+  carrierQuoteUSD?: number;
   // No wholesale fee - removed per user request
   premiumTaxPercent?: number;
   premiumTaxAmountUSD?: number;
   policyFeeUSD?: number;
   brokerFeeAmountUSD?: number;
-  finalAmountUSD: number;
-  subcontractorCosts: string;
+  finalAmountUSD?: number;
+  subcontractorCosts?: string;
   
   // Limits
   limits?: {
