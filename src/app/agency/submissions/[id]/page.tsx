@@ -735,10 +735,10 @@ function SubmissionDetailsContent() {
               {/* ================= QUOTED (APPROVED QUOTE) ================= */}
               {isQuoted && (
                 <>
-                                  <button
+                  <button
                     onClick={() =>
                       window.open(
-                        `/api/agency/applications/${submissionId}/invoice`,
+                        `/api/agency/applications/${submissionId}/proposal`,
                         "_blank"
                       )
                     }
