@@ -17,7 +17,9 @@ export async function POST(
       );
     }
 
-    submission.status = "QUOTED";
+    // Fixed Status
+    submission.status = "APPROVAL_REQUESTED";
+    // submission.status = "QUOTED";
     await submission.save();
 
     return NextResponse.json({ success: true });

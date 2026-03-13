@@ -72,11 +72,11 @@ function AgencyDashboardContent() {
 
   // Map ISC pipeline stages to real database statuses
   const stageToStatusMap: Record<string, string | string[]> = {
-    "IN_PROGRESS": "SUBMITTED",
+    "IN_PROGRESS": ["SUBMITTED", "APPROVAL_REQUESTED"],
     "REQUIRES_REVIEW": "ROUTED",
     "APPROVAL_REQUESTED": "ROUTED",
     "CONDITIONALLY_APPROVED": "ROUTED",
-    "APPROVED_QUOTE": "QUOTED",
+    "APPROVED_QUOTE": ["QUOTED", "BIND_REQUESTED"],
     "PENDING_BIND": "BIND_REQUESTED",
     "INCOMPLETE_BIND": "BIND_REQUESTED",
     "READY_TO_BIND": "BIND_REQUESTED",
@@ -186,6 +186,7 @@ function AgencyDashboardContent() {
       // Calculate counts for each stage
       const counts: Record<string, number> = {
         "SUBMITTED": 0,
+        "APPROVAL_REQUESTED": 0,
         "ROUTED": 0,
         "QUOTED": 0,
         "BIND_REQUESTED": 0,
@@ -345,25 +346,6 @@ function AgencyDashboardContent() {
                 Marketplace
               </button>
 
-              {/* ⭐ HOME ICON */}
-              {/* <button
-                onClick={() => router.push("/agency/broker-center")}
-                className="p-2.5 rounded-xl hover:bg-gray-100 transition-all duration-200"
-              >
-                <svg
-                  className="w-[22px] h-[22px] text-gray-600"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"
-                  />
-                </svg>
-              </button> */}
 
               {/* ⭐ PROFILE */}
               <div className="relative">

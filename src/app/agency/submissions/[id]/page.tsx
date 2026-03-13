@@ -172,7 +172,7 @@ function SubmissionDetailsContent() {
           body: formData,
         }
       );
-      
+
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error || "Upload failed");
@@ -320,7 +320,7 @@ function SubmissionDetailsContent() {
       setLoading(false);
     }
   };
-  
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -335,24 +335,24 @@ function SubmissionDetailsContent() {
 
   const handleAddNote = async () => {
     if (!noteText.trim() || !submissionId) return;
-    
+
     try {
       const res = await fetch(`/api/agency/submissions/${submissionId}/notes`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ note: noteText, notifyList: noteFilters })
       });
-      
+
       if (!res.ok) throw new Error("Failed to add note");
-      
+
       const data = await res.json();
-      
+
       if (data.note) {
-         setActivityLogs(prev => [data.note, ...prev]);
-         setNoteText("");
-         setTimeout(scrollToBottom, 100);
+        setActivityLogs(prev => [data.note, ...prev]);
+        setNoteText("");
+        setTimeout(scrollToBottom, 100);
       }
-    } catch(err: any) {
+    } catch (err: any) {
       toast.error(err.message || "Failed to add note");
     }
   };
@@ -515,6 +515,7 @@ function SubmissionDetailsContent() {
 
   // ✅ STATUS FLAGS (YAHAN ADD KARNA HAI)
   const isSubmitted = submission?.status === "SUBMITTED";
+  const isApprovalRequested = submission?.status === "APPROVAL_REQUESTED";
   const isQuoted = submission?.status === "QUOTED";
   const isBindRequested = submission?.status === "BIND_REQUESTED";
   const isBound = submission?.status === "BOUND";
@@ -594,7 +595,7 @@ function SubmissionDetailsContent() {
 
               <div>
                 {/* Title */}
-                <h1 className="flex items-center gap-3 text-[24px] font-semibold text-gray-900 leading-[28px] leading-tight">
+                <h1 className="flex items-center gap-3 text-[24px] font-semibold text-gray-900 leading-[28px]">
                   <div>
                     {(submission?.clientContact?.name || "???")}
                     <span className="inline-flex items-center rounded-md bg-gray-100 px-3 py-[4px] text-[13px] font-medium text-gray-700 ">
@@ -607,7 +608,7 @@ function SubmissionDetailsContent() {
                 <div className="flex items-center flex-wrap gap-x-5 gap-y-1 mt-2 text-[14px] text-gray-700">
 
                   <span className="flex items-center gap-1.5">
-                    <User className="w-[18px] h-[18px] text-gray-500 text-gray-400" />
+                    <User className="w-[18px] h-[18px] text-gray-500" />
                     {(submission?.clientContact?.name || "???")}
                   </span>
 
@@ -633,35 +634,6 @@ function SubmissionDetailsContent() {
 
             {/* RIGHT SIDE */}
             <div className="flex items-center gap-4">
-
-              {/* ICON ACTIONS */}
-              {/* <div className="flex items-center gap-5"
-                <button aria-label="Favorite"
-                  className="p-2 rounded-md hover:bg-gray-100">
-                  <Heart className="w-[22px] h-[22px] text-gray-500 hover:text-gray-700" />
-                </button>
-
-                <button
-                  aria-label="Assign User"
-                  className="p-2 rounded-md hover:bg-gray-100"
-                >
-                  <UserPlus className="w-[22px] h-[22px] text-gray-500 hover:text-gray-700" />
-                </button>
-
-                <button
-                  aria-label="Copy"
-                  className="p-2 rounded-md hover:bg-gray-100"
-                >
-                  <Copy className="w-[22px] h-[22px] text-gray-500 hover:text-gray-700" />
-                </button>
-
-                <button
-                  aria-label="Share"
-                  className="p-2 rounded-md hover:bg-gray-100"
-                >
-                  <Share2 className="w-[22px] h-[22px] text-gray-500 hover:text-gray-700" />
-                </button>
-              </div>*/}
               {/* APP ID */}
               <span className="text-[14px] text-gray-500 ml-2">
                 App ID {submission.submissionNumber || (submission?._id || "").slice(-6)}
@@ -732,10 +704,65 @@ function SubmissionDetailsContent() {
                 </>
               )}
 
-              {/* ================= QUOTED (APPROVED QUOTE) ================= */}
-              {isQuoted && (
+              {/* ================= APPROVAL REQUESTED ================= */}
+              {isApprovalRequested && (
                 <>
-                                  <button
+                  <button
+                    onClick={() =>
+                      window.open(
+                        `/api/agency/applications/${submissionId}/pdf`,
+                        "_blank"
+                      )
+                    }
+                    className={iscOutlineBtn}
+                  >
+                    App Packet
+                  </button>
+
+                  <button
+                    onClick={() =>
+                      window.open(
+                        `/agency/quote/${submission.programId}?mode=view&id=${submission._id}`,
+                        "_blank"
+                      )
+                    }
+                    className={iscOutlineBtn}
+                  >
+                    View
+                  </button>
+
+                  <button
+                    onClick={() =>
+                      window.open(
+                        `/agency/quote/${submission.programId}?mode=edit&id=${submission._id}`,
+                        "_blank"
+                      )
+                    }
+                    className={iscOutlineBtn}
+                  >
+                    Edit
+                  </button>
+
+                  <button
+                    disabled
+                    className={`${iscPrimaryBtn} opacity-60 cursor-not-allowed`}
+                  >
+                    Waiting For Approval
+                  </button>
+
+                  <button
+                    onClick={handleCancelRequest}
+                    className={iscOutlineBtn}
+                  >
+                    Cancel Quote
+                  </button>
+                </>
+              )}
+
+              {/* ================= QUOTED (APPROVED QUOTE) ================= */}
+              {(isQuoted || isBindRequested) && (
+                <>
+                  <button
                     onClick={() =>
                       window.open(
                         `/api/agency/applications/${submissionId}/invoice`,
@@ -783,12 +810,23 @@ function SubmissionDetailsContent() {
                     View
                   </button>
 
-                  <button
-                    onClick={handleRequestBind}
-                    className={iscPrimaryBtn}
-                  >
-                    Request Bind
-                  </button>
+                  {submission?.status === "QUOTED" && (
+                    <button
+                      onClick={handleRequestBind}
+                      className={iscPrimaryBtn}
+                    >
+                      Request Bind
+                    </button>
+                  )}
+
+                  {isBindRequested && (
+                    <button
+                      disabled
+                      className={`${iscPrimaryBtn} opacity-60 cursor-not-allowed`}
+                    >
+                      Bind Requested
+                    </button>
+                  )}
 
                   <button
                     className={iscOutlineBtn}
@@ -811,7 +849,7 @@ function SubmissionDetailsContent() {
               )}
 
               {/* ================= BIND REQUESTED ================= */}
-              {isBindRequested && (
+              {/* {isBindRequested && (
                 <>
                   <button
                     onClick={() =>
@@ -831,7 +869,7 @@ function SubmissionDetailsContent() {
                     Cancel Quote
                   </button>
                 </>
-              )}
+              )} */}
             </div>
 
             {/* ================= BOUND (NEWLY BOUND) ================= */}
@@ -1171,7 +1209,7 @@ function SubmissionDetailsContent() {
 
                 {/* Chat Container */}
                 <div className="border rounded-xl bg-gray-50 flex-1 overflow-y-auto p-4 flex flex-col gap-4 shadow-inner relative">
-                  
+
                   {activityLogs.filter(log => log.activityType === "ADMIN_NOTE_ADDED").length === 0 ? (
                     <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
                       <div className="w-16 h-12 bg-gray-200 rounded-lg mb-4 opacity-70" />
@@ -1181,18 +1219,17 @@ function SubmissionDetailsContent() {
                   ) : (
                     activityLogs
                       .filter(log => log.activityType === "ADMIN_NOTE_ADDED")
-                      .sort((a,b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+                      .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
                       .map((note) => {
                         const isMe = note.performedBy?.userId === (session?.user as any)?.id;
                         return (
                           <div key={note._id} className={`flex ${isMe ? "justify-end" : "justify-start"} w-full`}>
                             <div className={`flex flex-col max-w-[75%] ${isMe ? "items-end" : "items-start"}`}>
-                              
-                              <div className={`px-4 py-2.5 rounded-2xl shadow-sm text-[14px] leading-relaxed relative ${
-                                isMe 
-                                ? "bg-[#9A8B7A] text-white rounded-tr-sm" 
+
+                              <div className={`px-4 py-2.5 rounded-2xl shadow-sm text-[14px] leading-relaxed relative ${isMe
+                                ? "bg-[#9A8B7A] text-white rounded-tr-sm"
                                 : "bg-white text-gray-800 border border-gray-200 rounded-tl-sm"
-                              }`}>
+                                }`}>
                                 {!isMe && (
                                   <div className="text-[11px] font-bold text-gray-400 mb-1 tracking-tight">
                                     {note.performedBy?.userName || "Admin"}
@@ -1200,7 +1237,7 @@ function SubmissionDetailsContent() {
                                 )}
                                 <span className="whitespace-pre-wrap break-words">{note.description}</span>
                               </div>
-                              
+
                               <div className="text-[10px] text-gray-400 mt-1.5 px-1 font-medium select-none">
                                 {new Date(note.createdAt).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}
                                 {' • '}
@@ -1210,7 +1247,7 @@ function SubmissionDetailsContent() {
                             </div>
                           </div>
                         );
-                    })
+                      })
                   )}
                   <div ref={messagesEndRef} />
                 </div>
@@ -1239,89 +1276,89 @@ function SubmissionDetailsContent() {
               ))}
             </div>
           )}
-                {activeTab === "Contact Information" && (
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+          {activeTab === "Contact Information" && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
 
-                    {/* ================= PRODUCER ================= */}
-                    <div className="border rounded-md p-6 bg-gray-50">
-                      <h3 className="text-[15px] font-semibold text-gray-900 mb-4">
-                        Producer
-                      </h3>
+              {/* ================= PRODUCER ================= */}
+              <div className="border rounded-md p-6 bg-gray-50">
+                <h3 className="text-[15px] font-semibold text-gray-900 mb-4">
+                  Producer
+                </h3>
 
-                      <div className="space-y-3 text-[14px]">
+                <div className="space-y-3 text-[14px]">
 
-                        <div>
-                          <p className="font-semibold text-gray-900">
-                            {submission?.payload?.agentName || "—"}
-                          </p>
-                          <p className="text-gray-500">
-                            {(session?.user as any)?.agencyName || "—"}
-                          </p>
-                        </div>
-
-                        <div className="pt-4 space-y-2 text-gray-600">
-                          <div className="flex items-center gap-2">
-                            <MapPin className="w-4 h-4 text-gray-400" />
-                            <span>
-                              {(session?.user as any)?.agencyAddress || "—"},{" "}
-                              {(session?.user as any)?.agencyCity || "—"},{" "}
-                              {(session?.user as any)?.agencyState || "—"}{" "}
-                              {(session?.user as any)?.agencyZip || "—"}
-                            </span>
-                          </div>
-
-                          <div className="flex items-center gap-2">
-                            <Phone className="w-4 h-4 text-gray-400" />
-                            <span>{(session?.user as any)?.agencyPhone || "—"}</span>
-                          </div>
-
-                          <div className="flex items-center gap-2">
-                            <Mail className="w-4 h-4 text-gray-400" />
-                            <span>{((session?.user as any)?.agencyEmail || "—")}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* ================= WHOLESALER ================= */}
-                    <div className="border rounded-md p-6 bg-gray-50">
-                      <h3 className="text-[15px] font-semibold text-gray-900 mb-4">
-                        Wholesaler
-                      </h3>
-
-                      <div className="space-y-3 text-[14px]">
-
-                        <div>
-                          <p className="font-semibold text-gray-900">
-                            {quotes[0]?.carrierId?.name || "Sterling Insurance Services"}
-                          </p>
-                        </div>
-
-                        <div className="pt-4 space-y-2 text-gray-600">
-                          <div className="flex items-center gap-2">
-                            <MapPin className="w-4 h-4 text-gray-400" />
-                            <span>
-                              5455 Wilshire Blvd, Los Angeles, CA 90036, United States
-                            </span>
-                          </div>
-
-                          <div className="flex items-center gap-2">
-                            <Phone className="w-4 h-4 text-gray-400" />
-                            <span>(310) 492-2007</span>
-                          </div>
-
-                          <div className="flex items-center gap-2">
-                            <Mail className="w-4 h-4 text-gray-400" />
-                            <span>
-                              {quotes[0]?.carrierId?.email || "info@sterlinginsurancepartners.com"}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
+                  <div>
+                    <p className="font-semibold text-gray-900">
+                      {submission?.payload?.agentName || "—"}
+                    </p>
+                    <p className="text-gray-500">
+                      {(session?.user as any)?.agencyName || "—"}
+                    </p>
                   </div>
-                )}
+
+                  <div className="pt-4 space-y-2 text-gray-600">
+                    <div className="flex items-center gap-2">
+                      <MapPin className="w-4 h-4 text-gray-400" />
+                      <span>
+                        {(session?.user as any)?.agencyAddress || "—"},{" "}
+                        {(session?.user as any)?.agencyCity || "—"},{" "}
+                        {(session?.user as any)?.agencyState || "—"}{" "}
+                        {(session?.user as any)?.agencyZip || "—"}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <Phone className="w-4 h-4 text-gray-400" />
+                      <span>{(session?.user as any)?.agencyPhone || "—"}</span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <Mail className="w-4 h-4 text-gray-400" />
+                      <span>{((session?.user as any)?.agencyEmail || "—")}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* ================= WHOLESALER ================= */}
+              <div className="border rounded-md p-6 bg-gray-50">
+                <h3 className="text-[15px] font-semibold text-gray-900 mb-4">
+                  Wholesaler
+                </h3>
+
+                <div className="space-y-3 text-[14px]">
+
+                  <div>
+                    <p className="font-semibold text-gray-900">
+                      {quotes[0]?.carrierId?.name || "Sterling Insurance Services"}
+                    </p>
+                  </div>
+
+                  <div className="pt-4 space-y-2 text-gray-600">
+                    <div className="flex items-center gap-2">
+                      <MapPin className="w-4 h-4 text-gray-400" />
+                      <span>
+                        5455 Wilshire Blvd, Los Angeles, CA 90036, United States
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <Phone className="w-4 h-4 text-gray-400" />
+                      <span>(310) 492-2007</span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <Mail className="w-4 h-4 text-gray-400" />
+                      <span>
+                        {quotes[0]?.carrierId?.email || "info@sterlinginsurancepartners.com"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          )}
 
           {activeTab === "Rating Information" && (
             <div className="space-y-6">
@@ -1354,7 +1391,7 @@ function SubmissionDetailsContent() {
                         <RatingRow label="Stamping Fee (%)" value={formatCurrency(ratingData?.stampingFee || 0)} />
                         <RatingRow label="Fire Marshal Tax (%)" value={formatCurrency(ratingData?.fireMarshalTax || 0)} />
                       </div>
-                      
+
                       {/* Total Cost inside the Left Card pinned to bottom */}
                       <div className="mt-auto pt-6 border-t flex justify-between items-center">
                         <span className="text-[16px] font-bold text-gray-900">Total Cost:</span>
@@ -1377,9 +1414,9 @@ function SubmissionDetailsContent() {
                       <div className="flex flex-col gap-5 flex-grow mb-8">
                         <RatingRow label="Commission (10%)" value={formatCurrency(ratingData?.commission || 0)} />
                         <RatingRow label="Broker Fee" value={formatCurrency(ratingData?.commissionTax || 0)} />
-                       {/* <RatingRow label="Excess Commission" value={formatCurrency(ratingData?.excessCommission || 0)} />*/}
+                        {/* <RatingRow label="Excess Commission" value={formatCurrency(ratingData?.excessCommission || 0)} />*/}
                       </div>
-                      
+
                       {/* Total for Broker inside the Right Card pinned to bottom */}
                       <div className="mt-auto pt-6 border-t flex justify-between items-center">
                         <span className="text-[16px] font-bold text-gray-900">Total for Broker:</span>

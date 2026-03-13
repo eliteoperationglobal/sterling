@@ -51,17 +51,17 @@ export default function AdminSubmissionsPage() {
     setLoading(true);
     setError("");
     try {
-      const url = statusFilter !== "ALL" 
+      const url = statusFilter !== "ALL"
         ? `/api/admin/submissions?status=${statusFilter}`
         : "/api/admin/submissions";
       const response = await fetch(url);
       const data = await response.json();
       console.log("Admin submissions API response:", data);
-      
+
       if (!response.ok) {
         throw new Error(data.error || `HTTP error! status: ${response.status}`);
       }
-      
+
       if (data.submissions) {
         setSubmissions(data.submissions);
         console.log(`Loaded ${data.submissions.length} submissions`);
@@ -154,7 +154,7 @@ export default function AdminSubmissionsPage() {
                 View submitted applications and enter quotes • {submissions.length} {submissions.length === 1 ? 'submission' : 'submissions'}
               </p>
             </div>
-            
+
             {/* Filter Section */}
             <div className="flex items-center gap-3 bg-white/80 backdrop-blur-xl rounded-xl px-4 py-3 border border-gray-200/60 shadow-sm">
               <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -303,7 +303,10 @@ export default function AdminSubmissionsPage() {
                             </svg>
                             PDF
                           </a>
-                          {submission.status === "SUBMITTED" && (
+                          {/* {submission.status === "SUBMITTED" && ( */}
+                          {["SUBMITTED", "APPROVAL_REQUESTED"].includes(
+                            submission.status
+                          ) &&
                             <>
                               <Link
                                 href={`/admin/submissions/${submission._id}/quote`}
@@ -316,7 +319,7 @@ export default function AdminSubmissionsPage() {
                               </Link>
 
                               {/* Renter Quote – opens same quote screen with renter defaults */}
-                              <Link
+                              {/* <Link
                                 href={`/admin/submissions/${submission._id}/quote?quoteType=renter`}
                                 className="px-3 py-1.5 text-xs font-semibold text-indigo-700 bg-gradient-to-r from-indigo-50 to-sky-50 hover:from-indigo-100 hover:to-sky-100 rounded-lg border border-indigo-200 transition-all duration-200 inline-flex items-center gap-1 group/btn"
                               >
@@ -334,33 +337,33 @@ export default function AdminSubmissionsPage() {
                                   />
                                 </svg>
                                 Renter Quote
-                              </Link>
+                              </Link> */}
                             </>
-                          )}
+                          }
 
                           {["QUOTED", "BIND_REQUESTED", "BOUND"].includes(
                             submission.status
                           ) && (
-                            <Link
-                              href={`/admin/submissions/${submission._id}/quote`}
-                              className="px-3 py-1.5 text-xs font-semibold text-amber-700 bg-gradient-to-r from-amber-50 to-orange-50 hover:from-amber-100 hover:to-orange-100 rounded-lg border border-amber-200 transition-all duration-200 inline-flex items-center gap-1 group/btn"
-                            >
-                              <svg
-                                className="w-3.5 h-3.5 group-hover/btn:scale-110 transition-transform"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
+                              <Link
+                                href={`/admin/submissions/${submission._id}/quote`}
+                                className="px-3 py-1.5 text-xs font-semibold text-amber-700 bg-gradient-to-r from-amber-50 to-orange-50 hover:from-amber-100 hover:to-orange-100 rounded-lg border border-amber-200 transition-all duration-200 inline-flex items-center gap-1 group/btn"
                               >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M15 12H9m3-3v6m8-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                                />
-                              </svg>
-                              Re-enter Quote
-                            </Link>
-                          )}
+                                <svg
+                                  className="w-3.5 h-3.5 group-hover/btn:scale-110 transition-transform"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M15 12H9m3-3v6m8-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                                  />
+                                </svg>
+                                Re-enter Quote
+                              </Link>
+                            )}
                         </div>
                       </td>
                     </tr>

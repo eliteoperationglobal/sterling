@@ -4,6 +4,7 @@ import Counter from "./Counter";
 export type SubmissionStatus =
   | "DRAFT"
   | "SUBMITTED"
+  | "APPROVAL_REQUESTED"
   | "ROUTED"
   | "QUOTED"
   | "BIND_REQUESTED"
@@ -176,7 +177,7 @@ const SubmissionSchema: Schema = new Schema(
     },
     status: {
       type: String,
-      enum: ["DRAFT", "SUBMITTED", "ROUTED", "QUOTED", "BIND_REQUESTED", "BOUND", "DECLINED"],
+      enum: ["DRAFT", "SUBMITTED","APPROVAL_REQUESTED", "ROUTED", "QUOTED", "BIND_REQUESTED", "BOUND", "DECLINED"],
       default: "DRAFT",
       index: true,
     },
