@@ -765,7 +765,7 @@ function SubmissionDetailsContent() {
                   <button
                     onClick={() =>
                       window.open(
-                        `/api/agency/applications/${submissionId}/invoice`,
+                        `/api/agency/applications/${submissionId}/proposal`,
                         "_blank"
                       )
                     }

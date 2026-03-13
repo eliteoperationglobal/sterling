@@ -113,6 +113,7 @@ export default function AdminSubmissionsPage() {
   }
 
   return (
+    
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-xl border-b border-gray-200/60 sticky top-0 z-50 shadow-sm">
@@ -143,7 +144,9 @@ export default function AdminSubmissionsPage() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+       
         {/* Page Header */}
+        
         <div className="mb-8">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-6">
             <div>
@@ -375,6 +378,7 @@ export default function AdminSubmissionsPage() {
         )}
       </main>
     </div>
+    
   );
 }
 

@@ -162,6 +162,8 @@ export async function POST(req: NextRequest) {
     let normalizedPayload = normalizeSubcontractors(formData);
     normalizedPayload = normalizeAdditionalCoverages(normalizedPayload);
 
+  normalizedPayload.yearsExperienceInTrades =
+  Number(formData.yearsOfExperienceTrade || 0);
 
     // Create submission (application)
     const submission = await Submission.create({
@@ -210,7 +212,7 @@ export async function POST(req: NextRequest) {
       // Map form data to packet data format (no quote yet for new submissions)
       let packetData;
       try {
-        mapFormDataToPacketData(
+        packetData = mapFormDataToPacketData(
           submission.payload,
           submission._id.toString(),
           agency,

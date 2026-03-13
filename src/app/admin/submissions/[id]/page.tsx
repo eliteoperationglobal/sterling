@@ -1,19 +1,92 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { toast } from "sonner";
+import {
+  ArrowLeft,
+  User,
+  MapPin,
+  Phone,
+  Mail,
+  Heart,
+  UserPlus,
+  Copy,
+  Share2,
+  MessageSquare,
+  Send,
+  Clock,
+  ChevronRight,
+  FileText,
+} from "lucide-react";
+
+import DashboardLayout from "@/components/layout/DashboardLayout";
 
 interface SubmissionDetails {
-  submission: any;
+  submission: {
+    submissionNumber?: string;
+    _id: string;
+    submitedAt?: string;
+    agencyId: {
+      _id: string;
+      name: string;
+      email: string;
+    };
+    templateId: any;
+    payload: Record<string, any>;
+    files: Array<{
+      fieldKey: string;
+      fileUrl: string;
+      fileName: string;
+      fileSize: number;
+      mimeType: string;
+      uploadedAt?: string;
+      
+    }>;
+    status: string;
+    clientContact: {
+      name: string;
+      phone: string;
+      email: string;
+      EIN?: string;
+      businessAddress: {
+        street: string;
+        city: string;
+        state: string;
+        zip: string;
+      };
+    };
+    programId?: string;
+    programName?: string;
+    adminNotes?: string;
+    updatedAt: string;
+    createdAt: string;
+  };
   routingLogs: any[];
   quotes: any[];
 }
 
+const formatCurrency = (val: any) => {
+  if (val === undefined || val === null) return "—";
+  const num = Number(val);
+  if (isNaN(num)) return "—";
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+  }).format(num);
+};
+
+const RatingRow = ({ label, value }: { label: string; value: string | number }) => (
+  <div className="flex justify-between items-center py-3 border-b border-gray-200 last:border-0">
+    <span className="text-gray-500 text-[14px]">{label}</span>
+    <span className="font-medium text-gray-900 text-[14px] text-right">{value}</span>
+  </div>
+);
+
 // Component to display application form data
-function ApplicationDataViewer({ data }: { data: any }) {
+function ApplicationDataViewer({ data, type }: { data: any; type: "key" | "additional" }) {
   const formatValue = (value: any): string => {
     if (value === null || value === undefined) return "N/A";
     if (typeof value === "boolean") return value ? "Yes" : "No";
@@ -59,7 +132,7 @@ function ApplicationDataViewer({ data }: { data: any }) {
   return (
     <div className="space-y-6">
       {/* Important Fields Section */}
-      {importantFields.length > 0 && (
+      {type === "key" && importantFields.length > 0 && (
         <div>
           <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
             <div className="w-6 h-6 bg-gradient-to-br from-amber-100 to-orange-100 rounded-lg flex items-center justify-center">
@@ -95,7 +168,7 @@ function ApplicationDataViewer({ data }: { data: any }) {
       )}
 
       {/* Other Fields Section */}
-      {otherFields.length > 0 && (
+      {type === "additional" && otherFields.length > 0 && (
         <div>
           <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
             <div className="w-6 h-6 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center">
@@ -136,6 +209,26 @@ export default function AdminSubmissionDetailsPage() {
   const [editingNotes, setEditingNotes] = useState(false);
   const [savingNotes, setSavingNotes] = useState(false);
 
+  // New state for refactored tabs and notes
+  const [activeTab, setActiveTab] = useState("Admin Notes");
+  const [activityLogs, setActivityLogs] = useState<any[]>([]);
+  const [loadingActivity, setLoadingActivity] = useState(false);
+  const [noteText, setNoteText] = useState("");
+  const [noteFilters, setNoteFilters] = useState<string[]>(["Underwriter"]);
+  const [checkedDocs, setCheckedDocs] = useState<Record<string, boolean>>({});
+  const [uploading, setUploading] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    if (activeTab === "Admin Notes") {
+      scrollToBottom();
+    }
+  }, [activityLogs, activeTab]);
+
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/signin");
@@ -151,6 +244,7 @@ export default function AdminSubmissionDetailsPage() {
   useEffect(() => {
     if (status === "authenticated" && submissionId) {
       fetchData();
+      fetchActivityLogs();
     }
   }, [status, submissionId]);
 
@@ -171,6 +265,78 @@ export default function AdminSubmissionDetailsPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchActivityLogs = async () => {
+    if (!submissionId) return;
+    setLoadingActivity(true);
+    try {
+      const response = await fetch(`/api/admin/submissions/${submissionId}/activity`);
+      if (response.ok) {
+        const data = await response.json();
+        setActivityLogs(data.logs || []);
+      }
+    } catch (err) {
+      console.error("Error fetching activity logs:", err);
+    } finally {
+      setLoadingActivity(false);
+    }
+  };
+
+  const handleAddNote = async () => {
+    if (!noteText.trim() || !submissionId) return;
+    try {
+      const res = await fetch(`/api/admin/submissions/${submissionId}/notes`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ note: noteText, notifyList: noteFilters })
+      });
+      if (!res.ok) throw new Error("Failed to add note");
+      const result = await res.json();
+      if (result.note) {
+         setActivityLogs(prev => [result.note, ...prev]);
+         setNoteText("");
+         setTimeout(scrollToBottom, 100);
+      }
+    } catch(err: any) {
+      toast.error(err.message || "Failed to add note");
+    }
+  };
+
+  const handleFileUpload = async (file: File) => {
+    if (!submissionId) return;
+    const MAX_MB = 10;
+    if (file.size > MAX_MB * 1024 * 1024) {
+      toast.error(`File size cannot exceed ${MAX_MB}MB`);
+      return;
+    }
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      setUploading(true);
+      const res = await fetch(`/api/admin/submissions/${submissionId}/upload`, {
+        method: "POST",
+        body: formData,
+      });
+      if (!res.ok) throw new Error("Upload failed");
+      toast.success("Document uploaded successfully");
+      fetchData();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to upload document");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const toggleNoteFilter = (filter: string) => {
+    setNoteFilters((prev) =>
+      prev.includes(filter) ? prev.filter((f) => f !== filter) : [...prev, filter]
+    );
+  };
+
+  const toggleDoc = (doc: string) => {
+    setCheckedDocs((prev) => ({ ...prev, [doc]: !prev[doc] }));
   };
 
   const getStatusBadgeColor = (status: string) => {
@@ -253,435 +419,598 @@ export default function AdminSubmissionDetailsPage() {
 
   const { submission, routingLogs, quotes } = data;
 
+  // ================= ISC BUTTON STYLES =================
+  const iscOutlineBtn =
+    "h-[42px] px-6 rounded-md text-sm font-medium border border-gray-300 bg-white text-gray-800 transition-all duration-200 hover:border-black hover:shadow-[0_0_0_1px_black] flex items-center justify-center";
+
+  const iscPrimaryBtn =
+    "h-[42px] px-6 rounded-md text-sm font-semibold bg-[#7A6F64] text-white transition-all duration-200 hover:bg-[#7A6F64] flex items-center justify-center";
+
+  // ✅ STATUS FLAGS
+  const isSubmitted = submission?.status === "SUBMITTED";
+  const isQuoted = submission?.status === "QUOTED";
+  const isBindRequested = submission?.status === "BIND_REQUESTED";
+  const isBound = submission?.status === "BOUND";
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
-      {/* Header */}
-      <header className="bg-white/80 backdrop-blur-xl border-b border-gray-200/60 sticky top-0 z-50 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <Link href="/admin/dashboard" className="flex items-center gap-3 group">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30 group-hover:shadow-blue-500/50 transition-all duration-300">
-                <span className="text-white font-bold text-lg">SP</span>
+    <DashboardLayout>
+      <main className="flex-1 ml-[6px] bg-[#F3F0ED] overflow-x-hidden min-h-screen pb-12">
+        {/* Header */}
+        <div className="bg-white px-6 pt-5 pb-4 shadow-sm">
+          <div className="flex items-start justify-between">
+            <div className="bg-white px-8 py-3">
+              <div>
+                <h1 className="flex items-center gap-3 text-[24px] font-semibold text-gray-900 leading-tight">
+                  <div>
+                    {(submission?.clientContact?.name || "???")}
+                    <span className="ml-3 inline-flex items-center rounded-md bg-gray-100 px-3 py-[4px] text-[13px] font-medium text-gray-700">
+                      {(submission?.status || "").replace(/_/g, " ")}
+                    </span>
+                  </div>
+                </h1>
+
+                <div className="flex items-center flex-wrap gap-x-5 gap-y-1 mt-2 text-[14px] text-gray-700">
+                  <span className="flex items-center gap-1.5">
+                    <User className="w-[18px] h-[18px] text-gray-400" />
+                    {(submission?.clientContact?.name || "???")}
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <MapPin className="w-4 h-4 text-gray-400" />
+                    {(submission?.clientContact?.businessAddress?.city || "???")}, {(submission?.clientContact?.businessAddress?.state || "???")}
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <Phone className="w-4 h-4 text-gray-400" />
+                    {(submission?.clientContact?.phone || "???")}
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <Mail className="w-4 h-4 text-gray-400" />
+                    {(submission?.clientContact?.email || "???")}
+                  </span>
+                </div>
               </div>
-              <span className="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-                Sterling Portal
+            </div>
+            <div className="flex items-center gap-4 pr-8">
+              <span className="text-[14px] text-gray-500">
+                App ID {submission.submissionNumber}
               </span>
-            </Link>
+            </div>
+          </div>
+        </div>
+
+        {/* Action Row */}
+        <div className="bg-white px-6 h-[64px] border-t border-gray-100 shadow-sm">
+          <div className="flex items-center justify-between w-full h-full px-8">
             <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-600 font-medium">
-                {session?.user?.name || session?.user?.email}
+              <h2 className="text-[16px] font-semibold text-gray-900">App Info</h2>
+              <span className="px-3 py-[4px] rounded-md bg-gray-100 text-[13px] text-gray-700">
+                {(submission?.status || "").replace(/_/g, " ")}
               </span>
+            </div>
+
+            <div className="flex items-center gap-3">
+              {isQuoted && (
+                <>
+                  <button
+                    onClick={() => window.open(`/api/agency/applications/${submissionId}/proposal`, "_blank")}
+                    className={iscOutlineBtn}
+                  >
+                    Proposal
+                  </button>
+                  <button
+                    onClick={() => window.open(`/api/agency/applications/${submissionId}/invoice`, "_blank")}
+                    className={iscOutlineBtn}
+                  >
+                    Invoice
+                  </button>
+                </>
+              )}
+              {submission.status === "SUBMITTED" && (
+                <button
+                  onClick={() => window.open(`/admin/submissions/${submissionId}/quote`, "_blank")}
+                  className={iscOutlineBtn}
+                >
+                  Enter Quote
+                </button>
+              )}
+              {["QUOTED", "BIND_REQUESTED", "BOUND"].includes(submission.status) && (
+                <button
+                  onClick={() => window.open(`/admin/submissions/${submissionId}/quote`, "_blank")}
+                  className={iscOutlineBtn}
+                >
+                  Re-enter Quote
+                </button>
+              )}
               <button
-                onClick={() => window.location.href = '/api/auth/signout'}
-                className="text-sm text-gray-600 hover:text-gray-900 font-medium transition-colors duration-200"
+                onClick={() => window.open(`/api/admin/submissions/${submissionId}/pdf`, "_blank")}
+                className={iscOutlineBtn}
               >
-                Sign Out
+                App Packet
+              </button>
+              <button
+                onClick={() => window.open(`/admin/submissions/${submissionId}/quote`, "_blank")}
+                className={iscOutlineBtn}
+              >
+                View
               </button>
             </div>
           </div>
         </div>
-      </header>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-6">
-          <Link
-            href="/admin/submissions"
-            className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 font-medium transition-colors duration-200 group"
-          >
-            <svg className="w-4 h-4 group-hover:-translate-x-1 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-            Back to Submissions
-          </Link>
-        </div>
-
-        <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-sm border border-gray-200/60 hover:shadow-xl hover:border-blue-200 transition-all duration-300 p-8 mb-6">
-          <div className="flex items-center justify-between mb-6">
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-              Submission Details
-            </h1>
-            <span
-              className={`inline-flex items-center px-4 py-2 rounded-xl text-sm font-bold shadow-sm ${getStatusBadgeColor(
-                submission.status
-              )}`}
-            >
-              {submission.status.replace("_", " ")}
-            </span>
-          </div>
-
-          {/* Program Info */}
-          {(submission.programName || submission.templateId) && (
-            <div className="mb-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <div className="w-8 h-8 bg-gradient-to-br from-purple-100 to-indigo-100 rounded-lg flex items-center justify-center">
-                  <svg className="w-5 h-5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                </div>
-                Program Information
-              </h2>
-              <div className="grid grid-cols-2 gap-4 p-4 bg-gradient-to-br from-purple-50 to-indigo-50/50 rounded-xl border border-purple-200/60">
-                {submission.programName && (
-                  <>
-                    <div>
-                      <span className="text-xs text-gray-500 font-medium mb-1 block">Program Name</span>
-                      <p className="text-sm text-gray-900 font-bold">{submission.programName}</p>
-                    </div>
-                    {submission.programId && (
-                      <div>
-                        <span className="text-xs text-gray-500 font-medium mb-1 block">Program ID</span>
-                        <p className="text-sm text-gray-900 font-bold">{submission.programId}</p>
-                      </div>
-                    )}
-                  </>
-                )}
-                {submission.templateId && (
-                  <>
-                    <div>
-                      <span className="text-xs text-gray-500 font-medium mb-1 block">Industry</span>
-                      <p className="text-sm text-gray-900 font-bold">{submission.templateId.industry}</p>
-                    </div>
-                    <div>
-                      <span className="text-xs text-gray-500 font-medium mb-1 block">Subtype</span>
-                      <p className="text-sm text-gray-900 font-bold">{submission.templateId.subtype}</p>
-                    </div>
-                  </>
-                )}
-              </div>
+        {/* FULL WIDTH SECTION: Key Information */}
+        <div className="bg-white px-8 py-5 border-t border-gray-100 shadow-sm">
+          <div className="px-8 grid grid-cols-1 md:grid-cols-5 gap-y-6 gap-x-14 text-[14px]">
+            <div>
+              <p className="text-gray-500 mb-1 leading-tight">Program Name</p>
+              <p className="font-semibold text-gray-900 break-words">{(submission?.clientContact?.name || "—")}</p>
             </div>
-          )}
-
-          {/* Client Info */}
-          <div className="mb-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-100 to-cyan-100 rounded-lg flex items-center justify-center">
-                <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-              </div>
-              Client Information
-            </h2>
-            <div className="grid grid-cols-2 gap-4 p-4 bg-gradient-to-br from-blue-50 to-cyan-50/50 rounded-xl border border-blue-200/60">
-              <div>
-                <span className="text-xs text-gray-500 font-medium mb-1 block">Name</span>
-                <p className="text-sm text-gray-900 font-bold">
-                  {submission.clientContact?.name || "N/A"}
-                </p>
-              </div>
-              <div>
-                <span className="text-xs text-gray-500 font-medium mb-1 block">Email</span>
-                <p className="text-sm text-gray-900 font-bold">
-                  {submission.clientContact?.email || "N/A"}
-                </p>
-              </div>
-              {submission.clientContact?.phone && (
-                <div>
-                  <span className="text-xs text-gray-500 font-medium mb-1 block">Phone</span>
-                  <p className="text-sm text-gray-900 font-bold">
-                    {submission.clientContact.phone}
-                  </p>
-                </div>
-              )}
-              {submission.clientContact?.EIN && (
-                <div>
-                  <span className="text-xs text-gray-500 font-medium mb-1 block">EIN</span>
-                  <p className="text-sm text-gray-900 font-bold">
-                    {submission.clientContact.EIN}
-                  </p>
-                </div>
-              )}
-              {submission.clientContact?.businessAddress && (
-                <div className="col-span-2">
-                  <span className="text-xs text-gray-500 font-medium mb-1 block">Business Address</span>
-                  <p className="text-sm text-gray-900 font-bold">
-                    {submission.clientContact.businessAddress.street}, {submission.clientContact.businessAddress.city}, {submission.clientContact.businessAddress.state} {submission.clientContact.businessAddress.zip}
-                  </p>
-                </div>
-              )}
+            <div>
+              <p className="text-gray-500 mb-1 leading-tight">Effective Date:</p>
+              <p className="font-semibold text-gray-900">{(submission?.payload?.effectiveDate || "—")}</p>
             </div>
-          </div>
-
-          {/* Admin Notes Section */}
-          <div className="mb-6 bg-white/80 backdrop-blur-xl rounded-2xl shadow-sm border border-gray-200/60 hover:shadow-xl hover:border-rose-200 transition-all duration-300 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                <div className="w-8 h-8 bg-gradient-to-br from-rose-100 to-pink-100 rounded-lg flex items-center justify-center">
-                  <svg className="w-5 h-5 text-rose-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                </div>
-                Admin Notes
-              </h2>
-              {!editingNotes && (
-                <button
-                  onClick={() => setEditingNotes(true)}
-                  className="px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-700 hover:to-pink-700 rounded-xl shadow-lg shadow-rose-500/30 hover:shadow-rose-500/50 transition-all duration-300 inline-flex items-center gap-2"
-                >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                  </svg>
-                  {adminNotes ? "Edit Notes" : "Add Notes"}
-                </button>
-              )}
-            </div>
-
-            {editingNotes ? (
-              <div className="space-y-4">
-                <textarea
-                  value={adminNotes}
-                  onChange={(e) => setAdminNotes(e.target.value)}
-                  placeholder="Add notes for the agency (visible to agency users)..."
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent resize-none"
-                  rows={6}
-                />
-                <div className="flex gap-3">
-                  <button
-                    onClick={async () => {
-                      setSavingNotes(true);
-                      try {
-                        const response = await fetch(`/api/admin/submissions/${submissionId}/notes`, {
-                          method: "PATCH",
-                          headers: {
-                            "Content-Type": "application/json",
-                          },
-                          body: JSON.stringify({ adminNotes }),
-                        });
-
-                        if (response.ok) {
-                          toast.success("Admin notes saved successfully");
-                          setEditingNotes(false);
-                          // Refresh data
-                          await fetchData();
-                        } else {
-                          const errorData = await response.json();
-                          throw new Error(errorData.error || "Failed to save notes");
-                        }
-                      } catch (err: any) {
-                        toast.error(err.message || "Failed to save notes");
-                      } finally {
-                        setSavingNotes(false);
-                      }
-                    }}
-                    disabled={savingNotes}
-                    className="px-6 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-700 hover:to-pink-700 rounded-xl shadow-lg shadow-rose-500/30 hover:shadow-rose-500/50 transition-all duration-300 inline-flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {savingNotes ? (
-                      <>
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                        Saving...
-                      </>
-                    ) : (
-                      <>
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                        Save Notes
-                      </>
-                    )}
-                  </button>
-                  <button
-                    onClick={() => {
-                      setEditingNotes(false);
-                      // Reset to original value
-                      setAdminNotes(data?.submission?.adminNotes || "");
-                    }}
-                    disabled={savingNotes}
-                    className="px-6 py-2.5 text-sm font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="bg-gradient-to-br from-rose-50/50 to-pink-50/30 rounded-xl p-4 border border-rose-200/60">
-                {adminNotes ? (
-                  <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{adminNotes}</p>
-                ) : (
-                  <p className="text-sm text-gray-500 italic">No admin notes added yet. Click "Add Notes" to add notes for the agency.</p>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* Application Form Data */}
-          {submission.payload && (
-            <div className="mb-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <div className="w-8 h-8 bg-gradient-to-br from-teal-100 to-emerald-100 rounded-lg flex items-center justify-center">
-                  <svg className="w-5 h-5 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                </div>
-                Application Details
-              </h2>
-              <div className="bg-gradient-to-br from-teal-50/50 to-emerald-50/30 rounded-xl p-6 border border-teal-200/60">
-                <ApplicationDataViewer data={submission.payload} />
-              </div>
-            </div>
-          )}
-
-          {/* Actions */}
-          <div className="mb-6 flex gap-3">
-            <a
-              href={`/api/admin/submissions/${submissionId}/pdf`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-6 py-3 text-sm font-semibold text-gray-700 bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 inline-flex items-center gap-2 group"
-            >
-              <svg className="w-5 h-5 group-hover:scale-110 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-              </svg>
-              Download PDF
-            </a>
-            {submission.status === "SUBMITTED" && (
-              <Link
-                href={`/admin/submissions/${submissionId}/quote`}
-                className="px-6 py-3 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-xl shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 transition-all duration-300 inline-flex items-center gap-2 group"
-              >
-                Enter Quote
-                <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                </svg>
-              </Link>
-            )}
-          </div>
-
-          {/* Post Quote Action for ENTERED_BY_ADMIN quotes */}
-          {quotes && quotes.length > 0 && quotes.some((q: any) => q.status === "ENTERED_BY_ADMIN") && (
-            <div className="mb-6 p-4 bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl border border-amber-200/60">
-              <p className="text-sm text-gray-700 font-semibold mb-3 flex items-center gap-2">
-                <svg className="w-5 h-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                Quotes ready to post:
+            <div>
+              <p className="text-gray-500 mb-1 leading-tight">Estimated Gross Receipts:</p>
+              <p className="font-semibold text-gray-900">
+                {submission?.payload?.estimatedGrossReceipts ? `$${Number(submission.payload.estimatedGrossReceipts).toLocaleString()}` : "—"}
               </p>
-              <div className="flex flex-wrap gap-2">
-                {quotes
-                  .filter((q: any) => q.status === "ENTERED_BY_ADMIN")
-                  .map((quote: any) => (
-                    <Link
-                      key={quote._id}
-                      href={`/admin/quotes/${quote._id}/post`}
-                      className="px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 rounded-xl shadow-lg shadow-amber-500/30 hover:shadow-amber-500/50 transition-all duration-300 inline-flex items-center gap-2 group"
-                    >
-                      Post Quote {quote.carrierId?.name || ""}
-                      <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                      </svg>
-                    </Link>
-                  ))}
-              </div>
             </div>
-          )}
+            <div>
+              <p className="text-gray-500 mb-1 leading-tight">Total Cost</p>
+              <p className="font-semibold text-gray-900">
+                {formatCurrency(quotes?.[0]?.finalAmountUSD)}
+              </p>
+            </div>
+            <div>
+              <p className="text-gray-500 mb-1 leading-tight">Carrier Name</p>
+              <p className="font-semibold text-gray-900">{quotes?.[0]?.carrierId?.name || "Carrier"}</p>
+            </div>
+            <div>
+              <p className="text-gray-500 mb-1 leading-tight">Agency Name</p>
+              <p className="font-semibold text-gray-900">{submission.agencyId?.name || "N/A"}</p>
+            </div>
+          </div>
         </div>
+                        {/* Uploaded Documents Section (Reused from Agency page) */}
+                <div className="bg-white px-8 py-6 grid grid-cols-1 lg:grid-cols-3 gap-10 border-b border-gray-200">
+                  {/* LEFT – UPLOADED DOCUMENTS */}
+                  <div className="lg:col-span-2">
+                    <h3 className="text-[15px] font-semibold text-gray-900 mb-4">
+                      Uploaded Documents
+                    </h3>
 
-        {/* Routing Logs */}
-        {routingLogs && routingLogs.length > 0 && (
-          <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-sm border border-gray-200/60 hover:shadow-xl hover:border-indigo-200 transition-all duration-300 p-6 mb-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-lg flex items-center justify-center">
-                <svg className="w-5 h-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-                </svg>
-              </div>
-              Routing Logs
-            </h2>
-            <div className="space-y-3">
-              {routingLogs.map((log: any) => (
-                <div
-                  key={log._id}
-                  className="p-4 bg-gradient-to-br from-indigo-50 to-purple-50/50 rounded-xl border border-indigo-200/60 hover:border-indigo-300 hover:shadow-md transition-all duration-200"
-                >
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <p className="font-bold text-gray-900">
-                        {log.carrierId?.name || "Unknown Carrier"}
+                    {/* Upload Box */}
+                    <label className="border border-dashed border-gray-300 rounded-md p-6 flex items-center justify-between mb-6 cursor-pointer">
+                      <p className="text-[14px] text-gray-500">
+                        Drag and drop your files here to start uploading or
                       </p>
-                      <p className="text-sm text-gray-600 mt-1">{log.carrierId?.email}</p>
-                      {log.notes && (
-                        <p className="text-xs text-gray-500 mt-2 bg-white/50 rounded-lg px-3 py-2 border border-gray-200/60">
-                          {log.notes}
-                        </p>
-                      )}
+                      <input
+                        type="file"
+                        hidden
+                        onChange={(e) => {
+                          if (e.target.files?.[0]) {
+                            handleFileUpload(e.target.files[0]);
+                          }
+                        }}
+                      />
+                      <span className="ml-4 px-5 py-2 bg-[#9A8B7A] hover:bg-[#7A6F64] text-white text-[14px] font-medium rounded-md transition-colors">
+                        {uploading ? "Uploading..." : "Browse"}
+                      </span>
+                    </label>
+
+                    {/* TABLE HEADER */}
+                    <div className="bg-gray-100 px-4 py-2 grid grid-cols-3 text-[13px] font-medium text-gray-600">
+                      <span>Filename</span>
+                      <span>Uploaded On</span>
+                      <span>Action</span>
                     </div>
-                    <span
-                      className={`px-3 py-1 rounded-lg text-xs font-bold shadow-sm ${
-                        log.status === "SENT"
-                          ? "bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 border border-green-200"
-                          : "bg-gradient-to-r from-red-100 to-rose-100 text-red-700 border border-red-200"
-                      }`}
-                    >
-                      {log.status}
-                    </span>
+
+                    {/* FILE ROWS */}
+                    {submission.files.length === 0 ? (
+                      <div className="px-4 py-6 text-[14px] text-gray-400 border border-t-0 border-gray-200">
+                        No documents uploaded yet
+                      </div>
+                    ) : (
+                      submission.files.map((file: any, index: number) => (
+                        <div
+                          key={index}
+                          className="px-4 py-3 grid grid-cols-3 items-center text-[14px] border border-t-0 border-gray-200"
+                        >
+                          <span className="font-medium text-gray-900 truncate pr-4">
+                            {file.fileName}
+                          </span>
+                          <span className="text-gray-500">
+                            {file.uploadedAt ? new Date(file.uploadedAt).toLocaleDateString() : new Date().toLocaleDateString()}
+                          </span>
+                          <a
+                            href={`/api/download?url=${encodeURIComponent(file.fileUrl)}`}
+                            download={file.fileName}
+                            className="text-[#9A8B7A] hover:text-[#7A6F64] font-medium hover:underline transition-colors"
+                          >
+                            Download
+                          </a>
+                        </div>
+                      ))
+                    )}
+                  </div>
+
+                  {/* RIGHT – REQUIRED DOCUMENTS CHECKLIST */}
+                  <div>
+                    <h3 className="text-[14px] font-semibold text-gray-900 mb-5 tracking-tight">
+                      Required Documents Checklist
+                    </h3>
+                    <div className="space-y-6 text-[14px]">
+                      {[
+                        "Signed GL Application",
+                        "Signed Loss Warranty Letter",
+                        "Invoice Statement",
+                        "Surplus Line Acknowledgment",
+                        "Terrorism Acknowledgment",
+                      ].map((doc) => {
+                        const checked = checkedDocs[doc];
+                        return (
+                          <div
+                            key={doc}
+                            onClick={() => toggleDoc(doc)}
+                            className="flex items-center gap-4 cursor-pointer"
+                          >
+                            <div
+                              className={`w-[18px] h-[18px] rounded-full border flex items-center justify-center transition-all ${
+                                checked
+                                  ? "bg-[#9A8B7A] border-[#9A8B7A]"
+                                  : "border-gray-300"
+                              }`}
+                            >
+                              {checked && (
+                                <svg
+                                  className="w-3 h-3 text-white"
+                                  viewBox="0 0 20 20"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth={3}
+                                >
+                                  <path d="M5 10l3 3 7-7" />
+                                </svg>
+                              )}
+                            </div>
+                            <span className="text-gray-800 leading-tight">
+                              {doc}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
-              ))}
-            </div>
+        {/* Tabs Bar */}
+        <div className="bg-white px-8 border-t border-gray-100 shadow-sm sticky top-[64px] z-30">
+          <div className="px-8 flex items-center gap-8 h-[56px]">
+            {["Admin Notes", "Additional Information","Key Information", "Quoting & Routing"].map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`h-full px-1 text-[14px] font-medium transition-all relative ${
+                  activeTab === tab ? "text-blue-600" : "text-gray-500 hover:text-gray-700"
+                }`}
+              >
+                {tab}
+                {activeTab === tab && (
+                  <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-blue-600 rounded-full" />
+                )}
+              </button>
+            ))}
           </div>
-        )}
+        </div>
+        
+        {/* Tab Content */}
+        <div className="p-8">
+          <div className="px-8">
+            {activeTab === "Admin Notes" && (
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+                {/* LEFT – ADD NOTE */}
+                <div className="lg:col-span-2">
+                  <h3 className="text-[15px] font-semibold text-gray-900 mb-4">
+                    Add Note
+                  </h3>
 
-        {/* Quotes */}
-        {quotes && quotes.length > 0 && (
-          <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-sm border border-gray-200/60 hover:shadow-xl hover:border-rose-200 transition-all duration-300 p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-rose-100 to-pink-100 rounded-lg flex items-center justify-center">
-                <svg className="w-5 h-5 text-rose-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-              </div>
-              Quotes
-            </h2>
-            <div className="space-y-3">
-              {quotes.map((quote: any) => (
-                <div
-                  key={quote._id}
-                  className="p-5 bg-gradient-to-br from-rose-50 to-pink-50/50 rounded-xl border border-rose-200/60 hover:border-rose-300 hover:shadow-md transition-all duration-200"
-                >
-                  <div className="flex justify-between items-start mb-3">
-                    <div>
-                      <p className="font-bold text-gray-900 text-lg">
-                        {quote.carrierId?.name || "Unknown Carrier"}
-                      </p>
-                      <p className="text-sm text-gray-600 mt-2 flex items-center gap-2">
-                        <span className="font-medium">Final Amount:</span>
-                        <span className="text-lg font-bold bg-gradient-to-r from-rose-600 to-pink-600 bg-clip-text text-transparent">
-                          ${quote.finalAmountUSD.toFixed(2)}
-                        </span>
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span
-                        className={`px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm ${
-                          quote.status === "APPROVED"
-                            ? "bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 border border-green-200"
-                            : "bg-gradient-to-r from-blue-100 to-cyan-100 text-blue-700 border border-blue-200"
+                  {/* Notify Filters */}
+                  <div className="flex flex-wrap items-center gap-2 mb-4">
+                    <span className="text-[13px] text-gray-500 mr-2">Notify:</span>
+                    {[
+                      "Underwriter",
+                      "Accounting",
+                      "Endorsements",
+                      "Cancellations",
+                      "Audits",
+                    ].map((item) => (
+                      <button
+                        key={item}
+                        onClick={() => toggleNoteFilter(item)}
+                        className={`px-3 py-1.5 rounded-md text-[13px] border transition ${
+                          noteFilters.includes(item)
+                            ? "bg-black text-white border-black"
+                            : "bg-gray-100 text-gray-700 border-gray-200"
                         }`}
                       >
-                        {quote.status}
-                      </span>
-                      {quote.binderPdfUrl && (
-                        <a
-                          href={quote.binderPdfUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="px-4 py-2 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white text-xs font-semibold rounded-lg shadow-lg shadow-cyan-500/30 hover:shadow-cyan-500/50 transition-all duration-300 inline-flex items-center gap-2 group"
+                        {item}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Chat Box */}
+                  <div className="flex gap-4 items-start">
+                    {/* Avatar */}
+                    <div className="w-10 h-10 rounded-full bg-[#7A6F64] text-white flex items-center justify-center font-semibold">
+                      {(session?.user as any)?.name?.[0] || "A"}
+                    </div>
+
+                    {/* Textarea */}
+                    <div className="flex-1">
+                      <textarea
+                        rows={4}
+                        className="w-full border border-gray-300 rounded-md p-3 text-[14px] focus:outline-none focus:ring-2 focus:ring-[#7A6F64]"
+                        value={noteText}
+                        onChange={(e) => setNoteText(e.target.value)}
+                        placeholder="Leave a note..."
+                      />
+
+                      <div className="mt-3 flex justify-end">
+                        <button
+                          onClick={handleAddNote}
+                          className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#7A6F64] hover:bg-[#635a51] text-white rounded-md text-[14px] font-semibold transition-all duration-200 shadow-sm hover:shadow-md"
                         >
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                          </svg>
-                          Download Binder
-                        </a>
-                      )}
+                          <span className="text-base">+</span>Add Note
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
-              ))}
-            </div>
+                
+                {/* RIGHT – NOTES THREAD */}
+                <div className="flex flex-col h-[500px]">
+                  <div className="flex items-center justify-between mb-4 flex-shrink-0">
+                    <h3 className="text-[15px] font-semibold text-gray-900">
+                      Notes Thread
+                    </h3>
+                  </div>
+
+                  {/* Chat Container */}
+                  <div className="border rounded-xl bg-gray-50 flex-1 overflow-y-auto p-4 flex flex-col gap-4 shadow-inner relative">
+                    {activityLogs.filter(log => log.activityType === "ADMIN_NOTE_ADDED").length === 0 ? (
+                      <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4">
+                        <MessageSquare className="w-12 h-12 text-gray-300 mb-2" />
+                        <p className="font-medium text-gray-500 mb-1">No notes added yet</p>
+                        <p className="text-[13px] text-gray-400">Share context or ask questions.</p>
+                      </div>
+                    ) : (
+                      activityLogs
+                        .filter(log => log.activityType === "ADMIN_NOTE_ADDED")
+                        .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+                        .map((note) => {
+                          const isMe = note.performedBy?.userId === (session?.user as any)?.id;
+                          return (
+                            <div key={note._id} className={`flex ${isMe ? "justify-end" : "justify-start"} w-full`}>
+                              <div className={`flex flex-col max-w-[85%] ${isMe ? "items-end" : "items-start"}`}>
+                                <div className={`px-4 py-2.5 rounded-2xl shadow-sm text-[14px] leading-relaxed relative ${
+                                  isMe 
+                                    ? "bg-[#7A6F64] text-white rounded-tr-sm" 
+                                    : "bg-white text-gray-800 border border-gray-200 rounded-tl-sm"
+                                }`}>
+                                  {!isMe && (
+                                    <div className="text-[11px] font-bold text-gray-400 mb-1 tracking-tight">
+                                      {note.performedBy?.userName || "Admin"}
+                                    </div>
+                                  )}
+                                  <span className="whitespace-pre-wrap break-words">{note.description}</span>
+                                </div>
+                                <div className="text-[10px] text-gray-400 mt-1.5 px-1 font-medium italic">
+                                  {new Date(note.createdAt).toLocaleString()}
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })
+                    )}
+                    <div ref={messagesEndRef} />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === "Additional Information" && (
+              <div className="space-y-8">
+
+
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                  <div className="lg:col-span-8 space-y-8">
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+                      <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                        <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                          <FileText className="w-5 h-5 text-blue-600" />
+                          Application Details
+                        </h3>
+                      </div>
+                      <div className="p-6">
+                        <ApplicationDataViewer data={submission.payload} type="additional" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="lg:col-span-4 space-y-8">
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                      <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                        <MapPin className="w-5 h-5 text-blue-600" />
+                        Location Information
+                      </h3>
+                      <div className="space-y-4">
+                        <div className="p-4 bg-gray-50 rounded-lg">
+                          <p className="text-[11px] text-gray-500 font-bold uppercase tracking-wider mb-2">Street</p>
+                          <p className="text-sm font-medium text-gray-900">{submission.clientContact?.businessAddress?.street || "—"}</p>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="p-4 bg-gray-50 rounded-lg">
+                            <p className="text-[11px] text-gray-500 font-bold uppercase tracking-wider mb-2">City</p>
+                            <p className="text-sm font-medium text-gray-900">{submission.clientContact?.businessAddress?.city || "—"}</p>
+                          </div>
+                          <div className="p-4 bg-gray-50 rounded-lg">
+                            <p className="text-[11px] text-gray-500 font-bold uppercase tracking-wider mb-2">State</p>
+                            <p className="text-sm font-medium text-gray-900">{submission.clientContact?.businessAddress?.state || "—"}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+            {activeTab === "Key Information" && (
+              <div className="space-y-8">
+
+
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                  <div className="lg:col-span-8 space-y-8">
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+                      <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                        <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                          <FileText className="w-5 h-5 text-blue-600" />
+                          Application Details
+                        </h3>
+                      </div>
+                      <div className="p-6">
+                        <ApplicationDataViewer data={submission.payload} type="key" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="lg:col-span-4 space-y-8">
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                      <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                        <MapPin className="w-5 h-5 text-blue-600" />
+                        Location Information
+                      </h3>
+                      <div className="space-y-4">
+                        <div className="p-4 bg-gray-50 rounded-lg">
+                          <p className="text-[11px] text-gray-500 font-bold uppercase tracking-wider mb-2">Street</p>
+                          <p className="text-sm font-medium text-gray-900">{submission.clientContact?.businessAddress?.street || "—"}</p>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="p-4 bg-gray-50 rounded-lg">
+                            <p className="text-[11px] text-gray-500 font-bold uppercase tracking-wider mb-2">City</p>
+                            <p className="text-sm font-medium text-gray-900">{submission.clientContact?.businessAddress?.city || "—"}</p>
+                          </div>
+                          <div className="p-4 bg-gray-50 rounded-lg">
+                            <p className="text-[11px] text-gray-500 font-bold uppercase tracking-wider mb-2">State</p>
+                            <p className="text-sm font-medium text-gray-900">{submission.clientContact?.businessAddress?.state || "—"}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === "Quoting & Routing" && (
+              <div className="space-y-8">
+                {/* Routing Logs */}
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                  <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
+                    <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                       <Clock className="w-5 h-5 text-indigo-600" />
+                       Routing History
+                    </h3>
+                  </div>
+                  <div className="p-6">
+                    {routingLogs && routingLogs.length > 0 ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {routingLogs.map((log: any) => (
+                          <div key={log._id} className="p-4 pb-12 bg-gray-50 rounded-xl border border-gray-100 relative group transition-all hover:shadow-md">
+                            <p className="font-bold text-gray-900 text-[15px]">{log.carrierId?.name || "Unknown Carrier"}</p>
+                            <p className="text-sm text-gray-500 mt-1 mb-4">{log.carrierId?.email}</p>
+                            <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between">
+                              <span className={`px-3 py-[4px] rounded-full text-[11px] font-bold ${
+                                log.status === "SENT" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                              }`}>
+                                {log.status}
+                              </span>
+                              <span className="text-[10px] text-gray-400">
+                                 {new Date(log.createdAt).toLocaleDateString()}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="py-12 flex flex-col items-center justify-center text-gray-400">
+                         <p className="text-sm">No routing logs found for this submission.</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Active Quotes */}
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                  <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
+                    <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                       <FileText className="w-5 h-5 text-rose-600" />
+                       Active Quotes
+                    </h3>
+                    <button
+                       onClick={() => window.open(`/admin/submissions/${submissionId}/quote`, "_blank")}
+                       className="text-xs font-bold text-blue-600 hover:underline"
+                    >
+                      Manage Quotes
+                    </button>
+                  </div>
+                  <div className="p-6">
+                    {quotes && quotes.length > 0 ? (
+                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {quotes.map((quote: any) => (
+                           <div key={quote._id} className="p-6 bg-gradient-to-br from-white to-gray-50 rounded-2xl border border-gray-100 shadow-sm transition-all hover:shadow-xl hover:-translate-y-1">
+                              <div className="flex justify-between items-start mb-4">
+                                <div>
+                                   <p className="font-bold text-gray-900">{quote.carrierId?.name || "Carrier"}</p>
+                                   <p className="text-[12px] text-gray-500 mt-1">Status: <span className="text-blue-600 font-bold">{quote.status}</span></p>
+                                </div>
+                                <div className="text-right">
+                                   <p className="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+                                      {formatCurrency(quote.finalAmountUSD)}
+                                   </p>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-3 pt-4 border-t border-gray-100">
+                                {quote.binderPdfUrl && (
+                                  <a 
+                                    href={quote.binderPdfUrl} 
+                                    target="_blank" 
+                                    className="flex-1 py-1.5 px-3 bg-blue-50 text-blue-600 text-[11px] font-bold rounded-lg text-center hover:bg-blue-100 transition-all"
+                                  >
+                                    Binder PDF
+                                  </a>
+                                )}
+                                {quote.status === "ENTERED_BY_ADMIN" && (
+                                  <Link 
+                                    href={`/admin/quotes/${quote._id}/post`} 
+                                    className="flex-1 py-1.5 px-3 bg-[#7A6F64] text-white text-[11px] font-bold rounded-lg text-center hover:bg-black transition-all"
+                                  >
+                                    Post Quote
+                                  </Link>
+                                )}
+                              </div>
+                           </div>
+                        ))}
+                       </div>
+                    ) : (
+                      <div className="py-12 flex flex-col items-center justify-center text-gray-400">
+                         <p className="text-sm">No active quotes found for this submission.</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </main>
-    </div>
+    </DashboardLayout>
   );
 }
 
