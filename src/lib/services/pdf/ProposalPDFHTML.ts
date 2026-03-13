@@ -43,6 +43,15 @@ export interface ProposalData {
   programName?: string;
   effectiveDate?: string;
   expirationDate?: string;
+  occurrenceLimit?: string;
+  productsCompletedOpsLimit?: string;
+  personalAdvertisingInjuryLimit?: string;
+  fireLegalLimit?: string;
+  medicalExpenseLimit?: string;
+  aggregateLimit?: string;
+  deductible?: string;
+  selfInsuredRetention?: string;
+
   
   // Premium Breakdown
   carrierQuoteUSD?: number;
@@ -72,6 +81,8 @@ export interface ProposalData {
   // Additional Data
   applicationId?: string | number;
   capitalCoLogoSVG?: string;
+  employeePayroll?: string;
+  descriptionOfOperations?: string;
 }
 
 //svg image 
@@ -559,31 +570,50 @@ if (email === "office@sjinsuranceservices.com") {
 			<div class="nsp1_view">
 				<div class="nsp1_05 nsp1_06">
 					<div class="nsp1_01" style="left:20.8017em;top:6.0007em;"><span class="nsp1_25 nsp1_08 nsp1_23" style="word-spacing:0.0031em;">Coverage Summary &nbsp;</span></div>
-					<div class="nsp1_01" style="left:13.1517em;top:8.8756em;"><span class="nsp1_10 nsp1_11 nsp1_18" style="word-spacing:-0.0015em;">Coverage Type &nbsp;</span></div>
-					<div class="nsp1_01" style="left:33.0133em;top:8.8756em;"><span class="nsp1_10 nsp1_11 nsp1_23">Limit &nbsp;</span></div>
-					<div class="nsp1_01" style="left:11.6267em;top:9.9906em;"><span class="nsp1_10 nsp1_11 nsp1_12" style="word-spacing:-0.0012em;">Each Occurrence Limit &nbsp;</span></div>
-					<div class="nsp1_01" style="left:7.875em;top:11.1072em;"><span class="nsp1_10 nsp1_11 nsp1_26" style="word-spacing:0.0015em;">Damages to Premises Rented to You Limit &nbsp;</span></div>
-					<div class="nsp1_01" style="left:11.6417em;top:12.2222em;"><span class="nsp1_10 nsp1_11 nsp1_21" style="word-spacing:-0.0014em;">Medical Expense Limit &nbsp;</span></div>
-					<div class="nsp1_01" style="left:31.8583em;top:9.9906em;"><span class="nsp1_10 nsp1_11 nsp1_26">$1,000,000 &nbsp;</span></div>
-					<div class="nsp1_01" style="left:32.4583em;top:11.1072em;"><span class="nsp1_10 nsp1_11 nsp1_23">$50,000 &nbsp;</span></div>
-					<div class="nsp1_01" style="left:32.7133em;top:12.2222em;"><span class="nsp1_10 nsp1_11 nsp1_27">$5,000 &nbsp;</span></div>
-					<div class="nsp1_01" style="left:9.1067em;top:13.3422em;"><span class="nsp1_10 nsp1_11 nsp1_21" style="word-spacing:-0.0002em;">Personal &amp; Advertising Injury Limit &nbsp;</span></div>
-					<div class="nsp1_01" style="left:11.3117em;top:14.4572em;"><span class="nsp1_10 nsp1_11 nsp1_23" style="word-spacing:0.0038em;">General Aggregate Limit &nbsp;</span></div>
-					<div class="nsp1_01" style="left:9.4817em;top:15.5722em;"><span class="nsp1_10 nsp1_11 nsp1_23" style="word-spacing:0.0025em;">Products / Completed Operations &nbsp;</span></div>
-					<div class="nsp1_01" style="left:12.9317em;top:16.6472em;"><span class="nsp1_10 nsp1_11 nsp1_26" style="word-spacing:0.0033em;">Aggregate Limit &nbsp;</span></div>
-					<div class="nsp1_01" style="left:31.8583em;top:13.3422em;"><span class="nsp1_10 nsp1_11 nsp1_26">$1,000,000 &nbsp;</span></div>
-					<div class="nsp1_01" style="left:31.8583em;top:14.4572em;"><span class="nsp1_10 nsp1_11 nsp1_26">$2,000,000 &nbsp;</span></div>
-					<div class="nsp1_01" style="left:31.8583em;top:15.5722em;"><span class="nsp1_10 nsp1_11 nsp1_26">$2,000,000 &nbsp;</span></div>
-					<div class="nsp1_01" style="left:8.05em;top:17.7622em;"><span class="nsp1_13 nsp1_11 nsp1_19" style="word-spacing:0.0007em;">Self-Insured Retention: </span><span class="nsp1_10 nsp1_11 nsp1_28" style="word-spacing:-0.002em;">Per Occurrence &nbsp;</span></div>
-					<div class="nsp1_01" style="left:32.7133em;top:17.7622em;"><span class="nsp1_10 nsp1_11 nsp1_27">$2,500 &nbsp;</span></div>
+					<div class="nsp1_01" style="left:7.5em;top:8.8756em; width: 35em;">
+						<table style="width: 100%; border-collapse: collapse; margin-top: 10px; line-height: 1.4em; white-space: normal; font-family: 'ABNCOH+Cambria'; font-size: 0.915em;">
+							<tr>
+								<td style="padding: 2px 0; width: 60%;"><strong>Aggregate:</strong></td>
+								<td style="padding: 2px 0;">${data.aggregateLimit || ""}</td>
+							</tr>
+							<tr>
+								<td style="padding: 2px 0;"><strong>Occurrence:</strong></td>
+								<td style="padding: 2px 0;">${data.occurrenceLimit || ""}</td>
+							</tr>
+							<tr>
+								<td style="padding: 2px 0;"><strong>Products / Completed Ops:</strong></td>
+								<td style="padding: 2px 0;">${data.productsCompletedOpsLimit || ""}</td>
+							</tr>
+							<tr>
+								<td style="padding: 2px 0;"><strong>Personal / Advertising Injury:</strong></td>
+								<td style="padding: 2px 0;">${data.personalAdvertisingInjuryLimit || ""}</td>
+							</tr>
+							<tr>
+								<td style="padding: 2px 0;"><strong>Fire Legal:</strong></td>
+								<td style="padding: 2px 0;">${data.fireLegalLimit || ""}</td>
+							</tr>
+							<tr>
+								<td style="padding: 2px 0;"><strong>Med Pay:</strong></td>
+								<td style="padding: 2px 0;">${data.medicalExpenseLimit || ""}</td>
+							</tr>
+							<tr>
+								<td style="padding: 2px 0;"><strong>Deductible:</strong></td>
+								<td style="padding: 2px 0;">${data.deductible || ""}</td>
+							</tr>
+							<tr>
+								<td style="padding: 8px 0 2px 0;"><strong>Self-Insured Retention:</strong></td>
+								<td style="padding: 8px 0 2px 0;"><strong>${data.selfInsuredRetention || ""}</strong></td>
+							</tr>
+						</table>
+					</div>
 					<div class="nsp1_01" style="left:22.7267em;top:21.9545em;"><span class="nsp1_29 nsp1_08 nsp1_30" style="word-spacing:0.0001em;">Policy Details &nbsp;</span></div>
 					<div class="nsp1_01" style="left:15.7817em;top:23.1765em;"><span class="nsp1_31 nsp1_11 nsp1_32">Carrier</span><span class="nsp1_33 nsp1_11 nsp1_34" style="word-spacing:0.0017em;">: ${data.carrierName} &nbsp;</span></div>
 					<div class="nsp1_01" style="left:16.0517em;top:24.6815em;"><span class="nsp1_31 nsp1_11 nsp1_34" style="word-spacing:0.0006em;">Policy Form</span><span class="nsp1_33 nsp1_11 nsp1_30" style="word-spacing:0.0007em;">: General Liability </span> &nbsp;</span></div>
 					<div class="nsp1_01" style="left:21.6667em;top:26.1865em;"><span class="nsp1_31 nsp1_11 nsp1_30" style="word-spacing:-0.0002em;">Active Owners</span><span class="nsp1_33 nsp1_11 nsp1_17" style="word-spacing:0.0011em;">: 1 &nbsp;</span></div>
 					<div class="nsp1_01" style="left:19.4917em;top:27.6915em;"><span class="nsp1_31 nsp1_11 nsp1_27" style="word-spacing:0.0003em;">Gross Receipts</span><span class="nsp1_33 nsp1_11 nsp1_30" style="word-spacing:0.0026em;">: ${data.grossReceipts} &nbsp;</span></div>
 					<div class="nsp1_01" style="left:18.9117em;top:29.1965em;"><span class="nsp1_31 nsp1_11 nsp1_15" style="word-spacing:-0.0014em;">Subcontractor Costs</span><span class="nsp1_33 nsp1_11 nsp1_21" style="word-spacing:-0.005em;">: ${data.subcontractorCosts} &nbsp;</span></div>
-					<div class="nsp1_01" style="left:19.5967em;top:30.7065em;"><span class="nsp1_31 nsp1_11 nsp1_15" style="word-spacing:-0.0007em;">Employee Payroll</span><span class="nsp1_33 nsp1_11 nsp1_34" style="word-spacing:0.0007em;">: $150k+ &nbsp;</span></div>
-					<div class="nsp1_01" style="left:8.8117em;top:32.2115em;"><span class="nsp1_31 nsp1_11 nsp1_23" style="word-spacing:-0.0005em;">Description of Operations</span><span class="nsp1_33 nsp1_11 nsp1_37" style="word-spacing:0.0107em;">: ${data.classCode} &nbsp;</span></div>
+					<div class="nsp1_01" style="left:19.5967em;top:30.7065em;"><span class="nsp1_31 nsp1_11 nsp1_15" style="word-spacing:-0.0007em;">Employee Payroll</span><span class="nsp1_33 nsp1_11 nsp1_34" style="word-spacing:0.0007em;">: ${data.employeePayroll} &nbsp;</span></div>
+					<div class="nsp1_01" style="left:8.8117em;top:32.2115em;"><span class="nsp1_31 nsp1_11 nsp1_23" style="word-spacing:-0.0005em;">Description of Operations</span><span class="nsp1_33 nsp1_11 nsp1_37" style="word-spacing:0.0107em;">: ${data.descriptionOfOperations} &nbsp;</span></div>
 					<div class="nsp1_01" style="left:17.9467em;top:33.7181em;"><span class="nsp1_38 nsp1_11 nsp1_37" style="word-spacing:0.0005em;">Premium &amp; Payment Breakdown &nbsp;</span></div>
 					<div class="nsp1_01" style="left:15.0617em;top:48.4181em;"><span class="nsp1_33 nsp1_11 nsp1_21">Item &nbsp;</span></div>
 					<div class="nsp1_01" style="left:7.5em;top:49.6331em;"><span class="nsp1_33 nsp1_11 nsp1_15" style="word-spacing:-0.0015em;">Total Annual Premium: &nbsp;</span></div>
@@ -633,7 +663,7 @@ if (email === "office@sjinsuranceservices.com") {
 					<div class="nsp1_01" style="left:7.54em;top:48.9639em;"><span class="nsp1_10 nsp1_11 nsp1_12" style="word-spacing:-0.0002em;">Client Name_____________________ Client Signature : ________________________ &nbsp;</span></div>
 					<div class="nsp1_01" style="left:36.9183em;top:48.9639em;"><span class="nsp1_10 nsp1_11 nsp1_50" style="word-spacing:-0.0017em;">Date : ____________ &nbsp;</span></div>
 					<div class="nsp1_01" style="left:20.5867em;top:52.0341em;"><span class="nsp1_25 nsp1_08 nsp1_26" style="word-spacing:0.0016em;">Contact Information &nbsp;</span></div>
-					<div class="nsp1_01" style="left:10.5817em;top:53.4589em;"><span class="nsp1_13 nsp1_11 nsp1_15" style="word-spacing:0.0046em;"></span><span class="nsp1_13 nsp1_11 nsp1_17" style="word-spacing:0.2216em;">&nbsp;</span><span class="nsp1_13 nsp1_11 nsp1_28" style="word-spacing:-0.0024em;">${data.agencyName} &nbsp;</span></div>
+					<div class="nsp1_01" style="left:10.5817em;top:53.4589em;"><span class="nsp1_13 nsp1_11 nsp1_15" style="word-spacing:0.0046em;"></span><span class="nsp1_13 nsp1_11 nsp1_17" style="word-spacing:0.2216em;">&nbsp;</span><span class="nsp1_13 nsp1_11 nsp1_28" style="word-spacing:-0.0024em;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;${data.agencyName} &nbsp;</span></div>
 					<div class="nsp1_01" style="left:17.1017em;top:54.5339em;"><span class="nsp1_10 nsp1_11 nsp1_19" style="word-spacing:-0.0015em;">${data.streetAddress}, ${data.city}, ${data.state} ${data.zipCode} &nbsp;</span></div>
 					<div class="nsp1_01" style="left:21.0367em;top:55.611em;"><span class="nsp1_52 nsp1_53 nsp1_17">&nbsp;</span><span class="nsp1_52 nsp1_53 nsp1_17" style="word-spacing:-0.0301em;">&nbsp;</span><span class="nsp1_10 nsp1_11 nsp1_14" style="word-spacing:-0.0023em;">M: ${data.agencyPhone} &nbsp;</span></div>
 					<div class="nsp1_01" style="left:11.5017em;top:56.8326em;"><span class="nsp1_54 nsp1_55 nsp1_17" style="font-weight:bold;">✉</span><span class="nsp1_56 nsp1_53 nsp1_17" style="word-spacing:-0.0301em;">&nbsp;</span><span class="nsp1_57 nsp1_11 nsp1_19" style="word-spacing:-0.0043em;">M: </span><a href="mailto:${data.agencyEmail}" target="_blank"><span class="nsp1_58 nsp1_11 nsp1_12" style="word-spacing:0.0124em;">${data.agencyEmail} </span></a><a href="mailto:" target="_blank"><span class="nsp1_57 nsp1_11 nsp1_17" style="word-spacing:0.0012em;">/ </span></a><a href="mailto:cs@capcoinsurance.com" target="_blank"><span class="nsp1_58 nsp1_11 nsp1_19"> &nbsp;</span></a></div>

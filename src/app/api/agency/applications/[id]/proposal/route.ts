@@ -47,6 +47,14 @@ export type ProposalData = {
   programName: string;
   effectiveDate: string;
   expirationDate: string;
+  occurrenceLimit?: string;
+  productsCompletedOpsLimit?: string;
+  personalAdvertisingInjuryLimit?: string;
+  fireLegalLimit?: string;
+  medicalExpenseLimit?: string;
+  aggregateLimit?: string;
+  deductible?: string;
+  selfInsuredRetention?: string;
 
   carrierQuoteUSD: number;
   premiumTaxPercent: number;
@@ -59,6 +67,8 @@ export type ProposalData = {
   endorsements?: any[];
   specialNotes?: string;
   subcontractorCosts: string;
+  employeePayroll: string;
+  descriptionOfOperations: string;
 };
 
 function getPolicyDateRange(dateInput: string | Date) {
@@ -71,6 +81,18 @@ function getPolicyDateRange(dateInput: string | Date) {
     `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`;
 
   return `${format(start)} – ${format(end)}`;
+}
+
+function formatToUSD(value: any) {
+  if (value === undefined || value === null || value === "") return "";
+  // If it's already a formatted string with $, return it
+  if (typeof value === "string" && (value.includes("$") || value.includes("/"))) {
+    return value;
+  }
+  const str = String(value).replace(/[$,]/g, "");
+  const num = Number(str);
+  if (isNaN(num)) return String(value); 
+  return `$${num.toLocaleString()}`;
 }
 /**
  * GET /api/agency/applications/[id]/proposal
@@ -149,7 +171,7 @@ export async function GET(
     const formData = submission.payload || {};
 
     // Prepare proposal data
-    let carrierName = "TBD";
+    let carrierName = quote?.carrierId?.name || "Unknown Carrier";
     let quoteNumber = "TBD";
     let programName = (submission as any).programName || "Advantage Contractor GL";
     let carrierQuoteUSD = 0;
@@ -165,6 +187,9 @@ export async function GET(
     let specialNotes = "";
     
     if (quote) {
+      console.log("🔍 [Proposal API] Quote found:", quote._id);
+      console.log("🔍 [Proposal API] Quote limits:", JSON.stringify(quote.limits, null, 2));
+      
       carrierName = quote?.carrierId?.name || "Unknown Carrier";
       quoteNumber = quote._id.toString().substring(0, 8).toUpperCase();
       carrierQuoteUSD = quote.carrierQuoteUSD || 0;
@@ -175,15 +200,17 @@ export async function GET(
       finalAmountUSD = quote.finalAmountUSD || 0;
       if (quote.effectiveDate) effectiveDate = new Date(quote.effectiveDate).toLocaleDateString();
       if (quote.expirationDate) expirationDate = new Date(quote.expirationDate).toLocaleDateString();
-      limits = quote.limits;
+      limits = quote.limits || {};
       endorsements = quote.endorsements || [];
       specialNotes = quote.specialNotes || "";
+    } else {
+      console.log("🔍 [Proposal API] No quote found for submission:", submission._id);
+      limits = {}; // Fallback to empty object if no quote
     }
 
+    
     const proposalData: ProposalData = {
-      subcontractorCosts: formData.estimatedSubcontractingCosts
-    ? `$${Number(formData.estimatedSubcontractingCosts).toLocaleString()}`
-    : "$0",
+      subcontractorCosts: formatToUSD(formData.estimatedSubcontractingCosts || "0"),
       quoteNumber,
       proposalDate: new Date().toLocaleDateString(),
       desiredCoverageDates: getPolicyDateRange(effectiveDate),
@@ -200,14 +227,12 @@ export async function GET(
       city: formData.city || submission.clientContact?.businessAddress?.city || "",
       state: formData.state || submission.clientContact?.businessAddress?.state || "",
       zipCode: formData.zipCode || submission.clientContact?.businessAddress?.zip || "",
-      grossReceipts: (() => {
-        const raw =
-          formData.estimatedGrossReceipts ||
+      grossReceipts: formatToUSD(
+        formData.estimatedGrossReceipts ||
           formData.classCodes?.[0]?.grossReceipts ||
           formData.classCode?.[0]?.grossReceipts ||
-          "";
-        return raw ? `$${parseInt(raw).toLocaleString()}` : "";
-      })(),
+          "0"
+      ),
       agencyName: 
       agency?.name?.includes("Capital & Co")
         ? "Capital & Co Insurance "
@@ -232,8 +257,23 @@ export async function GET(
       limits,
       endorsements,
       specialNotes,
-    };
+      occurrenceLimit: formatToUSD(limits?.generalLiability),
+      fireLegalLimit: formatToUSD(limits?.fireLegalLimit),
+      medicalExpenseLimit: formatToUSD(limits?.medicalExpenseLimit),
+      personalAdvertisingInjuryLimit: formatToUSD(limits?.personalAdvertisingInjury),
+      aggregateLimit: formatToUSD(limits?.aggregateLimit),
+      productsCompletedOpsLimit: formatToUSD(limits?.productsCompletedOps),
+      deductible: formatToUSD(limits?.deductible),
+      selfInsuredRetention: formatToUSD(limits?.deductible),
 
+      employeePayroll: formatToUSD(formData.totalPayrollAmount || "$0"),
+
+      descriptionOfOperations:
+        formData.carrierApprovedDescription ||
+        formData.classCodeWork?.description ||
+        "",
+    };
+    
     // Generate proposal HTML using ProposalData
     const proposalHTML = generateProposalHTML(proposalData);
 
