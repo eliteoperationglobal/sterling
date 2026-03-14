@@ -212,7 +212,7 @@ function AgencyDashboardContent() {
         // { id: "INCOMPLETE_BIND", label: "Incomplete Bind", count: 0 },
         // { id: "READY_TO_BIND", label: "Ready To Bind", count: counts.BIND_REQUESTED || 0 },
         { id: "NEWLY_BOUND", label: "Newly Bound", count: counts.BOUND || 0 },
-        { id: "CANCELLED", label: "Cancelled", count: 0 },
+        { id: "CANCELLED", label: "Cancelled", count: counts.CANCELLED || 0 },
         // { id: "UNDERWRITING_DECLINED", label: "Underwriting Declined", count: 0 },
       ]);
 

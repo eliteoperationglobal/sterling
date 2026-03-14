@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { submissionId } = body;
+    const { submissionId, effectiveDate, expirationDate, policyNumber } = body;
 
     if (!submissionId) {
       return NextResponse.json(
@@ -77,6 +77,11 @@ export async function POST(req: NextRequest) {
     (submission as any).bindApprovedAt = bindApprovedAt;
     (submission as any).bindStatus = "BOUND";
     submission.status = "BOUND";
+    
+    // Save policy details to submission
+    if (policyNumber) (submission as any).policyNumber = policyNumber;
+    if (effectiveDate) (submission as any).effectiveDate = new Date(effectiveDate);
+    if (expirationDate) (submission as any).expirationDate = new Date(expirationDate);
 
     await submission.save();
 
@@ -84,6 +89,9 @@ export async function POST(req: NextRequest) {
     const quote = await Quote.findOne({ submissionId: submission._id });
     if (quote) {
       quote.status = "BOUND";
+      if (effectiveDate) quote.effectiveDate = new Date(effectiveDate);
+      if (expirationDate) quote.expirationDate = new Date(expirationDate);
+      if (policyNumber) quote.policyNumber = policyNumber;
       await quote.save();
     }
 
@@ -104,6 +112,9 @@ export async function POST(req: NextRequest) {
           details: {
             clientName: (submission as any).clientContact?.name,
             bindApprovedAt: bindApprovedAt.toISOString(),
+            policyNumber,
+            effectiveDate,
+            expirationDate,
           },
         }
       )

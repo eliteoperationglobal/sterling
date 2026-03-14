@@ -10,6 +10,7 @@ interface DashboardStats {
   totalSubmissions: number;
   pendingQuotes: number;
   bindRequests: number;
+  quoteRequests: number;
   boundPolicies: number;
   cancelledPolicies: number;
 }
@@ -22,6 +23,7 @@ export default function AdminDashboard() {
     totalSubmissions: 0,
     pendingQuotes: 0,
     bindRequests: 0,
+    quoteRequests: 0,
     boundPolicies: 0,
     cancelledPolicies: 0,
   });
@@ -50,18 +52,21 @@ export default function AdminDashboard() {
       const [submissionsRes, quotesRes, bindRes, boundRes] = await Promise.all([
         fetch("/api/admin/submissions"),
         fetch("/api/admin/quotes"),
+        fetch("/api/admin/quote-requests"),
         fetch("/api/admin/bind-requests"),
         fetch("/api/admin/bound-policies"),
       ]);
 
       const submissionsData = submissionsRes.ok ? await submissionsRes.json() : { submissions: [] };
       const quotesData = quotesRes.ok ? await quotesRes.json() : { quotes: [] };
+      const quoteRequestsData = await (await fetch("/api/admin/quote-requests")).json();
       const bindData = bindRes.ok ? await bindRes.json() : { requests: [] };
       const boundData = boundRes.ok ? await boundRes.json() : { policies: [] };
 
       setStats({
         totalSubmissions: submissionsData.submissions?.length || 0,
         pendingQuotes: quotesData.quotes?.filter((q: any) => q.status === "PENDING")?.length || 0,
+        quoteRequests: quoteRequestsData.submissions?.length || 0,
         bindRequests: bindData.requests?.length || 0,
         boundPolicies: boundData.policies?.length || 0,
         cancelledPolicies: boundData.policies?.filter((p: any) => p.status === "CANCELLED")?.length || 0,
@@ -127,43 +132,6 @@ export default function AdminDashboard() {
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
             <div className="flex items-center gap-10">
-              {/* <Link href="/admin/dashboard" className="flex items-center gap-4 group">
-                <div className="relative">
-                  
-                  <div className="absolute inset-0 bg-gradient-to-br from-rose-500 via-pink-500 to-orange-500 rounded-2xl blur-md opacity-50 group-hover:opacity-75 animate-pulse transition-all duration-500"></div>
-
-                  
-                  <div className="relative w-12 h-12 bg-gradient-to-br from-rose-600 via-rose-700 to-pink-700 rounded-2xl flex items-center justify-center shadow-2xl shadow-rose-600/40 group-hover:shadow-rose-600/60 transition-all duration-500 group-hover:scale-110 group-hover:rotate-3">
-                    
-                    <div className="absolute inset-1 bg-gradient-to-br from-white/20 to-transparent rounded-xl"></div>
-
-                    
-                    <div className="relative">
-                      <span className="text-white font-black text-lg tracking-tighter drop-shadow-lg">SP</span>
-                    </div>
-
-                    
-                    <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-yellow-300 rounded-full opacity-0 group-hover:opacity-100 animate-ping"></div>
-                    <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-yellow-400 rounded-full opacity-0 group-hover:opacity-100"></div>
-                  </div>
-
-                  <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full flex items-center justify-center shadow-lg border-2 border-white">
-                    <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                    </svg>
-                  </div>
-                </div>
-
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-gray-900 font-bold text-lg tracking-tight bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text">Sterling Portal</span>
-                    <div className="px-2 py-0.5 bg-gradient-to-r from-rose-50 to-pink-50 border border-rose-200 rounded-md">
-                      <span className="text-[10px] font-black text-rose-600 tracking-wider">ADMIN</span>
-                    </div>
-                  </div>
-                  <p className="text-xs text-gray-500 font-semibold -mt-0.5 tracking-wide">Control Center</p>
-                </div>
-              </Link> */}
 
               <div className="flex items-center gap-2 mb-1">
                 <h1
@@ -181,6 +149,14 @@ export default function AdminDashboard() {
                 </Link>
                 <Link href="/admin/quotes" className="px-4 py-2 text-sm font-medium text-[#9A8B7A] hover:text-[#9A8B7A] hover:bg-gray-50 rounded-lg transition">
                   Quotes
+                </Link>
+                <Link href="/admin/quote-requests" className="relative px-4 py-2 text-sm font-medium text-[#9A8B7A] hover:text-[#9A8B7A] hover:bg-gray-50 rounded-lg transition">
+                  Quote Requests
+                  {stats.quoteRequests > 0 && (
+                    <span className="absolute -top-1 -right-1 inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full shadow-lg animate-pulse">
+                      {stats.quoteRequests}
+                    </span>
+                  )}
                 </Link>
                 <Link href="/admin/bind-requests" className="relative px-4 py-2 text-sm font-medium text-[#9A8B7A] hover:text-[#9A8B7A] hover:bg-gray-50 rounded-lg transition">
                   Bind Requests
@@ -284,6 +260,7 @@ export default function AdminDashboard() {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-10">
           {[
             { label: "Total Submissions", value: stats.totalSubmissions, icon: "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z", color: "blue", gradient: "from-blue-600 to-blue-700" },
+            { label: "Quote Requests", value: stats.quoteRequests, icon: "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z", color: "sky", gradient: "from-sky-600 to-sky-700", urgent: stats.quoteRequests > 0 },
             { label: "Pending Quotes", value: stats.pendingQuotes, icon: "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z", color: "amber", gradient: "from-amber-600 to-amber-700", urgent: stats.pendingQuotes > 0 },
             { label: "Bind Requests", value: stats.bindRequests, icon: "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z", color: "orange", gradient: "from-orange-600 to-orange-700", urgent: stats.bindRequests > 0 },
             { label: "Bound Policies", value: stats.boundPolicies, icon: "M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z", color: "emerald", gradient: "from-emerald-600 to-emerald-700" },
@@ -324,6 +301,7 @@ export default function AdminDashboard() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {[
                 { title: "All Submissions", desc: "View and manage all submissions", href: "/admin/submissions", icon: "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z", gradient: "from-blue-600 to-blue-700", badge: stats.totalSubmissions },
+                { title: "Quote Requests", desc: "Applications waiting for quotes", href: "/admin/quote-requests", icon: "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z", gradient: "from-sky-600 to-sky-700", badge: stats.quoteRequests, urgent: stats.quoteRequests > 0 },
                 { title: "Quotes Management", desc: "Review and approve quotes", href: "/admin/quotes", icon: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2", gradient: "from-purple-600 to-purple-700", badge: stats.pendingQuotes },
                 { title: "Bind Requests", desc: "Approve binding requests", href: "/admin/bind-requests", icon: "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z", gradient: "from-orange-600 to-orange-700", badge: stats.bindRequests, urgent: stats.bindRequests > 0 },
                 { title: "Bound Policies", desc: "View all bound policies", href: "/admin/bound-policies", icon: "M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z", gradient: "from-emerald-600 to-emerald-700", badge: stats.boundPolicies },

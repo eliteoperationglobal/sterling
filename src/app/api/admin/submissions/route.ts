@@ -46,7 +46,11 @@ export async function GET(req: NextRequest) {
 
     // Filter by status
     if (status && status !== "ALL") {
-      query.status = status;
+      if (status === "DECLINED") {
+        query.status = { $in: ["DECLINED", "CANCELLED"] };
+      } else {
+        query.status = status;
+      }
     }
 
     // Filter by date range

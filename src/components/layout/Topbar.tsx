@@ -63,7 +63,13 @@ export default function Topbar() {
         {/* ⭐⭐⭐ NEW ATTRACTIVE HOME BUTTON ⭐⭐⭐ */}
         <button
           type="button"
-          onClick={() => router.push("/agency/dashboard")}
+          onClick={() => {
+            if (pathname.startsWith("/admin")) {
+              router.push("/admin/dashboard");
+            } else {
+              router.push("/agency/dashboard");
+            }
+          }}
           className="
             h-11 w-11
             rounded-full

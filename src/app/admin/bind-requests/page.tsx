@@ -38,6 +38,15 @@ export default function AdminBindRequestsPage() {
   const [approving, setApproving] = useState<string | null>(null);
   const [pendingCount, setPendingCount] = useState(0);
 
+  // Modal State
+  const [isApproveModalOpen, setIsApproveModalOpen] = useState(false);
+  const [selectedSubmissionId, setSelectedSubmissionId] = useState<string | null>(null);
+  const [formData, setFormData] = useState({
+    effectiveDate: "",
+    expirationDate: "",
+    policyNumber: "",
+  });
+
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/signin");
@@ -55,6 +64,24 @@ export default function AdminBindRequestsPage() {
       fetchBindRequests();
     }
   }, [status]);
+
+  const handleEffectiveDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const effectiveDateStr = e.target.value;
+    if (!effectiveDateStr) {
+      setFormData(prev => ({ ...prev, effectiveDate: "", expirationDate: "" }));
+      return;
+    }
+
+    const effectiveDate = new Date(effectiveDateStr);
+    const expirationDate = new Date(effectiveDate);
+    expirationDate.setFullYear(effectiveDate.getFullYear() + 1);
+
+    setFormData(prev => ({
+      ...prev,
+      effectiveDate: effectiveDateStr,
+      expirationDate: expirationDate.toISOString().split("T")[0],
+    }));
+  };
 
   const fetchBindRequests = async () => {
     setLoading(true);
@@ -79,18 +106,48 @@ export default function AdminBindRequestsPage() {
     }
   };
 
-  const handleApprove = async (submissionId: string) => {
-    if (!confirm("Are you sure you want to approve this bind request? This will mark the policy as BOUND.")) {
+  const handleApprove = (submissionId: string) => {
+    setSelectedSubmissionId(submissionId);
+    setFormData({
+      effectiveDate: new Date().toISOString().split("T")[0], // Default to today
+      expirationDate: "",
+      policyNumber: "",
+    });
+    
+    // Trigger initial calculation
+    const today = new Date();
+    const nextYear = new Date(today);
+    nextYear.setFullYear(today.getFullYear() + 1);
+    
+    setFormData(prev => ({
+      ...prev,
+      expirationDate: nextYear.toISOString().split("T")[0]
+    }));
+
+    setIsApproveModalOpen(true);
+  };
+
+  const confirmApprove = async () => {
+    if (!selectedSubmissionId) return;
+    
+    // Validation
+    if (!formData.effectiveDate || !formData.expirationDate || !formData.policyNumber) {
+      toast.error("Please fill in all fields");
       return;
     }
 
-    setApproving(submissionId);
+    setApproving(selectedSubmissionId);
 
     try {
       const response = await fetch("/api/admin/bind-requests/approve", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ submissionId }),
+        body: JSON.stringify({ 
+          submissionId: selectedSubmissionId,
+          effectiveDate: formData.effectiveDate,
+          expirationDate: formData.expirationDate,
+          policyNumber: formData.policyNumber
+        }),
       });
 
       const data = await response.json();
@@ -100,9 +157,10 @@ export default function AdminBindRequestsPage() {
       }
 
       toast.success("Bind request approved successfully!", {
-        description: "The policy has been marked as BOUND",
+        description: "The policy has been marked as BOUND with policy details",
       });
 
+      setIsApproveModalOpen(false);
       fetchBindRequests();
     } catch (err: any) {
       console.error("Approve error:", err);
@@ -168,6 +226,9 @@ export default function AdminBindRequestsPage() {
                 </Link>
                 <Link href="/admin/quotes" className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition">
                   Quotes
+                </Link>
+                <Link href="/admin/quote-requests" className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition">
+                  Quote Request
                 </Link>
                 <Link href="/admin/bind-requests" className="relative px-4 py-2 text-sm font-semibold text-rose-600">
                   Bind Requests
@@ -363,6 +424,92 @@ export default function AdminBindRequestsPage() {
           </div>
         )}
       </main>
+
+      {/* Approve Bind Modal */}
+      {isApproveModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div 
+            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"
+            onClick={() => !approving && setIsApproveModalOpen(false)}
+          />
+          
+          <div className="relative bg-white rounded-2xl shadow-2xl border border-gray-200 w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="p-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-green-500/20">
+                  <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900">Approve Bind Request</h3>
+                  <p className="text-sm text-gray-500">Enter policy details to finalize</p>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Effective Date</label>
+                  <input
+                    type="date"
+                    value={formData.effectiveDate}
+                    onChange={handleEffectiveDateChange}
+                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all outline-none"
+                    placeholder="Select Effective Date"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Expiration Date</label>
+                  <input
+                    type="date"
+                    value={formData.expirationDate}
+                    readOnly
+                    className="w-full px-4 py-2.5 bg-gray-100 border border-gray-200 rounded-xl text-gray-500 cursor-not-allowed outline-none font-medium"
+                    placeholder="Expiration Date"
+                  />
+                  <p className="text-[11px] text-gray-400 mt-1 font-medium italic">* Auto-calculated: 1 year from effective date</p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Policy Number</label>
+                  <input
+                    type="text"
+                    value={formData.policyNumber}
+                    onChange={(e) => setFormData(prev => ({ ...prev, policyNumber: e.target.value }))}
+                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all outline-none"
+                    placeholder="Enter Policy Number"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 mt-8">
+                <button
+                  onClick={() => setIsApproveModalOpen(false)}
+                  disabled={approving !== null}
+                  className="flex-1 px-4 py-2.5 text-sm font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmApprove}
+                  disabled={approving !== null}
+                  className="flex-[2] px-4 py-2.5 text-sm font-bold text-white bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 rounded-xl shadow-lg shadow-green-500/20 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {approving ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                      Processing...
+                    </>
+                  ) : (
+                    "Approve Bind"
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
