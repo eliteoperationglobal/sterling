@@ -1,4 +1,3 @@
-
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/authOptions";
@@ -266,7 +265,7 @@ export async function GET(
       deductible: formatToUSD(limits?.deductible),
       selfInsuredRetention: formatToUSD(limits?.deductible),
 
-      employeePayroll: formatToUSD(formData.totalPayroll || formData.totalPayrollAmount || "$0"),
+      employeePayroll: formatToUSD(formData.totalPayrollAmount || "$0"),
 
       descriptionOfOperations:
         formData.carrierApprovedDescription ||
@@ -324,7 +323,7 @@ export async function GET(
       return new NextResponse(new Uint8Array(pdfBuffer), {
         headers: {
           'Content-Type': 'application/pdf',
-          'Content-Disposition': `attachment; filename="proposal-${submission._id.toString()}.pdf"`,
+          'Content-Disposition': `attachment; filename="${proposalData.companyName}-Proposal.pdf"`,
           'Content-Length': pdfBuffer.length.toString(),
         },
       });

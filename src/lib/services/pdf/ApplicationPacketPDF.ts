@@ -4664,14 +4664,18 @@ function generatePage12(data: ApplicationPacketData): string {
       <div class="main-content main-content-page12">
         <div class="invoice-header-page12">
           <div>
-            <div class="invoice-field-page12"><strong>Program:</strong> ${data.programName || 'Standard GL A-Rated'}</div>
-            <div class="invoice-field-page12"><strong>Applicant Name:</strong> ${data.companyName}</div>
-            <div class="invoice-field-page12"><strong>Application ID:</strong> ${data.submissionNumber}</div>
+            <!-- <div class="invoice-field-page12"><strong>Program:</strong> ${data.programName || 'Standard GL A-Rated'}</div>
+            <div class="invoice-field-page12"><strong>Applicant Name:</strong> ${data.companyName}</div> -->
+            <div class="invoice-field-page12"><strong>Address: </strong>${data.applicantAddress}</div>
+            <div class="invoice-field-page12">${data.applicantCity}, ${data.applicantState} ${data.applicantZip}</div>
+            <div class="invoice-field-page12"><strong>Phone: </strong>${data.applicantPhone}</div>
+            <div class="invoice-field-page12"><strong>Email: </strong>${data.applicantEmail}</div>
           </div>
           <div>
             <strong>Sterling Insurance Services</strong>
             <p>5455 Wilshire Blvd. #1816<br>Los Angeles CA 90036</p>
-
+            <p>(310) 492-2007</p>
+            <p>CS@capcoinsurance.com</p>
           </div>
         </div>
         
@@ -4682,16 +4686,16 @@ function generatePage12(data: ApplicationPacketData): string {
             <div class="invoice-value-page12">${data.premium || '$0.00'}</div>
           </div>
           <div class="invoice-row-page12">
-            <div class="invoice-label-page12">Surplus Lines Tax</div>
-            <div class="invoice-value-page12">${data.surplusLinesTax || '$0.00'}</div>
-          </div>
-          <div class="invoice-row-page12">
             <div class="invoice-label-page12">Carrier Policy Fee</div>
             <div class="invoice-value-page12">${data.carrierPolicyFee || '$0.00'}</div>
           </div>
           <div class="invoice-row-page12">
             <div class="invoice-label-page12">Sterling Insurance Services Fees</div>
             <div class="invoice-value-page12">${data.sterlingFees || '$0.00'}</div>
+          </div>
+          <div class="invoice-row-page12">
+            <div class="invoice-label-page12">Surplus Lines Tax</div>
+            <div class="invoice-value-page12">${data.surplusLinesTax || '$0.00'}</div>
           </div>
           ${data.stampingFee && parseFloat(data.stampingFee.replace(/[$,]/g, "")) > 0 ? `
             <div class="invoice-row-page12">
@@ -4724,12 +4728,12 @@ function generatePage12(data: ApplicationPacketData): string {
             <div class="invoice-value-page12">${data.depositAssociationDues || '$0.00'}</div>
           </div>
           <div class="invoice-row-page12">
-            <div class="invoice-label-page12">Surplus Lines Tax</div>
-            <div class="invoice-value-page12">${data.depositStateTax || '$0.00'}</div>
-          </div>
-          <div class="invoice-row-page12">
             <div class="invoice-label-page12">Sterling Insurance Services Fees</div>
             <div class="invoice-value-page12">${data.depositInspectionFee || '$0.00'}</div>
+          </div>
+          <div class="invoice-row-page12">
+            <div class="invoice-label-page12">Surplus Lines Tax</div>
+            <div class="invoice-value-page12">${data.depositStateTax || '$0.00'}</div>
           </div>
           ${data.depositPolicyFee && parseFloat(data.depositPolicyFee.replace(/[$,]/g, "")) > 0 ? `
             <div class="invoice-row-page12">
