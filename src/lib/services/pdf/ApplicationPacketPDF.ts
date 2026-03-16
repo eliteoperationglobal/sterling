@@ -4634,14 +4634,18 @@ function generatePage12(data: ApplicationPacketData): string {
       <div class="main-content main-content-page12">
         <div class="invoice-header-page12">
           <div>
-            <div class="invoice-field-page12"><strong>Program:</strong> ${data.programName || 'Standard GL A-Rated'}</div>
-            <div class="invoice-field-page12"><strong>Applicant Name:</strong> ${data.companyName}</div>
-            <div class="invoice-field-page12"><strong>Application ID:</strong> ${data.submissionNumber}</div>
+            <!-- <div class="invoice-field-page12"><strong>Program:</strong> ${data.programName || 'Standard GL A-Rated'}</div>
+            <div class="invoice-field-page12"><strong>Applicant Name:</strong> ${data.companyName}</div> -->
+            <div class="invoice-field-page12"><strong>Address: </strong>${data.applicantAddress}</div>
+            <div class="invoice-field-page12">${data.applicantCity}, ${data.applicantState} ${data.applicantZip}</div>
+            <div class="invoice-field-page12"><strong>Phone: </strong>${data.applicantPhone}</div>
+            <div class="invoice-field-page12"><strong>Email: </strong>${data.applicantEmail}</div>
           </div>
           <div>
             <strong>Sterling Insurance Services</strong>
             <p>5455 Wilshire Blvd. #1816<br>Los Angeles CA 90036</p>
-
+            <p>(310) 492-2007</p>
+            <p>CS@capcoinsurance.com</p>
           </div>
         </div>
         
@@ -4652,16 +4656,16 @@ function generatePage12(data: ApplicationPacketData): string {
             <div class="invoice-value-page12">${data.premium || '$0.00'}</div>
           </div>
           <div class="invoice-row-page12">
-            <div class="invoice-label-page12">Surplus Lines Tax</div>
-            <div class="invoice-value-page12">${data.surplusLinesTax || '$0.00'}</div>
-          </div>
-          <div class="invoice-row-page12">
             <div class="invoice-label-page12">Carrier Policy Fee</div>
             <div class="invoice-value-page12">${data.carrierPolicyFee || '$0.00'}</div>
           </div>
           <div class="invoice-row-page12">
             <div class="invoice-label-page12">Sterling Insurance Services Fees</div>
             <div class="invoice-value-page12">${data.sterlingFees || '$0.00'}</div>
+          </div>
+          <div class="invoice-row-page12">
+            <div class="invoice-label-page12">Surplus Lines Tax</div>
+            <div class="invoice-value-page12">${data.surplusLinesTax || '$0.00'}</div>
           </div>
           ${data.stampingFee && parseFloat(data.stampingFee.replace(/[$,]/g, "")) > 0 ? `
             <div class="invoice-row-page12">
@@ -4694,12 +4698,12 @@ function generatePage12(data: ApplicationPacketData): string {
             <div class="invoice-value-page12">${data.depositAssociationDues || '$0.00'}</div>
           </div>
           <div class="invoice-row-page12">
-            <div class="invoice-label-page12">Surplus Lines Tax</div>
-            <div class="invoice-value-page12">${data.depositStateTax || '$0.00'}</div>
-          </div>
-          <div class="invoice-row-page12">
             <div class="invoice-label-page12">Sterling Insurance Services Fees</div>
             <div class="invoice-value-page12">${data.depositInspectionFee || '$0.00'}</div>
+          </div>
+          <div class="invoice-row-page12">
+            <div class="invoice-label-page12">Surplus Lines Tax</div>
+            <div class="invoice-value-page12">${data.depositStateTax || '$0.00'}</div>
           </div>
           ${data.depositPolicyFee && parseFloat(data.depositPolicyFee.replace(/[$,]/g, "")) > 0 ? `
             <div class="invoice-row-page12">
@@ -4769,11 +4773,11 @@ function generatePage12(data: ApplicationPacketData): string {
   `;
 }
 
-{/* page 125 */}
+{/* page 125 */ }
 
 function generateAcord125Page1(data: ApplicationPacketData): string {
 
-return `
+  return `
   <div class="page page14-isc" style="page-break-after: always;">
   		<div id="page_0" class="pdf44_ pdf44_02">
 			<div class="pdf44_03">
@@ -4958,7 +4962,7 @@ return `
 }
 function generateAcord125Page2(data: ApplicationPacketData): string {
 
-return ` 
+  return ` 
   <div class="page page14-isc" style="page-break-after: always;">
 		<div id="page_1" class="pdf44_ pdf44_02">
 			<div class="pdf44_03">
@@ -5146,7 +5150,7 @@ return `
 }
 function generateAcord125Page3(data: ApplicationPacketData): string {
 
-return `
+  return `
   <div class="page page14-isc" style="page-break-after: always;">
 		<div id="page_2" class="pdf44_ pdf44_02">
 			<div class="pdf44_03">
@@ -5247,7 +5251,7 @@ return `
 }
 function generateAcord125Page4(data: ApplicationPacketData): string {
 
-return `
+  return `
   <div class="page page14-isc" style="page-break-after: always;">
 		<div id="page_3" class="pdf44_ pdf44_02">
 			<div class="pdf44_03">
@@ -5357,10 +5361,10 @@ return `
 
 }
 
-{/* PDF 126  */}
+{/* PDF 126  */ }
 function generateAcord126Page1(data: ApplicationPacketData): string {
 
-return `
+  return `
   <div class="page page13-isc" style="page-break-after: always;">
 		<div id="page_0" class="pdf24_ pdf24_02">
 			<div class="pdf24_03">
@@ -5468,7 +5472,7 @@ return `
 }
 function generateAcord126Page2(data: ApplicationPacketData): string {
 
-return `
+  return `
   <div class="page page14-isc" style="page-break-after: always;">
 		<div id="page_1" class="pdf24_ pdf24_02">
 			<div class="pdf24_03">
@@ -5542,7 +5546,7 @@ return `
 }
 function generateAcord126Page3(data: ApplicationPacketData): string {
 
-return `
+  return `
   <div class="page page15-isc" style="page-break-after: always;">
 		<div id="page_2" class="pdf24_ pdf24_02">
 			<div class="pdf24_03">
@@ -5600,7 +5604,7 @@ return `
 }
 function generateAcord126Page4(data: ApplicationPacketData): string {
 
-return `
+  return `
   <div class="page page16-isc" style="page-break-after: always;">
 		<div id="page_3" class="pdf24_ pdf24_02">
 			<div class="pdf24_03">
@@ -5642,10 +5646,10 @@ return `
 `;
 
 }
-{/* page 131 */}
+{/* page 131 */ }
 function generateAcord131Page1(data: ApplicationPacketData): string {
 
-return `
+  return `
   <div class="page page17-isc" style="page-break-after: always;">
 		<div id="page_0" class="pdf34_ pdf34_02">
 			<div class="pdf34_03">
@@ -5792,7 +5796,7 @@ return `
 }
 function generateAcord131Page2(data: ApplicationPacketData): string {
 
-return `
+  return `
   <div class="page page18-isc" style="page-break-after: always;">
 		<div id="page_1" class="pdf34_ pdf34_02">
 			<div class="pdf34_03">
@@ -5884,7 +5888,7 @@ return `
 }
 function generateAcord131Page3(data: ApplicationPacketData): string {
 
-return `
+  return `
   <div class="page page19-isc" style="page-break-after: always;">
 		<div id="page_2" class="pdf34_ pdf34_02">
 			<div class="pdf34_03">
@@ -5940,7 +5944,7 @@ return `
 }
 function generateAcord131Page4(data: ApplicationPacketData): string {
 
-return `
+  return `
   <div class="page page20-isc" style="page-break-after: always;">
 		<div id="page_3" class="pdf34_ pdf34_02">
 			<div class="pdf34_03">
@@ -6004,7 +6008,7 @@ return `
 }
 function generateAcord131Page5(data: ApplicationPacketData): string {
 
-return `
+  return `
   <div class="page page21-isc" style="page-break-after: always;">
 		<div id="page_4" class="pdf34_ pdf34_02">
 			<div class="pdf34_03">
@@ -6090,7 +6094,7 @@ return `
 /**Notic pdf */
 function generateNoticepdf(data: ApplicationPacketData): string {
 
-return `
+  return `
   <div class="page page22-isc" style="page-break-after: always;">
 		<div id="page_0" class="notic121_ notic121_02">
 			<div class="notic121_03">
@@ -6142,7 +6146,7 @@ return `
 
 }
 function generateNoticepdf1(data: ApplicationPacketData): string {
-return `
+  return `
   <div class="page page23-isc" style="page-break-after: always;">
 		<div id="page_0" class="notic102_ notic102_02">
 			<div class="notic102_03">
@@ -6205,7 +6209,7 @@ return `
 
 /* PROPOSAL */
 function generateProposal(data: ApplicationPacketData): string {
-return `
+  return `
   <div class="page page2-isc" style="page-break-after: always;">
 		<div id="page_0" class="nsp1_ nsp1_02">
 			<div class="nsp1_03">
@@ -7707,7 +7711,7 @@ export async function loadCapitalCoLogo(): Promise<string | undefined> {
 
 export function mapFormDataToPacketData(
 
-  
+
   formData: any,
   submissionId: string,
   agency: any,
@@ -7716,7 +7720,7 @@ export function mapFormDataToPacketData(
   capitalCoLogoSVG?: string,
   excludePages8910?: boolean
 ): ApplicationPacketData {
-  
+
   console.log("QUOTE OBJECT:", quote);
   console.log("CarrierId:", quote?.carrierId);
   console.log("CarrierId Name:", quote?.carrierId?.name);
@@ -7805,7 +7809,7 @@ export function mapFormDataToPacketData(
   console.log("Quote Status:", quoteStatus);
   // console.log("Include State Forms:", includeStateForms);
 
-const addExcessLiability = formData?.addExcessLiability || false;
+  const addExcessLiability = formData?.addExcessLiability || false;
   return {
     // Application Metadata
     applicationId: formData.applicationId || submissionId.substring(0, 7) || '0000000',
@@ -7865,7 +7869,7 @@ const addExcessLiability = formData?.addExcessLiability || false;
     quoteType: quote?.type || 'General Liability',
     carrierName: quote?.carrierId?.name || '',
     coverageType: quote?.coverageType || 'Manuscript Occurrence',
-    desiredCoverageDates: coverageDates,  
+    desiredCoverageDates: coverageDates,
 
     // Include state forms when we have an applicant state (show in packet for new submissions and when quote approved)
     includeStateForms: !!((formData.state || formData.addressState || '').trim()) &&
@@ -8026,8 +8030,7 @@ const addExcessLiability = formData?.addExcessLiability || false;
     carrierPolicyFee: formatUSD(quote?.carrierFeesUSD),
     sterlingFees: formatUSD(quote?.sterlingInsuranceServicesFeesUSD),
     stampingFee: formatUSD(quote?.stampingFeeAmountUSD),
-
-
+    
     depositPremium: formatUSD(quote?.depositPremiumUSD),
     depositAssociationDues: formatUSD(quote?.depositCarrierFeesUSD),
     depositStateTax: formatUSD(quote?.depositTaxUSD),
@@ -8035,10 +8038,13 @@ const addExcessLiability = formData?.addExcessLiability || false;
     depositInspectionFee: formatUSD(quote?.depositSterlingFeesUSD),
     depositFireMarshal: formatUSD(quote?.depositFireMarshalUSD),
     totalDeposit: formatUSD(quote?.totalDepositUSD),
-    totalToFinanceCompany: formatUSD(quote?.totalToFinanceCompanyUSD),
-
     totalToRetain: formatUSD(quote?.totalToRetainUSD),
+    totalToFinanceCompany: formatUSD(quote?.totalToFinanceCompanyUSD),
+    // totalToFinanceCompany: formatUSD(
+    //   Math.max(0, (quote?.finalAmountUSD ?? 0) - (quote?.totalDepositUSD ?? 0) - (quote?.totalToRetainUSD ?? 0))),    
     totalToBeSent: formatUSD(quote?.totalToBeSentUSD),
+    // totalToBeSent: formatUSD(
+    //   Math.max(0, (quote?.totalDepositUSD ?? 0) - (quote?.totalToRetainUSD ?? 0))),
     invoiceProducerSignature: formData.invoiceProducerSignature || formData.producerSignature,
     capitalCoLogoSVG: capitalCoLogoSVG,
   };
@@ -15985,7 +15991,7 @@ padding-top: 5px;
 
 
 
-  // Helper for generating standard empty section rows
+// Helper for generating standard empty section rows
 
 
 /**
@@ -16031,8 +16037,8 @@ export async function generateApplicationPacketHTML(data: ApplicationPacketData)
       : [
         ...(data.carrierName?.toLowerCase().includes('richmond national insurance') ? [generateNoticepdf(dataWithQR)] : []),
         ...(data.carrierName?.toLowerCase().includes('kinsale insurance') ? [generateNoticepdf1(dataWithQR)] : []),
-      ]),      
-    
+      ]),
+
 
     generateAcord125Page1(dataWithQR),
     generateAcord125Page2(dataWithQR),

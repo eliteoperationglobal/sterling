@@ -142,11 +142,6 @@ export async function POST(
       submission?.paymentOption ||
       submission?.payload?.paymentOption;
 
-    const totalToBeSentUSD =
-      paymentOption == "Full Pay"
-        ? Math.max(0, finalAmountUSD - totalToRetainUSD)
-        : 0;
-
     // ===============================
     // DEPOSIT CALCULATION
     // ===============================
@@ -166,13 +161,16 @@ export async function POST(
       depositSterlingFeesUSD +
       depositFireMarshalUSD;
 
+
+    const totalToBeSentUSD = Math.max(0, totalDepositUSD - totalToRetainUSD);
+
     // ===============================
     // TOTAL TO BE SENT (finance Check)
     // ===============================
 
     const totalToFinanceCompanyUSD =
       paymentOption == "Premium Financial Partners Co."
-        ? Math.max(0, totalDepositUSD - totalToRetainUSD)
+        ? Math.max(0, finalAmountUSD - totalDepositUSD - totalToRetainUSD)
         : 0;
     let quote;
 
@@ -288,12 +286,10 @@ export async function POST(
       createActivityLogData(
         existingQuote ? "QUOTE_UPDATED" : "QUOTE_CREATED",
         existingQuote
-          ? `Quote updated and posted by admin for ${
-              submission.clientContact?.name || "client"
-            }`
-          : `Quote created and posted by admin for ${
-              submission.clientContact?.name || "client"
-            }`,
+          ? `Quote updated and posted by admin for ${submission.clientContact?.name || "client"
+          }`
+          : `Quote created and posted by admin for ${submission.clientContact?.name || "client"
+          }`,
         {
           submissionId: submissionId,
           quoteId: quote._id.toString(),

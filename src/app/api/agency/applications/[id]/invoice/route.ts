@@ -144,7 +144,7 @@ export async function GET(
       return new NextResponse(new Uint8Array(pdfBuffer), {
         headers: {
           'Content-Type': 'application/pdf',
-          'Content-Disposition': `attachment; filename="application-${submission._id.toString()}.pdf"`,
+          'Content-Disposition': `attachment; filename="${formData.companyName}-Invoice.pdf"`,
           'Content-Length': pdfBuffer.length.toString(),
         },
       });
