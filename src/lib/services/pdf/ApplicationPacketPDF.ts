@@ -222,6 +222,7 @@ interface ApplicationPacketData {
   totalToRetain?: string;
   totalToBeSent?: string;
   invoiceProducerSignature?: string;
+  roofingOpsExplanation?: string;
 }
 
 
@@ -3691,7 +3692,7 @@ function generatePage2(data: ApplicationPacketData): string {
                     <div>${data.agencyAddress}</div>
                     <div>${data.agencyCity}, ${data.agencyState} ${data.agencyZip}</div>
                     <div>${data.agencyPhone}</div>
-                    <div>email: ${data.agencyEmail}</div>
+                    <div>Email: ${data.agencyEmail}</div>
                 </div>
 
                 <div class="logo-icon-page2-hands">
@@ -3723,7 +3724,7 @@ function generatePage2(data: ApplicationPacketData): string {
                         ${data.applicantCity}, ${data.applicantState} ${data.applicantZip}
                     </div>
                     <div class="insured-detail-page2">${data.applicantPhone}</div>
-                    <div class="insured-detail-page2">email: ${data.applicantEmail}</div>
+                    <div class="insured-detail-page2">Email: ${data.applicantEmail}</div>
                 </div>
 
                 <!-- Quote Information -->
@@ -3937,7 +3938,7 @@ function generatePage4(data: ApplicationPacketData): string {
                   </div>
                   ${data.performRoofingOps ? `
                   <div class="explanation-field-page4">
-                    If "Yes", please explain: ${data.roofingExplanation || ''}
+                    If "Yes", please explain: ${data.roofingOpsExplanation || ''}
                   </div>` : ``}
               </div>
 
@@ -4222,7 +4223,10 @@ function generatePage6(data: ApplicationPacketData): string {
           <p>Please note that your policy is subject to audit. Audits are routinely performed and specifically provided for in the policy. The initial premium is regarded as a deposit premium only since the underwriters are relying on the accuracy of the information provided by the insured. This includes the estimated gross receipts. Thus, the audit is necessary to verify the financial information provided since the premium is based upon these representations.</p>
         </div>
         
-        <div class="initial-line-page6">Initial: _________________________</div>
+        <div class="initial-line-page6">
+  <span>Initial:</span>
+  <div class="initial-box-page6"></div>
+</div>
         
         <div class="section-title-uppercase-page6">POLICY EXCLUSIONS</div>
         
@@ -4240,7 +4244,10 @@ function generatePage6(data: ApplicationPacketData): string {
           <p>Please refer to the policy for a complete list of exclusions. This list is subject to change and may differ from prior policy years.</p>
         </div>
         
-        <div class="initial-line-page6">* I have read and understand the policy exclusions identified above. Initial: _________________________</div>
+        <div class="initial-line-page6 final-initial">
+          <span>* I have read and understand the policy exclusions identified above.</span>
+          <div class="initial-box-page6"></div>
+        </div>
   
       </div>
     </div>
@@ -4538,7 +4545,7 @@ function generatePage11(data: ApplicationPacketData): string {
               <div class="applicant-address-page11">${data.applicantAddress}</div>
               <div class="applicant-city-state-zip-page11">${data.applicantCity}, ${data.applicantState} ${data.applicantZip}</div>
               <div class="applicant-phone-page11">${data.applicantPhone}</div>
-              <div class="applicant-email-page11">email: ${data.applicantEmail}</div>
+              <div class="applicant-email-page11">Email: ${data.applicantEmail}</div>
               <div class="quote-id-page11">Quote ID: ${data.submissionNumber} </div>
             </div>
           </div>
@@ -4595,23 +4602,46 @@ function generatePage11(data: ApplicationPacketData): string {
           <p>The Applicant/Insured represents and warrants that the statements contained herein are true, accurate, and complete, and that no material facts have been omitted or misstated. This declaration shall be deemed part of the policy, if issued. The Applicant/Insured makes these statements to induce the insurer to issue coverage, or to continue coverage under the referenced policy, and understands that the insurer reserves the right to deny coverage for any claim and/or to rescind the policy from inception (ab initio), including the referenced policy, if any statement in this letter or any attachments is inaccurate or incorrect for any reason.</p>
         </div>
         
-        <div class="signature-section-page11">
-          <div class="signature-field-page11">
-            <div class="signature-label-page11"><strong>${data.companyName}</strong></div>
-            <div class="signature-line-page11">${data.lossWarrantyCompanySignature || ' '}</div>
-            <div class="signature-row-page11">
-              <div class="signature-label-small-page11" style="margin-right: auto;">Company/ Member</div>
-              <div class="signature-label-small-page11">Date</div>
-              <div class="signature-line-page11 signature-line-date-page11">${data.lossWarrantyDate}</div>
-            </div>
-          </div>
-          <div class="signature-field-page11">
-            <div class="signature-label-page11">Signature of Partner, Officer, Principal or Owner</div>
-            <div class="signature-line-page11">${data.lossWarrantySignature || ' '}</div>
-            <div class="signature-label-small-page11" style="margin-top: 0.05in;">Title</div>
-            <div class="signature-line-page11">${data.lossWarrantyTitle || ' '}</div>
-          </div>
-        </div>
+<div class="signature-section-page11">
+
+  <!-- ROW 1 -->
+<div class="signature-row">
+
+  <div class="signature-left">
+    <div class="signature-value">${data.companyName}</div>
+    <div class="signature-line22">________________________________________________________________________________________</div>
+    <div class="signature-label">Company / Member</div>
+  </div>
+
+  <div class="signature-right">
+    <div class="signature-value">${data.lossWarrantyDate || ""}</div>
+    <div class="signature-line22">____________________________</div>
+    <div class="signature-label">Date</div>
+  </div>
+
+</div>
+
+
+  <!-- ROW 2 -->
+  <div class="signature-row">
+
+    <div class="signature-left">
+      <div class="signature-value"></div>
+      <div class="signature-line22">________________________________________________________________________________________</div>
+      <div class="signature-label">
+        Signature of Partner, Officer, Principal or Owner
+      </div>
+    </div>
+
+    <div class="signature-right">
+      <div class="signature-value"></div>
+      <div class="signature-line22">____________________________</div>
+      <div class="signature-label">Title</div>
+    </div>
+
+  </div>
+
+</div>
         
         <div class="warranty-footer-page11">
           <p><strong>Warranty:</strong> The purpose of this no loss letter is to assist in the underwriting process information contained herein is specifically relied upon in determination of insurability. The undersigned, therefore, warrants that the information contained herein is true and accurate to the best of his/her knowledge, information and belief. This no loss letter shall be the basis of any insurance that may be issued and will be a part of such policy. It is understood that any misrepresentation or omission shall constitute grounds for immediate cancellation of coverage and denial of claims, if any. It is further understood that the applicant and or affiliated company is under a continuing obligation to immediately notify his/her underwriter through his/her broker of any material alteration of the information given.</p>
@@ -5346,7 +5376,7 @@ function generateAcord125Page4(data: ApplicationPacketData): string {
 					<div class="pdf44_01" style="left:41.394em;top:59.0046em;"><span class="pdf44_10 pdf44_11 pdf44_09" style="word-spacing:0.0002em;">STATE PRODUCER LICENSE NO &nbsp;</span></div>
 					<div class="pdf44_01" style="left:41.394em;top:59.4666em;"><span class="pdf44_10 pdf44_11 pdf44_09" style="word-spacing:0.0003em;">(Required in Florida) &nbsp;</span></div>
 					<div class="pdf44_01" style="left:1.794em;top:59.2146em;"><span class="pdf44_10 pdf44_11 pdf44_09" style="word-spacing:0.0002em;">PRODUCER'S SIGNATURE &nbsp;</span></div>
-					<div class="pdf44_01" style="left:21.594em;top:59.2446em;"><span class="pdf44_10 pdf44_11 pdf44_09" style="word-spacing:0.0002em;">PRODUCER'S NAME (Please Print) <br< ${data.agentName} &nbsp;</span></div>
+					<div class="pdf44_01" style="left:21.594em;top:59.2446em;"><span class="pdf44_10 pdf44_11 pdf44_09" style="word-spacing:0.0002em;">PRODUCER'S NAME (Please Print) <br> ${data.agentName} &nbsp;</span></div>
 					<div class="pdf44_01" style="left:1.794em;top:61.1046em;"><span class="pdf44_10 pdf44_11 pdf44_09" style="word-spacing:0.0002em;">APPLICANT'S SIGNATURE &nbsp;</span></div>
 					<div class="pdf44_01" style="left:35.394em;top:61.1046em;"><span class="pdf44_10 pdf44_11 pdf44_12">DATE &nbsp;</span></div>
 					<div class="pdf44_01" style="left:41.394em;top:61.1046em;"><span class="pdf44_10 pdf44_11 pdf44_12" style="word-spacing:0.0003em;">NATIONAL PRODUCER NUMBER &nbsp;</span></div>
@@ -6078,7 +6108,7 @@ function generateAcord131Page5(data: ApplicationPacketData): string {
 					<div class="pdf34_01" style="left:1.794em;top:59.2146em;"><span class="pdf34_10 pdf34_11 pdf34_09" style="word-spacing:0.0002em;">PRODUCER'S SIGNATURE &nbsp;</span></div>
 					<div class="pdf34_01" style="left:1.794em;top:61.2126em;"><span class="pdf34_10 pdf34_11 pdf34_09" style="word-spacing:0.0002em;">APPLICANT'S SIGNATURE &nbsp;</span></div>
 					<div class="pdf34_01" style="left:1.794em;top:63.1029em;"><span class="pdf34_14 pdf34_08 pdf34_13" style="word-spacing:0.0002em;">ACORD 131 (2009/10) &nbsp;</span></div>
-					<div class="pdf34_01" style="left:21.594em;top:59.2146em;"><span class="pdf34_10 pdf34_11 pdf34_09" style="word-spacing:0.0002em;">PRODUCER'S NAME (Please Print) <br> ${data.agentName} &nbsp;</span></div>
+					<div class="pdf34_01" style="left:21.594em;top:59.2146em;"><span class="pdf34_10 pdf34_11 pdf34_09" style="word-spacing:0.0002em;">PRODUCER'S NAME (Please Print) <br>${data.agentName} &nbsp;</span></div>
 					<div class="pdf34_01" style="left:35.394em;top:61.2126em;"><span class="pdf34_10 pdf34_11 pdf34_13">DATE &nbsp;</span></div>
 					<div class="pdf34_01" style="left:41.394em;top:61.2126em;"><span class="pdf34_10 pdf34_11 pdf34_13" style="word-spacing:0.0003em;">NATIONAL PRODUCER NUMBER &nbsp;</span></div>
 					<div class="pdf34_01" style="left:23.736em;top:63.1112em;"><span class="pdf34_07 pdf34_08 pdf34_09" style="word-spacing:0em;">Page 5 of 5 &nbsp;</span></div>
@@ -7895,7 +7925,7 @@ export function mapFormDataToPacketData(
     estimatedTotalGrossReceipts: formData.estimatedGrossReceipts ? `$${parseInt(formData.estimatedGrossReceipts).toLocaleString()}` : '$0',
     estimatedSubContractingCosts: formData.estimatedSubcontractingCosts ? `$${parseInt(formData.estimatedSubcontractingCosts).toLocaleString()}` : '$0',
     estimatedMaterialCosts: formData.estimatedMaterialCosts ? `$${parseInt(formData.estimatedMaterialCosts).toLocaleString()}` : '$0',
-    estimatedTotalPayroll: formData.totalPayrollAmount || '0',
+    estimatedTotalPayroll: formData.totalPayroll ? `$${parseInt(String(formData.totalPayroll).replace(/[^0-9]/g, '')).toLocaleString()}` : (formData.totalPayrollAmount ? `$${parseInt(String(formData.totalPayrollAmount).replace(/[^0-9]/g, '')).toLocaleString()}` : '$0'),
     numberOfFieldEmployees: numberOfFieldEmployees,
 
     // Work Performed
@@ -7903,7 +7933,7 @@ export function mapFormDataToPacketData(
     percentageResidential: formData.residentialPercent || 0,
     percentageCommercial: formData.commercialPercent || 0,
     percentageNewConstruction: formData.newConstructionPercent || 0,
-    percentageRemodel: formData.remodelPercent || 0,
+    percentageRemodel: formData.remodelServiceRepairPercent ?? formData.remodelPercent ?? 0,
     maxInteriorStories: formData.maxInteriorStories || 0,
     maxExteriorStories: formData.maxExteriorStories || 0,
     maxExteriorDepthBelowGrade: formData.maxExteriorDepthBelowGrade || 0,
@@ -7924,6 +7954,7 @@ export function mapFormDataToPacketData(
     performCondoRepairOnly: formData.performCondoStructuralRepair,
     performRoofingOps: formData.performRoofingOps,
     roofingExplanation: formData.roofingExplanation,
+    roofingOpsExplanation: formData.roofingOpsExplanation,
     performWaterproofing: formData.performWaterproofing,
     waterproofingExplanation: formData.waterproofingExplanation,
     useHeavyEquipment: formData.useHeavyEquipment,
@@ -9949,6 +9980,25 @@ const cssContent = `
       color: #6b7280;
       font-weight: 400;
     }
+.page6-isc .initial-line-page6 {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 9pt;
+  margin-top: 0.12in;
+  margin-bottom: 0.12in;
+  color: #1f2937;
+}
+
+.page6-isc .initial-box-page6 {
+  width: 2.5in;
+  height: 0.25in;
+  border-bottom: 1px solid #000;
+}
+
+.page6-isc .final-initial {
+  margin-top: 0.18in;
+}
     
     /* ============================================
        PAGE 9 - ISC FORMAT: DISCLOSURE OF PREMIUM (TERRORISM)
@@ -10330,7 +10380,7 @@ const cssContent = `
       gap: 0.1in;
     }
     
-    .page11-isc .signature-field-page11 {
+    .page11-isc  {
       margin-bottom: 0.08in;
     }
     
@@ -10348,14 +10398,14 @@ const cssContent = `
       margin-right: 0.3in;
     }
     
-    .page11-isc .signature-row-page11 {
+    .page11-isc {
       display: flex;
       gap: 0.3in;
       align-items: flex-end;
       margin-top: 0.05in;
     }
     
-    .page11-isc .signature-line-page11 {
+    .page11-isc  {
       font-size: 10pt;
       border-bottom: 1px solid #1f2937;
       min-height: 0.2in;
@@ -10389,6 +10439,36 @@ const cssContent = `
       color: #6b7280;
       font-weight: 400;
     }
+.signature-row{
+  display:flex;
+  justify-content:space-between;
+  margin-bottom:0.35in;
+}
+
+.signature-left{
+  width:70%;
+}
+
+.signature-right{
+  width:25%;
+}
+
+.signature-value{
+  font-size:10pt;
+  margin-bottom:0px;
+}
+
+.signature-line{
+  width:100%;
+  height:0;
+  white-space:nowrap;
+}
+
+.signature-label{
+  font-size:9pt;
+  margin-top:3px;
+  color:#1f2937;
+}
     
     
      /* ============================================

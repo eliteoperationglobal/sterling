@@ -80,6 +80,7 @@ export default function AdminQuotePage() {
   const [policyNumber, setPolicyNumber] = useState("");
   const [carrierReference, setCarrierReference] = useState("");
   const [specialNotes, setSpecialNotes] = useState("");
+  const [stats, setStats] = useState({ quoteRequests: 0, binRequests: 0, pendingQuotes: 0, boundPolicies: 0, bindRequests: 0 });
 
   // Tax calculator
   const [calculatingTax, setCalculatingTax] = useState(false);
@@ -229,6 +230,24 @@ export default function AdminQuotePage() {
       setLoading(false);
     }
   };
+
+  const fetchStats = async () => {
+    try {
+      const res = await fetch("/api/admin/dashboard");
+      const data = await res.json();
+      if (data.success) {
+        setStats(data.stats);
+      }
+    } catch (err) {
+      console.error("Error fetching stats:", err);
+    }
+  };
+
+  useEffect(() => {
+    if (status === "authenticated") {
+      fetchStats();
+    }
+  }, [status]);
 
   const selectedCarrier = carriers.find((c) => c._id === selectedCarrierId);
 
@@ -846,17 +865,30 @@ export default function AdminQuotePage() {
                 <Link href="/admin/dashboard" className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition">
                   Dashboard
                 </Link>
-                <Link href="/admin/submissions" className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition">
-                  Submissions
-                </Link>
                 <Link href="/admin/quotes" className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition">
                   Quotes
                 </Link>
-                <Link href="/admin/bind-requests" className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition">
+                <Link href="/admin/quote-requests" className="relative px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition">
+                  Quote Request
+                  {stats.quoteRequests > 0 && (
+                    <span className="absolute -top-1 -right-1 inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full shadow-lg animate-pulse">
+                      {stats.quoteRequests}
+                    </span>
+                  )}
+                </Link>
+                <Link href="/admin/bind-requests" className="relative px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition">
                   Bind Requests
+                  {stats.bindRequests > 0 && (
+                    <span className="absolute -top-1 -right-1 inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-gradient-to-br from-orange-500 to-red-600 rounded-full shadow-lg animate-pulse">
+                      {stats.bindRequests}
+                    </span>
+                  )}
                 </Link>
                 <Link href="/admin/bound-policies" className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition">
                   Policies
+                </Link>
+                <Link href="/admin/tool-requests" className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition">
+                  Tool Requests
                 </Link>
               </nav>
             </div>

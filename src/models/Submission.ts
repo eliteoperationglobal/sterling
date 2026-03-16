@@ -9,7 +9,8 @@ export type SubmissionStatus =
   | "QUOTED"
   | "BIND_REQUESTED"
   | "BOUND"
-  | "DECLINED";
+  | "DECLINED"
+  | "CANCELLED";
 
 export interface IFileUpload {
   fieldKey: string;
@@ -99,7 +100,12 @@ export interface ISubmission extends Document {
     uploadedByAdminId?: mongoose.Types.ObjectId;
   };
 
-  // Admin notes (internal notes visible to agencies)
+  // Final Policy Details
+  policyNumber?: string;
+  effectiveDate?: Date;
+  expirationDate?: Date;
+
+  // Admin notes
   adminNotes?: string;
 
   createdAt: Date;
@@ -177,7 +183,7 @@ const SubmissionSchema: Schema = new Schema(
     },
     status: {
       type: String,
-      enum: ["DRAFT", "SUBMITTED","APPROVAL_REQUESTED", "ROUTED", "QUOTED", "BIND_REQUESTED", "BOUND", "DECLINED"],
+      enum: ["DRAFT", "SUBMITTED", "APPROVAL_REQUESTED", "ROUTED", "QUOTED", "BIND_REQUESTED", "BOUND", "DECLINED", "CANCELLED"],
       default: "DRAFT",
       index: true,
     },
@@ -278,6 +284,12 @@ const SubmissionSchema: Schema = new Schema(
       type: String,
       trim: true,
     },
+    policyNumber: {
+      type: String,
+      trim: true,
+    },
+    effectiveDate: Date,
+    expirationDate: Date,
   },
   {
     timestamps: true,

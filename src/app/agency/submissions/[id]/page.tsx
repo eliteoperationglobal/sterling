@@ -64,6 +64,8 @@ interface SubmissionDetails {
     programName?: string;
     submissionId?: string;
     adminNotes?: string;
+    policyNumber?: string;
+    effectiveDate?: string;
   };
   routingLogs: Array<{
     _id: string;
@@ -92,6 +94,8 @@ interface SubmissionDetails {
     createdAt: string;
     binderPdfUrl?: string;
     proposalPdfUrl?: string;
+    policyNumber?: string;
+    effectiveDate?: string;
   }>;
   boundPolicy?: {
     _id: string;
@@ -520,6 +524,8 @@ function SubmissionDetailsContent() {
   const isBindRequested = submission?.status === "BIND_REQUESTED";
   const isBound = submission?.status === "BOUND";
 
+  const boundQuote = quotes.find(q => q.status === "BOUND");
+
   const statusHistory = [
     {
       _id: submission._id + "-created",
@@ -595,7 +601,7 @@ function SubmissionDetailsContent() {
 
               <div>
                 {/* Title */}
-                <h1 className="flex items-center gap-3 text-[24px] font-semibold text-gray-900 leading-[28px]">
+                <h1 className="flex items-center gap-3 text-[24px] font-semibold text-gray-900 leading-[28px] leading-tight">
                   <div>
                     {(submission?.clientContact?.name || "???")}
                     <span className="inline-flex items-center rounded-md bg-gray-100 px-3 py-[4px] text-[13px] font-medium text-gray-700 ">
@@ -608,7 +614,7 @@ function SubmissionDetailsContent() {
                 <div className="flex items-center flex-wrap gap-x-5 gap-y-1 mt-2 text-[14px] text-gray-700">
 
                   <span className="flex items-center gap-1.5">
-                    <User className="w-[18px] h-[18px] text-gray-500" />
+                    <User className="w-[18px] h-[18px] text-gray-500 text-gray-400" />
                     {(submission?.clientContact?.name || "???")}
                   </span>
 
@@ -987,14 +993,18 @@ function SubmissionDetailsContent() {
               <div className="flex">
                 <span className="w-36 text-gray-500">Policy Number:</span>
                 <span className="font-medium text-gray-900 leading-[18px] tracking-tight">
-                  Not Bound
+                  {submission.policyNumber || boundQuote?.policyNumber || "Not Bound"}
                 </span>
               </div>
 
               <div className="flex">
                 <span className="w-36 text-gray-500">Effective Date:</span>
                 <span className="font-medium text-gray-900 leading-[18px] tracking-tight">
-                  {(submission?.createdAt ? new Date(submission.createdAt) : new Date()).toLocaleDateString()}
+                  {submission.effectiveDate 
+                    ? new Date(submission.effectiveDate).toLocaleDateString()
+                    : (boundQuote?.effectiveDate 
+                        ? new Date(boundQuote.effectiveDate).toLocaleDateString()
+                        : (submission?.createdAt ? new Date(submission.createdAt) : new Date()).toLocaleDateString())}
                 </span>
               </div>
             </div>

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, Suspense } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
 import { toast } from "sonner";
 import {
@@ -43,7 +43,7 @@ interface SubmissionDetails {
       fileSize: number;
       mimeType: string;
       uploadedAt?: string;
-      
+      policyNumber?: string;
     }>;
     status: string;
     clientContact: {
@@ -61,6 +61,8 @@ interface SubmissionDetails {
     programId?: string;
     programName?: string;
     adminNotes?: string;
+    policyNumber?: string;
+    effectiveDate?: string;
     updatedAt: string;
     createdAt: string;
   };
@@ -208,6 +210,7 @@ export default function AdminSubmissionDetailsPage() {
   const [adminNotes, setAdminNotes] = useState("");
   const [editingNotes, setEditingNotes] = useState(false);
   const [savingNotes, setSavingNotes] = useState(false);
+  const [stats, setStats] = useState({ quoteRequests: 0, bindRequests: 0 });
 
   // New state for refactored tabs and notes
   const [activeTab, setActiveTab] = useState("Admin Notes");
@@ -217,6 +220,7 @@ export default function AdminSubmissionDetailsPage() {
   const [noteFilters, setNoteFilters] = useState<string[]>(["Underwriter"]);
   const [checkedDocs, setCheckedDocs] = useState<Record<string, boolean>>({});
   const [uploading, setUploading] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -266,6 +270,24 @@ export default function AdminSubmissionDetailsPage() {
       setLoading(false);
     }
   };
+
+  const fetchStats = async () => {
+    try {
+      const res = await fetch("/api/admin/dashboard");
+      const data = await res.json();
+      if (data.success) {
+        setStats(data.stats);
+      }
+    } catch (err) {
+      console.error("Error fetching stats:", err);
+    }
+  };
+
+  useEffect(() => {
+    if (status === "authenticated") {
+      fetchStats();
+    }
+  }, [status]);
 
   const fetchActivityLogs = async () => {
     if (!submissionId) return;
@@ -433,8 +455,99 @@ export default function AdminSubmissionDetailsPage() {
   const isBound = submission?.status === "BOUND";
 
   return (
-    <DashboardLayout>
-      <main className="flex-1 ml-[6px] bg-[#F3F0ED] overflow-x-hidden min-h-screen pb-12">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
+      <header className="bg-white/80 backdrop-blur-xl border-b border-gray-200/60 sticky top-0 z-50 shadow-sm">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+          <div className="flex items-center justify-between h-20">
+            <div className="flex items-center gap-10">
+              <Link href="/admin/dashboard" className="flex items-center gap-4 group">
+                <div className="relative">
+                  <div className="absolute inset-0 bg-gradient-to-br from-rose-500 via-pink-500 to-orange-500 rounded-2xl blur-md opacity-50 group-hover:opacity-75 animate-pulse transition-all duration-500"></div>
+                  <div className="relative w-12 h-12 bg-gradient-to-br from-rose-600 via-rose-700 to-pink-700 rounded-2xl flex items-center justify-center shadow-2xl shadow-rose-600/40 group-hover:shadow-rose-600/60 transition-all duration-500 group-hover:scale-110 group-hover:rotate-3">
+                    <div className="absolute inset-1 bg-gradient-to-br from-white/20 to-transparent rounded-xl"></div>
+                    <div className="relative">
+                      <span className="text-white font-black text-lg tracking-tighter drop-shadow-lg">SP</span>
+                    </div>
+                    <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full flex items-center justify-center shadow-lg border-2 border-white">
+                      <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-gray-900 font-bold text-lg tracking-tight">Sterling Portal</span>
+                    <div className="px-2 py-0.5 bg-gradient-to-r from-rose-50 to-pink-50 border border-rose-200 rounded-md">
+                      <span className="text-[10px] font-black text-rose-600 tracking-wider">ADMIN</span>
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-500 font-semibold -mt-0.5 tracking-wide">Control Center</p>
+                </div>
+              </Link>
+              <nav className="hidden lg:flex items-center gap-1">
+                <Link href="/admin/dashboard" className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition">
+                  Dashboard
+                </Link>
+                <Link href="/admin/quotes" className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition">
+                  Quotes
+                </Link>
+                <Link href="/admin/bind-requests" className="relative px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition">
+                  Bind Requests
+                  {stats.bindRequests > 0 && (
+                    <span className="absolute -top-1 -right-1 inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-gradient-to-br from-orange-500 to-red-600 rounded-full shadow-lg animate-pulse">
+                      {stats.bindRequests}
+                    </span>
+                  )}
+                </Link>
+                <Link href="/admin/bound-policies" className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition">
+                  Policies
+                </Link>
+                <Link href="/admin/tool-requests" className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition">
+                  Tool Requests
+                </Link>
+                <Link href="/admin/cancel-requests" className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition">
+                  Cancel Requests
+                </Link>
+              </nav>
+            </div>
+
+            <div className="flex items-center gap-4">
+              <div className="h-8 w-px bg-gray-200"></div>
+              <div className="flex items-center gap-3">
+                <div className="hidden sm:block text-right">
+                  <p className="text-sm font-semibold text-gray-900">{session?.user?.name || "Administrator"}</p>
+                  <p className="text-xs text-gray-500">System Admin</p>
+                </div>
+                <div className="relative">
+                  <button
+                    onClick={() => setProfileOpen(!profileOpen)}
+                    className="w-10 h-10 rounded-full bg-[#9A8B7A] text-white flex items-center justify-center font-semibold text-sm shadow-sm hover:shadow-md hover:scale-105 transition-all duration-200"
+                  >
+                    {session?.user?.name?.[0] || "A"}
+                  </button>
+                  {profileOpen && (
+                    <div className="absolute right-0 mt-3 w-52 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-50">
+                      <div className="px-4 py-3 border-b bg-gray-50">
+                        <p className="text-sm font-semibold text-gray-800">Sterling Insurance Services</p>
+                        <p className="text-xs text-gray-500">Admin Panel</p>
+                      </div>
+                      <button
+                        onClick={() => signOut()}
+                        className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 transition"
+                      >
+                        Logout
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main className="flex-1 bg-[#F3F0ED] overflow-x-hidden min-h-screen pb-12">
         {/* Header */}
         <div className="bg-white px-6 pt-5 pb-4 shadow-sm">
           <div className="flex items-start justify-between">
@@ -488,16 +601,16 @@ export default function AdminSubmissionDetailsPage() {
             </div>
 
             <div className="flex items-center gap-3">
-              {isQuoted && (
+              {submission.status !== "SUBMITTED" && (
                 <>
                   <button
-                    onClick={() => window.open(`/api/agency/applications/${submissionId}/proposal`, "_blank")}
+                    onClick={() => window.open(`/api/admin/submissions/${submissionId}/proposal`, "_blank")}
                     className={iscOutlineBtn}
                   >
                     Proposal
                   </button>
                   <button
-                    onClick={() => window.open(`/api/agency/applications/${submissionId}/invoice`, "_blank")}
+                    onClick={() => window.open(`/api/admin/submissions/${submissionId}/invoice`, "_blank")}
                     className={iscOutlineBtn}
                   >
                     Invoice
@@ -527,10 +640,23 @@ export default function AdminSubmissionDetailsPage() {
                 App Packet
               </button>
               <button
-                onClick={() => window.open(`/admin/submissions/${submissionId}/quote`, "_blank")}
+                onClick={async () => {
+                  if (window.confirm("Are you sure you want to cancel this submission? This will also cancel any associated bound policies.")) {
+                    try {
+                      const res = await fetch(`/api/admin/submissions/${submissionId}/cancel`, {
+                        method: "POST",
+                      });
+                      if (!res.ok) throw new Error("Failed to cancel");
+                      toast.success("Submission cancelled successfully");
+                      router.push("/admin/submissions");
+                    } catch (err: any) {
+                      toast.error(err.message || "Failed to cancel submission");
+                    }
+                  }
+                }}
                 className={iscOutlineBtn}
               >
-                View
+                Cancel
               </button>
             </div>
           </div>
@@ -545,7 +671,13 @@ export default function AdminSubmissionDetailsPage() {
             </div>
             <div>
               <p className="text-gray-500 mb-1 leading-tight">Effective Date:</p>
-              <p className="font-semibold text-gray-900">{(submission?.payload?.effectiveDate || "—")}</p>
+              <p className="font-semibold text-gray-900">
+                {submission.effectiveDate
+                  ? new Date(submission.effectiveDate).toLocaleDateString()
+                  : (quotes?.find((q: any) => q.status === "BOUND")?.effectiveDate
+                      ? new Date(quotes.find((q: any) => q.status === "BOUND").effectiveDate).toLocaleDateString()
+                      : (submission?.createdAt ? new Date(submission.createdAt) : new Date()).toLocaleDateString())}
+              </p>
             </div>
             <div>
               <p className="text-gray-500 mb-1 leading-tight">Estimated Gross Receipts:</p>
@@ -567,119 +699,12 @@ export default function AdminSubmissionDetailsPage() {
               <p className="text-gray-500 mb-1 leading-tight">Agency Name</p>
               <p className="font-semibold text-gray-900">{submission.agencyId?.name || "N/A"}</p>
             </div>
+            <div>
+              <p className="text-gray-500 mb-1 leading-tight">Policy Number</p>
+              <p className="font-semibold text-gray-900">{submission.policyNumber || quotes?.find((q: any) => q.status === "BOUND")?.policyNumber || quotes?.find((q: any) => q.policyNumber)?.policyNumber || "N/A"}</p>
+            </div>
           </div>
         </div>
-                        {/* Uploaded Documents Section (Reused from Agency page) */}
-                <div className="bg-white px-8 py-6 grid grid-cols-1 lg:grid-cols-3 gap-10 border-b border-gray-200">
-                  {/* LEFT – UPLOADED DOCUMENTS */}
-                  <div className="lg:col-span-2">
-                    <h3 className="text-[15px] font-semibold text-gray-900 mb-4">
-                      Uploaded Documents
-                    </h3>
-
-                    {/* Upload Box */}
-                    <label className="border border-dashed border-gray-300 rounded-md p-6 flex items-center justify-between mb-6 cursor-pointer">
-                      <p className="text-[14px] text-gray-500">
-                        Drag and drop your files here to start uploading or
-                      </p>
-                      <input
-                        type="file"
-                        hidden
-                        onChange={(e) => {
-                          if (e.target.files?.[0]) {
-                            handleFileUpload(e.target.files[0]);
-                          }
-                        }}
-                      />
-                      <span className="ml-4 px-5 py-2 bg-[#9A8B7A] hover:bg-[#7A6F64] text-white text-[14px] font-medium rounded-md transition-colors">
-                        {uploading ? "Uploading..." : "Browse"}
-                      </span>
-                    </label>
-
-                    {/* TABLE HEADER */}
-                    <div className="bg-gray-100 px-4 py-2 grid grid-cols-3 text-[13px] font-medium text-gray-600">
-                      <span>Filename</span>
-                      <span>Uploaded On</span>
-                      <span>Action</span>
-                    </div>
-
-                    {/* FILE ROWS */}
-                    {submission.files.length === 0 ? (
-                      <div className="px-4 py-6 text-[14px] text-gray-400 border border-t-0 border-gray-200">
-                        No documents uploaded yet
-                      </div>
-                    ) : (
-                      submission.files.map((file: any, index: number) => (
-                        <div
-                          key={index}
-                          className="px-4 py-3 grid grid-cols-3 items-center text-[14px] border border-t-0 border-gray-200"
-                        >
-                          <span className="font-medium text-gray-900 truncate pr-4">
-                            {file.fileName}
-                          </span>
-                          <span className="text-gray-500">
-                            {file.uploadedAt ? new Date(file.uploadedAt).toLocaleDateString() : new Date().toLocaleDateString()}
-                          </span>
-                          <a
-                            href={`/api/download?url=${encodeURIComponent(file.fileUrl)}`}
-                            download={file.fileName}
-                            className="text-[#9A8B7A] hover:text-[#7A6F64] font-medium hover:underline transition-colors"
-                          >
-                            Download
-                          </a>
-                        </div>
-                      ))
-                    )}
-                  </div>
-
-                  {/* RIGHT – REQUIRED DOCUMENTS CHECKLIST */}
-                  <div>
-                    <h3 className="text-[14px] font-semibold text-gray-900 mb-5 tracking-tight">
-                      Required Documents Checklist
-                    </h3>
-                    <div className="space-y-6 text-[14px]">
-                      {[
-                        "Signed GL Application",
-                        "Signed Loss Warranty Letter",
-                        "Invoice Statement",
-                        "Surplus Line Acknowledgment",
-                        "Terrorism Acknowledgment",
-                      ].map((doc) => {
-                        const checked = checkedDocs[doc];
-                        return (
-                          <div
-                            key={doc}
-                            onClick={() => toggleDoc(doc)}
-                            className="flex items-center gap-4 cursor-pointer"
-                          >
-                            <div
-                              className={`w-[18px] h-[18px] rounded-full border flex items-center justify-center transition-all ${
-                                checked
-                                  ? "bg-[#9A8B7A] border-[#9A8B7A]"
-                                  : "border-gray-300"
-                              }`}
-                            >
-                              {checked && (
-                                <svg
-                                  className="w-3 h-3 text-white"
-                                  viewBox="0 0 20 20"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  strokeWidth={3}
-                                >
-                                  <path d="M5 10l3 3 7-7" />
-                                </svg>
-                              )}
-                            </div>
-                            <span className="text-gray-800 leading-tight">
-                              {doc}
-                            </span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
         {/* Tabs Bar */}
         <div className="bg-white px-8 border-t border-gray-100 shadow-sm sticky top-[64px] z-30">
           <div className="px-8 flex items-center gap-8 h-[56px]">
@@ -817,7 +842,53 @@ export default function AdminSubmissionDetailsPage() {
 
             {activeTab === "Additional Information" && (
               <div className="space-y-8">
-
+                {/* Uploaded Documents Section */}
+                <div className="bg-white px-8 py-6 grid grid-cols-1 lg:grid-cols-3 gap-10 border-b border-gray-200 rounded-xl">
+                  {/* LEFT – UPLOADED DOCUMENTS */}
+                  <div className="lg:col-span-2">
+                    <h3 className="text-[15px] font-semibold text-gray-900 mb-4">Uploaded Documents</h3>
+                    <label className="border border-dashed border-gray-300 rounded-md p-6 flex items-center justify-between mb-6 cursor-pointer">
+                      <p className="text-[14px] text-gray-500">Drag and drop your files here to start uploading or</p>
+                      <input type="file" hidden onChange={(e) => { if (e.target.files?.[0]) { handleFileUpload(e.target.files[0]); } }} />
+                      <span className="ml-4 px-5 py-2 bg-[#9A8B7A] hover:bg-[#7A6F64] text-white text-[14px] font-medium rounded-md transition-colors">
+                        {uploading ? "Uploading..." : "Browse"}
+                      </span>
+                    </label>
+                    <div className="bg-gray-100 px-4 py-2 grid grid-cols-3 text-[13px] font-medium text-gray-600">
+                      <span>Filename</span>
+                      <span>Uploaded On</span>
+                      <span>Action</span>
+                    </div>
+                    {submission.files.length === 0 ? (
+                      <div className="px-4 py-6 text-[14px] text-gray-400 border border-t-0 border-gray-200">No documents uploaded yet</div>
+                    ) : (
+                      submission.files.map((file: any, index: number) => (
+                        <div key={index} className="px-4 py-3 grid grid-cols-3 items-center text-[14px] border border-t-0 border-gray-200">
+                          <span className="font-medium text-gray-900 truncate pr-4">{file.fileName}</span>
+                          <span className="text-gray-500">{file.uploadedAt ? new Date(file.uploadedAt).toLocaleDateString() : new Date().toLocaleDateString()}</span>
+                          <a href={`/api/download?url=${encodeURIComponent(file.fileUrl)}`} download={file.fileName} className="text-[#9A8B7A] hover:text-[#7A6F64] font-medium hover:underline transition-colors">Download</a>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                  {/* RIGHT – REQUIRED DOCUMENTS CHECKLIST */}
+                  <div>
+                    <h3 className="text-[14px] font-semibold text-gray-900 mb-5 tracking-tight">Required Documents Checklist</h3>
+                    <div className="space-y-6 text-[14px]">
+                      {["Signed GL Application", "Signed Loss Warranty Letter", "Invoice Statement", "Surplus Line Acknowledgment", "Terrorism Acknowledgment"].map((doc) => {
+                        const checked = checkedDocs[doc];
+                        return (
+                          <div key={doc} onClick={() => toggleDoc(doc)} className="flex items-center gap-4 cursor-pointer">
+                            <div className={`w-[18px] h-[18px] rounded-full border flex items-center justify-center transition-all ${checked ? "bg-[#9A8B7A] border-[#9A8B7A]" : "border-gray-300"}`}>
+                              {checked && (<svg className="w-3 h-3 text-white" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth={3}><path d="M5 10l3 3 7-7" /></svg>)}
+                            </div>
+                            <span className="text-gray-800 leading-tight">{doc}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                   <div className="lg:col-span-8 space-y-8">
@@ -833,7 +904,6 @@ export default function AdminSubmissionDetailsPage() {
                       </div>
                     </div>
                   </div>
-
                   <div className="lg:col-span-4 space-y-8">
                     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                       <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
@@ -1010,7 +1080,7 @@ export default function AdminSubmissionDetailsPage() {
           </div>
         </div>
       </main>
-    </DashboardLayout>
+    </div>
   );
 }
 
