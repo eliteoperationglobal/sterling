@@ -214,7 +214,7 @@ export async function GET(
       productsCompletedOpsLimit: formatToUSD(limits?.productsCompletedOps),
       deductible: formatToUSD(limits?.deductible),
       selfInsuredRetention: formatToUSD(limits?.deductible),
-      employeePayroll: formatToUSD(formData.totalPayrollAmount || "$0"),
+      employeePayroll: formatToUSD(formData.totalPayroll || formData.totalPayrollAmount || "$0"),
       descriptionOfOperations:
         formData.carrierApprovedDescription ||
         formData.classCodeWork?.description ||

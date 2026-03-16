@@ -128,6 +128,10 @@ export async function POST(
         limits: quote.limits,
         endorsements: quote.endorsements || [],
         specialNotes: quote.specialNotes,
+        grossReceipts: (function(val: any) { if (!val) return "$0"; const s=String(val); return s.includes("$") ? s : "$" + Number(s.replace(/[^0-9.-]+/g,"")).toLocaleString(); })(formData.estimatedGrossReceipts || formData.classCodes?.[0]?.grossReceipts || formData.classCode?.[0]?.grossReceipts || "0"),
+        subcontractorCosts: (function(val: any) { if (!val) return "$0"; const s=String(val); return s.includes("$") ? s : "$" + Number(s.replace(/[^0-9.-]+/g,"")).toLocaleString(); })(formData.estimatedSubcontractingCosts || "0"),
+        employeePayroll: (function(val: any) { if (!val) return "$0"; const s=String(val); return s.includes("$") ? s : "$" + Number(s.replace(/[^0-9.-]+/g,"")).toLocaleString(); })(formData.totalPayroll || formData.totalPayrollAmount || "0"),
+        descriptionOfOperations: formData.carrierApprovedDescription || formData.classCodeWork?.description || formData.descriptionOfOperations || "",
       };
 
       const htmlContent = generateProposalHTML(proposalData);

@@ -570,39 +570,39 @@ if (email === "office@sjinsuranceservices.com") {
 			<div class="nsp1_view">
 				<div class="nsp1_05 nsp1_06">
 					<div class="nsp1_01" style="left:20.8017em;top:6.0007em;"><span class="nsp1_25 nsp1_08 nsp1_23" style="word-spacing:0.0031em;">Coverage Summary &nbsp;</span></div>
-					<div class="nsp1_01" style="left:7.5em;top:8.8756em; width: 35em;">
-						<table style="width: 100%; border-collapse: collapse; margin-top: 10px; line-height: 1.4em; white-space: normal; font-family: 'ABNCOH+Cambria'; font-size: 0.915em;">
+					<div class="nsp1_01" style="left:4em;top:7.1em; width: 44em; z-index: 10;">
+						<table style="width: 100%; border-collapse: collapse; margin-top: 0px; line-height: 1.3em; white-space: normal; font-family: 'ABNCOH+Cambria'; font-size: 0.85em; border: 1px solid #7e7e7e; background-color: #ffffff;">
 							<tr>
-								<td style="padding: 2px 0; width: 60%;"><strong>Aggregate:</strong></td>
-								<td style="padding: 2px 0;">${data.aggregateLimit || ""}</td>
+								<td style="border: 1px solid #7e7e7e; padding: 2px 6px; text-align: center; width: 60%;">Coverage Type</td>
+								<td style="border: 1px solid #7e7e7e; padding: 2px 6px; text-align: center;">Limit</td>
 							</tr>
 							<tr>
-								<td style="padding: 2px 0;"><strong>Occurrence:</strong></td>
-								<td style="padding: 2px 0;">${data.occurrenceLimit || ""}</td>
+								<td style="border: 1px solid #7e7e7e; padding: 2px 6px; text-align: center;">Each Occurrence Limit</td>
+								<td style="border: 1px solid #7e7e7e; padding: 2px 6px; text-align: center;">${data.occurrenceLimit || ""}</td>
 							</tr>
 							<tr>
-								<td style="padding: 2px 0;"><strong>Products / Completed Ops:</strong></td>
-								<td style="padding: 2px 0;">${data.productsCompletedOpsLimit || ""}</td>
+								<td style="border: 1px solid #7e7e7e; padding: 2px 6px; text-align: center;">Damages to Premises Rented to You Limit</td>
+								<td style="border: 1px solid #7e7e7e; padding: 2px 6px; text-align: center;">${data.fireLegalLimit || ""}</td>
 							</tr>
 							<tr>
-								<td style="padding: 2px 0;"><strong>Personal / Advertising Injury:</strong></td>
-								<td style="padding: 2px 0;">${data.personalAdvertisingInjuryLimit || ""}</td>
+								<td style="border: 1px solid #7e7e7e; padding: 2px 6px; text-align: center;">Medical Expense Limit</td>
+								<td style="border: 1px solid #7e7e7e; padding: 2px 6px; text-align: center;">${data.medicalExpenseLimit || ""}</td>
 							</tr>
 							<tr>
-								<td style="padding: 2px 0;"><strong>Fire Legal:</strong></td>
-								<td style="padding: 2px 0;">${data.fireLegalLimit || ""}</td>
+								<td style="border: 1px solid #7e7e7e; padding: 2px 6px; text-align: center;">Personal &amp; Advertising Injury Limit</td>
+								<td style="border: 1px solid #7e7e7e; padding: 2px 6px; text-align: center;">${data.personalAdvertisingInjuryLimit || ""}</td>
 							</tr>
 							<tr>
-								<td style="padding: 2px 0;"><strong>Med Pay:</strong></td>
-								<td style="padding: 2px 0;">${data.medicalExpenseLimit || ""}</td>
+								<td style="border: 1px solid #7e7e7e; padding: 2px 6px; text-align: center;">General Aggregate Limit</td>
+								<td style="border: 1px solid #7e7e7e; padding: 2px 6px; text-align: center;">${data.aggregateLimit || ""}</td>
 							</tr>
 							<tr>
-								<td style="padding: 2px 0;"><strong>Deductible:</strong></td>
-								<td style="padding: 2px 0;">${data.deductible || ""}</td>
+								<td style="border: 1px solid #7e7e7e; padding: 2px 6px; text-align: center;">Products / Completed Operations<br>Aggregate Limit</td>
+								<td style="border: 1px solid #7e7e7e; padding: 2px 6px; text-align: center;">${data.productsCompletedOpsLimit || ""}</td>
 							</tr>
 							<tr>
-								<td style="padding: 8px 0 2px 0;"><strong>Self-Insured Retention:</strong></td>
-								<td style="padding: 8px 0 2px 0;"><strong>${data.selfInsuredRetention || ""}</strong></td>
+								<td style="border: 1px solid #7e7e7e; padding: 6px 6px 4px 6px; text-align: center;"><strong>Self-Insured Retention:</strong> Per Occurrence</td>
+								<td style="border: 1px solid #7e7e7e; padding: 6px 6px 4px 6px; text-align: center;">${data.selfInsuredRetention || ""}</td>
 							</tr>
 						</table>
 					</div>
@@ -620,10 +620,10 @@ if (email === "office@sjinsuranceservices.com") {
 					<div class="nsp1_01" style="left:7.5em;top:50.8481em;"><span class="nsp1_33 nsp1_11 nsp1_37" style="word-spacing:0.0005em;">Placement and Underwriting Fees: &nbsp;</span></div>
 					<div class="nsp1_01" style="left:7.5em;top:52.0631em;"><span class="nsp1_33 nsp1_11 nsp1_12" style="word-spacing:-0.0014em;">Down Payment: &nbsp;</span></div>
 					<div class="nsp1_01" style="left:32.3333em;top:48.4181em;"><span class="nsp1_33 nsp1_11 nsp1_39">Amount &nbsp;</span></div>
-					<div class="nsp1_01" style="left:32.6133em;top:49.6339em;"><span class="nsp1_13 nsp1_11 nsp1_17">$5,000 &nbsp;</span></div>
-					<div class="nsp1_01" style="left:32.6133em;top:50.8489em;"><span class="nsp1_13 nsp1_11 nsp1_17">$1,000 &nbsp;</span></div>
-					<div class="nsp1_01" style="left:31.9633em;top:52.0639em;"><span class="nsp1_13 nsp1_11 nsp1_26">$2,495.41 &nbsp;</span></div>
-					<div class="nsp1_01" style="left:32.9883em;top:53.2739em;"><span class="nsp1_13 nsp1_11 nsp1_27">$300 &nbsp;</span></div>
+					<div class="nsp1_01" style="left:32.6133em;top:49.6339em;"><span class="nsp1_13 nsp1_11 nsp1_17">$${(data.finalAmountUSD || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} &nbsp;</span></div>
+					<div class="nsp1_01" style="left:32.6133em;top:50.8489em;"><span class="nsp1_13 nsp1_11 nsp1_17">$${(data.brokerFeeAmountUSD || 0).toLocaleString()} &nbsp;</span></div>
+					<div class="nsp1_01" style="left:31.9633em;top:52.0639em;"><span class="nsp1_13 nsp1_11 nsp1_26">  &nbsp;</span></div>
+					<div class="nsp1_01" style="left:32.9883em;top:53.2739em;"><span class="nsp1_13 nsp1_11 nsp1_27">  &nbsp;</span></div>
 					<div class="nsp1_01" style="left:7.5em;top:53.2781em;"><span class="nsp1_33 nsp1_11 nsp1_15" style="word-spacing:-0.0044em;">10 Monthly Installments: &nbsp;</span></div>
 					<div class="nsp1_01" style="left:46.755em;top:59.5486em;"><span class="nsp1_24 nsp1_08 nsp1_17">2</span></div>
 				</div>
@@ -663,9 +663,9 @@ if (email === "office@sjinsuranceservices.com") {
 					<div class="nsp1_01" style="left:7.54em;top:48.9639em;"><span class="nsp1_10 nsp1_11 nsp1_12" style="word-spacing:-0.0002em;">Client Name_____________________ Client Signature : ________________________ &nbsp;</span></div>
 					<div class="nsp1_01" style="left:36.9183em;top:48.9639em;"><span class="nsp1_10 nsp1_11 nsp1_50" style="word-spacing:-0.0017em;">Date : ____________ &nbsp;</span></div>
 					<div class="nsp1_01" style="left:20.5867em;top:52.0341em;"><span class="nsp1_25 nsp1_08 nsp1_26" style="word-spacing:0.0016em;">Contact Information &nbsp;</span></div>
-					<div class="nsp1_01" style="left:10.5817em;top:53.4589em;"><span class="nsp1_13 nsp1_11 nsp1_15" style="word-spacing:0.0046em;"></span><span class="nsp1_13 nsp1_11 nsp1_17" style="word-spacing:0.2216em;">&nbsp;</span><span class="nsp1_13 nsp1_11 nsp1_28" style="word-spacing:-0.0024em;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;${data.agencyName} &nbsp;</span></div>
-					<div class="nsp1_01" style="left:17.1017em;top:54.5339em;"><span class="nsp1_10 nsp1_11 nsp1_19" style="word-spacing:-0.0015em;">${data.streetAddress}, ${data.city}, ${data.state} ${data.zipCode} &nbsp;</span></div>
-					<div class="nsp1_01" style="left:21.0367em;top:55.611em;"><span class="nsp1_52 nsp1_53 nsp1_17">&nbsp;</span><span class="nsp1_52 nsp1_53 nsp1_17" style="word-spacing:-0.0301em;">&nbsp;</span><span class="nsp1_10 nsp1_11 nsp1_14" style="word-spacing:-0.0023em;">M: ${data.agencyPhone} &nbsp;</span></div>
+					<div class="nsp1_01" style="left:20.5817em;top:53.4589em;"><span class="nsp1_13 nsp1_11 nsp1_15" style="word-spacing:0.0046em;"></span><span class="nsp1_13 nsp1_11 nsp1_17" style="word-spacing:0.2216em;">&nbsp;</span><span class="nsp1_13 nsp1_11 nsp1_28" style="word-spacing:-0.0024em;">${data.agencyName} &nbsp;</span></div>
+					<div class="nsp1_01" style="left:20.1017em;top:54.5339em;"><span class="nsp1_10 nsp1_11 nsp1_19" style="word-spacing:-0.0015em;">${data.streetAddress}, ${data.city}, ${data.state} ${data.zipCode} &nbsp;</span></div>
+					<div class="nsp1_01" style="left:28.0367em;top:56.8326em;"><span class="nsp1_52 nsp1_53 nsp1_17">&nbsp;</span><span class="nsp1_52 nsp1_53 nsp1_17" style="word-spacing:-0.0301em;">&nbsp;</span><span class="nsp1_10 nsp1_11 nsp1_14" style="word-spacing:-0.0023em;">M: ${data.agencyPhone} &nbsp;</span></div>
 					<div class="nsp1_01" style="left:11.5017em;top:56.8326em;"><span class="nsp1_54 nsp1_55 nsp1_17" style="font-weight:bold;">✉</span><span class="nsp1_56 nsp1_53 nsp1_17" style="word-spacing:-0.0301em;">&nbsp;</span><span class="nsp1_57 nsp1_11 nsp1_19" style="word-spacing:-0.0043em;">M: </span><a href="mailto:${data.agencyEmail}" target="_blank"><span class="nsp1_58 nsp1_11 nsp1_12" style="word-spacing:0.0124em;">${data.agencyEmail} </span></a><a href="mailto:" target="_blank"><span class="nsp1_57 nsp1_11 nsp1_17" style="word-spacing:0.0012em;">/ </span></a><a href="mailto:cs@capcoinsurance.com" target="_blank"><span class="nsp1_58 nsp1_11 nsp1_19"> &nbsp;</span></a></div>
 					<div class="nsp1_01" style="left:46.755em;top:59.5486em;"><span class="nsp1_24 nsp1_08 nsp1_17">3</span></div>
 				</div>

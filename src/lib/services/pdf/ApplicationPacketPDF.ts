@@ -222,6 +222,7 @@ interface ApplicationPacketData {
   totalToRetain?: string;
   totalToBeSent?: string;
   invoiceProducerSignature?: string;
+  roofingOpsExplanation?: string;
 }
 
 
@@ -3937,7 +3938,7 @@ function generatePage4(data: ApplicationPacketData): string {
                   </div>
                   ${data.performRoofingOps ? `
                   <div class="explanation-field-page4">
-                    If "Yes", please explain: ${data.roofingExplanation || ''}
+                    If "Yes", please explain: ${data.roofingOpsExplanation || ''}
                   </div>` : ``}
               </div>
 
@@ -5371,7 +5372,7 @@ return `
 					<div class="pdf44_01" style="left:41.394em;top:59.0046em;"><span class="pdf44_10 pdf44_11 pdf44_09" style="word-spacing:0.0002em;">STATE PRODUCER LICENSE NO &nbsp;</span></div>
 					<div class="pdf44_01" style="left:41.394em;top:59.4666em;"><span class="pdf44_10 pdf44_11 pdf44_09" style="word-spacing:0.0003em;">(Required in Florida) &nbsp;</span></div>
 					<div class="pdf44_01" style="left:1.794em;top:59.2146em;"><span class="pdf44_10 pdf44_11 pdf44_09" style="word-spacing:0.0002em;">PRODUCER'S SIGNATURE &nbsp;</span></div>
-					<div class="pdf44_01" style="left:21.594em;top:59.2446em;"><span class="pdf44_10 pdf44_11 pdf44_09" style="word-spacing:0.0002em;">PRODUCER'S NAME (Please Print) <br< ${data.agentName} &nbsp;</span></div>
+					<div class="pdf44_01" style="left:21.594em;top:59.2446em;"><span class="pdf44_10 pdf44_11 pdf44_09" style="word-spacing:0.0002em;">PRODUCER'S NAME (Please Print) <br> ${data.agentName} &nbsp;</span></div>
 					<div class="pdf44_01" style="left:1.794em;top:61.1046em;"><span class="pdf44_10 pdf44_11 pdf44_09" style="word-spacing:0.0002em;">APPLICANT'S SIGNATURE &nbsp;</span></div>
 					<div class="pdf44_01" style="left:35.394em;top:61.1046em;"><span class="pdf44_10 pdf44_11 pdf44_12">DATE &nbsp;</span></div>
 					<div class="pdf44_01" style="left:41.394em;top:61.1046em;"><span class="pdf44_10 pdf44_11 pdf44_12" style="word-spacing:0.0003em;">NATIONAL PRODUCER NUMBER &nbsp;</span></div>
@@ -6103,7 +6104,7 @@ return `
 					<div class="pdf34_01" style="left:1.794em;top:59.2146em;"><span class="pdf34_10 pdf34_11 pdf34_09" style="word-spacing:0.0002em;">PRODUCER'S SIGNATURE &nbsp;</span></div>
 					<div class="pdf34_01" style="left:1.794em;top:61.2126em;"><span class="pdf34_10 pdf34_11 pdf34_09" style="word-spacing:0.0002em;">APPLICANT'S SIGNATURE &nbsp;</span></div>
 					<div class="pdf34_01" style="left:1.794em;top:63.1029em;"><span class="pdf34_14 pdf34_08 pdf34_13" style="word-spacing:0.0002em;">ACORD 131 (2009/10) &nbsp;</span></div>
-					<div class="pdf34_01" style="left:21.594em;top:59.2146em;"><span class="pdf34_10 pdf34_11 pdf34_09" style="word-spacing:0.0002em;">PRODUCER'S NAME (Please Print) <br> ${data.agentName} &nbsp;</span></div>
+					<div class="pdf34_01" style="left:21.594em;top:59.2146em;"><span class="pdf34_10 pdf34_11 pdf34_09" style="word-spacing:0.0002em;">PRODUCER'S NAME (Please Print) <br>${data.agentName} &nbsp;</span></div>
 					<div class="pdf34_01" style="left:35.394em;top:61.2126em;"><span class="pdf34_10 pdf34_11 pdf34_13">DATE &nbsp;</span></div>
 					<div class="pdf34_01" style="left:41.394em;top:61.2126em;"><span class="pdf34_10 pdf34_11 pdf34_13" style="word-spacing:0.0003em;">NATIONAL PRODUCER NUMBER &nbsp;</span></div>
 					<div class="pdf34_01" style="left:23.736em;top:63.1112em;"><span class="pdf34_07 pdf34_08 pdf34_09" style="word-spacing:0em;">Page 5 of 5 &nbsp;</span></div>
@@ -7920,7 +7921,7 @@ const addExcessLiability = formData?.addExcessLiability || false;
     estimatedTotalGrossReceipts: formData.estimatedGrossReceipts ? `$${parseInt(formData.estimatedGrossReceipts).toLocaleString()}` : '$0',
     estimatedSubContractingCosts: formData.estimatedSubcontractingCosts ? `$${parseInt(formData.estimatedSubcontractingCosts).toLocaleString()}` : '$0',
     estimatedMaterialCosts: formData.estimatedMaterialCosts ? `$${parseInt(formData.estimatedMaterialCosts).toLocaleString()}` : '$0',
-    estimatedTotalPayroll: formData.totalPayrollAmount || '0',
+    estimatedTotalPayroll: formData.totalPayroll ? `$${parseInt(String(formData.totalPayroll).replace(/[^0-9]/g, '')).toLocaleString()}` : (formData.totalPayrollAmount ? `$${parseInt(String(formData.totalPayrollAmount).replace(/[^0-9]/g, '')).toLocaleString()}` : '$0'),
     numberOfFieldEmployees: numberOfFieldEmployees,
 
     // Work Performed
@@ -7928,7 +7929,7 @@ const addExcessLiability = formData?.addExcessLiability || false;
     percentageResidential: formData.residentialPercent || 0,
     percentageCommercial: formData.commercialPercent || 0,
     percentageNewConstruction: formData.newConstructionPercent || 0,
-    percentageRemodel: formData.remodelPercent || 0,
+    percentageRemodel: formData.remodelServiceRepairPercent ?? formData.remodelPercent ?? 0,
     maxInteriorStories: formData.maxInteriorStories || 0,
     maxExteriorStories: formData.maxExteriorStories || 0,
     maxExteriorDepthBelowGrade: formData.maxExteriorDepthBelowGrade || 0,
@@ -7949,6 +7950,7 @@ const addExcessLiability = formData?.addExcessLiability || false;
     performCondoRepairOnly: formData.performCondoStructuralRepair,
     performRoofingOps: formData.performRoofingOps,
     roofingExplanation: formData.roofingExplanation,
+    roofingOpsExplanation: formData.roofingOpsExplanation,
     performWaterproofing: formData.performWaterproofing,
     waterproofingExplanation: formData.waterproofingExplanation,
     useHeavyEquipment: formData.useHeavyEquipment,
