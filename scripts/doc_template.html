@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sterling Insurance Portal - PRODUCTION SYSTEM BLUEPRINT</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            mermaid.initialize({ startOnLoad: true, theme: 'base', themeVariables: { primaryColor: '#fdfaf7', primaryBorderColor: '#9A8B7A', primaryTextColor: '#111827', lineType: 'basis' } });
+        });
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@400;500;600;700;800&display=swap');
+        
+        * { box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; line-height: 1.6; color: #111827; max-width: 1200px; margin: 0 auto; padding: 40px; background: #fff; }
+        
+        h1 { font-size: 3.2em; text-align: center; border-bottom: 4px solid #9A8B7A; color: #9A8B7A; margin-bottom: 5px; font-weight: 800; }
+        h2 { font-size: 2.2em; color: #111827; margin-top: 50px; border-bottom: 2px solid #e5e7eb; padding-bottom: 12px; page-break-after: avoid; background:#f9fafb; padding:10px; border-radius:8px;}
+        h3 { font-size: 1.5em; color: #374151; margin-top: 30px; border-bottom: 1px solid #f3f4f6; padding-bottom: 5px; }
+        h4 { font-size: 1.1em; color: #1f2937; margin-top: 25px; font-weight: 700; background: #fdfaf7; padding: 8px; border-left: 4px solid #9A8B7A;}
+        .subtitle { text-align: center; color: #4b5563; font-size: 1.3em; margin-bottom: 50px; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; }
+        
+        .page-break { page-break-after: always; }
+        .avoid-break { break-inside: avoid; }
+        
+        code { font-family: 'Fira Code', monospace; background: #f3f4f6; padding: 0.2em 0.4em; border-radius: 4px; font-size: 0.85em; color: #9a3412; }
+        pre blockquote { margin: 0; }
+        pre { background: #111827; color: #f9fafb; padding: 20px; border-radius: 8px; overflow-x: auto; font-size: 0.85em; font-family: 'Fira Code', monospace; line-height: 1.5; box-shadow: inset 0 2px 4px rgba(0,0,0,0.5); }
+        
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 0.85em; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; }
+        th, td { padding: 14px 16px; text-align: left; border-bottom: 1px solid #e5e7eb; border-right: 1px solid #e5e7eb; }
+        th { background: #f3f4f6; color: #374151; font-weight: 700; text-transform: uppercase; font-size: 0.85em; letter-spacing: 0.5px;}
+        td:last-child { border-right: none; }
+        tr:last-child td { border-bottom: none; }
+        tr:nth-child(even) { background: #fdfdfd; }
+        
+        .file-path { font-family: 'Fira Code', monospace; font-size:0.9em; font-weight:500; color:#4338ca; word-break: break-all;}
+
+        .mermaid-wrapper { display: flex; justify-content: center; background: #fffcf9; padding: 30px; border-radius: 12px; border: 2px solid #eaeaea; margin: 30px 0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+        
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    </style>
+</head>
+<body>
+    <h1>STERLING PRODUCTION SYSTEM BLUEPRINT</h1>
+    <div class="subtitle">Complete Diagnostic & Developer Operations Master Document</div>
+
+    <!-- 1. FULL PROJECT STRUCTURE -->
+    <div class="section">
+        <h2>1. ENTIRE PROJECT FILE STRUCTURE (100% COVERAGE)</h2>
+        <p>This automated scan ensures no file is missed. Every single operational file in the <code>src/</code> pipeline is documented here.</p>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>File Path</th>
+                    <th>Purpose</th>
+                    <th>Used In</th>
+                    <th>Connected APIs</th>
+                    <th>Type</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{FILE_TABLE_ROWS}}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="page-break"></div>
+
+    <!-- 2. IMPROVED API DOCUMENTATION -->
+    <div class="section">
+        <h2>2. EXHAUSTIVE API DOCUMENTATION</h2>
+        
+        <h4>1. Submission Creation API</h4>
+        <table>
+            <tr><th width="20%">Route</th><td><code>/api/submissions</code></td></tr>
+            <tr><th>Method</th><td><code>POST</code></td></tr>
+            <tr><th>File Path</th><td><code>src/app/api/submissions/route.ts</code></td></tr>
+            <tr><th>Request Body</th><td><code>multipart/form-data</code> (Includes file binaries + <code>payload: JSON string</code> for FormTemplate metrics).</td></tr>
+            <tr><th>Response Format</th><td><code>{ success: true, submissionId: string }</code></td></tr>
+            <tr><th>Authentication Check</th><td><code>getServerSession(authOptions)</code>. Fails 401 if null.</td></tr>
+            <tr><th>Internal Logic</th><td>1. Decode JWT to acquire <code>tenant agencyId</code>.<br>2. Upload <code>LossRuns</code> mapping files to AWS/Local S3 disk.<br>3. Instantiate Mongoose <code>Submission</code> document.<br>4. Trigger <code>RoutingEngine.routeSubmission()</code> passing ID.<br>5. Reply with 200 OK.</td></tr>
+            <tr><th>Error Handling</th><td>Catches limits > 10MB. <code>return NextResponse.json({error: err}, {status: 500})</code></td></tr>
+        </table>
+
+        <h4>2. Broker Quote Persistence API</h4>
+        <table>
+            <tr><th width="20%">Route</th><td><code>/api/admin/quotes</code></td></tr>
+            <tr><th>Method</th><td><code>POST</code></td></tr>
+            <tr><th>File Path</th><td><code>src/app/api/admin/quotes/route.ts</code></td></tr>
+            <tr><th>Request Body</th><td><code>{ submissionId: str, carrierId: str, brokerFee: num, taxLimit: num, ... }</code></td></tr>
+            <tr><th>Response Format</th><td><code>{ success: true, quote: QuoteObject }</code></td></tr>
+            <tr><th>Authentication Check</th><td><code>getServerSession</code> AND <code>token.role === 'system_admin'</code> ONLY. Fails 403 on role mismatch.</td></tr>
+            <tr><th>Internal Logic</th><td>1. Calculate sum algorithm (Base + StateTax + Broker).<br>2. Write to MongoDB <code>Quote</code> collection.<br>3. Mongoose Update <code>Submission.status = QUOTED</code>.<br>4. <code>EmailService</code> alerts Agency that quote is ready.</td></tr>
+            <tr><th>Error Handling</th><td>Checks for valid Submission ObjectId. Fails early if null.</td></tr>
+        </table>
+
+        <h4>3. PDF Render Generator</h4>
+        <table>
+            <tr><th width="20%">Route</th><td><code>/api/agency/quotes/[id]/generate-documents</code></td></tr>
+            <tr><th>Method</th><td><code>POST</code></td></tr>
+            <tr><th>File Path</th><td><code>.../generate-documents/route.ts</code></td></tr>
+            <tr><th>Request Body</th><td>Empty. Uses <code>[id]</code> slug.</td></tr>
+            <tr><th>Response Format</th><td><code>{ success: true, proposalUrl: str, invoiceUrl: str }</code></td></tr>
+            <tr><th>Authentication Check</th><td>Verifies JWT. Verifies <code>Quote.agencyId === JWT.agencyId</code> (Tenant Security).</td></tr>
+            <tr><th>Internal Logic</th><td>1. Database populate of Quote details.<br>2. Aggregations of JSON mapping to HTML string template.<br>3. Remote API fetch to Puppeteer microservice via Axios.<br>4. Write buffer to AWS / Cache.<br>5. Return accessible URI.</td></tr>
+            <tr><th>Error Handling</th><td>Caught timeouts via CustomJS. Fallbacks to empty buffer.</td></tr>
+        </table>
+
+        <h4>4. Live Payment Processor</h4>
+        <table>
+            <tr><th width="20%">Route</th><td><code>/api/payment/pay</code></td></tr>
+            <tr><th>Method</th><td><code>POST</code></td></tr>
+            <tr><th>File Path</th><td><code>src/app/api/payment/pay/route.ts</code></td></tr>
+            <tr><th>Request Body</th><td><code>{ quoteId: str, amountUSD: num, type: 'FULL'|'DOWN_PAYMENT' }</code></td></tr>
+            <tr><th>Response Format</th><td><code>{ success: true, paymentId: str, clientSecret: str }</code></td></tr>
+            <tr><th>Auth Check</th><td>Agency role required JWT.</td></tr>
+            <tr><th>Logic</th><td>Creates Stripe PaymentIntent. Writes <code>Payment</code> doc (Status PENDING). Quote goes to <code>PROCESSING_PAY</code>.</td></tr>
+        </table>
+    </div>
+
+    <!-- 3. BUTTON MAPPING -->
+    <div class="page-break"></div>
+    <div class="section">
+        <h2>3. DEFINITIVE BUTTON &rarr; ACTION MAPPING</h2>
+        
+        <table>
+            <thead><tr><th>Button Element</th><th>Frontend File Location</th><th>Invoked API</th><th>State Transition / DB Impact</th><th>Failure Protocol</th></tr></thead>
+            <tbody>
+                <tr><td>"Complete Submission"</td><td><code>components/DynamicForm.tsx</code></td><td><code>POST /api/submissions</code></td><td>Submission <code>NEW</code> &rarr; <code>ROUTED</code>. Files persist in storage.</td><td>Renders Toast error. Stops submission. Preserves field data.</td></tr>
+                <tr><td>"Generate Document"</td><td><code>components/agency/quotes/DocumentsList.tsx</code></td><td><code>POST /api/agency/.../generate-documents</code></td><td>No State modify. Caches PDF temporarily.</td><td>Vercel 10s Timeout limit hits. Displays 504.</td></tr>
+                <tr><td>"Pay In Full $"</td><td><code>components/agency/quotes/PaymentBox.tsx</code></td><td><code>POST /api/payment/pay</code></td><td>Creates Payment Record. Quote <code>QUOTED</code> &rarr; <code>PAID</code>.</td><td>Stripe network failure logs to console.</td></tr>
+                <tr><td>"Request Policy Bind"</td><td><code>components/agency/quotes/BindRequestBox.tsx</code></td><td><code>POST /api/bind/request</code></td><td>Submission <code>PAID</code> &rarr; <code>BIND_REQUESTED</code>.</td><td>Button disabled if payment logic not satisfied.</td></tr>
+                <tr><td>"Approve Bind"</td><td><code>app/admin/bind-requests/page.tsx</code></td><td><code>POST /api/admin/bind-requests/approve</code></td><td>Submission <code>BIND_REQUESTED</code> &rarr; <code>BOUND</code>. Generates <code>Policy</code> document.</td><td>Alerts admin if Binder PDF was not uploaded prior.</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- 4 & 5. DATA FLOW & VISUAL PIPELINE -->
+    <div class="page-break"></div>
+    <div class="section">
+        <h2>4. END-TO-END VISUAL SYSTEM PIPELINES</h2>
+        <p>This flow relies heavily on Promise chains and asynchronous service abstraction.</p>
+
+        <h4>1. Agency Routing Sequence Execution</h4>
+        <div class="mermaid-wrapper">
+            <div class="mermaid">
+            sequenceDiagram
+                actor Agency Broker
+                participant Edge as Next.js Middleware
+                participant POST as /api/submissions
+                participant DB as MongoDB
+                participant RouteEngine as RoutingEngine Service
+                participant SMTP as Email NodeMailer
+                
+                Agency Broker->>Edge: Submit App via DynamicForm
+                Edge->>Edge: JWT Validate & RateLimit
+                Edge->>POST: Validated Request
+                POST->>DB: await Submission.create(payload)
+                POST->>RouteEngine: async routeSubmission(subId)
+                Note over RouteEngine: Reads Submission.state & industry
+                RouteEngine->>DB: find({ state, industry }) in RoutingRules
+                RouteEngine->>SMTP: Promise.all([SendEmails to Carriers])
+                RouteEngine->>DB: Update Status to ROUTED
+                POST-->>Agency Broker: Return 200 OK
+            </div>
+        </div>
+
+        <h4>2. PDF Document & E-Sign Flow</h4>
+        <div class="mermaid-wrapper">
+            <div class="mermaid">
+            sequenceDiagram
+                actor Agency
+                participant React as React (DocumentsList)
+                participant PDFAPI as /api/.../generate-documents
+                participant PDFService as PDFService.ts
+                participant Puppeteer as Docker CustomJS API
+                participant DB as DB Cache
+                
+                Agency->>React: Click Generate Docs
+                React->>PDFAPI: POST Request
+                PDFAPI->>PDFService: ApplicationPacket.generate(SubmissionData)
+                Note over PDFService: Transform JSON payload to complex CSS/HTML string
+                PDFService->>Puppeteer: POST Content-Type: HTML
+                Puppeteer-->>PDFService: Buffer (Uint8Array)
+                PDFService->>DB: PDFCache.create(Base64)
+                PDFAPI-->>React: Render Blob URL in iframe
+            </div>
+        </div>
+
+        <h4>3. Payment & Binding Lifecycle</h4>
+        <div class="mermaid-wrapper">
+            <div class="mermaid">
+            flowchart TD
+                A[Quote is Approved] -->|Click Pay| B(/api/payment/pay)
+                B -->|STRIPE_ENABLED=true| C[Stripe Intent Created]
+                B -->|STRIPE_ENABLED=false| D[Mock Transaction Success]
+                C --> E[Quote Payment Status: PAID]
+                D --> E
+                E --> F[Show 'Request Bind' Button]
+                F -->|POST /api/bind/request| G[Sub Status: BIND_REQUESTED]
+                G --> H(System Admin Alerted)
+                H --> |Admin Approves| I[Final Bound Policy Issued]
+            </div>
+        </div>
+    </div>
+
+    <!-- 7. CODE SNIPPETS -->
+    <div class="page-break"></div>
+    <div class="section">
+        <h2>5. CRITICAL ARCHITECTURE CODE SNIPPETS</h2>
+        
+        <h4>A. PDF Service External Execution Loop</h4>
+        <p>Due to heavy Vercel limits, the architecture ships the HTML template to an external service. This is critical for scaling.</p>
+<pre>
+export class PDFService {
+  static async convertHtmlToPdfBuffer(htmlContent: string): Promise&lt;Buffer&gt; {
+    const customJsApiKey = process.env.CUSTOMJS_API_KEY;
+    const customJsBaseUrl = process.env.CUSTOMJS_BASEURL || 'https://api.customjs.space';
+    
+    // Calls the heavy puppeteer lifting API externally
+    const response = await fetch(`${customJsBaseUrl}/pdf/generate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': customJsApiKey },
+      body: JSON.stringify({ html: htmlContent })
+    });
+    
+    return Buffer.from(await response.arrayBuffer());
+  }
+}
+</pre>
+
+        <h4>B. The Auth Middleware Edge Defense</h4>
+        <p>This snippet guarantees pure isolation and forces unauthenticated users away from dangerous zones.</p>
+<pre>
+export default withAuth(
+  function middleware(req) {
+    const token = req.nextauth.token;
+    const path = req.nextUrl.pathname;
+
+    // Total blockade for non system_admins attempting DB changes
+    if (path.startsWith("/admin")) {
+      if (token?.role !== "system_admin") {
+        return NextResponse.redirect(new URL("/agency/dashboard", req.url));
+      }
+    }
+    return NextResponse.next();
+  }
+)
+</pre>
+    </div>
+
+    <!-- 8. BUG ANALYSIS -->
+    <div class="page-break"></div>
+    <div class="section">
+        <h2>6. EXHAUSTIVE BUG ANALYSIS & ARCHITECTURAL RED FLAGS</h2>
+        
+        <div class="alert alert-error">
+            <strong>1. OneDrive/Desktop File Duplication & Build Crashes</strong><br>
+            <strong>Problem:</strong> Scattered across <code>src/models</code> and <code>src/services</code> are files appending <code>-DESKTOP-HQJKU6N.ts</code>. This is a fatal sync conflict. Next.js compiler maps multiple identical exported schemas, crashing the local <code>npm run dev</code>.<br>
+            <strong>Fix:</strong> Developers MUST wipe these files entirely and restrict code movement to git only.
+        </div>
+
+        <div class="alert alert-warn">
+            <strong>2. Form Template Dynamic Typing Disconnect (No Zod)</strong><br>
+            <strong>Problem:</strong> When <code>DynamicForm.tsx</code> pushes the <code>payload: {}</code> block to <code>/api/submissions</code>, the API blindly accepts the JSON blob into MongoDB. There is NO server-side verification that the submitted payload matches the <code>FormTemplate</code> constraints.<br>
+            <strong>Fix:</strong> Implement <code>Zod</code> dynamically: <code>const schema = z.object(buildZodShape(template.fields));</code> in the POST endpoint BEFORE saving to DB.
+        </div>
+
+        <div class="alert alert-warn">
+            <strong>3. Status Mismatch Desynchronization</strong><br>
+            <strong>Problem:</strong> <code>PaymentService.ts</code> forces Quotes to <code>PAID</code>. If the parent <code>Submission</code> document isn't correctly updated in the same tick, an Agency sees "Payment required" while Admin sees "Paid".<br>
+            <strong>Fix:</strong> Enforce Mongoose Transactions (<code>session.startTransaction()</code>) wrapping operations that touch both Quote and Submission status simultaneously.
+        </div>
+
+        <div class="alert alert-warn">
+            <strong>4. Mongoose Type Casting Anomalies</strong><br>
+            <strong>Problem:</strong> Heavy use of <code>const data = doc.foreignId as any</code> because TypeScript natively treats ObjectIds as non-populated strings, rejecting <code>data.name</code> requests.<br>
+            <strong>Fix:</strong> Enforce <code>IPopulatedQuote</code> Generics natively at the model definition layer to remove all <code>as any</code> loopholes.
+        </div>
+    </div>
+
+    <!-- 9. PERFORMANCE & 10. SECURITY -->
+    <div class="page-break"></div>
+    <div class="section">
+        <div class="grid-2">
+            <div>
+                <h2>7. PERFORMANCE OPTIMIZATION BLUEPRINT</h2>
+                
+                <h4>API & DB Speed Fixes</h4>
+                <ul>
+                    <li><strong>Reduce Payload Fetches:</strong> Currently <code>/admin/submissions/page.tsx</code> fetches immense JSON payloads just to render table rows. Add <code>.select('-payload -clientContact')</code> to the initial Mongoose GET array.</li>
+                    <li><strong>Index Missing:</strong> <code>SubmissionSchema.index({ agencyId: 1, status: 1 })</code> MUST be added. As table rows hit 10k+, the dashboard will lock up without this composite index.</li>
+                    <li><strong>Image Bloat in PDF:</strong> Shift rendering from inline <code>base64</code> image injections to HTTPS external URL links. Decreases API latency for PDFs from 12s &rarr; 3s.</li>
+                </ul>
+            </div>
+            
+            <div>
+                <h2>8. MAXIMUM SECURITY INFRASTRUCTURE</h2>
+                
+                <h4>Protection Measures</h4>
+                <ul>
+                    <li><strong>Strict Backend Token Matching:</strong> In every API route, ensuring <code>Submission.findOne({ _id: id, agencyId: token.agencyId })</code> guarantees Tenant Isolation. Brokers can NEVER spoof query parameters.</li>
+                    <li><strong>Rate Limiting Needed:</strong> Install <code>@upstash/ratelimit</code> and wrap the <code>/api/auth/[...nextauth]</code> and <code>/api/submissions</code> endpoints. Limit to 5 req/minute. Defends against credential stuffing.</li>
+                    <li><strong>JWT Integrity:</strong> Rely on secure Edge runtime strategy. Never store raw UUIDs in localStorage.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

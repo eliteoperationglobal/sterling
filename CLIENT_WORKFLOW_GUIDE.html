@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sterling Insurance Portal - Complete Workflow Guide</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.8;
+            color: #333;
+            background: #ffffff;
+            padding: 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            color: #1a1a1a;
+            border-bottom: 4px solid #00BCD4;
+            padding-bottom: 15px;
+            margin-bottom: 30px;
+            font-size: 36px;
+        }
+        
+        h2 {
+            color: #00BCD4;
+            margin-top: 50px;
+            margin-bottom: 25px;
+            font-size: 28px;
+            border-left: 5px solid #00BCD4;
+            padding-left: 20px;
+        }
+        
+        h3 {
+            color: #2c3e50;
+            margin-top: 35px;
+            margin-bottom: 20px;
+            font-size: 22px;
+            background: #f8f9fa;
+            padding: 10px 15px;
+            border-radius: 5px;
+        }
+        
+        h4 {
+            color: #34495e;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+        
+        ul, ol {
+            margin-left: 40px;
+            margin-bottom: 25px;
+        }
+        
+        li {
+            margin-bottom: 12px;
+        }
+        
+        .workflow-step {
+            background: #f8f9fa;
+            border-left: 4px solid #00BCD4;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        
+        .workflow-step h4 {
+            color: #00BCD4;
+            margin-top: 0;
+        }
+        
+        .status-flow {
+            background: #e3f2fd;
+            border: 2px solid #2196F3;
+            padding: 20px;
+            margin: 30px 0;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .status-flow::before {
+            content: "Status Flow: ";
+            color: #1976D2;
+        }
+        
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196F3;
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 5px;
+        }
+        
+        .success-box {
+            background: #e8f5e9;
+            border-left: 4px solid #4CAF50;
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 5px;
+        }
+        
+        .warning-box {
+            background: #fff3e0;
+            border-left: 4px solid #FF9800;
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 5px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+        }
+        
+        th, td {
+            border: 1px solid #ddd;
+            padding: 15px;
+            text-align: left;
+        }
+        
+        th {
+            background: #00BCD4;
+            color: white;
+            font-weight: bold;
+        }
+        
+        tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        
+        .checklist {
+            background: #f8f9fa;
+            border-left: 4px solid #00BCD4;
+            padding: 20px;
+            margin: 25px 0;
+        }
+        
+        .checklist-item {
+            margin-bottom: 10px;
+            padding-left: 30px;
+            position: relative;
+        }
+        
+        .checklist-item:before {
+            content: "☐";
+            position: absolute;
+            left: 0;
+            font-size: 20px;
+        }
+        
+        .page-break {
+            page-break-before: always;
+        }
+        
+        .highlight {
+            background: #fff9c4;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+        
+        .footer {
+            margin-top: 60px;
+            padding-top: 30px;
+            border-top: 3px solid #ddd;
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        @media print {
+            body {
+                padding: 20px;
+            }
+            .page-break {
+                page-break-before: always;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Sterling Insurance Portal - Complete Workflow Guide</h1>
+    
+    <div class="info-box">
+        <strong>Overview:</strong> This document explains how the Sterling Insurance Portal works from start to finish. It's designed to help you understand the complete process of how insurance applications are submitted, quotes are created, and policies are bound.
+    </div>
+
+    <h2>🎯 System Overview</h2>
+    
+    <p>The Sterling Insurance Portal is a web-based system that manages the entire insurance application and quote process. It has three main user types:</p>
+    
+    <ol>
+        <li><strong>Agency Users</strong> - Insurance agencies that submit applications and manage quotes</li>
+        <li><strong>Admin Users</strong> - System administrators who review applications and create quotes</li>
+        <li><strong>Clients</strong> - End customers who receive quotes and sign documents</li>
+    </ol>
+
+    <div class="page-break"></div>
+
+    <h2>📋 Complete Workflow - Step by Step</h2>
+
+    <h3>Phase 1: Application Submission</h3>
+
+    <div class="workflow-step">
+        <h4>Step 1: Agency Logs In</h4>
+        <ul>
+            <li>Agency user visits the portal website</li>
+            <li>Logs in with their email and password</li>
+            <li>Sees their agency dashboard</li>
+        </ul>
+    </div>
+
+    <div class="workflow-step">
+        <h4>Step 2: Start New Application</h4>
+        <ul>
+            <li>Agency clicks "New Application" or "Submit Application"</li>
+            <li>Selects the insurance program (e.g., "Advantage Contractor GL")</li>
+            <li>System loads the appropriate application form</li>
+        </ul>
+    </div>
+
+    <div class="workflow-step">
+        <h4>Step 3: Fill Out Application Form</h4>
+        <p>The agency fills out comprehensive information about their client:</p>
+        
+        <p><strong>Company Information:</strong></p>
+        <ul>
+            <li>Company name, DBA (Doing Business As)</li>
+            <li>Business entity type (LLC, Corporation, etc.)</li>
+            <li>Federal Employer Identification Number (FEIN)</li>
+            <li>Years in business</li>
+        </ul>
+        
+        <p><strong>Contact Information:</strong></p>
+        <ul>
+            <li>Primary contact name, email, phone</li>
+            <li>Business address (with address autocomplete)</li>
+            <li>Mailing address (if different)</li>
+        </ul>
+        
+        <p><strong>Business Details:</strong></p>
+        <ul>
+            <li>Industry type</li>
+            <li>Class codes (type of work performed)</li>
+            <li>Estimated annual revenue</li>
+            <li>States where business operates</li>
+            <li>Number of employees</li>
+        </ul>
+        
+        <p><strong>Insurance Requirements:</strong></p>
+        <ul>
+            <li>Desired coverage limits</li>
+            <li>Deductible preferences</li>
+            <li>Any special requirements or endorsements</li>
+        </ul>
+    </div>
+
+    <div class="workflow-step">
+        <h4>Step 4: Upload Supporting Documents</h4>
+        <ul>
+            <li>Agency can upload relevant documents:
+                <ul>
+                    <li>Certificates of insurance</li>
+                    <li>Prior policies</li>
+                    <li>Loss runs</li>
+                    <li>Other supporting documents</li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+
+    <div class="workflow-step">
+        <h4>Step 5: Submit Application</h4>
+        <ul>
+            <li>Agency reviews all information</li>
+            <li>Clicks "Submit Application"</li>
+            <li>System saves the application</li>
+            <li>Application status changes to <span class="highlight">"SUBMITTED"</span></li>
+        </ul>
+        
+        <div class="success-box">
+            <strong>What Happens Next:</strong>
+            <ul>
+                <li>Application appears in the admin dashboard</li>
+                <li>Admin receives notification (if email is configured)</li>
+                <li>Application is ready for review</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="page-break"></div>
+
+    <h3>Phase 2: Admin Review & Quote Creation</h3>
+
+    <div class="workflow-step">
+        <h4>Step 6: Admin Reviews Application</h4>
+        <ul>
+            <li>Admin user logs into the system</li>
+            <li>Navigates to "Submissions" or "Applications"</li>
+            <li>Views the submitted application</li>
+            <li>Reviews all information and documents</li>
+        </ul>
+    </div>
+
+    <div class="workflow-step">
+        <h4>Step 7: Admin Creates Quote</h4>
+        <ul>
+            <li>Admin clicks "Create Quote" or "Enter Quote"</li>
+            <li>System loads the quote entry form</li>
+        </ul>
+    </div>
+
+    <div class="workflow-step">
+        <h4>Step 8: Admin Enters Quote Details</h4>
+        
+        <p><strong>Carrier Information:</strong></p>
+        <ul>
+            <li>Selects insurance carrier</li>
+            <li>Enters carrier quote amount</li>
+            <li>Adds carrier reference number</li>
+        </ul>
+        
+        <p><strong>Premium Breakdown:</strong></p>
+        <ul>
+            <li>Base premium (from carrier)</li>
+            <li>Tax calculation (automatically calculated based on state)</li>
+            <li>Policy fees</li>
+            <li>Broker fees</li>
+            <li>Final total amount</li>
+        </ul>
+        
+        <p><strong>Policy Details:</strong></p>
+        <ul>
+            <li>Effective date (when coverage starts)</li>
+            <li>Expiration date (when coverage ends)</li>
+            <li>Policy number</li>
+            <li>Coverage limits (General Liability, Aggregate, etc.)</li>
+        </ul>
+    </div>
+
+    <div class="workflow-step">
+        <h4>Step 9: Admin Saves Quote</h4>
+        <ul>
+            <li>Admin reviews all quote information</li>
+            <li>Clicks "Save Quote" or "Post Quote"</li>
+            <li>System calculates final amounts</li>
+            <li>Quote status changes to <span class="highlight">"POSTED"</span></li>
+        </ul>
+        
+        <div class="success-box">
+            <strong>What Happens Next:</strong>
+            <ul>
+                <li>Quote appears in agency dashboard</li>
+                <li>Agency receives notification (if email is configured)</li>
+                <li>Quote is ready for agency review</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="page-break"></div>
+
+    <h3>Phase 3: Agency Review & Approval</h3>
+
+    <div class="workflow-step">
+        <h4>Step 10: Agency Reviews Quote</h4>
+        <ul>
+            <li>Agency user logs in</li>
+            <li>Sees new quote in their dashboard</li>
+            <li>Clicks on the quote to view details</li>
+            <li>Reviews premium breakdown, coverage details, and policy terms</li>
+        </ul>
+    </div>
+
+    <div class="workflow-step">
+        <h4>Step 11: Agency Approves Quote</h4>
+        <ul>
+            <li>Agency reviews and confirms all details</li>
+            <li>Clicks "Approve Quote"</li>
+            <li>System updates quote status to <span class="highlight">"APPROVED"</span></li>
+        </ul>
+        
+        <div class="success-box">
+            <strong>What Happens Next:</strong>
+            <ul>
+                <li>Quote is ready for client presentation</li>
+                <li>Documents can be generated</li>
+                <li>E-signature process can begin</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="page-break"></div>
+
+    <h3>Phase 4: Document Generation</h3>
+
+    <div class="workflow-step">
+        <h4>Step 12: Generate Documents</h4>
+        <p>Once a quote is approved, the system can generate several documents:</p>
+        
+        <p><strong>Proposal Document:</strong></p>
+        <ul>
+            <li>Professional proposal PDF</li>
+            <li>Includes all quote details</li>
+            <li>Premium breakdown</li>
+            <li>Coverage information</li>
+            <li>Terms and conditions</li>
+        </ul>
+        
+        <p><strong>Carrier Forms:</strong></p>
+        <ul>
+            <li>Required carrier application forms</li>
+            <li>Pre-filled with client information</li>
+            <li>Ready for signature</li>
+        </ul>
+        
+        <p><strong>Finance Agreement (if applicable):</strong></p>
+        <ul>
+            <li>Payment plan details</li>
+            <li>Installment schedule</li>
+            <li>Terms and conditions</li>
+        </ul>
+        
+        <p><strong>Binder (after payment):</strong></p>
+        <ul>
+            <li>Proof of insurance</li>
+            <li>Policy details</li>
+            <li>Effective dates</li>
+        </ul>
+    </div>
+
+    <div class="workflow-step">
+        <h4>Step 13: Documents Available</h4>
+        <ul>
+            <li>All generated documents are stored in the system</li>
+            <li>Agency can download PDFs</li>
+            <li>Documents can be emailed to clients</li>
+            <li>Documents are ready for e-signature</li>
+        </ul>
+    </div>
+
+    <div class="page-break"></div>
+
+    <h3>Phase 5: E-Signature Process</h3>
+
+    <div class="workflow-step">
+        <h4>Step 14: Send Documents for Signature</h4>
+        <ul>
+            <li>Agency clicks "Send for E-Signature"</li>
+            <li>System prepares documents</li>
+            <li>E-signature request is sent</li>
+        </ul>
+        
+        <div class="info-box">
+            <strong>What Happens:</strong>
+            <ul>
+                <li>Client receives email with signing link (when e-signature is integrated)</li>
+                <li>Or agency can share the signing link directly</li>
+                <li>Client clicks the link to access signing page</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="workflow-step">
+        <h4>Step 15: Client Signs Documents</h4>
+        <ul>
+            <li>Client opens the signing link</li>
+            <li>Reviews the documents</li>
+            <li>Fills in required information (name, title, email, phone)</li>
+            <li>Signs the documents electronically</li>
+            <li>Submits the signature</li>
+        </ul>
+        
+        <div class="success-box">
+            <strong>What Happens Next:</strong>
+            <ul>
+                <li>System receives signature confirmation</li>
+                <li>Documents are marked as "SIGNED"</li>
+                <li>Signed documents are stored</li>
+                <li>Status updates to <span class="highlight">"E_SIGN_COMPLETED"</span></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="page-break"></div>
+
+    <h3>Phase 6: Payment Processing</h3>
+
+    <div class="workflow-step">
+        <h4>Step 16: Process Payment</h4>
+        <ul>
+            <li>Agency navigates to payment section</li>
+            <li>Views the quote amount and breakdown</li>
+            <li>Clicks "Process Payment"</li>
+        </ul>
+    </div>
+
+    <div class="workflow-step">
+        <h4>Step 17: Enter Payment Details</h4>
+        <ul>
+            <li>Agency or client enters payment information:
+                <ul>
+                    <li>Payment method (credit card, bank transfer)</li>
+                    <li>Payment amount</li>
+                    <li>Payment details</li>
+                </ul>
+            </li>
+            <li>Reviews payment summary</li>
+        </ul>
+    </div>
+
+    <div class="workflow-step">
+        <h4>Step 18: Complete Payment</h4>
+        <ul>
+            <li>Payment is processed securely (when payment integration is active)</li>
+            <li>System receives payment confirmation</li>
+            <li>Payment receipt is generated</li>
+            <li>Status updates to <span class="highlight">"PAYMENT_COMPLETED"</span></li>
+        </ul>
+        
+        <div class="success-box">
+            <strong>What Happens Next:</strong>
+            <ul>
+                <li>Payment receipt is available for download</li>
+                <li>Receipt can be emailed</li>
+                <li>System is ready for policy binding</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="page-break"></div>
+
+    <h3>Phase 7: Policy Binding</h3>
+
+    <div class="workflow-step">
+        <h4>Step 19: Bind Policy</h4>
+        <ul>
+            <li>After payment is received, admin can bind the policy</li>
+            <li>Admin clicks "Bind Policy"</li>
+            <li>System generates binder document</li>
+            <li>Policy is officially bound</li>
+        </ul>
+    </div>
+
+    <div class="workflow-step">
+        <h4>Step 20: Policy Active</h4>
+        <ul>
+            <li>Policy is now active and in force</li>
+            <li>Coverage begins on effective date</li>
+            <li>Client is fully insured</li>
+            <li>All documents are stored in the system</li>
+        </ul>
+    </div>
+
+    <div class="page-break"></div>
+
+    <h2>🔄 Status Flow</h2>
+    
+    <p>Here's how an application moves through the system:</p>
+    
+    <div class="status-flow">
+        SUBMITTED → POSTED → APPROVED → E_SIGN_COMPLETED → PAYMENT_COMPLETED → BOUND
+    </div>
+    
+    <table>
+        <tr>
+            <th>Status</th>
+            <th>Meaning</th>
+        </tr>
+        <tr>
+            <td><strong>SUBMITTED</strong></td>
+            <td>Application has been submitted by agency</td>
+        </tr>
+        <tr>
+            <td><strong>POSTED</strong></td>
+            <td>Admin has created and posted a quote</td>
+        </tr>
+        <tr>
+            <td><strong>APPROVED</strong></td>
+            <td>Agency has approved the quote</td>
+        </tr>
+        <tr>
+            <td><strong>E_SIGN_COMPLETED</strong></td>
+            <td>Documents have been signed</td>
+        </tr>
+        <tr>
+            <td><strong>PAYMENT_COMPLETED</strong></td>
+            <td>Payment has been received</td>
+        </tr>
+        <tr>
+            <td><strong>BOUND</strong></td>
+            <td>Policy is officially bound and active</td>
+        </tr>
+    </table>
+
+    <div class="page-break"></div>
+
+    <h2>👥 User Roles & Permissions</h2>
+
+    <h3>Agency Users</h3>
+    <div class="success-box">
+        <p><strong>Can Do:</strong></p>
+        <ul>
+            <li>Submit new applications</li>
+            <li>View their applications and quotes</li>
+            <li>Approve or reject quotes</li>
+            <li>Generate and download documents</li>
+            <li>Send documents for e-signature</li>
+            <li>Process payments</li>
+            <li>View payment history</li>
+            <li>Access their dashboard</li>
+        </ul>
+        
+        <p><strong>Cannot Do:</strong></p>
+        <ul>
+            <li>Create quotes (admin only)</li>
+            <li>Access other agencies' data</li>
+            <li>Modify system settings</li>
+        </ul>
+    </div>
+
+    <h3>Admin Users</h3>
+    <div class="info-box">
+        <p><strong>Can Do:</strong></p>
+        <ul>
+            <li>View all applications from all agencies</li>
+            <li>Create and edit quotes</li>
+            <li>Bind policies</li>
+            <li>Generate all documents</li>
+            <li>Access admin dashboard</li>
+            <li>View system-wide reports</li>
+            <li>Manage carriers</li>
+            <li>Access all features</li>
+        </ul>
+        
+        <p><strong>Cannot Do:</strong></p>
+        <ul>
+            <li>Submit applications (agencies do this)</li>
+            <li>Approve quotes (agencies do this)</li>
+        </ul>
+    </div>
+
+    <div class="page-break"></div>
+
+    <h2>💡 Key Features</h2>
+
+    <div class="workflow-step">
+        <h4>1. Address Autocomplete</h4>
+        <ul>
+            <li>When entering addresses, the system suggests addresses as you type</li>
+            <li>Automatically fills in street, city, state, and ZIP code</li>
+            <li>Improves accuracy and saves time</li>
+        </ul>
+    </div>
+
+    <div class="workflow-step">
+        <h4>2. Automatic Tax Calculation</h4>
+        <ul>
+            <li>System automatically calculates state tax based on the business location</li>
+            <li>Tax rates are up-to-date for all US states</li>
+            <li>No manual calculation needed</li>
+        </ul>
+    </div>
+
+    <div class="workflow-step">
+        <h4>3. Document Generation</h4>
+        <ul>
+            <li>All documents are automatically generated as PDFs</li>
+            <li>Professional formatting</li>
+            <li>Includes all relevant information</li>
+            <li>Ready for printing or emailing</li>
+        </ul>
+    </div>
+
+    <div class="workflow-step">
+        <h4>4. Real-Time Status Updates</h4>
+        <ul>
+            <li>Status updates immediately when actions are taken</li>
+            <li>No page refresh needed</li>
+            <li>Clear status indicators</li>
+        </ul>
+    </div>
+
+    <div class="workflow-step">
+        <h4>5. Activity Logging</h4>
+        <ul>
+            <li>Every action is logged</li>
+            <li>Complete audit trail</li>
+            <li>Easy to track what happened and when</li>
+        </ul>
+    </div>
+
+    <div class="page-break"></div>
+
+    <h2>🎯 Common Workflows</h2>
+
+    <h3>Workflow 1: Standard Application to Binding</h3>
+    <ol>
+        <li>Agency submits application</li>
+        <li>Admin creates quote</li>
+        <li>Agency approves quote</li>
+        <li>Documents generated</li>
+        <li>Documents signed</li>
+        <li>Payment processed</li>
+        <li>Policy bound</li>
+    </ol>
+    <p><strong>Time Estimate:</strong> Typically 1-3 business days</p>
+
+    <h3>Workflow 2: Quick Quote (No Application)</h3>
+    <ol>
+        <li>Admin creates quote directly</li>
+        <li>Agency reviews and approves</li>
+        <li>Documents generated</li>
+        <li>Continue with signature and payment</li>
+    </ol>
+    <p><strong>Time Estimate:</strong> Same day possible</p>
+
+    <h3>Workflow 3: Application with Financing</h3>
+    <ol>
+        <li>Standard application process</li>
+        <li>Quote includes financing option</li>
+        <li>Client selects payment plan</li>
+        <li>Finance agreement generated</li>
+        <li>Finance agreement signed</li>
+        <li>Payment plan activated</li>
+        <li>Policy bound</li>
+    </ol>
+
+    <div class="page-break"></div>
+
+    <h2>❓ Frequently Asked Questions</h2>
+
+    <div class="workflow-step">
+        <h4>Q: How long does the process take?</h4>
+        <p><strong>A:</strong> Typically 1-3 business days from application to bound policy, depending on how quickly each step is completed.</p>
+    </div>
+
+    <div class="workflow-step">
+        <h4>Q: Can I save an application and finish it later?</h4>
+        <p><strong>A:</strong> Yes, the system auto-saves as you work. You can come back and complete it later.</p>
+    </div>
+
+    <div class="workflow-step">
+        <h4>Q: Can I edit a quote after it's posted?</h4>
+        <p><strong>A:</strong> Admins can edit quotes before they're approved. Once approved, changes may require creating a new quote.</p>
+    </div>
+
+    <div class="workflow-step">
+        <h4>Q: What if a client doesn't sign the documents?</h4>
+        <p><strong>A:</strong> The agency can resend the e-signature request or contact the client directly.</p>
+    </div>
+
+    <div class="workflow-step">
+        <h4>Q: Can I download all documents?</h4>
+        <p><strong>A:</strong> Yes, all documents can be downloaded as PDFs at any time.</p>
+    </div>
+
+    <div class="workflow-step">
+        <h4>Q: Is my data secure?</h4>
+        <p><strong>A:</strong> Yes, the system uses industry-standard security measures to protect all data.</p>
+    </div>
+
+    <div class="workflow-step">
+        <h4>Q: Can I see the history of an application?</h4>
+        <p><strong>A:</strong> Yes, the activity log shows the complete history of every action taken.</p>
+    </div>
+
+    <div class="page-break"></div>
+
+    <h2>🚀 Getting Started</h2>
+
+    <h3>For Agencies:</h3>
+    <ol>
+        <li>Log in to the portal</li>
+        <li>Click "New Application"</li>
+        <li>Fill out the form</li>
+        <li>Submit when ready</li>
+    </ol>
+
+    <h3>For Admins:</h3>
+    <ol>
+        <li>Log in to the portal</li>
+        <li>Go to "Submissions"</li>
+        <li>Review applications</li>
+        <li>Create quotes as needed</li>
+    </ol>
+
+    <div class="footer">
+        <p><strong>Document Version:</strong> 1.0</p>
+        <p><strong>Last Updated:</strong> January 2025</p>
+        <p><strong>Status:</strong> Complete Workflow Guide</p>
+        <p style="margin-top: 30px;">Sterling Insurance Portal - Complete Workflow Documentation</p>
+    </div>
+</body>
+</html>
+
+
+

@@ -1,0 +1,421 @@
+
+> sterling-portal-backend@1.0.0 build
+> next build
+
+  ▲ Next.js 14.2.33
+  - Environments: .env.local
+
+   Creating an optimized production build ...
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (153kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
+ ⚠ Compiled with warnings
+
+./node_modules/@upstash/redis/nodejs.mjs
+A Node.js API is used (process.version at line: 240) which is not supported in the Edge Runtime.
+Learn more: https://nextjs.org/docs/api-reference/edge-runtime
+
+Import trace for requested module:
+./node_modules/@upstash/redis/nodejs.mjs
+
+   Linting and checking validity of types ...
+   Collecting page data ...
+   Generating static pages (0/77) ...
+Admin quote requests error: n [Error]: Dynamic server usage: Route /api/admin/quote-requests couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at l (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/.next/server/chunks/9276.js:1:37220)
+    at d (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/.next/server/chunks/2857.js:25:26595)
+    at s (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/.next/server/chunks/2857.js:25:19584)
+    at p (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/.next/server/app/api/admin/quote-requests/route.js:1:1311)
+    at /run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:38417
+    at /run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/server/lib/trace/tracer.js:140:36
+    at NoopContextManager.with (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NoopTracer.startActiveSpan (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+    at ProxyTracer.startActiveSpan (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854) {
+  description: "Route /api/admin/quote-requests couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+Admin bound policies error: n [Error]: Dynamic server usage: Route /api/admin/bound-policies couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at l (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/.next/server/chunks/9276.js:1:37220)
+    at d (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/.next/server/chunks/2857.js:25:26595)
+    at s (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/.next/server/chunks/2857.js:25:19584)
+    at y (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/.next/server/app/api/admin/bound-policies/route.js:1:1322)
+    at /run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:38417
+    at /run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/server/lib/trace/tracer.js:140:36
+    at NoopContextManager.with (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NoopTracer.startActiveSpan (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+    at ProxyTracer.startActiveSpan (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854) {
+  description: "Route /api/admin/bound-policies couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+Admin bind requests error: n [Error]: Dynamic server usage: Route /api/admin/bind-requests couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at l (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/.next/server/chunks/9276.js:1:37220)
+    at d (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/.next/server/chunks/2857.js:25:26595)
+    at s (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/.next/server/chunks/2857.js:25:19584)
+    at y (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/.next/server/app/api/admin/bind-requests/route.js:1:1321)
+    at /run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:38417
+    at /run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/server/lib/trace/tracer.js:140:36
+    at NoopContextManager.with (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NoopTracer.startActiveSpan (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+    at ProxyTracer.startActiveSpan (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854) {
+  description: "Route /api/admin/bind-requests couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+Agents API error: n [Error]: Dynamic server usage: Route /api/agency/agents couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at l (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/.next/server/chunks/9276.js:1:37220)
+    at d (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/.next/server/chunks/2857.js:25:26595)
+    at s (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/.next/server/chunks/2857.js:25:19584)
+    at y (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/.next/server/app/api/agency/agents/route.js:1:1311)
+    at /run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:38417
+    at /run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/server/lib/trace/tracer.js:140:36
+    at NoopContextManager.with (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NoopTracer.startActiveSpan (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+    at ProxyTracer.startActiveSpan (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854) {
+  description: "Route /api/agency/agents couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+Fetch tool requests error: n [Error]: Dynamic server usage: Route /api/admin/tool-requests couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at l (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/.next/server/chunks/9276.js:1:37220)
+    at d (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/.next/server/chunks/2857.js:25:26595)
+    at s (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/.next/server/chunks/2857.js:25:19584)
+    at p (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/.next/server/app/api/admin/tool-requests/route.js:1:1310)
+    at /run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:38417
+    at /run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/server/lib/trace/tracer.js:140:36
+    at NoopContextManager.with (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NoopTracer.startActiveSpan (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+    at ProxyTracer.startActiveSpan (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854) {
+  description: "Route /api/admin/tool-requests couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+Admin submissions API error: n [Error]: Dynamic server usage: Route /api/admin/submissions couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at l (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/.next/server/chunks/9276.js:1:37220)
+    at d (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/.next/server/chunks/2857.js:25:26595)
+    at s (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/.next/server/chunks/2857.js:25:19584)
+    at m (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/.next/server/app/api/admin/submissions/route.js:1:1315)
+    at /run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:38417
+    at /run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/server/lib/trace/tracer.js:140:36
+    at NoopContextManager.with (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NoopTracer.startActiveSpan (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+    at ProxyTracer.startActiveSpan (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854) {
+  description: "Route /api/admin/submissions couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+Applications fetch error: n [Error]: Dynamic server usage: Route /api/agency/applications couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at l (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/.next/server/chunks/9276.js:1:37220)
+    at d (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/.next/server/chunks/2857.js:25:26595)
+    at s (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/.next/server/chunks/2857.js:25:19584)
+    at u (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/.next/server/app/api/agency/applications/route.js:1:1311)
+    at /run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:38417
+    at /run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/server/lib/trace/tracer.js:140:36
+    at NoopContextManager.with (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NoopTracer.startActiveSpan (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+    at ProxyTracer.startActiveSpan (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854) {
+  description: "Route /api/agency/applications couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+Agency bound policies error: n [Error]: Dynamic server usage: Route /api/agency/bound-policies couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at l (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/.next/server/chunks/9276.js:1:37220)
+    at d (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/.next/server/chunks/2857.js:25:26595)
+    at s (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/.next/server/chunks/2857.js:25:19584)
+    at y (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/.next/server/app/api/agency/bound-policies/route.js:1:1320)
+    at /run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:38417
+    at /run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/server/lib/trace/tracer.js:140:36
+    at NoopContextManager.with (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NoopTracer.startActiveSpan (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+    at ProxyTracer.startActiveSpan (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854) {
+  description: "Route /api/agency/bound-policies couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+Agency quotes fetch error: n [Error]: Dynamic server usage: Route /api/agency/quotes couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at l (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/.next/server/chunks/9276.js:1:37220)
+    at d (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/.next/server/chunks/2857.js:25:26595)
+    at s (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/.next/server/chunks/2857.js:25:19584)
+    at g (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/.next/server/app/api/agency/quotes/route.js:1:1322)
+    at /run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:38417
+    at /run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/server/lib/trace/tracer.js:140:36
+    at NoopContextManager.with (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NoopTracer.startActiveSpan (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+    at ProxyTracer.startActiveSpan (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854) {
+  description: "Route /api/agency/quotes couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+Error fetching agency details: n [Error]: Dynamic server usage: Route /api/agency/me couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at l (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/.next/server/chunks/9276.js:1:37220)
+    at d (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/.next/server/chunks/2857.js:25:26595)
+    at s (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/.next/server/chunks/2857.js:25:19584)
+    at g (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/.next/server/app/api/agency/me/route.js:1:1311)
+    at /run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:38417
+    at /run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/server/lib/trace/tracer.js:140:36
+    at NoopContextManager.with (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NoopTracer.startActiveSpan (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+    at ProxyTracer.startActiveSpan (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854) {
+  description: "Route /api/agency/me couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+   Generating static pages (19/77) 
+Submissions API error: n [Error]: Dynamic server usage: Route /api/agency/submissions couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at l (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/.next/server/chunks/9276.js:1:37220)
+    at d (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/.next/server/chunks/2857.js:25:26595)
+    at s (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/.next/server/chunks/2857.js:25:19584)
+    at p (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/.next/server/app/api/agency/submissions/route.js:1:1322)
+    at /run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:38417
+    at /run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/server/lib/trace/tracer.js:140:36
+    at NoopContextManager.with (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NoopTracer.startActiveSpan (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+    at ProxyTracer.startActiveSpan (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854) {
+  description: "Route /api/agency/submissions couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+Fetch tool requests error: n [Error]: Dynamic server usage: Route /api/agency/tools/requests couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at l (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/.next/server/chunks/9276.js:1:37220)
+    at d (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/.next/server/chunks/2857.js:25:26595)
+    at s (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/.next/server/chunks/2857.js:25:19584)
+    at y (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/.next/server/app/api/agency/tools/requests/route.js:1:1310)
+    at /run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:38417
+    at /run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/server/lib/trace/tracer.js:140:36
+    at NoopContextManager.with (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NoopTracer.startActiveSpan (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+    at ProxyTracer.startActiveSpan (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854) {
+  description: "Route /api/agency/tools/requests couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+Error serving document: n [Error]: Dynamic server usage: Route /api/documents/download couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at l (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/.next/server/chunks/9276.js:1:37220)
+    at d (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/.next/server/chunks/2857.js:25:26595)
+    at s (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/.next/server/chunks/2857.js:25:19584)
+    at y (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/.next/server/app/api/documents/download/route.js:1:1414)
+    at /run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:38417
+    at /run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/server/lib/trace/tracer.js:140:36
+    at NoopContextManager.with (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NoopTracer.startActiveSpan (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+    at ProxyTracer.startActiveSpan (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854) {
+  description: "Route /api/documents/download couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+Carriers fetch error: n [Error]: Dynamic server usage: Route /api/carriers couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at l (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/.next/server/chunks/9276.js:1:37220)
+    at d (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/.next/server/chunks/2857.js:25:26595)
+    at s (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/.next/server/chunks/2857.js:25:19584)
+    at g (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/.next/server/app/api/carriers/route.js:1:1311)
+    at /run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:38417
+    at /run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/server/lib/trace/tracer.js:140:36
+    at NoopContextManager.with (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NoopTracer.startActiveSpan (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+    at ProxyTracer.startActiveSpan (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854) {
+  description: "Route /api/carriers couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+Secure File Download Error: n [Error]: Dynamic server usage: Route /api/download couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at l (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/.next/server/chunks/9276.js:1:37220)
+    at d (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/.next/server/chunks/2857.js:25:26595)
+    at s (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/.next/server/chunks/2857.js:25:19584)
+    at m (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/.next/server/app/api/download/route.js:1:1702)
+    at /run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:38417
+    at /run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/server/lib/trace/tracer.js:140:36
+    at NoopContextManager.with (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NoopTracer.startActiveSpan (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+    at ProxyTracer.startActiveSpan (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854) {
+  description: "Route /api/download couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+   Generating static pages (38/77) 
+Industries API error: B [Error]: Dynamic server usage: Route /api/industries couldn't be rendered statically because it used `nextUrl.searchParams`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at V (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:21778)
+    at Object.get (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:29137)
+    at c (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/.next/server/app/api/industries/route.js:1:622)
+    at async /run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:38411
+    at async e_.execute (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:27880)
+    at async e_.handle (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:39943)
+    at async exportAppRoute (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/export/routes/app-route.js:77:26)
+    at async exportPageImpl (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/export/worker.js:175:20)
+    at async Span.traceAsyncFn (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/trace/trace.js:154:20)
+    at async Object.exportPage (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/export/worker.js:237:20) {
+  description: "Route /api/industries couldn't be rendered statically because it used `nextUrl.searchParams`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+Me API error: n [Error]: Dynamic server usage: Route /api/me couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at l (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/.next/server/chunks/9276.js:1:37220)
+    at d (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/.next/server/chunks/2857.js:25:26595)
+    at s (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/.next/server/chunks/2857.js:25:19584)
+    at y (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/.next/server/app/api/me/route.js:1:1322)
+    at /run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:38417
+    at /run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/server/lib/trace/tracer.js:140:36
+    at NoopContextManager.with (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NoopTracer.startActiveSpan (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+    at ProxyTracer.startActiveSpan (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854) {
+  description: "Route /api/me couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+   Generating static pages (57/77) 
+Forms API error: B [Error]: Dynamic server usage: Route /api/forms couldn't be rendered statically because it used `nextUrl.searchParams`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at V (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:21778)
+    at Object.get (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:29137)
+    at d (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/.next/server/app/api/forms/route.js:1:611)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async /run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:38411
+    at async e_.execute (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:27880)
+    at async e_.handle (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:39943)
+    at async exportAppRoute (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/export/routes/app-route.js:77:26)
+    at async exportPageImpl (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/export/worker.js:175:20)
+    at async Span.traceAsyncFn (/run/media/avee/A642B9F942B9CDF5/newster/sterlingportal/node_modules/next/dist/trace/trace.js:154:20) {
+  description: "Route /api/forms couldn't be rendered statically because it used `nextUrl.searchParams`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+ ✓ Generating static pages (77/77)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                        Size     First Load JS
+┌ ○ /                                              141 B          87.5 kB
+├ ○ /_not-found                                    878 B          88.2 kB
+├ ○ /admin/bind-requests                           5.23 kB         120 kB
+├ ○ /admin/bound-policies                          3.52 kB         119 kB
+├ ƒ /admin/bound-policies/[id]/upload              4.44 kB         119 kB
+├ ○ /admin/cancel-requests                         1.14 kB        88.5 kB
+├ ○ /admin/dashboard                               5.12 kB         111 kB
+├ ○ /admin/quote-requests                          3.43 kB         109 kB
+├ ○ /admin/quotes                                  3.61 kB         109 kB
+├ ƒ /admin/quotes/[id]/post                        2.04 kB         108 kB
+├ ○ /admin/submissions                             5.26 kB         102 kB
+├ ƒ /admin/submissions/[id]                        9.3 kB          131 kB
+├ ƒ /admin/submissions/[id]/quote                  14.6 kB         130 kB
+├ ○ /admin/tool-requests                           3.85 kB         119 kB
+├ ƒ /admin/tool-requests/[id]                      4.28 kB         119 kB
+├ ○ /agency/bound-policies                         3.29 kB         118 kB
+├ ○ /agency/broker-center                          3.17 kB         109 kB
+├ ○ /agency/dashboard                              6.6 kB          106 kB
+├ ○ /agency/esign/sign                             2.57 kB         108 kB
+├ ○ /agency/marketplace                            2.23 kB        99.2 kB
+├ ○ /agency/profile                                5.95 kB         106 kB
+├ ƒ /agency/quote/[programId]                      19.2 kB         134 kB
+├ ○ /agency/quotes                                 5.33 kB         114 kB
+├ ƒ /agency/quotes/[id]                            11.1 kB         116 kB
+├ ƒ /agency/quotes/[id]/finance                    1.3 kB          110 kB
+├ ƒ /agency/submissions/[id]                       9.89 kB         134 kB
+├ ○ /agency/submit                                 4 kB            110 kB
+├ ƒ /agency/submit/[templateId]                    6.2 kB          149 kB
+├ ○ /agency/tools                                  2.68 kB         108 kB
+├ ○ /agency/tools/bor                              3.31 kB         118 kB
+├ ○ /agency/tools/history                          3.29 kB         118 kB
+├ ○ /agency/tools/loss-runs                        3.16 kB         118 kB
+├ ○ /agency/tools/reports                          3.77 kB         119 kB
+├ ƒ /api/address/autocomplete                      0 B                0 B
+├ ƒ /api/admin/bind-requests                       0 B                0 B
+├ ƒ /api/admin/bind-requests/approve               0 B                0 B
+├ ƒ /api/admin/bound-policies                      0 B                0 B
+├ ƒ /api/admin/bound-policies/upload-documents     0 B                0 B
+├ ƒ /api/admin/cancel-approve                      0 B                0 B
+├ ○ /api/admin/cancel-requests                     0 B                0 B
+├ ƒ /api/admin/quote-requests                      0 B                0 B
+├ ƒ /api/admin/quotes                              0 B                0 B
+├ ƒ /api/admin/quotes/[id]                         0 B                0 B
+├ ƒ /api/admin/quotes/[id]/documents               0 B                0 B
+├ ƒ /api/admin/quotes/[id]/enter                   0 B                0 B
+├ ƒ /api/admin/quotes/[id]/post                    0 B                0 B
+├ ƒ /api/admin/submissions                         0 B                0 B
+├ ƒ /api/admin/submissions/[id]                    0 B                0 B
+├ ƒ /api/admin/submissions/[id]/activity           0 B                0 B
+├ ƒ /api/admin/submissions/[id]/cancel             0 B                0 B
+├ ƒ /api/admin/submissions/[id]/carriers           0 B                0 B
+├ ƒ /api/admin/submissions/[id]/invoice            0 B                0 B
+├ ƒ /api/admin/submissions/[id]/notes              0 B                0 B
+├ ƒ /api/admin/submissions/[id]/pdf                0 B                0 B
+├ ƒ /api/admin/submissions/[id]/proposal           0 B                0 B
+├ ƒ /api/admin/submissions/[id]/upload             0 B                0 B
+├ ƒ /api/admin/submissions/[id]/upload-documents   0 B                0 B
+├ ƒ /api/admin/tool-requests                       0 B                0 B
+├ ƒ /api/admin/tool-requests/[id]                  0 B                0 B
+├ ƒ /api/admin/tool-requests/[id]/update           0 B                0 B
+├ ƒ /api/admin/tool-requests/[id]/upload           0 B                0 B
+├ ƒ /api/agency/agents                             0 B                0 B
+├ ƒ /api/agency/applications                       0 B                0 B
+├ ƒ /api/agency/applications/[id]/invoice          0 B                0 B
+├ ƒ /api/agency/applications/[id]/pdf              0 B                0 B
+├ ƒ /api/agency/applications/[id]/proposal         0 B                0 B
+├ ƒ /api/agency/applications/preview-pdf           0 B                0 B
+├ ƒ /api/agency/applications/submit                0 B                0 B
+├ ƒ /api/agency/bound-policies                     0 B                0 B
+├ ƒ /api/agency/cancel-request                     0 B                0 B
+├ ƒ /api/agency/me                                 0 B                0 B
+├ ƒ /api/agency/quotes                             0 B                0 B
+├ ƒ /api/agency/quotes/[id]                        0 B                0 B
+├ ƒ /api/agency/quotes/[id]/accept                 0 B                0 B
+├ ƒ /api/agency/quotes/[id]/activity               0 B                0 B
+├ ƒ /api/agency/quotes/[id]/approve                0 B                0 B
+├ ƒ /api/agency/quotes/[id]/carrier-forms-pdf      0 B                0 B
+├ ƒ /api/agency/quotes/[id]/documents              0 B                0 B
+├ ƒ /api/agency/quotes/[id]/email                  0 B                0 B
+├ ƒ /api/agency/quotes/[id]/generate-documents     0 B                0 B
+├ ƒ /api/agency/quotes/[id]/pdf                    0 B                0 B
+├ ƒ /api/agency/quotes/[id]/proposal-pdf           0 B                0 B
+├ ƒ /api/agency/quotes/draft                       0 B                0 B
+├ ƒ /api/agency/quotes/submit                      0 B                0 B
+├ ƒ /api/agency/submissions                        0 B                0 B
+├ ƒ /api/agency/submissions/[id]                   0 B                0 B
+├ ƒ /api/agency/submissions/[id]/activity          0 B                0 B
+├ ƒ /api/agency/submissions/[id]/notes             0 B                0 B
+├ ƒ /api/agency/submissions/[id]/request-approval  0 B                0 B
+├ ƒ /api/agency/submissions/[id]/request-bind      0 B                0 B
+├ ƒ /api/agency/tools/request                      0 B                0 B
+├ ƒ /api/agency/tools/requests                     0 B                0 B
+├ ƒ /api/agents                                    0 B                0 B
+├ ƒ /api/auth/[...nextauth]                        0 B                0 B
+├ ƒ /api/auth/change-password                      0 B                0 B
+├ ƒ /api/auth/register                             0 B                0 B
+├ ƒ /api/bind/approve                              0 B                0 B
+├ ƒ /api/bind/request                              0 B                0 B
+├ ƒ /api/carriers                                  0 B                0 B
+├ ƒ /api/documents/[submissionId]                  0 B                0 B
+├ ƒ /api/documents/download                        0 B                0 B
+├ ƒ /api/documents/generate-carrier-forms          0 B                0 B
+├ ƒ /api/documents/generate-finance-agreement      0 B                0 B
+├ ƒ /api/documents/generate-proposal               0 B                0 B
+├ ƒ /api/download                                  0 B                0 B
+├ ƒ /api/drafts                                    0 B                0 B
+├ ƒ /api/esign/send                                0 B                0 B
+├ ƒ /api/esign/sign                                0 B                0 B
+├ ƒ /api/esign/status/[submissionId]               0 B                0 B
+├ ƒ /api/esign/webhook                             0 B                0 B
+├ ƒ /api/finance/[quoteId]                         0 B                0 B
+├ ƒ /api/finance/calculate                         0 B                0 B
+├ ƒ /api/forms                                     0 B                0 B
+├ ƒ /api/industries                                0 B                0 B
+├ ƒ /api/me                                        0 B                0 B
+├ ƒ /api/notifications                             0 B                0 B
+├ ƒ /api/payment/pay                               0 B                0 B
+├ ƒ /api/payment/receipt/[submissionId]            0 B                0 B
+├ ƒ /api/payment/status/[submissionId]             0 B                0 B
+├ ƒ /api/payments                                  0 B                0 B
+├ ƒ /api/payments/[id]                             0 B                0 B
+├ ƒ /api/submissions                               0 B                0 B
+├ ƒ /api/submissions/[id]/notes                    0 B                0 B
+├ ƒ /api/tax/calculate                             0 B                0 B
+├ ƒ /api/upload                                    0 B                0 B
+├ ○ /esign/sign                                    2.52 kB         108 kB
+├ ○ /esign/success                                 998 B          97.1 kB
+├ ○ /signin                                        1.97 kB         117 kB
+└ ○ /test                                          2.53 kB         117 kB
++ First Load JS shared by all                      87.3 kB
+  ├ chunks/2117-5ce2309ad04efc95.js                31.7 kB
+  ├ chunks/fd9d1056-5623870970ea98f4.js            53.7 kB
+  └ other shared chunks (total)                    1.95 kB
+
+
+ƒ Middleware                                       73.6 kB
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

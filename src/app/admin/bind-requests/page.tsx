@@ -1,0 +1,664 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { toast } from "sonner";
+import { signOut } from "next-auth/react";
+
+interface BindRequestSubmission {
+  _id: string;
+  clientContact: {
+    name: string;
+    email: string;
+    phone: string;
+  };
+  agencyId: {
+    _id: string;
+    name: string;
+  };
+  status: string;
+  bindRequested: boolean;
+  bindRequestedAt: string;
+  bindApproved: boolean;
+  bindApprovedAt?: string;
+  esignCompleted: boolean;
+  paymentStatus: string;
+  paymentDate?: string;
+  createdAt: string;
+  quotes?: any[];
+}
+
+export default function AdminBindRequestsPage() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  const [submissions, setSubmissions] = useState<BindRequestSubmission[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [approving, setApproving] = useState<string | null>(null);
+  const [pendingCount, setPendingCount] = useState(0);
+
+  // Modal State
+  type PolicyFormData = {
+    effectiveDate: string;
+    expirationDate: string;
+    policyNumber: string;
+    binderFile: File | null;
+    policyDocsFile: File | null;
+  };
+
+  const initialPolicyForm = (): PolicyFormData => {
+    const today = new Date();
+    const nextYear = new Date(today);
+    nextYear.setFullYear(today.getFullYear() + 1);
+    return {
+      effectiveDate: today.toISOString().split("T")[0],
+      expirationDate: nextYear.toISOString().split("T")[0],
+      policyNumber: "",
+      binderFile: null,
+      policyDocsFile: null,
+    };
+  };
+
+  const [isApproveModalOpen, setIsApproveModalOpen] = useState(false);
+  const [selectedSubmissionId, setSelectedSubmissionId] = useState<string | null>(null);
+  const [activePolicyTab, setActivePolicyTab] = useState<"GENERAL_LIABILITY" | "EXCESS_LIABILITY">("GENERAL_LIABILITY");
+  const [policyForms, setPolicyForms] = useState<Record<string, PolicyFormData>>({
+    GENERAL_LIABILITY: initialPolicyForm(),
+    EXCESS_LIABILITY: initialPolicyForm(),
+  });
+
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/signin");
+    } else if (status === "authenticated") {
+      const userRole = (session?.user as any)?.role;
+      if (userRole !== "system_admin") {
+        router.push("/agency/dashboard");
+      }
+    }
+  }, [status, session, router]);
+
+  useEffect(() => {
+    if (status === "authenticated") {
+      // Single load when page mounts (no auto-refresh)
+      fetchBindRequests();
+    }
+  }, [status]);
+
+  const handleEffectiveDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const effectiveDateStr = e.target.value;
+    if (!effectiveDateStr) {
+      setPolicyForms(prev => ({
+        ...prev,
+        [activePolicyTab]: { ...prev[activePolicyTab], effectiveDate: "", expirationDate: "" }
+      }));
+      return;
+    }
+
+    const effectiveDate = new Date(effectiveDateStr);
+    const expirationDate = new Date(effectiveDate);
+    expirationDate.setFullYear(effectiveDate.getFullYear() + 1);
+
+    setPolicyForms(prev => ({
+      ...prev,
+      [activePolicyTab]: {
+        ...prev[activePolicyTab],
+        effectiveDate: effectiveDateStr,
+        expirationDate: expirationDate.toISOString().split("T")[0],
+      }
+    }));
+  };
+
+  const fetchBindRequests = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const response = await fetch("/api/admin/bind-requests", {
+        cache: "no-store",
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to fetch bind requests");
+      }
+
+      setSubmissions(data.submissions || []);
+      setPendingCount(data.submissions?.length || 0);
+    } catch (err: any) {
+      console.error("Fetch bind requests error:", err);
+      setError(err.message || "Failed to load bind requests");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleApprove = (submissionId: string) => {
+    setSelectedSubmissionId(submissionId);
+
+    // Auto-select the first pending quote tab
+    const sub = submissions.find(s => s._id === submissionId);
+    const firstPendingQuote = sub?.quotes?.find((q: any) => q.status === "BIND_REQUESTED");
+    if (firstPendingQuote && firstPendingQuote.policyType) {
+      setActivePolicyTab(firstPendingQuote.policyType);
+    } else {
+      setActivePolicyTab("GENERAL_LIABILITY");
+    }
+
+    setPolicyForms({
+      GENERAL_LIABILITY: initialPolicyForm(),
+      EXCESS_LIABILITY: initialPolicyForm()
+    });
+
+    setIsApproveModalOpen(true);
+  };
+
+  const confirmApprove = async () => {
+    if (!selectedSubmissionId) return;
+
+    const sub = submissions.find(s => s._id === selectedSubmissionId);
+    const pendingQuotes = sub?.quotes?.filter((q: any) => q.status === "BIND_REQUESTED") || [];
+
+    // Validation
+    for (const quote of pendingQuotes) {
+      const pType = quote.policyType || "GENERAL_LIABILITY";
+      const data = policyForms[pType];
+      if (!data.effectiveDate || !data.expirationDate || !data.policyNumber) {
+        toast.error(`Please fill in all required fields for ${pType === 'EXCESS_LIABILITY' ? 'Excess Liability' : 'General Liability'}`);
+        setActivePolicyTab(pType as any);
+        return;
+      }
+    }
+
+    setApproving(selectedSubmissionId);
+
+    try {
+      for (const quote of pendingQuotes) {
+        const pType = quote.policyType || "GENERAL_LIABILITY";
+        const data = policyForms[pType];
+
+        const formDataToSend = new FormData();
+        formDataToSend.append("submissionId", selectedSubmissionId);
+        formDataToSend.append("policyType", pType);
+        formDataToSend.append("effectiveDate", data.effectiveDate);
+        formDataToSend.append("expirationDate", data.expirationDate);
+        formDataToSend.append("policyNumber", data.policyNumber);
+
+        if (data.binderFile) {
+          formDataToSend.append("binder", data.binderFile);
+        }
+
+        if (data.policyDocsFile) {
+          formDataToSend.append("policyDocs", data.policyDocsFile);
+        }
+
+        const response = await fetch("/api/admin/bind-requests/approve", {
+          method: "POST",
+          body: formDataToSend,
+        });
+
+        const resData = await response.json();
+
+        if (!response.ok) {
+          throw new Error(resData.error || `Failed to approve ${pType}`);
+        }
+      }
+
+      toast.success("Bind request approved successfully!", {
+        description: "The policy has been marked as BOUND with policy details",
+      });
+
+      setIsApproveModalOpen(false);
+      fetchBindRequests();
+    } catch (err: any) {
+      console.error("Approve error:", err);
+      toast.error("Failed to approve bind request", {
+        description: err.message || "An unexpected error occurred",
+      });
+    } finally {
+      setApproving(null);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#f5f1eb]">
+        <div className="text-center">
+          <div className="relative w-12 h-12 mx-auto mb-4">
+            <div className="absolute inset-0 border-4 border-gray-200 rounded-full"></div>
+            <div className="absolute inset-0 border-4 border-transparent border-t-[#9A8B7A] rounded-full animate-spin"></div>
+          </div>
+          <p className="text-sm text-[#6b5e52] font-medium">Loading bind requests...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-[#f5f1eb]">
+      {/* Header */}
+      <header className="bg-white/80 backdrop-blur-xl border-b border-[#e5ddd5] sticky top-0 z-50 shadow-sm">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center gap-10">
+              <Link href="/admin/dashboard" className="flex items-center gap-4 group">
+                <div className="relative">
+                  <div className="absolute inset-0 bg-gradient-to-br from-rose-500 via-pink-500 to-orange-500 rounded-2xl blur-md opacity-50 group-hover:opacity-75 animate-pulse transition-all duration-500"></div>
+                  <div className="relative w-12 h-12 bg-gradient-to-br from-rose-600 via-rose-700 to-pink-700 rounded-2xl flex items-center justify-center shadow-2xl shadow-rose-600/40 group-hover:shadow-rose-600/60 transition-all duration-500 group-hover:scale-110 group-hover:rotate-3">
+                    <div className="absolute inset-1 bg-gradient-to-br from-white/20 to-transparent rounded-xl"></div>
+                    <div className="relative">
+                      <span className="text-white font-black text-lg tracking-tighter drop-shadow-lg">SP</span>
+                    </div>
+                    <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-yellow-300 rounded-full opacity-0 group-hover:opacity-100 animate-ping"></div>
+                    <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-yellow-400 rounded-full opacity-0 group-hover:opacity-100"></div>
+                  </div>
+                  <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full flex items-center justify-center shadow-lg border-2 border-white">
+                    <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-gray-900 font-bold text-lg tracking-tight bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text">Sterling Portal</span>
+                    <div className="px-2 py-0.5 bg-gradient-to-r from-rose-50 to-pink-50 border border-rose-200 rounded-md">
+                      <span className="text-[10px] font-black text-rose-600 tracking-wider">ADMIN</span>
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-500 font-semibold -mt-0.5 tracking-wide">Control Center</p>
+                </div>
+              </Link>
+              <nav className="hidden lg:flex items-center gap-1">
+                <Link href="/admin/dashboard" className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition">
+                  Dashboard
+                </Link>
+                <Link href="/admin/quotes" className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition">
+                  Quotes
+                </Link>
+                <Link href="/admin/quote-requests" className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition">
+                  Quote Request
+                </Link>
+                <Link href="/admin/bind-requests" className="relative px-4 py-2 text-sm font-semibold text-[#9A8B7A]">
+                  Bind Requests
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#9A8B7A] rounded-full"></div>
+                  {pendingCount > 0 && (
+                    <span className="absolute -top-1 -right-1 inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-[#9A8B7A] rounded-full shadow-lg animate-pulse">
+                      {pendingCount}
+                    </span>
+                  )}
+                </Link>
+                <Link href="/admin/bound-policies" className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition">
+                  Policies
+                </Link>
+                <Link href="/admin/tool-requests" className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition">
+                  Tool Requests
+                </Link>
+              </nav>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="hidden sm:flex flex-col items-end">
+                <p className="text-sm font-semibold text-gray-900">{(session?.user as any)?.name || "Admin"}</p>
+                <p className="text-xs text-gray-500 font-medium">{(session?.user as any)?.email}</p>
+              </div>
+              <button
+                onClick={() => signOut()}
+                className="group relative px-4 py-2 text-sm font-semibold text-[#2d2a26] hover:text-white bg-[#f5f1eb] hover:bg-[#9A8B7A] rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden"
+              >
+                <span className="relative z-10 flex items-center gap-2">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                  Sign Out
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-6 lg:px-8 py-8">
+        {/* Page Title with Pending Banner */}
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-10 h-10 bg-[#9A8B7A] rounded-xl flex items-center justify-center shadow-lg shadow-gray-200/30">
+              <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div className="flex-1">
+              <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Bind Requests</h1>
+              <p className="text-sm text-gray-600 font-medium mt-0.5">Review and approve bind requests from agencies</p>
+            </div>
+          </div>
+
+          {/* Pending Count Banner */}
+          {pendingCount > 0 && (
+            <div className="mt-4 bg-[#fcfaf7] border border-[#e5ddd5] rounded-2xl p-4 shadow-sm">
+              <div className="flex items-center gap-3">
+                <div className="bg-[#9A8B7A] text-white rounded-full w-12 h-12 flex items-center justify-center font-black text-xl shadow-sm">
+                  {pendingCount}
+                </div>
+                <div>
+                  <p className="text-[#2d2a26] font-bold text-lg">
+                    {pendingCount} Pending Request{pendingCount !== 1 ? "s" : ""}
+                  </p>
+                  <p className="text-[#6b5e52] text-sm">
+                    Action required: Review and process bind requests
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Error Message */}
+        {error && (
+          <div className="bg-gradient-to-r from-red-50 to-rose-50 border-l-4 border-red-500 rounded-xl p-4 mb-6 shadow-sm">
+            <div className="flex items-center gap-3">
+              <svg className="w-6 h-6 text-red-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <p className="text-sm font-semibold text-red-800">{error}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Bind Requests List */}
+        {submissions.length === 0 ? (
+          <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-sm border border-[#e5ddd5] p-12 text-center">
+            <div className="w-16 h-16 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <p className="text-lg font-semibold text-gray-900 mb-1">No Pending Bind Requests</p>
+            <p className="text-sm text-gray-600">All bind requests have been processed</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {submissions.map((submission) => (
+              <div
+                key={submission._id}
+                className="group bg-white/80 backdrop-blur-xl rounded-2xl shadow-sm border border-[#e5ddd5] hover:shadow-xl hover:border-[#9A8B7A] transition-all duration-300 overflow-hidden"
+              >
+                <div className="p-6">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <h3 className="text-xl font-bold text-gray-900">{submission.clientContact.name}</h3>
+                        <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#f5f1eb] text-[#9A8B7A] border border-[#e5ddd5]">
+                          BIND REQUESTED
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-4 text-sm text-gray-600">
+                        <div className="flex items-center gap-1.5">
+                          <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                          </svg>
+                          <span className="font-medium">{submission.agencyId.name}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <span className="font-medium">{new Date(submission.bindRequestedAt).toLocaleString()}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Details Grid */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-gradient-to-br from-gray-50 to-gray-100/50 rounded-xl border border-gray-200/60 mb-4">
+                    <div>
+                      <p className="text-xs text-gray-500 font-medium mb-1">Client Email</p>
+                      <p className="text-sm font-bold text-gray-900">{submission.clientContact.email}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500 font-medium mb-1">Client Phone</p>
+                      <p className="text-sm font-bold text-gray-900">{submission.clientContact.phone}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500 font-medium mb-1">E-Sign Status</p>
+                      <p className={`text-sm font-bold ${submission.esignCompleted ? 'text-green-600' : 'text-orange-600'}`}>
+                        {submission.esignCompleted ? '✓ Completed' : 'Pending'}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500 font-medium mb-1">Payment Status</p>
+                      <p className={`text-sm font-bold ${submission.paymentStatus === 'PAID' ? 'text-green-600' : 'text-orange-600'}`}>
+                        {submission.paymentStatus === 'PAID' ? '✓ Paid' : 'Pending'}
+                        {submission.paymentDate && ` on ${new Date(submission.paymentDate).toLocaleDateString()}`}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex items-center justify-end gap-3">
+                    <Link
+                      href={`/admin/submissions/${submission._id}`}
+                      className="px-4 py-2 text-sm font-semibold text-gray-700 bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 flex items-center gap-2"
+                    >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                      View Details
+                    </Link>
+                    <button
+                      onClick={() => handleApprove(submission._id)}
+                      disabled={approving === submission._id}
+                      className="px-6 py-2 text-sm font-semibold text-white bg-[#9A8B7A] hover:bg-[#8a6f4d] rounded-xl shadow-lg shadow-gray-200/30 hover:shadow-gray-300 transition-all duration-300 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {approving === submission._id ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                          Approving...
+                        </>
+                      ) : (
+                        <>
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          Approve Bind
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </main>
+
+      {/* Approve Bind Modal */}
+      {isApproveModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"
+            onClick={() => !approving && setIsApproveModalOpen(false)}
+          />
+
+          <div className="relative bg-white rounded-2xl shadow-2xl border border-gray-200 w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="p-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 bg-[#9A8B7A] rounded-xl flex items-center justify-center shadow-lg shadow-gray-200/20">
+                  <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900">Approve Bind Request</h3>
+                  <p className="text-sm text-gray-500">Enter policy details to finalize</p>
+                </div>
+              </div>
+
+              {/* TABS FOR MULTI-POLICY */}
+              {(() => {
+                const sub = submissions.find((s) => s._id === selectedSubmissionId);
+                const pendingQuotes = sub?.quotes?.filter((q: any) => q.status === "BIND_REQUESTED") || [];
+                if (pendingQuotes.length > 1) {
+                  return (
+                    <div className="flex border-b border-gray-200 mb-6 w-full">
+                      {pendingQuotes.map((q: any) => (
+                        <button
+                          key={q.policyType}
+                          onClick={() => setActivePolicyTab(q.policyType || "GENERAL_LIABILITY")}
+                          className={`flex-1 py-3 text-sm font-semibold border-b-2 transition-all duration-200 ${activePolicyTab === (q.policyType || "GENERAL_LIABILITY")
+                            ? "border-[#9A8B7A] text-[#9A8B7A]"
+                            : "border-transparent text-gray-400 hover:text-gray-600 hover:border-gray-300"
+                            }`}
+                        >
+                          {q.policyType === "EXCESS_LIABILITY" ? "Excess Liability" : "General Liability"}
+                        </button>
+                      ))}
+                    </div>
+                  );
+                }
+                return null;
+              })()}
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Effective Date</label>
+                  <input
+                    type="date"
+                    value={policyForms[activePolicyTab]?.effectiveDate || ""}
+                    onChange={handleEffectiveDateChange}
+                    className="w-full px-4 py-2.5 bg-gray-50 border border-[#e5ddd5] rounded-xl text-gray-900 focus:ring-2 focus:ring-[#9A8B7A]/20 focus:border-[#9A8B7A] transition-all outline-none"
+                    placeholder="Select Effective Date"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Expiration Date</label>
+                  <input
+                    type="date"
+                    value={policyForms[activePolicyTab]?.expirationDate || ""}
+                    readOnly
+                    className="w-full px-4 py-2.5 bg-gray-100 border border-gray-200 rounded-xl text-gray-500 cursor-not-allowed outline-none font-medium"
+                    placeholder="Expiration Date"
+                  />
+                  <p className="text-[11px] text-gray-400 mt-1 font-medium italic">* Auto-calculated: 1 year from effective date</p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Policy Number</label>
+                  <input
+                    type="text"
+                    value={policyForms[activePolicyTab]?.policyNumber || ""}
+                    onChange={(e) => setPolicyForms(prev => ({
+                      ...prev,
+                      [activePolicyTab]: { ...prev[activePolicyTab], policyNumber: e.target.value }
+                    }))}
+                    className="w-full px-4 py-2.5 bg-gray-50 border border-[#e5ddd5] rounded-xl text-gray-900 focus:ring-2 focus:ring-[#9A8B7A]/20 focus:border-[#9A8B7A] transition-all outline-none"
+                    placeholder="Enter Policy Number"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Binder</label>
+                  {policyForms[activePolicyTab]?.binderFile ? (
+                    <div className="flex items-center justify-between px-4 py-3 bg-green-50 border border-green-200 rounded-xl">
+                      <div className="flex items-center gap-2 overflow-hidden">
+                        <svg className="w-5 h-5 text-green-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span className="text-sm font-semibold text-green-800 truncate">
+                          {policyForms[activePolicyTab].binderFile!.name}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setPolicyForms(prev => ({ ...prev, [activePolicyTab]: { ...prev[activePolicyTab], binderFile: null } }))}
+                        className="text-xs font-bold text-red-500 hover:text-red-700 px-2 py-1 bg-red-50 hover:bg-red-100 rounded-md transition-colors"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ) : (
+                    <input
+                      key={`binder-${activePolicyTab}`}
+                      type="file"
+                      accept=".pdf,.doc,.docx"
+                      onChange={(e) => setPolicyForms(prev => ({
+                        ...prev,
+                        [activePolicyTab]: { ...prev[activePolicyTab], binderFile: e.target.files?.[0] || null }
+                      }))}
+                      className="w-full px-4 py-2 bg-gray-50 border border-[#e5ddd5] rounded-xl text-gray-600 focus:ring-2 focus:ring-[#9A8B7A]/20 focus:border-[#9A8B7A] transition-all outline-none file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-[#9A8B7A] file:text-white hover:file:bg-[#8a6f4d] file:cursor-pointer cursor-pointer"
+                    />
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Policy Docs</label>
+                  {policyForms[activePolicyTab]?.policyDocsFile ? (
+                    <div className="flex items-center justify-between px-4 py-3 bg-green-50 border border-green-200 rounded-xl">
+                      <div className="flex items-center gap-2 overflow-hidden">
+                        <svg className="w-5 h-5 text-green-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span className="text-sm font-semibold text-green-800 truncate">
+                          {policyForms[activePolicyTab].policyDocsFile!.name}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setPolicyForms(prev => ({ ...prev, [activePolicyTab]: { ...prev[activePolicyTab], policyDocsFile: null } }))}
+                        className="text-xs font-bold text-red-500 hover:text-red-700 px-2 py-1 bg-red-50 hover:bg-red-100 rounded-md transition-colors"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ) : (
+                    <input
+                      key={`policy-docs-${activePolicyTab}`}
+                      type="file"
+                      accept=".pdf,.doc,.docx,.zip"
+                      onChange={(e) => setPolicyForms(prev => ({
+                        ...prev,
+                        [activePolicyTab]: { ...prev[activePolicyTab], policyDocsFile: e.target.files?.[0] || null }
+                      }))}
+                      className="w-full px-4 py-2 bg-gray-50 border border-[#e5ddd5] rounded-xl text-gray-600 focus:ring-2 focus:ring-[#9A8B7A]/20 focus:border-[#9A8B7A] transition-all outline-none file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-[#9A8B7A] file:text-white hover:file:bg-[#8a6f4d] file:cursor-pointer cursor-pointer"
+                    />
+                  )}
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 mt-8">
+                <button
+                  onClick={() => setIsApproveModalOpen(false)}
+                  disabled={approving !== null}
+                  className="flex-1 px-4 py-2.5 text-sm font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmApprove}
+                  disabled={approving !== null}
+                  className="flex-[2] px-4 py-2.5 text-sm font-bold text-white bg-[#9A8B7A] hover:bg-[#8a6f4d] rounded-xl shadow-lg shadow-gray-200/20 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {approving ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                      Processing...
+                    </>
+                  ) : (
+                    (() => {
+                      const sub = submissions.find((s) => s._id === selectedSubmissionId);
+                      const requestedCount = sub?.quotes?.filter((q: any) => q.status === "BIND_REQUESTED").length || 0;
+                      return requestedCount > 1 ? "Approve All Pending Policies" : `Approve ${activePolicyTab === 'EXCESS_LIABILITY' ? 'XL' : 'GL'}`;
+                    })()
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

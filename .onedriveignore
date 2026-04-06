@@ -1,0 +1,9 @@
+# Exclude build and cache folders from OneDrive sync
+.next/
+node_modules/
+.env.local
+*.log
+.DS_Store
+
+
+

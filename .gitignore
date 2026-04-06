@@ -1,0 +1,20 @@
+# dependencies
+node_modules/
+
+# environment files
+.env
+.env.local
+.env.*
+
+# build output
+.next/
+dist/
+build/
+
+# tooling
+.vscode/
+.vercel
+
+# Exclude .md documentation from repo (except README)
+*.md
+!README.md
