@@ -379,6 +379,13 @@ function SubmissionDetailsContent() {
     if (currentRound.length > 0) rounds.push(currentRound);
     return rounds;
   }, [data?.quotes]);
+  
+  const currentRoundTotal = useMemo(() => {
+    if (!quoteRounds.length) return 0;
+    const round = quoteRounds[globalSelectedRoundIndex] || quoteRounds[0];
+    if (!round) return 0;
+    return round.reduce((sum: number, q: any) => sum + (q.finalAmountUSD || 0), 0);
+  }, [quoteRounds, globalSelectedRoundIndex]);
 
   const currentQuote: SubmissionDetails["quotes"][0] | null = useMemo(() => {
     if (!quoteRounds.length) return null;
@@ -1250,7 +1257,7 @@ function SubmissionDetailsContent() {
             <div>
               <p className="text-gray-500 mb-1">Total Cost:</p>
               <p className="font-semibold text-gray-900">
-                {currentQuote?.finalAmountUSD ? `${currentQuote.finalAmountUSD.toLocaleString()}` : "Not Quoted"}
+                {currentRoundTotal > 0 ? `$${currentRoundTotal.toLocaleString()}` : "Not Quoted"}
               </p>
             </div>
 

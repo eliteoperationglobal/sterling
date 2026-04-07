@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/authOptions";
 import connectDB from "@/lib/mongodb";
-import mongoose, { FilterQuery, LeanDocument } from "mongoose";
+import mongoose, { FilterQuery } from "mongoose";
 import Submission, { ISubmission } from "@/models/Submission";
 import Quote, { IQuote } from "@/models/Quote";
 
@@ -64,7 +64,7 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    type AgencySubmissionLean = LeanDocument<Pick<ISubmission, "_id" | "submissionNumber" | "status" | "createdAt" | "updatedAt" | "state" | "agentName" | "agentId" | "payload" | "clientContact" | "templateId" | "files">> & {
+    type AgencySubmissionLean = Pick<ISubmission, "_id" | "submissionNumber" | "status" | "createdAt" | "updatedAt" | "state" | "agentName" | "agentId" | "payload" | "clientContact" | "templateId" | "files"> & {
       templateId?: { industry?: string; subtype?: string; title?: string };
     };
 
@@ -84,31 +84,50 @@ export async function GET(req: NextRequest) {
       submissionId: { $in: submissionIds },
       status: { $in: ["POSTED", "APPROVED", "BOUND"] },
     })
-      .select("submissionId finalAmountUSD policyType")
-      .lean<Pick<IQuote, "submissionId" | "finalAmountUSD" | "policyType">[]>();
+      .select("submissionId finalAmountUSD policyType createdAt")
+      .sort({ createdAt: 1 })
+      .lean<Pick<IQuote, "submissionId" | "finalAmountUSD" | "policyType" | "createdAt">[]>();
 
-    // ← BUILD A MAP: submissionId → general/excess cost breakdown
-    const quoteMap: Record<string, { generalCost: number | null; excessCost: number | null; totalCost: number }> = {};
+    // ← BUILD A MAP: submissionId → Quote Rounds (combined totals)
+    const quoteMap: Record<string, { quote1Total: number | null; quote2Total: number | null; estimatedPremium: number | null }> = {};
+    
+    // Group quotes by submission
+    const quotesBySub: Record<string, typeof quotes> = {};
     quotes.forEach((q) => {
       const subId = q.submissionId.toString();
-      if (!quoteMap[subId]) {
-        quoteMap[subId] = { generalCost: null, excessCost: null, totalCost: 0 };
-      }
+      if (!quotesBySub[subId]) quotesBySub[subId] = [];
+      quotesBySub[subId].push(q);
+    });
 
-      const amount = q.finalAmountUSD || 0;
-      const policyType = q.policyType || "GENERAL_LIABILITY";
+    Object.entries(quotesBySub).forEach(([subId, subQuotes]) => {
+      // Logic for grouping into rounds (same as frontend 60s window)
+      const rounds: number[] = [];
+      let currentRoundTotal = 0;
+      let lastTimestamp = 0;
 
-      if (policyType === "EXCESS_LIABILITY") {
-        quoteMap[subId].excessCost = (quoteMap[subId].excessCost ?? 0) + amount;
-      } else {
-        quoteMap[subId].generalCost = (quoteMap[subId].generalCost ?? 0) + amount;
-      }
+      subQuotes.forEach((q) => {
+        const timestamp = new Date(q.createdAt).getTime();
+        const amount = q.finalAmountUSD || 0;
 
-      quoteMap[subId].totalCost += amount;
+        if (lastTimestamp === 0 || Math.abs(timestamp - lastTimestamp) < 60000) {
+          currentRoundTotal += amount;
+        } else {
+          rounds.push(currentRoundTotal);
+          currentRoundTotal = amount;
+        }
+        lastTimestamp = timestamp;
+      });
+      if (currentRoundTotal > 0) rounds.push(currentRoundTotal);
+
+      quoteMap[subId] = {
+        quote1Total: rounds[0] || null,
+        quote2Total: rounds[1] || null,
+        estimatedPremium: rounds[0] || null, // default to Quote 1 for overall estimated
+      };
     });
 
     const formattedSubmissions = submissions.map((sub) => {
-      const quoteTotals = quoteMap[sub._id.toString()] || { generalCost: null, excessCost: null, totalCost: 0 };
+      const totals = quoteMap[sub._id.toString()] || { quote1Total: null, quote2Total: null, estimatedPremium: null };
       return {
         _id: sub._id.toString(),
         submissionNumber: sub.submissionNumber ?? 0,
@@ -123,9 +142,9 @@ export async function GET(req: NextRequest) {
         updatedAt: sub.updatedAt,
         fileCount: sub.files?.length || 0,
         state: sub.state || "N/A",
-        generalCost: quoteTotals.generalCost,
-        excessCost: quoteTotals.excessCost,
-        estimatedPremium: quoteTotals.totalCost || null,
+        quote1Total: totals.quote1Total,
+        quote2Total: totals.quote2Total,
+        estimatedPremium: totals.estimatedPremium,
         agentName: sub.agentName || sub.payload?.agentName || null,
         agentId: sub.agentId ? sub.agentId.toString() : null,
       };

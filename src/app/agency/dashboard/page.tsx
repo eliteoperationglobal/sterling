@@ -25,8 +25,8 @@ interface Submission {
   updatedAt: string;
   fileCount: number;
   state: string;
-  generalCost?: number | null;
-  excessCost?: number | null;
+  quote1Total?: number | null;
+  quote2Total?: number | null;
   estimatedPremium?: number | null;
   agentName?: string | null;
   agentId?: string | null;
@@ -772,8 +772,8 @@ function AgencyDashboardContent() {
                     <th className="px-6 py-4 text-left">Applicant Company</th>
                     <th className="px-6 py-4 text-left">Program</th>
                     <th className="px-6 py-4 text-left">Effective Date</th>
-                    <th className="px-6 py-4 text-center">General Cost</th>
-                    <th className="px-6 py-4 text-center">Excess Cost</th>
+                    <th className="px-6 py-4 text-center">Quote 1</th>
+                    <th className="px-6 py-4 text-center">Quote 2</th>
                   </tr>
                 </thead>
 
@@ -793,12 +793,12 @@ function AgencyDashboardContent() {
                       </td>
 
                       <td className="px-6 py-4 text-center">
-                        {sub.generalCost != null ? (
+                        {sub.quote1Total != null ? (
                           <span className="inline-flex items-center gap-1 text-emerald-500 font-semibold">
                             <svg className="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
-                            ${sub.generalCost.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            ${sub.quote1Total.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </span>
                         ) : (
                           <span className="text-gray-400 text-xs font-medium">—</span>
@@ -806,15 +806,15 @@ function AgencyDashboardContent() {
                       </td>
 
                       <td className="px-6 py-4 text-center">
-                        {sub.excessCost != null ? (
+                        {sub.quote2Total != null ? (
                           <span className="inline-flex items-center gap-1 text-orange-500 font-semibold">
                             <svg className="w-4 h-4 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
-                            ${sub.excessCost.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            ${sub.quote2Total.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </span>
                         ) : (
-                          <span className="text-gray-400 text-xs font-medium">—</span>
+                          <span className="text-gray-400 text-xs font-medium">____</span>
                         )}
                       </td>
                     </tr>
