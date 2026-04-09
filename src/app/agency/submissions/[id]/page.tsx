@@ -379,7 +379,7 @@ function SubmissionDetailsContent() {
     if (currentRound.length > 0) rounds.push(currentRound);
     return rounds;
   }, [data?.quotes]);
-  
+
   const currentRoundTotal = useMemo(() => {
     if (!quoteRounds.length) return 0;
     const round = quoteRounds[globalSelectedRoundIndex] || quoteRounds[0];
@@ -389,10 +389,18 @@ function SubmissionDetailsContent() {
 
   const currentQuote: SubmissionDetails["quotes"][0] | null = useMemo(() => {
     if (!quoteRounds.length) return null;
+
+    // PRIORITY 1: If an explicitly BOUND quote exists for this policy type, always prioritize it.
+    // This securely ensures we find the quote containing the uploaded PDFs, regardless of round.
+    const boundPolicyQuote = data?.quotes?.find((q: any) => 
+      q.status === "BOUND" && (q.policyType === currentPolicyType || (!q.policyType && currentPolicyType === "GENERAL_LIABILITY"))
+    );
+    if (boundPolicyQuote) return boundPolicyQuote;
+
     const round = quoteRounds[globalSelectedRoundIndex] || quoteRounds[0];
     if (!round) return null;
 
-    // Find the quote for the current policy type in this round
+    // PRIORITY 2: Find the quote for the current policy type in this active round
     const policyQuote = round.find((q: any) =>
       q.policyType === currentPolicyType ||
       (!q.policyType && currentPolicyType === "GENERAL_LIABILITY")
@@ -400,8 +408,7 @@ function SubmissionDetailsContent() {
 
     if (policyQuote) return policyQuote;
 
-    // Fallback: if selected round does not include this policy type,
-    // use any matching quote from the entire submission.
+    // PRIORITY 3: Fallback if not found in active round
     return data?.quotes?.find((q: any) =>
       q.policyType === currentPolicyType ||
       (!q.policyType && currentPolicyType === "GENERAL_LIABILITY")
@@ -682,7 +689,7 @@ function SubmissionDetailsContent() {
   const { submission, routingLogs, quotes, boundPolicy } = data;
 
 
-  // ✅ STATUS FLAGS (YAHAN ADD KARNA HAI)
+  // ✅ STATUS FLAGS
   const isSubmitted = submission?.status === "SUBMITTED";
   const isApprovalRequested = submission?.status === "APPROVAL_REQUESTED";
   const isQuoted = submission?.status === "QUOTED";
@@ -1151,7 +1158,7 @@ function SubmissionDetailsContent() {
               )} */}
 
               {/* ================= BOUND (NEWLY BOUND) ================= */}
-              {submission?.status === "BOUND" && (
+              {isBound && (
                 <>
                   {(() => {
                     let binderUrl = currentQuote?.binderUrl;

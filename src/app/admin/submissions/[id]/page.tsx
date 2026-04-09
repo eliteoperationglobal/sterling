@@ -480,17 +480,31 @@ export default function AdminSubmissionDetailsPage() {
 
   const currentQuote: SubmissionDetails["quotes"][0] | null = useMemo(() => {
     if (!quoteRounds.length) return null;
+
+    // PRIORITY 1: If an explicitly BOUND quote exists for this policy type, always prioritize it.
+    // This securely ensures we find the quote containing the uploaded PDFs.
+    const boundPolicyQuote = data?.quotes?.find((q: any) => 
+      q.status === "BOUND" && (q.policyType === currentPolicyType || (!q.policyType && currentPolicyType === "GENERAL_LIABILITY"))
+    );
+    if (boundPolicyQuote) return boundPolicyQuote;
+
     const round = quoteRounds[globalSelectedRoundIndex] || quoteRounds[0];
     if (!round) return null;
 
-    // Find the quote for the current policy type in this round
+    // PRIORITY 2: Find the quote for the current policy type in this active round
     const policyQuote = round.find((q: any) =>
       q.policyType === currentPolicyType ||
       (!q.policyType && currentPolicyType === "GENERAL_LIABILITY")
     );
 
-    return policyQuote || null;
-  }, [quoteRounds, globalSelectedRoundIndex, currentPolicyType]);
+    if (policyQuote) return policyQuote;
+
+    // PRIORITY 3: Fallback if not found in active round
+    return data?.quotes?.find((q: any) =>
+      q.policyType === currentPolicyType ||
+      (!q.policyType && currentPolicyType === "GENERAL_LIABILITY")
+    ) || null;
+  }, [quoteRounds, globalSelectedRoundIndex, currentPolicyType, data?.quotes]);
 
   const requiredDocs: string[] = currentQuote?.customDocuments ?? [];
 
