@@ -392,7 +392,7 @@ function SubmissionDetailsContent() {
 
     // PRIORITY 1: If an explicitly BOUND quote exists for this policy type, always prioritize it.
     // This securely ensures we find the quote containing the uploaded PDFs, regardless of round.
-    const boundPolicyQuote = data?.quotes?.find((q: any) => 
+    const boundPolicyQuote = data?.quotes?.find((q: any) =>
       q.status === "BOUND" && (q.policyType === currentPolicyType || (!q.policyType && currentPolicyType === "GENERAL_LIABILITY"))
     );
     if (boundPolicyQuote) return boundPolicyQuote;
@@ -1762,7 +1762,7 @@ function SubmissionDetailsContent() {
                     <div className="flex items-center gap-2">
                       <Mail className="w-4 h-4 text-gray-400" />
                       <span>
-                        {quotes[0]?.carrierId?.email || "info@sterlinginsurancepartners.com"}
+                        Info@sterlinginsurancepartners.com
                       </span>
                     </div>
                   </div>

@@ -125,7 +125,7 @@ function AgencyDashboardContent() {
     "PENDING_BIND": "BIND_REQUESTED",
     "INCOMPLETE_BIND": "BIND_REQUESTED",
     "READY_TO_BIND": "BIND_REQUESTED",
-    "NEWLY_BOUND": "BOUND",
+    "BOUND": "BOUND",
     "UNDERWRITING_DECLINED": "DECLINED",
     "CANCELLED": "CANCELLED",
   };
@@ -141,7 +141,7 @@ function AgencyDashboardContent() {
     // { id: "PENDING_BIND", label: "Pending Bind", count: 0 },
     // { id: "INCOMPLETE_BIND", label: "Incomplete Bind", count: 0 },
     // { id: "READY_TO_BIND", label: "Ready To Bind", count: 0 },
-    { id: "NEWLY_BOUND", label: "Newly Bound", count: 0 },
+    { id: "BOUND", label: "Bound", count: 0 },
     { id: "CANCELLED", label: "Cancelled", count: 0 },
     // { id: "UNDERWRITING_DECLINED", label: "Underwriting Declined", count: 0 },
   ]);
@@ -344,7 +344,7 @@ function AgencyDashboardContent() {
         // { id: "PENDING_BIND", label: "Pending Bind", count: 0 },
         // { id: "INCOMPLETE_BIND", label: "Incomplete Bind", count: 0 },
         // { id: "READY_TO_BIND", label: "Ready To Bind", count: counts.BIND_REQUESTED || 0 },
-        { id: "NEWLY_BOUND", label: "Newly Bound", count: counts.BOUND || 0 },
+        { id: "BOUND", label: "Bound", count: counts.BOUND || 0 },
         { id: "CANCELLED", label: "Cancelled", count: counts.CANCELLED || 0 },
         // { id: "UNDERWRITING_DECLINED", label: "Underwriting Declined", count: 0 },
       ]);
@@ -630,7 +630,7 @@ function AgencyDashboardContent() {
 
               const isInProgress = stage.id === "IN_PROGRESS";
               const isApproved = stage.id === "APPROVED_QUOTE";
-              const isBound = stage.id === "NEWLY_BOUND";
+              const isBound = stage.id === "BOUND";
               const iscansel = stage.id === "CANCELLED";
 
               return (

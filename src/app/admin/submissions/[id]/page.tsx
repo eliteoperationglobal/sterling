@@ -483,7 +483,7 @@ export default function AdminSubmissionDetailsPage() {
 
     // PRIORITY 1: If an explicitly BOUND quote exists for this policy type, always prioritize it.
     // This securely ensures we find the quote containing the uploaded PDFs.
-    const boundPolicyQuote = data?.quotes?.find((q: any) => 
+    const boundPolicyQuote = data?.quotes?.find((q: any) =>
       q.status === "BOUND" && (q.policyType === currentPolicyType || (!q.policyType && currentPolicyType === "GENERAL_LIABILITY"))
     );
     if (boundPolicyQuote) return boundPolicyQuote;
@@ -609,6 +609,36 @@ export default function AdminSubmissionDetailsPage() {
   const isQuoted = submission?.status === "QUOTED";
   const isBindRequested = submission?.status === "BIND_REQUESTED";
   const isBound = submission?.status === "BOUND";
+
+  const statusHistory = [
+    {
+      _id: submission._id + "-created",
+      program: submission.programName || "General Liability",
+      changedAt: submission.createdAt,
+      user: submission.agencyId?.name || "System",
+      status: "Submission Created",
+    },
+
+    ...routingLogs.map((log) => ({
+      _id: log._id,
+      program: log.carrierId?.name || "Carrier",
+      changedAt: log.createdAt,
+      user: log.carrierId?.name || "Underwriter",
+      status: log.status,
+    })),
+
+    ...activityLogs.map((log) => ({
+      _id: log._id,
+      program: "Activity",
+      changedAt: log.createdAt,
+      user: log.performedBy?.userName || "System Administrator",
+      status: log.description,
+    })),
+  ].sort(
+    (a, b) =>
+      new Date(b.changedAt).getTime() -
+      new Date(a.changedAt).getTime()
+  );
 
   return (
     <div className="min-h-screen bg-[#f5f1eb]">
@@ -1036,7 +1066,7 @@ export default function AdminSubmissionDetailsPage() {
         {/* Tabs Bar */}
         <div className="bg-white px-8 border-t border-gray-100 shadow-sm sticky top-[64px] z-30">
           <div className="px-8 flex items-center gap-8 h-[56px]">
-            {["Admin Notes", "Additional Information", "Key Information", "Quoting & Routing"].map((tab) => (
+            {["Admin Notes", "Status History", "Additional Information", "Rating Information", "Key Information", "Quoting & Routing"].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -1165,6 +1195,29 @@ export default function AdminSubmissionDetailsPage() {
               </div>
             )}
 
+            {activeTab === "Status History" && (
+              <div className="border rounded-md overflow-hidden bg-white">
+                <div className="bg-gray-100 px-4 py-2 grid grid-cols-4 text-[13px] font-medium text-gray-600 border-b border-gray-200">
+                  <span>Program</span>
+                  <span>Changed</span>
+                  <span>User</span>
+                  <span>Status</span>
+                </div>
+
+                {statusHistory.map((item) => (
+                  <div
+                    key={item._id}
+                    className="px-4 py-3 grid grid-cols-4 text-[14px] text-gray-900 border-b border-gray-100 last:border-0"
+                  >
+                    <span>{item.program}</span>
+                    <span>{new Date(item.changedAt).toLocaleString()}</span>
+                    <span>{item.user}</span>
+                    <span>{item.status}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
             {activeTab === "Additional Information" && (
               <div className="space-y-8">
 
@@ -1254,6 +1307,83 @@ export default function AdminSubmissionDetailsPage() {
                     </div>
                   </div>
                 </div>
+              </div>
+            )}
+
+            {activeTab === "Rating Information" && (
+              <div className="space-y-6">
+                {!currentQuote ? (
+                  <div className="flex flex-col items-center justify-center py-16 text-center bg-white rounded-xl border border-gray-100 shadow-sm">
+                    <div className="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                      <span className="text-2xl">🤔</span>
+                    </div>
+                    <p className="text-gray-500 font-medium">No quote entered yet for</p>
+                    <p className="text-gray-900 font-bold mt-1">
+                      {currentPolicyType === "GENERAL_LIABILITY" ? "General Liability" : "Excess Liability"}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="flex flex-col lg:flex-row gap-6 w-full items-stretch animate-in fade-in zoom-in duration-300">
+                    {/* Rate Breakdown */}
+                    <div className="bg-white rounded-lg border border-gray-200 p-8 flex flex-col flex-1 h-full min-h-[450px]">
+                      <div className="flex items-center gap-4 mb-4">
+                        <div className="w-10 h-10 bg-black rounded-xl flex items-center justify-center">
+                          <span className="text-white font-bold text-[18px]">$</span>
+                        </div>
+                        <h3 className="text-[17px] font-semibold text-gray-900 tracking-tight">
+                          Rate Breakdown
+                        </h3>
+                      </div>
+                      <div className="flex flex-col gap-5 flex-grow mb-8">
+                        <RatingRow label="Premium" value={formatCurrency(currentQuote.carrierQuoteUSD || 0)} />
+                        <RatingRow label="Carrier Fees" value={formatCurrency(currentQuote.carrierFeesUSD || 0)} />
+                        <RatingRow label="Surplus Lines Tax (%)" value={formatCurrency(currentQuote.premiumTaxAmountUSD || 0)} />
+                        {(currentQuote.stampingFeeAmountUSD || 0) > 0 && (
+                          <RatingRow label="Stamping Fee (%)" value={formatCurrency(currentQuote.stampingFeeAmountUSD || 0)} />
+                        )}
+                        {(currentQuote.fireMarshalTaxAmountUSD || 0) > 0 && (
+                          <RatingRow label="Fire Marshal Tax (%)" value={formatCurrency(currentQuote.fireMarshalTaxAmountUSD || 0)} />
+                        )}
+                        {(currentQuote.fireMarshalFlatFeeUSD || 0) > 0 && (submission?.clientContact?.businessAddress?.state === 'WA') && (
+                          <RatingRow label="WA Flat Fee" value={formatCurrency(currentQuote.fireMarshalFlatFeeUSD || 0)} />
+                        )}
+                        <RatingRow label="Surplus Lines Policy Fee" value={formatCurrency(currentQuote.sterlingInsuranceServicesFeesUSD || 0)} />
+                      </div>
+
+                      {/* Total Cost inside the Left Card pinned to bottom */}
+                      <div className="mt-auto pt-6 border-t flex justify-between items-center">
+                        <span className="text-[16px] font-bold text-gray-900">Total Cost:</span>
+                        <span className="text-[22px] font-bold text-gray-900">
+                          {formatCurrency(currentQuote.finalAmountUSD || 0)}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Broker Breakdown */}
+                    <div className="bg-white rounded-lg border border-gray-200 p-8 flex flex-col flex-1 h-full min-h-[450px]">
+                      <div className="flex items-center gap-4 mb-4">
+                        <div className="w-10 h-10 bg-black rounded-xl flex items-center justify-center">
+                          <User className="w-[20px] h-[20px] text-white" />
+                        </div>
+                        <h3 className="text-[17px] font-semibold text-gray-900 tracking-tight">
+                          Broker Breakdown
+                        </h3>
+                      </div>
+                      <div className="flex flex-col gap-5 flex-grow mb-8">
+                        <RatingRow label="Commission (10%)" value={formatCurrency((currentQuote.carrierQuoteUSD || 0) * 0.1)} />
+                        <RatingRow label="Broker Fee" value={formatCurrency(currentQuote.brokerFeeAmountUSD || 0)} />
+                      </div>
+
+                      {/* Total for Broker inside the Right Card pinned to bottom */}
+                      <div className="mt-auto pt-6 border-t flex justify-between items-center">
+                        <span className="text-[16px] font-bold text-gray-900">Total for Broker:</span>
+                        <span className="text-[22px] font-bold text-gray-900">
+                          {formatCurrency(((currentQuote.carrierQuoteUSD || 0) * 0.1) + (currentQuote.brokerFeeAmountUSD || 0))}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
