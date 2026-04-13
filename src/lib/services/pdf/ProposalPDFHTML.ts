@@ -37,6 +37,7 @@ export interface ProposalData {
 
 	// Carrier Information
 	carrierName?: string;
+	carrierNameXL?: string;
 	carrierReference?: string;
 
 	// Policy Information
@@ -828,7 +829,7 @@ export function generateProposalHTML(data: ProposalData): string {
 						</table>
 					</div>
 					<div class="nsp1_01" style="left:22.7267em;top:21.9545em;"><span class="nsp1_29 nsp1_08 nsp1_30" style="word-spacing:0.0001em;">Policy Details &nbsp;</span></div>
-					<div class="nsp1_01" style="width:100%;text-align:center;left:0;top:23.1765em;"><span class="nsp1_31 nsp1_11 nsp1_32">Carrier</span><span class="nsp1_33 nsp1_11 nsp1_34" style="word-spacing:0.0017em;">: ${data.carrierName} &nbsp;</span></div>
+					<div class="nsp1_01" style="width:100%;text-align:center;left:0;top:23.1765em;"><span class="nsp1_31 nsp1_11 nsp1_32">Carrier</span><span class="nsp1_33 nsp1_11 nsp1_34" style="word-spacing:0.0017em;">: ${data.carrierName}${data.carrierNameXL && data.carrierNameXL !== data.carrierName ? ` &amp; ${data.carrierNameXL}` : ""} &nbsp;</span></div>
 					<div class="nsp1_01" style="width:100%;text-align:center;left:0;top:24.6815em;"><span class="nsp1_31 nsp1_11 nsp1_34" style="word-spacing:0.0006em;">Policy Form</span><span class="nsp1_33 nsp1_11 nsp1_30" style="word-spacing:0.0007em;">: General Liability ${data.addExcessLiability === true ? "&amp; Excess Liability" : ""} </span> &nbsp;</span></div>
 					<div class="nsp1_01" style="width:100%;text-align:center;left:0;top:26.1865em;"><span class="nsp1_31 nsp1_11 nsp1_30" style="word-spacing:-0.0002em;">Active Owners</span><span class="nsp1_33 nsp1_11 nsp1_17" style="word-spacing:0.0011em;">: 1 &nbsp;</span></div>
 					<div class="nsp1_01" style="width:100%;text-align:center;left:0;top:27.6915em;"><span class="nsp1_31 nsp1_11 nsp1_27" style="word-spacing:0.0003em;">Gross Receipts</span><span class="nsp1_33 nsp1_11 nsp1_30" style="word-spacing:0.0026em;">: ${data.grossReceipts} &nbsp;</span></div>

@@ -30,6 +30,8 @@ interface Submission {
   estimatedPremium?: number | null;
   agentName?: string | null;
   agentId?: string | null;
+  hasGeneral?: boolean;
+  hasExcess?: boolean;
 }
 
 interface DashboardStats {
@@ -501,9 +503,8 @@ function AgencyDashboardContent() {
                 </button>
 
                 <div
-                  className={`absolute right-0 top-14 w-96 bg-white rounded-2xl shadow-lg border border-[#e5ddd5] z-50 transition-all duration-200 ease-out ${
-                    notifOpen ? "opacity-100 scale-100 translate-y-0" : "opacity-0 scale-95 translate-y-2 pointer-events-none"
-                  }`}
+                  className={`absolute right-0 top-14 w-96 bg-white rounded-2xl shadow-lg border border-[#e5ddd5] z-50 transition-all duration-200 ease-out ${notifOpen ? "opacity-100 scale-100 translate-y-0" : "opacity-0 scale-95 translate-y-2 pointer-events-none"
+                    }`}
                   style={{ maxHeight: "400px", overflowY: "auto" }}
                 >
                   <div className="px-5 py-4 border-b border-[#e5ddd5] bg-[#f5f1eb] sticky top-0">
@@ -557,7 +558,7 @@ function AgencyDashboardContent() {
                 </div>
               </div>
 
-            {/* ⭐ PROFILE */}
+              {/* ⭐ PROFILE */}
               <div className="relative">
 
                 <button
@@ -772,8 +773,8 @@ function AgencyDashboardContent() {
                     <th className="px-6 py-4 text-left">Applicant Company</th>
                     <th className="px-6 py-4 text-left">Program</th>
                     <th className="px-6 py-4 text-left">Effective Date</th>
-                    <th className="px-6 py-4 text-center">Quote 1</th>
-                    <th className="px-6 py-4 text-center">Quote 2</th>
+                    <th className="px-6 py-4 text-center">Richmond</th>
+                    <th className="px-6 py-4 text-center">Kinsale</th>
                   </tr>
                 </thead>
 
@@ -781,7 +782,14 @@ function AgencyDashboardContent() {
                   {submissions.map((sub) => (
                     <tr key={sub._id} className="hover:bg-[#F9F8F7] transition cursor-pointer" onClick={() => router.push(`/agency/submissions/${sub._id}`)}>
                       <td className="px-6 py-4">
-                        {sub.status === "SUBMITTED" ? "New business" : "General Liability"}
+                        {sub.status === "SUBMITTED" ? (
+                          "New business"
+                        ) : (
+                          <>
+                            {sub.hasGeneral && sub.hasExcess ? "General & Excess Liability" :
+                             sub.hasExcess ? "Excess Liability" : "General Liability"}
+                          </>
+                        )}
                       </td>
                       <td className="px-6 py-4 text-[#9A8B7A] font-medium">
                         {sub.submissionNumber}
@@ -814,7 +822,7 @@ function AgencyDashboardContent() {
                             ${sub.quote2Total.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </span>
                         ) : (
-                          <span className="text-gray-400 text-xs font-medium">____</span>
+                          <span className="text-gray-400 text-xs font-medium">—</span>
                         )}
                       </td>
                     </tr>

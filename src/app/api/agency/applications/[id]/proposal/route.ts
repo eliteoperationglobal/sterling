@@ -44,6 +44,7 @@ export type ProposalData = {
   grossReceipts: string;
 
   carrierName: string;
+  carrierNameXL?: string;
 
   programName: string;
   effectiveDate: string;
@@ -168,18 +169,40 @@ export async function GET(
     let xsQuote: any = null;
 
     try {
-      const [agencyDoc, quoteDoc, xsQuoteDoc] = await Promise.all([
-        Agency.findById(user.agencyId).lean(),
-        quoteId
-          ? Quote.findById(quoteId).populate("carrierId", "name").lean()
-          : Quote.findOne({ submissionId: submission._id, policyType: { $in: [null, "GENERAL_LIABILITY"] } })
-            .populate("carrierId", "name")
-            .lean(),
-        Quote.findOne({ submissionId: submission._id, policyType: "EXCESS_LIABILITY" }).lean(),
-      ]);
-      agency = agencyDoc || defaultAgency;
-      quote = quoteDoc || null;
-      xsQuote = xsQuoteDoc || null;
+      const agencyPromise = Agency.findById(user.agencyId).lean();
+      let baseQuote = null;
+      if (quoteId) {
+        baseQuote = await Quote.findById(quoteId).populate("carrierId", "name").lean();
+      }
+
+      if (baseQuote) {
+        if (baseQuote.policyType === "EXCESS_LIABILITY") {
+          xsQuote = baseQuote;
+          // Prefer GL from same carrier, then fallback to any GL
+          const [glMatch, glAny] = await Promise.all([
+            Quote.findOne({ submissionId: submission._id, policyType: { $in: [null, "GENERAL_LIABILITY"] }, carrierId: baseQuote.carrierId }).populate("carrierId", "name").lean(),
+            Quote.findOne({ submissionId: submission._id, policyType: { $in: [null, "GENERAL_LIABILITY"] } }).populate("carrierId", "name").lean(),
+          ]);
+          quote = glMatch || glAny;
+        } else {
+          quote = baseQuote;
+          // Prefer XL from same carrier, then fallback to any XL
+          const [xsMatch, xsAny] = await Promise.all([
+            Quote.findOne({ submissionId: submission._id, policyType: "EXCESS_LIABILITY", carrierId: baseQuote.carrierId }).populate("carrierId", "name").lean(),
+            Quote.findOne({ submissionId: submission._id, policyType: "EXCESS_LIABILITY" }).populate("carrierId", "name").lean(),
+          ]);
+          xsQuote = xsMatch || xsAny;
+        }
+      } else {
+        const [glDoc, xsDoc] = await Promise.all([
+          Quote.findOne({ submissionId: submission._id, policyType: { $in: [null, "GENERAL_LIABILITY"] } }).populate("carrierId", "name").lean(),
+          Quote.findOne({ submissionId: submission._id, policyType: "EXCESS_LIABILITY" }).populate("carrierId", "name").lean(),
+        ]);
+        quote = glDoc;
+        xsQuote = xsDoc;
+      }
+
+      agency = (await agencyPromise) || defaultAgency;
     } catch (error: any) {
       console.error("Error fetching agency/quotes:", error.message);
       agency = defaultAgency;
@@ -190,7 +213,6 @@ export async function GET(
 
     // Prepare proposal data
     const populatedQuote = quote as unknown as IPopulatedQuote | null;
-    let carrierName = populatedQuote?.carrierId?.name || "Unknown Carrier";
     let quoteNumber = "TBD";
     let programName = (submission as any).programName || "Advantage Contractor GL";
     let carrierQuoteUSD = 0;
@@ -201,15 +223,21 @@ export async function GET(
     let finalAmountUSD = 0;
     let effectiveDate = new Date().toLocaleDateString();
     let expirationDate = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toLocaleDateString();
-    let limits = undefined;
-    let endorsements = [];
+    let limits: any = undefined;
+    let endorsements: string[] = [];
     let specialNotes = "";
 
-    if (quote) {
-      console.log("🔍 [Proposal API] Quote found:", quote._id);
-      console.log("🔍 [Proposal API] Quote limits:", JSON.stringify(quote.limits, null, 2));
+    // Option B: Calculate unique carriers across ALL quotes for this submission
+    // and use them for the Carrier display fields to ensure consistency.
+    const allQuotesForSubmission = await Quote.find({ submissionId: submission._id }).populate("carrierId", "name").lean();
+    const uniqueCarrierNames = Array.from(new Set(allQuotesForSubmission.map((q: any) => q.carrierId?.name).filter(Boolean))) as string[];
+    
+    let carrierName = uniqueCarrierNames[0] || populatedQuote?.carrierId?.name || "Unknown Carrier";
+    let carrierNameXL = uniqueCarrierNames.length > 1 ? uniqueCarrierNames[1] : undefined;
 
-      carrierName = populatedQuote?.carrierId?.name || "Unknown Carrier";
+    if (quote) {
+
+      // carrierName assignment removed to prevent overwriting Option B value
       quoteNumber = String(populatedQuote?._id).substring(0, 8).toUpperCase();
       carrierQuoteUSD = quote.carrierQuoteUSD || 0;
       premiumTaxPercent = quote.premiumTaxPercent || 0;
@@ -220,17 +248,14 @@ export async function GET(
       if (quote.effectiveDate) effectiveDate = new Date(quote.effectiveDate).toLocaleDateString();
       if (quote.expirationDate) expirationDate = new Date(quote.expirationDate).toLocaleDateString();
       limits = quote.limits || {};
-      console.log("🔥 LIMITS FULL DATA:", JSON.stringify(limits, null, 2));
       endorsements = quote.endorsements || [];
       specialNotes = quote.specialNotes || "";
     } else {
-      console.log("🔍 [Proposal API] No quote found for submission:", submission._id);
       limits = {}; // Fallback to empty object if no quote
     }
 
     // get class codes
     const classCodes = Object.keys(formData.classCodeWork || {});
-    console.log("🔥 CLASS CODES:", classCodes);
 
     const [occurrence, aggregate, products] = extractLimits(limits?.generalLiability || formData?.coverageLimits);
     const proposalData: ProposalData = {
@@ -300,6 +325,8 @@ export async function GET(
           .join(", "),
       // Excess Liability
       addExcessLiability: formData.addExcessLiability === true,
+      // excessLiabilityAmount and carrierNameXL handled below
+      carrierNameXL,
       excessLiabilityAmount: xsQuote?.finalAmountUSD ?? undefined,
       excessLiabilityLimit: (xsQuote?.limits?.excessLimit || formData.excessLiabilityLimit) ? extractLimits(xsQuote?.limits?.excessLimit || formData.excessLiabilityLimit)[0] : undefined,
     };

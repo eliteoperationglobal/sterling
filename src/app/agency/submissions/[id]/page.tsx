@@ -179,7 +179,7 @@ function SubmissionDetailsContent() {
   const [emailHistory, setEmailHistory] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState("Notes");
   const [currentPolicyType, setCurrentPolicyType] = useState<"GENERAL_LIABILITY" | "EXCESS_LIABILITY">("GENERAL_LIABILITY");
-  const [globalSelectedRoundIndex, setGlobalSelectedRoundIndex] = useState<number>(0);
+  const [selectedCarrierId, setSelectedCarrierId] = useState<string | null>(null);
   const [availablePolicies, setAvailablePolicies] = useState<string[]>(["GENERAL_LIABILITY"]);
   const [checkedDocs, setCheckedDocs] = useState<Record<string, boolean>>({});
   const [uploading, setUploading] = useState(false);
@@ -192,6 +192,58 @@ function SubmissionDetailsContent() {
   const [bindSelectedCarrierIdGL, setBindSelectedCarrierIdGL] = useState<string | null>(null);
   const [bindSelectedCarrierIdXL, setBindSelectedCarrierIdXL] = useState<string | null>(null);
 
+  const carrierGroups = useMemo(() => {
+    if (!data?.quotes?.length) return [];
+
+    const groups: Record<string, { carrierId: string; carrierName: string; quotes: any[] }> = {};
+
+    data.quotes.forEach((q: any) => {
+      const cid = q.carrierId?._id || "unknown";
+      const cname = q.carrierId?.name || "Unknown Carrier";
+
+      if (!groups[cid]) {
+        groups[cid] = { carrierId: cid, carrierName: cname, quotes: [] };
+      }
+      groups[cid].quotes.push(q);
+    });
+
+    return Object.values(groups);
+  }, [data?.quotes]);
+
+  useEffect(() => {
+    if (carrierGroups.length > 0 && !selectedCarrierId) {
+      // DEFAULT TO BOUND CARRIER IF EXISTS
+      const boundQuote = data?.quotes?.find((q: any) => q.status === "BOUND");
+      if (boundQuote) {
+        setSelectedCarrierId(boundQuote.carrierId?._id || boundQuote.carrierId);
+      } else {
+        setSelectedCarrierId(carrierGroups[0].carrierId);
+      }
+    }
+  }, [carrierGroups, selectedCarrierId, data?.quotes]);
+
+  const currentRoundTotal = useMemo(() => {
+    if (!carrierGroups.length) return 0;
+    const group = carrierGroups.find(g => g.carrierId === selectedCarrierId) || carrierGroups[0];
+    if (!group) return 0;
+    return group.quotes.reduce((sum: number, q: any) => sum + (q.finalAmountUSD || 0), 0);
+  }, [carrierGroups, selectedCarrierId]);
+
+  const currentQuote: SubmissionDetails["quotes"][0] | null = useMemo(() => {
+    if (!carrierGroups.length) return null;
+
+    const group = carrierGroups.find(g => g.carrierId === selectedCarrierId) || carrierGroups[0];
+    if (!group) return null;
+
+    // Isolate lookup to selected group only
+    const policyQuote = group.quotes.find((q: any) =>
+      q.policyType === currentPolicyType ||
+      (!q.policyType && currentPolicyType === "GENERAL_LIABILITY")
+    );
+
+    return policyQuote || null;
+  }, [carrierGroups, selectedCarrierId, currentPolicyType]);
+
   useEffect(() => {
     if (fetchResult?.activityLogs) {
       setActivityLogs(fetchResult.activityLogs);
@@ -199,14 +251,25 @@ function SubmissionDetailsContent() {
   }, [fetchResult?.activityLogs]);
 
   useEffect(() => {
-    if (data?.quotes) {
-      const types = Array.from(new Set(data.quotes.map((q: any) => q.policyType || "GENERAL_LIABILITY")));
-      setAvailablePolicies(types as string[]);
-      if (types.length > 0 && !types.includes(currentPolicyType)) {
-        setCurrentPolicyType(types[0] as any);
+    if (data?.quotes && carrierGroups.length > 0) {
+      const activeGroupId = selectedCarrierId || carrierGroups[0].carrierId;
+      const group = carrierGroups.find(g => g.carrierId === activeGroupId);
+      
+      if (group) {
+        let types = Array.from(new Set(group.quotes.map((q: any) => q.policyType || "GENERAL_LIABILITY")));
+        
+        // Fix the "jumping buttons" issue by ensuring a consistent order
+        types.sort((a, b) => (a === "GENERAL_LIABILITY" ? -1 : 1));
+        
+        setAvailablePolicies(types as string[]);
+        
+        // Auto-switch if current policy type is not in the new carrier's available list
+        if (types.length > 0 && !types.includes(currentPolicyType)) {
+          setCurrentPolicyType(types[0] as any);
+        }
       }
     }
-  }, [data]);
+  }, [data, selectedCarrierId, carrierGroups]);
 
   const fetchSubmission = () => mutate();
 
@@ -350,70 +413,6 @@ function SubmissionDetailsContent() {
     );
   };
 
-  const quoteRounds = useMemo(() => {
-    if (!data?.quotes?.length) return [];
-
-    // Sort all quotes by creation time
-    const sorted = [...data.quotes].sort((a, b) =>
-      new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-    );
-
-    const rounds: any[][] = [];
-    let currentRound: any[] = [];
-
-    for (const q of sorted) {
-      if (currentRound.length === 0) {
-        currentRound.push(q);
-      } else {
-        const lastQ = currentRound[0];
-        // If created within 60 seconds of each other, group them in the same round
-        const diffMs = Math.abs(new Date(q.createdAt).getTime() - new Date(lastQ.createdAt).getTime());
-        if (diffMs < 60000) {
-          currentRound.push(q);
-        } else {
-          rounds.push(currentRound);
-          currentRound = [q];
-        }
-      }
-    }
-    if (currentRound.length > 0) rounds.push(currentRound);
-    return rounds;
-  }, [data?.quotes]);
-
-  const currentRoundTotal = useMemo(() => {
-    if (!quoteRounds.length) return 0;
-    const round = quoteRounds[globalSelectedRoundIndex] || quoteRounds[0];
-    if (!round) return 0;
-    return round.reduce((sum: number, q: any) => sum + (q.finalAmountUSD || 0), 0);
-  }, [quoteRounds, globalSelectedRoundIndex]);
-
-  const currentQuote: SubmissionDetails["quotes"][0] | null = useMemo(() => {
-    if (!quoteRounds.length) return null;
-
-    // PRIORITY 1: If an explicitly BOUND quote exists for this policy type, always prioritize it.
-    // This securely ensures we find the quote containing the uploaded PDFs, regardless of round.
-    const boundPolicyQuote = data?.quotes?.find((q: any) =>
-      q.status === "BOUND" && (q.policyType === currentPolicyType || (!q.policyType && currentPolicyType === "GENERAL_LIABILITY"))
-    );
-    if (boundPolicyQuote) return boundPolicyQuote;
-
-    const round = quoteRounds[globalSelectedRoundIndex] || quoteRounds[0];
-    if (!round) return null;
-
-    // PRIORITY 2: Find the quote for the current policy type in this active round
-    const policyQuote = round.find((q: any) =>
-      q.policyType === currentPolicyType ||
-      (!q.policyType && currentPolicyType === "GENERAL_LIABILITY")
-    );
-
-    if (policyQuote) return policyQuote;
-
-    // PRIORITY 3: Fallback if not found in active round
-    return data?.quotes?.find((q: any) =>
-      q.policyType === currentPolicyType ||
-      (!q.policyType && currentPolicyType === "GENERAL_LIABILITY")
-    ) || null;
-  }, [quoteRounds, globalSelectedRoundIndex, currentPolicyType, data?.quotes]);
 
   const requiredDocs: string[] = currentQuote?.customDocuments ?? [];
 
@@ -908,17 +907,17 @@ function SubmissionDetailsContent() {
         </div>
         {/* APP INFO ROW – ISC STYLE */}
         {/* Global Quote Round Selector */}
-        {submission?.status === "QUOTED" && quoteRounds.length > 1 && (
+        {submission?.status !== "BOUND" && carrierGroups.length > 1 && (
           <div className="bg-white px-8 py-4 border-t border-gray-100 flex items-center justify-end gap-3 shadow-sm rounded-md mb-2">
-            <span className="text-[14px] font-bold text-gray-500 uppercase tracking-wider">SELECT QUOTE:</span>
+            <span className="text-[14px] font-bold text-gray-500 uppercase tracking-wider">SELECT CARRIER:</span>
             <select
-              value={globalSelectedRoundIndex}
-              onChange={(e) => setGlobalSelectedRoundIndex(Number(e.target.value))}
+              value={selectedCarrierId || ""}
+              onChange={(e) => setSelectedCarrierId(e.target.value)}
               className="bg-gray-50 border border-gray-200 text-gray-900 text-[14px] rounded-lg focus:ring-black focus:border-black block p-2 font-semibold outline-none"
             >
-              {quoteRounds.map((round: any[], index: number) => (
-                <option key={index} value={index}>
-                  Quote {index + 1}
+              {carrierGroups.map((group: any) => (
+                <option key={group.carrierId} value={group.carrierId}>
+                  {group.carrierName}
                 </option>
               ))}
             </select>

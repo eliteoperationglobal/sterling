@@ -295,7 +295,31 @@ export default function MarketplacePage() {
           >
             Hospitals
           </button>
-
+          <Link href="/agency/quote/contractors-equipment">
+          <button
+            className="
+              w-[320px] 
+              h-[120px] 
+              rounded-2xl 
+              bg-[#9A8B7A] 
+              text-white 
+              text-2xl 
+              font-semibold
+              flex 
+              items-center 
+              justify-center
+              shadow-md
+              hover:shadow-lg
+              hover:scale-[1.02]
+              active:scale-[0.98]
+              transition-all
+              duration-200
+              mr-10
+            "
+          >
+            Contractors Equipment
+          </button>
+          </Link>
         </div>
       </main>
     </div>

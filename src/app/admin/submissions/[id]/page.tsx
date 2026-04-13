@@ -21,6 +21,10 @@ import {
   Clock,
   ChevronRight,
   FileText,
+  Shield,
+  Layers,
+  Calendar,
+  ExternalLink,
 } from "lucide-react";
 
 import DashboardLayout from "@/components/layout/DashboardLayout";
@@ -224,11 +228,12 @@ export default function AdminSubmissionDetailsPage() {
   const [uploading, setUploading] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [ratingData, setRatingData] = useState<any>(null);
-  const [globalSelectedRoundIndex, setGlobalSelectedRoundIndex] = useState<number>(0);
+  const [selectedCarrierId, setSelectedCarrierId] = useState<string | null>(null);
   const [currentPolicyType, setCurrentPolicyType] = useState<"GENERAL_LIABILITY" | "EXCESS_LIABILITY">("GENERAL_LIABILITY");
   const [availablePolicies, setAvailablePolicies] = useState<string[]>([]);
   const [ratingLoading, setRatingLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -265,15 +270,71 @@ export default function AdminSubmissionDetailsPage() {
   const loading = isLoading;
   const error = swrError ? "Failed to load submission" : rawData?.error || "";
 
+  const carrierGroups = useMemo(() => {
+    if (!data?.quotes?.length) return [];
+
+    const groups: Record<string, { carrierId: string; carrierName: string; quotes: any[] }> = {};
+
+    data.quotes.forEach((q: any) => {
+      const cid = q.carrierId?._id || "unknown";
+      const cname = q.carrierId?.name || "Unknown Carrier";
+
+      if (!groups[cid]) {
+        groups[cid] = { carrierId: cid, carrierName: cname, quotes: [] };
+      }
+      groups[cid].quotes.push(q);
+    });
+
+    return Object.values(groups);
+  }, [data?.quotes]);
+
   useEffect(() => {
-    if (data?.quotes) {
-      const types = Array.from(new Set(data.quotes.map((q: any) => q.policyType || "GENERAL_LIABILITY")));
-      setAvailablePolicies(types as string[]);
-      if (types.length > 0 && !types.includes(currentPolicyType)) {
-        setCurrentPolicyType(types[0] as any);
+    if (carrierGroups.length > 0 && !selectedCarrierId) {
+      // DEFAULT TO BOUND CARRIER IF EXISTS
+      const boundQuote = data?.quotes?.find((q: any) => q.status === "BOUND");
+      if (boundQuote) {
+        setSelectedCarrierId(boundQuote.carrierId?._id || boundQuote.carrierId);
+      } else {
+        setSelectedCarrierId(carrierGroups[0].carrierId);
       }
     }
-  }, [data, currentPolicyType]);
+  }, [carrierGroups, selectedCarrierId, data?.quotes]);
+
+  const currentQuote: SubmissionDetails["quotes"][0] | null = useMemo(() => {
+    if (!carrierGroups.length) return null;
+
+    const group = carrierGroups.find(g => g.carrierId === selectedCarrierId) || carrierGroups[0];
+    if (!group) return null;
+
+    // Isolate lookup to selected group only
+    const policyQuote = group.quotes.find((q: any) =>
+      q.policyType === currentPolicyType ||
+      (!q.policyType && currentPolicyType === "GENERAL_LIABILITY")
+    );
+
+    return policyQuote || null;
+  }, [carrierGroups, selectedCarrierId, currentPolicyType]);
+
+  useEffect(() => {
+    if (data?.quotes && carrierGroups.length > 0) {
+      const activeGroupId = selectedCarrierId || carrierGroups[0].carrierId;
+      const group = carrierGroups.find(g => g.carrierId === activeGroupId);
+
+      if (group) {
+        let types = Array.from(new Set(group.quotes.map((q: any) => q.policyType || "GENERAL_LIABILITY")));
+        
+        // Fix the "jumping buttons" issue by ensuring a consistent order
+        types.sort((a, b) => (a === "GENERAL_LIABILITY" ? -1 : 1));
+        
+        setAvailablePolicies(types as string[]);
+
+        // Auto-switch if current policy type is not in the new carrier's available list
+        if (types.length > 0 && !types.includes(currentPolicyType)) {
+          setCurrentPolicyType(types[0] as any);
+        }
+      }
+    }
+  }, [data, selectedCarrierId, carrierGroups]);
 
   useEffect(() => {
     if (rawData?.submission?.adminNotes !== undefined) {
@@ -282,34 +343,10 @@ export default function AdminSubmissionDetailsPage() {
     if (rawData?.activityLogs) {
       setActivityLogs(rawData.activityLogs);
     }
-  }, [rawData]);
-
-  useEffect(() => {
+  }, [rawData]); useEffect(() => {
     if (activeTab === "Rating Information" && data && data.quotes && data.quotes.length > 0) {
-      // Find quote strictly matching the active policy type from the current round
-      // Re-implement basic grouping logic just to get current quote for rating data
-      const sorted = [...data.quotes].sort((a, b) =>
-        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-      );
-      const rounds: any[][] = [];
-      let currentRound: any[] = [];
-      for (const q of sorted) {
-        if (currentRound.length === 0) {
-          currentRound.push(q);
-        } else {
-          const lastQ = currentRound[0];
-          if (Math.abs(new Date(q.createdAt).getTime() - new Date(lastQ.createdAt).getTime()) < 60000) {
-            currentRound.push(q);
-          } else {
-            rounds.push(currentRound);
-            currentRound = [q];
-          }
-        }
-      }
-      if (currentRound.length > 0) rounds.push(currentRound);
-
-      const round = rounds[globalSelectedRoundIndex] || rounds[0];
-      const quote = round ? round.find((q: any) =>
+      const group = carrierGroups.find(g => g.carrierId === selectedCarrierId) || carrierGroups[0];
+      const quote = group ? group.quotes.find((q: any) =>
         q.policyType === currentPolicyType || (!q.policyType && currentPolicyType === "GENERAL_LIABILITY")
       ) : null;
 
@@ -332,7 +369,7 @@ export default function AdminSubmissionDetailsPage() {
     } else if (activeTab === "Rating Information") {
       setRatingData({});
     }
-  }, [activeTab, data, globalSelectedRoundIndex, currentPolicyType]);
+  }, [activeTab, data, selectedCarrierId, currentPolicyType]);
 
   const fetchStats = async () => {
     try {
@@ -448,63 +485,6 @@ export default function AdminSubmissionDetailsPage() {
         return "bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 border border-gray-200";
     }
   };
-  const quoteRounds = useMemo(() => {
-    if (!data?.quotes?.length) return [];
-
-    // Sort all quotes by creation time
-    const sorted = [...data.quotes].sort((a, b) =>
-      new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-    );
-
-    const rounds: any[][] = [];
-    let currentRound: any[] = [];
-
-    for (const q of sorted) {
-      if (currentRound.length === 0) {
-        currentRound.push(q);
-      } else {
-        const lastQ = currentRound[0];
-        // If created within 60 seconds of each other, group them in the same round
-        const diffMs = Math.abs(new Date(q.createdAt).getTime() - new Date(lastQ.createdAt).getTime());
-        if (diffMs < 60000) {
-          currentRound.push(q);
-        } else {
-          rounds.push(currentRound);
-          currentRound = [q];
-        }
-      }
-    }
-    if (currentRound.length > 0) rounds.push(currentRound);
-    return rounds;
-  }, [data?.quotes]);
-
-  const currentQuote: SubmissionDetails["quotes"][0] | null = useMemo(() => {
-    if (!quoteRounds.length) return null;
-
-    // PRIORITY 1: If an explicitly BOUND quote exists for this policy type, always prioritize it.
-    // This securely ensures we find the quote containing the uploaded PDFs.
-    const boundPolicyQuote = data?.quotes?.find((q: any) =>
-      q.status === "BOUND" && (q.policyType === currentPolicyType || (!q.policyType && currentPolicyType === "GENERAL_LIABILITY"))
-    );
-    if (boundPolicyQuote) return boundPolicyQuote;
-
-    const round = quoteRounds[globalSelectedRoundIndex] || quoteRounds[0];
-    if (!round) return null;
-
-    // PRIORITY 2: Find the quote for the current policy type in this active round
-    const policyQuote = round.find((q: any) =>
-      q.policyType === currentPolicyType ||
-      (!q.policyType && currentPolicyType === "GENERAL_LIABILITY")
-    );
-
-    if (policyQuote) return policyQuote;
-
-    // PRIORITY 3: Fallback if not found in active round
-    return data?.quotes?.find((q: any) =>
-      q.policyType === currentPolicyType ||
-      (!q.policyType && currentPolicyType === "GENERAL_LIABILITY")
-    ) || null;
-  }, [quoteRounds, globalSelectedRoundIndex, currentPolicyType, data?.quotes]);
 
   const requiredDocs: string[] = currentQuote?.customDocuments ?? [];
 
@@ -788,17 +768,17 @@ export default function AdminSubmissionDetailsPage() {
         </div>
 
         {/* Global Quote Round Selector */}
-        {data?.quotes && data.quotes.length > 0 && quoteRounds.length > 1 && (
+        {submission?.status !== "BOUND" && data?.quotes && data.quotes.length > 0 && carrierGroups.length > 1 && (
           <div className="bg-white px-8 py-4 border-t border-gray-100 flex items-center justify-end gap-3 shadow-sm rounded-md mb-2">
-            <span className="text-[14px] font-bold text-gray-500 uppercase tracking-wider">SELECT QUOTE:</span>
+            <span className="text-[14px] font-bold text-gray-500 uppercase tracking-wider">SELECT CARRIER:</span>
             <select
-              value={globalSelectedRoundIndex}
-              onChange={(e) => setGlobalSelectedRoundIndex(Number(e.target.value))}
+              value={selectedCarrierId || ""}
+              onChange={(e) => setSelectedCarrierId(e.target.value)}
               className="bg-gray-50 border border-gray-200 text-gray-900 text-[14px] rounded-lg focus:ring-black focus:border-black block p-2 font-semibold outline-none"
             >
-              {quoteRounds.map((round: any[], index: number) => (
-                <option key={index} value={index}>
-                  Quote {index + 1}
+              {carrierGroups.map((group: any) => (
+                <option key={group.carrierId} value={group.carrierId}>
+                  {group.carrierName}
                 </option>
               ))}
             </select>
@@ -1407,41 +1387,69 @@ export default function AdminSubmissionDetailsPage() {
                   </div>
                   <div className="p-6">
                     {quotes && quotes.length > 0 ? (
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {quotes.map((quote: any) => (
-                          <div key={quote._id} className="p-6 bg-gradient-to-br from-white to-gray-50 rounded-2xl border border-gray-100 shadow-sm transition-all hover:shadow-xl hover:-translate-y-1">
-                            <div className="flex justify-between items-start mb-4">
-                              <div>
-                                <p className="font-bold text-gray-900">{quote.carrierId?.name || "Carrier"}</p>
-                                <p className="text-[12px] text-gray-500 mt-1">Status: <span className="text-blue-600 font-bold">{quote.status}</span></p>
+                      <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-6">
+                        {quotes.map((quote: any) => {
+                          const isGL = !quote.policyType || quote.policyType === 'GENERAL_LIABILITY';
+                          const statusColor = quote.status === 'BOUND' ? 'text-green-600 bg-green-50 border-green-100' :
+                            ['POSTED', 'APPROVED', 'BIND_REQUESTED'].includes(quote.status) ? 'text-blue-600 bg-blue-50 border-blue-100' :
+                              'text-gray-600 bg-gray-50 border-gray-200';
+
+                          return (
+                            <div key={quote._id} className="group relative bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-xl hover:border-gray-300 transition-all duration-300 overflow-hidden flex flex-col">
+                              {/* Top accent line */}
+                              <div className={`h-1.5 w-full ${isGL ? 'bg-blue-600' : 'bg-amber-500'}`} />
+
+                              <div className="p-5 flex-1">
+                                <div className="flex justify-between items-start">
+                                  <div className="flex items-center gap-3">
+                                    <div className={`p-2.5 rounded-xl ${isGL ? 'bg-blue-50 text-blue-600' : 'bg-amber-50 text-amber-600'}`}>
+                                      {isGL ? <Shield className="w-5 h-5" /> : <Layers className="w-5 h-5" />}
+                                    </div>
+                                    <div>
+                                      <h4 className="font-bold text-gray-900 tracking-tight leading-none mb-1.5">{quote.carrierId?.name || "Carrier"}</h4>
+                                      <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-black tracking-widest uppercase border ${isGL ? 'bg-blue-50 text-blue-700 border-blue-100' : 'bg-amber-50 text-amber-700 border-amber-100'}`}>
+                                        {isGL ? 'General Liability' : 'Excess Liability'}
+                                      </span>
+                                    </div>
+                                  </div>
+                                  <div className="text-right">
+                                    <div className="text-xl font-black text-gray-900">
+                                      {formatCurrency(quote.finalAmountUSD)}
+                                    </div>
+                                    <div className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border mt-1 ${statusColor}`}>
+                                      {quote.status}
+                                    </div>
+                                  </div>
+                                </div>
                               </div>
-                              <div className="text-right">
-                                <p className="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
-                                  {formatCurrency(quote.finalAmountUSD)}
-                                </p>
+                              <div className="px-5 py-3 bg-gray-50/50 border-t border-gray-100 flex items-center gap-3">
+                                {quote.binderPdfUrl ? (
+                                  <button
+                                    onClick={() => window.open(quote.binderPdfUrl, "_blank")}
+                                    className="flex-1 inline-flex items-center justify-center gap-1.5 py-2 px-3 bg-white border border-gray-200 text-gray-700 text-[11px] font-bold rounded-xl shadow-sm hover:bg-gray-50 hover:border-gray-300 transition-all active:scale-95"
+                                  >
+                                    <FileText className="w-3.5 h-3.5" />
+                                    Binder PDF
+                                  </button>
+                                ) : (
+                                  <div className="flex-1 py-2 px-3 bg-gray-100/50 border border-transparent text-gray-400 text-[11px] font-bold rounded-xl text-center">
+                                    No Binder
+                                  </div>
+                                )}
+
+                                {quote.status === "ENTERED" && (
+                                  <Link
+                                    href={`/admin/quotes/${quote._id}/post`}
+                                    className="flex-1 inline-flex items-center justify-center gap-1.5 py-2 px-3 bg-black text-white text-[11px] font-bold rounded-xl shadow-sm hover:bg-gray-800 transition-all active:scale-95"
+                                  >
+                                    Post Quote
+                                    <ChevronRight className="w-3.5 h-3.5" />
+                                  </Link>
+                                )}
                               </div>
                             </div>
-                            <div className="flex items-center gap-3 pt-4 border-t border-gray-100">
-                              {quote.binderPdfUrl && (
-                                <a
-                                  href={quote.binderPdfUrl}
-                                  target="_blank"
-                                  className="flex-1 py-1.5 px-3 bg-blue-50 text-blue-600 text-[11px] font-bold rounded-lg text-center hover:bg-blue-100 transition-all"
-                                >
-                                  Binder PDF
-                                </a>
-                              )}
-                              {quote.status === "ENTERED_BY_ADMIN" && (
-                                <Link
-                                  href={`/admin/quotes/${quote._id}/post`}
-                                  className="flex-1 py-1.5 px-3 bg-[#7A6F64] text-white text-[11px] font-bold rounded-lg text-center hover:bg-black transition-all"
-                                >
-                                  Post Quote
-                                </Link>
-                              )}
-                            </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     ) : (
                       <div className="py-12 flex flex-col items-center justify-center text-gray-400">

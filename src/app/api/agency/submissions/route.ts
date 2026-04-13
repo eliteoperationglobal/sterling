@@ -84,12 +84,19 @@ export async function GET(req: NextRequest) {
       submissionId: { $in: submissionIds },
       status: { $in: ["POSTED", "APPROVED", "BOUND"] },
     })
-      .select("submissionId finalAmountUSD policyType createdAt")
+      .select("submissionId finalAmountUSD policyType createdAt carrierId")
+      .populate("carrierId", "name")
       .sort({ createdAt: 1 })
-      .lean<Pick<IQuote, "submissionId" | "finalAmountUSD" | "policyType" | "createdAt">[]>();
+      .lean();
 
-    // ← BUILD A MAP: submissionId → Quote Rounds (combined totals)
-    const quoteMap: Record<string, { quote1Total: number | null; quote2Total: number | null; estimatedPremium: number | null }> = {};
+    // ← BUILD A MAP: submissionId → Carrier Totals
+    const quoteMap: Record<string, { 
+      richmondTotal: number | null; 
+      kinsaleTotal: number | null; 
+      estimatedPremium: number | null;
+      hasGeneral: boolean;
+      hasExcess: boolean;
+    }> = {};
     
     // Group quotes by submission
     const quotesBySub: Record<string, typeof quotes> = {};
@@ -100,34 +107,43 @@ export async function GET(req: NextRequest) {
     });
 
     Object.entries(quotesBySub).forEach(([subId, subQuotes]) => {
-      // Logic for grouping into rounds (same as frontend 60s window)
-      const rounds: number[] = [];
-      let currentRoundTotal = 0;
-      let lastTimestamp = 0;
+      let richmondTotal = 0;
+      let kinsaleTotal = 0;
+      let hasGeneral = false;
+      let hasExcess = false;
 
-      subQuotes.forEach((q) => {
-        const timestamp = new Date(q.createdAt).getTime();
+      subQuotes.forEach((q: any) => {
         const amount = q.finalAmountUSD || 0;
+        const carrierName = (q.carrierId as any)?.name?.toLowerCase() || "";
+        const policyType = q.policyType || "GENERAL_LIABILITY";
 
-        if (lastTimestamp === 0 || Math.abs(timestamp - lastTimestamp) < 60000) {
-          currentRoundTotal += amount;
-        } else {
-          rounds.push(currentRoundTotal);
-          currentRoundTotal = amount;
+        if (policyType === "GENERAL_LIABILITY") hasGeneral = true;
+        if (policyType === "EXCESS_LIABILITY") hasExcess = true;
+
+        if (carrierName.includes("richmond")) {
+          richmondTotal += amount;
+        } else if (carrierName.includes("kinsale")) {
+          kinsaleTotal += amount;
         }
-        lastTimestamp = timestamp;
       });
-      if (currentRoundTotal > 0) rounds.push(currentRoundTotal);
 
       quoteMap[subId] = {
-        quote1Total: rounds[0] || null,
-        quote2Total: rounds[1] || null,
-        estimatedPremium: rounds[0] || null, // default to Quote 1 for overall estimated
+        richmondTotal: richmondTotal > 0 ? richmondTotal : null,
+        kinsaleTotal: kinsaleTotal > 0 ? kinsaleTotal : null,
+        estimatedPremium: richmondTotal || kinsaleTotal || null,
+        hasGeneral,
+        hasExcess
       };
     });
 
     const formattedSubmissions = submissions.map((sub) => {
-      const totals = quoteMap[sub._id.toString()] || { quote1Total: null, quote2Total: null, estimatedPremium: null };
+      const totals = quoteMap[sub._id.toString()] || { 
+        richmondTotal: null, 
+        kinsaleTotal: null, 
+        estimatedPremium: null,
+        hasGeneral: false,
+        hasExcess: false
+      };
       return {
         _id: sub._id.toString(),
         submissionNumber: sub.submissionNumber ?? 0,
@@ -142,9 +158,11 @@ export async function GET(req: NextRequest) {
         updatedAt: sub.updatedAt,
         fileCount: sub.files?.length || 0,
         state: sub.state || "N/A",
-        quote1Total: totals.quote1Total,
-        quote2Total: totals.quote2Total,
+        quote1Total: totals.richmondTotal,
+        quote2Total: totals.kinsaleTotal,
         estimatedPremium: totals.estimatedPremium,
+        hasGeneral: totals.hasGeneral || false,
+        hasExcess: totals.hasExcess || false,
         agentName: sub.agentName || sub.payload?.agentName || null,
         agentId: sub.agentId ? sub.agentId.toString() : null,
       };
