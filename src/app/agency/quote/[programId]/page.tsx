@@ -624,7 +624,7 @@ export default function QuoteFormPage() {
 
   // Subcontracting must be > 0 if subcontractors are used
   const subcontractingZeroError =
-    formData.useSubcontractors && subcontractingValue <= 0;
+    formData.useSubcontractors && subcontractingValue < 0;
 
 
   // Individual rules
@@ -842,6 +842,7 @@ export default function QuoteFormPage() {
     "Roofing (Repair Commercial)": "- The process of constructing, repairing or remodeling a roof on an existing commercial structure.",
     "Roofing (Repair Residential)": "- The process of repairing or remodeling a roof on an existing residential structure.",
     "Sandblasting": "- Roughen or clean (a surface) with a jet of sand driven by compressed air or steam.",
+    "Scaffolding Contractor": "- Scaffolding erection and rental for construction projects.",
     "Septic Tank (Install/Service/Repair)": "- Installing, servicing, and or repairing of septic tanks (10 feet max depth below grade).",
     "Sheet Metal": "- Cuts, shapes, fabricates and installs sheet metal such as cornices, flashings, gutters, leaders, pans, kitchen equipment and duct work. No roofing exposure.",
     "Siding and Decking": "- Applies or installs all types of exterior siding including wood, wood products, vinyl, aluminum and metal siding to new or existing buildings. Also constructs wooden decks and related handrails. No rooftop decking.",
@@ -1247,6 +1248,7 @@ export default function QuoteFormPage() {
     "Roofing (Repair Commercial)",
     "Roofing (Repair Residential)",
     "Sandblasting",
+    "Scaffolding Contractor",
     "Septic Tank (Install/Service/Repair)",
     "Sheet Metal",
     "Siding and Decking",
@@ -1496,7 +1498,7 @@ export default function QuoteFormPage() {
                             const parsed = parseCurrency(e.target.value);
                             handleInputChange(
                               "estimatedSubcontractingCosts",
-                              parsed > 0 ? parsed.toString() : ""
+                              parsed >= 0 ? parsed.toString() : ""
                             );
                           }}
                           className={`w-full pl-8 pr-4 py-2.5 border rounded text-sm focus:ring-1 ${subcontractingError ||
