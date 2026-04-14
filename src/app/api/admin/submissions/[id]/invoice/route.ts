@@ -6,6 +6,8 @@ import Submission from "@/models/Submission";
 import Agency from "@/models/Agency";
 import Quote from "@/models/Quote";
 import { generateInvoiceHTML, mapFormDataToPacketData, loadCapitalCoLogo } from "@/lib/services/pdf/ApplicationPacketPDF";
+import { mapApartmentDataToPacketData } from "@/lib/services/pdf/mappers/apartmentMapper";
+import { generateApartmentInvoiceHTML } from "@/lib/services/pdf/ApartmentPacketPDF";
 
 /**
  * GET /api/admin/submissions/[id]/invoice
@@ -65,17 +67,32 @@ export async function GET(
 
     // Map form data to packet data format
     const formData = submission.payload || {};
-    const packetData = mapFormDataToPacketData(
-      formData,
-      submission._id.toString(),
-      agency,
-      quote,
-      submission,
-      capitalCoLogoSVG
-    );
+    
+    let invoiceHTML: string = "";
 
-    // Generate invoice HTML
-    const invoiceHTML = await generateInvoiceHTML(packetData);
+    if (submission.programId === "apartment-buildings") {
+      console.log("📄 [Admin Invoice Download] Generating Apartment Buildings Invoice...");
+      const apartmentData = mapApartmentDataToPacketData(
+        formData,
+        submission._id.toString(),
+        agency,
+        quote,
+        submission
+      );
+      invoiceHTML = generateApartmentInvoiceHTML(apartmentData);
+    } else {
+      const packetData = mapFormDataToPacketData(
+        formData,
+        submission._id.toString(),
+        agency,
+        quote,
+        submission,
+        capitalCoLogoSVG
+      );
+
+      // Generate invoice HTML
+      invoiceHTML = await generateInvoiceHTML(packetData);
+    }
 
     // Generate PDF
     const { generatePDFFromHTML } = await import('@/lib/services/pdf/PDFService');

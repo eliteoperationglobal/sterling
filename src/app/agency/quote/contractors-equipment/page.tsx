@@ -1,785 +1,769 @@
 "use client"
 
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
+import { ArrowLeft, Plus } from 'lucide-react'
 
-// import omitted
-import { Check, ClipboardList, ShieldCheck, HardHat, AlertTriangle, FileText, Plus, Trash2, ArrowLeft } from 'lucide-react'
+// ── Sterling section wrapper ──────────────────────────────────────
+const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
+    <div className="bg-white rounded shadow-md overflow-visible border border-gray-200 mb-5">
+        <div className="bg-[#7A6F64] text-white px-6 py-3.5">
+            <h2 className="text-lg font-semibold">{title}</h2>
+        </div>
+        <div className="px-8 pt-6 pb-7">
+            <div className="space-y-6">{children}</div>
+        </div>
+    </div>
+)
 
-// Reuse the layout components that worked well for Apartment Buildings
-const GridRow = ({ label, children, className = "" }: { label: string, children: React.ReactNode, className?: string }) => (
-    <div className={`grid grid-cols-[300px_1fr_320px] gap-x-6 items-start py-3 ${className}`}>
-        <label className="text-sm font-medium text-gray-900 pt-2 leading-snug">{label}</label>
+// ── Label + input row ─────────────────────────────────────────────
+const Row = ({ label, children, required = false }: { label: string; children: React.ReactNode; bold?: boolean; required?: boolean }) => (
+    <div className="grid grid-cols-[300px_1fr_320px] gap-x-6 items-start">
+        <label className="text-sm font-medium text-gray-900 pt-2 leading-snug">
+            {label}{required && <span className="text-red-500 ml-0.5">*</span>}
+        </label>
         <div></div>
         <div>{children}</div>
     </div>
-);
+)
 
-const LongGridRow = ({ label, children, className = "" }: { label: string, children: React.ReactNode, className?: string }) => (
-    <div className={`grid grid-cols-[1fr_320px] gap-x-6 items-start py-3 ${className}`}>
-        <label className="text-sm font-medium text-gray-900 pt-2 leading-snug">{label}</label>
-        <div>{children}</div>
-    </div>
-);
-
-const YesNoRadio = ({ value, onChange }: { value: boolean | null, onChange: (v: boolean) => void }) => (
-    <div className="flex gap-4 text-sm text-gray-700">
-        <label className="flex items-center gap-2 cursor-pointer group">
-            <input type="radio" checked={value === true} onChange={() => onChange(true)} className="w-4 h-4 text-[#9A8B7A] focus:ring-[#9A8B7A] border-gray-300" />
-            <span className="group-hover:text-gray-900 transition-colors">Yes</span>
-        </label>
-        <label className="flex items-center gap-2 cursor-pointer group">
-            <input type="radio" checked={value === false} onChange={() => onChange(false)} className="w-4 h-4 text-[#9A8B7A] focus:ring-[#9A8B7A] border-gray-300" />
-            <span className="group-hover:text-gray-900 transition-colors">No</span>
-        </label>
-    </div>
-);
-
-const ProgressBar = ({ progress }: { progress: number }) => (
-    <div className="fixed bottom-10 right-10 z-50 flex items-center justify-center">
-        <div className="relative h-24 w-24">
-            <svg className="h-full w-full" viewBox="0 0 100 100">
-                <circle className="text-gray-200 stroke-current" strokeWidth="8" cx="50" cy="50" r="40" fill="transparent" />
-                <circle className="text-[#9A8B7A] stroke-current transition-all duration-500 ease-out" strokeWidth="8" strokeLinecap="round" cx="50" cy="50" r="40" fill="transparent"
-                    strokeDasharray="251.2" strokeDashoffset={251.2 - (251.2 * progress) / 100} transform="rotate(-90 50 50)" />
-            </svg>
-            <span className="absolute inset-0 flex items-center justify-center text-xl font-bold text-gray-700">{Math.round(progress)}%</span>
-        </div>
-    </div>
-);
-
-export default function ContractorsEquipmentFormPage() {
-    const router = useRouter()
-    const [step, setStep] = useState(1);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [progress, setProgress] = useState(0);
-
-    const initialFormState = {
-        // General Info
-        namedInsured: "",
-        brokerageBroker: "",
-        isNewVenture: null as boolean | null,
-        isRenewal: null as boolean | null,
-        policyNumber: "",
-        currentEffectiveDate: "",
-        currentExpiryDate: "",
-        requestedEffectiveDate: "",
-        requestedExpiryDate: "",
-        website: "",
-        currentCarrier: "",
-        currentLimit: "",
-        currentEffectiveDateCarrier: "",
-        currentExpiryDateCarrier: "",
-        currentDeductible: "",
-        currentPremium: "",
-        offeringRenewal: null as boolean | null,
-        mailingStreet: "",
-        mailingCity: "",
-        mailingState: "",
-        mailingZip: "",
-        entityType: "",
-        yearsInOperation: "",
-        blanketLimitRequested: "",
-        occurrenceLimitRequested: "",
-        deductibleRequested: "",
-
-        // Tables
-        lossPayees: [{ name: "", address: "", serialNumbers: "" }],
-        revenuePayroll: [
-            { period: "Projected Year", revenue: "", payroll: "" },
-            { period: "Last 12 Months", revenue: "", payroll: "" },
-            { period: "2nd Prior Year", revenue: "", payroll: "" }
-        ],
-        scheduledEquipment: [{ makeModel: "", typeCapacity: "", serialVin: "", datePurchased: "", manufactureAge: "", purchasePrice: "", insuredValue: "" }],
-
-        // Operations
-        loansRentsToOthers: null as boolean | null,
-        loansRentsFromOthers: null as boolean | null,
-        rentalExpendituresLast12: "",
-        rentalExpendituresProjected: "",
-        requiredToInsureRentals: null as boolean | null,
-        employeesTrained: null as boolean | null,
-        employeesTrainedExplanation: "",
-        hasEmployeeHandbook: null as boolean | null,
-        safetyMeetingsFrequency: "",
-        transportOwnVehicles: false,
-        transportCommonCarrier: false,
-        transportOther: false,
-        transportOtherText: "",
-        usedNearWater: null as boolean | null,
-        usedNearWaterDetails: "",
-        usedOnBridgesNotNearWater: null as boolean | null,
-        usedUnderground: null as boolean | null,
-        usedUndergroundDetails: "",
-
-        // Rentals
-        rentalSoleOperation: null as boolean | null,
-        allEquipmentScheduledAvailable: null as boolean | null,
-        equipmentNotAvailableDetails: "",
-        rentalsWithOperators: null as boolean | null,
-        writtenRentalContract: null as boolean | null,
-        writtenRentalContractExplanation: "",
-        lesseesRequiredToInsure: null as boolean | null,
-        lesseesRequiredToInsureExplanation: "",
-        contractsHoldHarmless: null as boolean | null,
-        collectCOI: null as boolean | null,
-        allowSubleasing: null as boolean | null,
-        contractsStipulateSecurity: null as boolean | null,
-        contractsStipulateSecurityExplanation: "",
-
-        // Equipment Security
-        securityMeasuresStorage: {
-            lighting: false,
-            fencing: false,
-            garages: false,
-            cameras: false,
-            guards: false,
-            other: false,
-            otherText: ""
-        },
-        securityMeasuresJobSite: {
-            lighting: false,
-            fencing: false,
-            guards: false,
-            offSiteGaraging: false,
-            other: false,
-            otherText: ""
-        },
-        maintenanceFrequency: "",
-        inspectionFrequency: "",
-        equipmentTrackedGPS: null as boolean | null,
-        heavyEquipLockingGasCaps: null as boolean | null,
-        heavyEquipAntiTheft: null as boolean | null,
-        heavyEquipAdditionalDeterrent: "",
-        fireExtinguishersPresent: null as boolean | null,
-        fireExtinguishersExplanation: "",
-        fireExtinguishersChargingFreq: "",
-        automaticFireSuppression: null as boolean | null,
-        automaticFireSuppressionEquip: "",
-        storedInFloodWildfireAreas: null as boolean | null,
-        storedInFloodWildfireDetails: "",
-
-        // Claims History
-        unreportedIncidents: null as boolean | null,
-        unreportedIncidentsExplanation: "",
-        insurerCanceledNonRenewed: null as boolean | null,
-        insurerCanceledExplanation: "",
-        claims: [
-            {
-                date: "",
-                coverageLines: {
-                    equip: false,
-                    equipRental: false,
-                    autoLiab: false,
-                    cgl: false,
-                    pollution: false,
-                    autoPhys: false,
-                    uninsured: false,
-                    other: false,
-                    otherText: ""
-                },
-                circumstances: "",
-                closed: null as boolean | null,
-                trialSettlement: null as boolean | null,
-                open: null as boolean | null,
-                anticipateTrial: null as boolean | null,
-                anticipateTrialWhen: "",
-                proceduresChanged: null as boolean | null,
-                totalLoss: null as boolean | null,
-                repairedReturned: null as boolean | null,
-                totalClaimed: ""
-            }
-        ],
-
-        // Final
-        applicantName: "",
-        applicantTitle: "",
-        fein: "",
-        signatureDate: "",
-        agentBrokerName: ""
-    };
-
-    const [formData, setFormData] = useState(initialFormState);
-
-    const handleInputChange = (field: keyof typeof formData, value: any) => {
-        setFormData(prev => ({ ...prev, [field]: value }));
-    };
-
-    // Calculate progress
-    useEffect(() => {
-        const totalFields = Object.keys(initialFormState).length;
-        const filledFields = Object.values(formData).filter(v => v !== "" && v !== null && v !== false).length;
-        setProgress((filledFields / totalFields) * 100);
-    }, [formData]);
-
-    const steps = [
-        { id: 1, title: 'General Info', icon: ClipboardList },
-        { id: 2, title: 'Operations', icon: HardHat },
-        { id: 3, title: 'Security', icon: ShieldCheck },
-        { id: 4, title: 'History', icon: AlertTriangle },
-        { id: 5, title: 'Overview', icon: FileText }
-    ];
-
-    const renderSection = (title: string, children: React.ReactNode) => (
-        <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200 mb-8">
-            <div className="bg-[#7A6F64] text-white px-6 py-3.5">
-                <h2 className="text-lg font-semibold">{title}</h2>
-            </div>
-            <div className="px-8 pt-6 pb-7 space-y-2">
-                {children}
+// ── Question row with Yes / No radios + optional explain ───────────
+const QRow = ({ label, value, onChange, explainValue, onExplainChange }: {
+    label: string
+    value: boolean | null
+    onChange: (v: boolean) => void
+    explainValue?: string
+    onExplainChange?: (v: string) => void
+}) => (
+    <div className="py-4 border-b border-gray-50 last:border-0">
+        <div className="flex items-center">
+            <div className="flex-1 text-sm text-gray-700 pr-6">{label}</div>
+            <div className="flex items-center gap-6 text-sm text-gray-700 shrink-0">
+                <label className="flex items-center gap-2 cursor-pointer">
+                    <input type="radio" checked={value === true} onChange={() => onChange(true)} className="w-4 h-4 accent-gray-700" />
+                    Yes
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                    <input type="radio" checked={value === false} onChange={() => onChange(false)} className="w-4 h-4 accent-gray-700" />
+                    No
+                </label>
             </div>
         </div>
-    );
+        {value === true && onExplainChange !== undefined && (
+            <div className="mt-3">
+                <label className="text-sm font-bold text-gray-700 block mb-1">Please explain:</label>
+                <input
+                    type="text"
+                    value={explainValue ?? ''}
+                    onChange={e => onExplainChange(e.target.value)}
+                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-800 focus:outline-none focus:border-gray-400 bg-white"
+                />
+            </div>
+        )}
+    </div>
+)
+
+const inp = "w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-800 focus:outline-none focus:border-gray-400 bg-white"
+const sel = `${inp} appearance-none`
+
+// ── Bundle card ───────────────────────────────────────────────────
+const BundleCard = ({ label, price, icon, selected, onClick }: {
+    label: string; price: string; icon: React.ReactNode; selected: boolean; onClick: () => void
+}) => (
+    <button onClick={onClick} className={`flex flex-col w-full rounded overflow-hidden border-2 transition-all
+        ${selected ? 'border-gray-700 shadow-md' : 'border-gray-200 hover:border-gray-400'}`}>
+        <div className="bg-[#3A3A3A] text-white px-3 py-3 relative text-center">
+            {selected && (
+                <span className="absolute top-2 right-2 w-5 h-5 bg-white rounded-full flex items-center justify-center">
+                    <svg className="w-3 h-3 text-gray-800" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                </span>
+            )}
+            <p className="text-xs opacity-70 font-medium">As Low As</p>
+            <p className="text-2xl font-bold leading-tight">{price}</p>
+        </div>
+        <div className="bg-white py-5 flex flex-col items-center gap-2">
+            <span className="text-gray-500">{icon}</span>
+            <span className="text-sm font-semibold text-gray-700">{label}</span>
+        </div>
+    </button>
+)
+
+const HammerIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z" />
+    </svg>
+)
+const ListIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+    </svg>
+)
+
+type AI = { name: string; contractNumber: string; address: string; aptSuite: string; zip: string; city: string; state: string }
+const emptyAI = (): AI => ({ name: '', contractNumber: '', address: '', aptSuite: '', zip: '', city: '', state: '' })
+
+// ── All US states ─────────────────────────────────────────────────
+const ALL_STATES = [
+    'Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut',
+    'Delaware', 'District of Columbia', 'Florida', 'Georgia', 'Hawaii', 'Idaho', 'Illinois',
+    'Indiana', 'Iowa', 'Kansas', 'Kentucky', 'Louisiana', 'Maine', 'Maryland', 'Massachusetts',
+    'Michigan', 'Minnesota', 'Mississippi', 'Missouri', 'Montana', 'Nebraska', 'Nevada',
+    'New Hampshire', 'New Jersey', 'New Mexico', 'New York', 'North Carolina', 'North Dakota',
+    'Ohio', 'Oklahoma', 'Oregon', 'Pennsylvania', 'Rhode Island', 'South Carolina',
+    'South Dakota', 'Tennessee', 'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington',
+    'West Virginia', 'Wisconsin', 'Wyoming',
+]
+
+// ── Multi-select states dropdown ──────────────────────────────────
+const StatesMultiSelect = ({ selected, onChange }: { selected: string[]; onChange: (v: string[]) => void }) => {
+    const [open, setOpen] = React.useState(false)
+    const [search, setSearch] = React.useState('')
+    const ref = React.useRef<HTMLDivElement>(null)
+
+    React.useEffect(() => {
+        const handler = (e: MouseEvent) => {
+            if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+        }
+        document.addEventListener('mousedown', handler)
+        return () => document.removeEventListener('mousedown', handler)
+    }, [])
+
+    const toggle = (state: string) => {
+        onChange(selected.includes(state) ? selected.filter(s => s !== state) : [...selected, state])
+    }
+
+    const filtered = ALL_STATES.filter(s => s.toLowerCase().includes(search.toLowerCase()))
 
     return (
-        <div className="min-h-screen bg-gray-50 pb-20">
-            <div className="py-4 px-6 md:px-8">
-                <button
-                    onClick={() => router.back()}
-                    className="flex items-center text-gray-500 hover:text-[#9A8B7A] transition-colors font-medium text-sm w-fit"
-                >
-                    <ArrowLeft className="w-4 h-4 mr-1.5" /> Back
+        <div ref={ref} className="relative">
+            {/* Input bar with tags */}
+            <div
+                onClick={() => setOpen(true)}
+                className="min-h-[38px] w-full border border-gray-300 rounded px-2 py-1 flex flex-wrap gap-1 items-center cursor-text focus-within:border-teal-400 bg-white"
+            >
+                {selected.map(s => (
+                    <span key={s} className="flex items-center gap-1 bg-gray-100 border border-gray-300 text-gray-700 text-xs rounded px-2 py-0.5">
+                        {s}
+                        <button type="button" onClick={e => { e.stopPropagation(); toggle(s) }} className="text-gray-400 hover:text-gray-700 font-bold leading-none">&times;</button>
+                    </span>
+                ))}
+                <input
+                    type="text"
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                    onFocus={() => setOpen(true)}
+                    placeholder={selected.length === 0 ? 'Select all states that apply' : ''}
+                    className="flex-1 min-w-[120px] outline-none text-sm text-gray-700 bg-transparent py-0.5 px-1"
+                />
+            </div>
+
+            {/* Dropdown list */}
+            {open && (
+                <div className="absolute z-50 w-full bg-white border border-gray-300 rounded shadow-lg mt-1 max-h-52 overflow-y-auto">
+                    {filtered.length === 0 ? (
+                        <div className="px-4 py-2 text-sm text-gray-400">No results</div>
+                    ) : filtered.map(state => (
+                        <div
+                            key={state}
+                            onClick={() => toggle(state)}
+                            className={`px-4 py-2 text-sm cursor-pointer transition-colors
+                                ${selected.includes(state) ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-blue-600 hover:text-white'}`}
+                        >
+                            {state}
+                        </div>
+                    ))}
+                </div>
+            )}
+        </div>
+    )
+}
+
+// ═══════════════════════════════════════════════════════════════════
+export default function ContractorsEquipmentPage() {
+    const router = useRouter()
+
+    // Quick Quote
+    const [leadSource, setLeadSource] = useState('capital_co')
+    const [companyName, setCompanyName] = useState('')
+    const [zip, setZip] = useState('')
+    const [deductible, setDeductible] = useState('$1,000/$2,500')
+    const [losses, setLosses] = useState('0')
+    const [yearsInBusiness, setYearsInBusiness] = useState('')
+    const [effectiveDate, setEffectiveDate] = useState('')
+    const [bundle, setBundle] = useState('bundle1')
+
+    // Rental bundle fields
+    const [policyDuration, setPolicyDuration] = useState('3 Months')
+    const [rentedEquipLimitRental, setRentedEquipLimitRental] = useState('$14,000')
+    const [rentedItems, setRentedItems] = useState<string[]>([])
+
+    // Custom bundle coverage limit fields
+    const [miscToolsLimit, setMiscToolsLimit] = useState('$10,000')
+    const [lightMedLimit, setLightMedLimit] = useState('$0')
+    const [heavyLimit, setHeavyLimit] = useState('$0')
+    const [rentedEquipLimit, setRentedEquipLimit] = useState('$0')
+    const [installFloaterLimit, setInstallFloaterLimit] = useState('$0')
+    const [officeContentsLimit, setOfficeContentsLimit] = useState('$0')
+
+    // Additional Interests
+    const [hasLienholder, setHasLienholder] = useState<boolean | null>(true)
+    const [lienholderExplain, setLienholderExplain] = useState('')
+    const [interests, setInterests] = useState<AI[]>([emptyAI()])
+
+    // Endorsements
+    const [terrorism, setTerrorism] = useState(false)
+
+    // Additional Business Info — all questions
+    const [cancelled, setCancelled] = useState<boolean | null>(false)
+    const [bankruptcy, setBankruptcy] = useState<boolean | null>(false)
+    const [moreThanOneLoss, setMoreThanOneLoss] = useState<boolean | null>(false)
+    const [asphaltCranes, setAsphaltCranes] = useState<boolean | null>(false)
+    const [tandemLifting, setTandemLifting] = useState<boolean | null>(false)
+    const [overWater, setOverWater] = useState<boolean | null>(false)
+    const [oilfield, setOilfield] = useState<boolean | null>(false)
+    const [demolition, setDemolition] = useState<boolean | null>(false)
+    const [garaged, setGaraged] = useState<boolean | null>(true)
+    const [stumpGrinder, setStumpGrinder] = useState<boolean | null>(false)
+    const [rentToOthers, setRentToOthers] = useState<boolean | null>(false)
+    const [subcontractHazardous, setSubcontractHazardous] = useState<boolean | null>(false)
+    const [subcontractAgri, setSubcontractAgri] = useState<boolean | null>(false)
+    const [subcontractBridges, setSubcontractBridges] = useState<boolean | null>(false)
+    const [subcontractDrones, setSubcontractDrones] = useState<boolean | null>(false)
+    const [subcontractTrailers, setSubcontractTrailers] = useState<boolean | null>(false)
+
+    // Explain fields for Additional Business Info
+    const [cancelledExplain, setCancelledExplain] = useState('')
+    const [bankruptcyExplain, setBankruptcyExplain] = useState('')
+    const [lossExplain, setLossExplain] = useState('')
+    const [asphaltExplain, setAsphaltExplain] = useState('')
+    const [tandemExplain, setTandemExplain] = useState('')
+    const [waterExplain, setWaterExplain] = useState('')
+    const [oilfieldExplain, setOilfieldExplain] = useState('')
+    const [demolitionExplain, setDemolitionExplain] = useState('')
+    const [stumpExplain, setStumpExplain] = useState('')
+    const [rentExplain, setRentExplain] = useState('')
+    const [hazardousExplain, setHazardousExplain] = useState('')
+    const [agriExplain, setAgriExplain] = useState('')
+    const [bridgesExplain, setBridgesExplain] = useState('')
+    const [dronesExplain, setDronesExplain] = useState('')
+    const [trailersExplain, setTrailersExplain] = useState('')
+
+    // Payment Options
+    const [brokerFee, setBrokerFee] = useState('$0.00')
+    const [displayBrokerFee, setDisplayBrokerFee] = useState<boolean | null>(true)
+    const [paymentOption, setPaymentOption] = useState('')
+
+    // Company Information
+    const [licenseNum, setLicenseNum] = useState('')
+    const [licenseClass, setLicenseClass] = useState('')
+    const [dba, setDba] = useState('')
+    const [firstName, setFirstName] = useState('')
+    const [lastName, setLastName] = useState('')
+    const [yearsExp, setYearsExp] = useState('')
+    const [grossReceipts, setGrossReceipts] = useState('')
+    const [entityType, setEntityType] = useState('Individual')
+    const [ssn, setSsn] = useState('')
+    const [dlNum, setDlNum] = useState('')
+    const [phone, setPhone] = useState('')
+    const [fax, setFax] = useState('')
+    const [email, setEmail] = useState('')
+    const [opsDescription, setOpsDescription] = useState('')
+    const [statesOfBusiness, setStatesOfBusiness] = useState<string[]>([])
+
+    // Physical / Mailing Address
+    const [physAddress, setPhysAddress] = useState('')
+    const [physApt, setPhysApt] = useState('')
+    const [sameAsMailing, setSameAsMailing] = useState(false)
+    const [mailAddress, setMailAddress] = useState('')
+    const [mailApt, setMailApt] = useState('')
+    const [mailZip, setMailZip] = useState('')
+    const [mailCity, setMailCity] = useState('')
+    const [mailZipError, setMailZipError] = useState(false)
+
+    const handleMailZip = (val: string) => {
+        setMailZip(val)
+        setMailZipError(val.length > 0 && !/^\d{5}(-\d{4})?$/.test(val))
+    }
+
+    const updateAI = (i: number, field: keyof AI, val: string) =>
+        setInterests(prev => prev.map((ai, idx) => idx === i ? { ...ai, [field]: val } : ai))
+
+    return (
+        <div className="min-h-screen bg-gray-100 pb-24">
+            <div className="py-4 px-6">
+                <button onClick={() => router.back()}
+                    className="flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-gray-800 transition-colors">
+                    <ArrowLeft className="w-4 h-4" /> Back
                 </button>
             </div>
-            <div className="max-w-[950px] mx-auto py-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <div className="space-y-10">
-                    {renderSection("General Information", (
-                        <>
-                            <GridRow label="Named Insured">
-                                <input type="text" value={formData.namedInsured} onChange={(e) => handleInputChange("namedInsured", e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded text-sm focus:ring-[#9A8B7A]" />
-                            </GridRow>
-                            <GridRow label="Brokerage/Broker">
-                                <input type="text" value={formData.brokerageBroker} onChange={(e) => handleInputChange("brokerageBroker", e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded text-sm" />
-                            </GridRow>
-                            <GridRow label="New Venture?">
-                                <div className="pt-2"><YesNoRadio value={formData.isNewVenture} onChange={(v) => handleInputChange("isNewVenture", v)} /></div>
-                            </GridRow>
-                            <GridRow label="Renewal?">
-                                <div className="pt-2"><YesNoRadio value={formData.isRenewal} onChange={(v) => handleInputChange("isRenewal", v)} /></div>
-                            </GridRow>
-                            <GridRow label="Policy Number">
-                                <input type="text" value={formData.policyNumber} onChange={(e) => handleInputChange("policyNumber", e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded text-sm" />
-                            </GridRow>
-                            <GridRow label="Requested Effective Date">
-                                <input type="date" value={formData.requestedEffectiveDate} onChange={(e) => handleInputChange("requestedEffectiveDate", e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded text-sm" />
-                            </GridRow>
-                            <GridRow label="Requested Expiry Date">
-                                <input type="date" value={formData.requestedExpiryDate} onChange={(e) => handleInputChange("requestedExpiryDate", e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded text-sm" />
-                            </GridRow>
-                            <GridRow label="Website">
-                                <input type="text" value={formData.website} onChange={(e) => handleInputChange("website", e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded text-sm" placeholder="https://..." />
-                            </GridRow>
 
-                            <div className="bg-gray-50 p-4 rounded-lg mt-6">
-                                <h3 className="text-sm font-bold text-gray-700 mb-4 tracking-wide">CURRENT CARRIER INFORMATION</h3>
-                                <GridRow label="Carrier"><input type="text" value={formData.currentCarrier} onChange={(e) => handleInputChange("currentCarrier", e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded text-sm bg-white" /></GridRow>
-                                <GridRow label="Limit of Insurance"><input type="text" value={formData.currentLimit} onChange={(e) => handleInputChange("currentLimit", e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded text-sm bg-white" /></GridRow>
-                                <GridRow label="Premium"><input type="text" value={formData.currentPremium} onChange={(e) => handleInputChange("currentPremium", e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded text-sm bg-white" /></GridRow>
-                                <GridRow label="Effective Date"><input type="date" value={formData.currentEffectiveDateCarrier} onChange={(e) => handleInputChange("currentEffectiveDateCarrier", e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded text-sm bg-white" /></GridRow>
-                                <GridRow label="Expiry Date"><input type="date" value={formData.currentExpiryDateCarrier} onChange={(e) => handleInputChange("currentExpiryDateCarrier", e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded text-sm bg-white" /></GridRow>
-                                <GridRow label="Deductible"><input type="text" value={formData.currentDeductible} onChange={(e) => handleInputChange("currentDeductible", e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded text-sm bg-white" /></GridRow>
-                                <LongGridRow label="Offering renewal?"><YesNoRadio value={formData.offeringRenewal} onChange={(v) => handleInputChange("offeringRenewal", v)} /></LongGridRow>
+            <div className="max-w-[980px] mx-auto px-4">
+
+                {/* ═══ 1. Quick Quote Information ═══════════════════════════ */}
+                <Section title="Quick Quote Information">
+                    <Row label="Lead Source" bold>
+                        <select value={leadSource} onChange={e => setLeadSource(e.target.value)} className={sel}>
+                            <option value="capital_co"></option>
+                            <option value="direct">Direct</option>
+                            <option value="referral">Referral</option>
+                            <option value="broker">Broker</option>
+                        </select>
+                    </Row>
+                    <Row label="Company Name" bold>
+                        <input type="text" value={companyName} onChange={e => setCompanyName(e.target.value)}
+                            placeholder="Company Name" className={inp} />
+                    </Row>
+                    <Row label="Zip" bold>
+                        <input type="text" value={zip} onChange={e => setZip(e.target.value)}
+                            placeholder="90210" className={inp} />
+                    </Row>
+                    <Row label="Deductible (AOP/Theft)" bold>
+                        <select value={deductible} onChange={e => setDeductible(e.target.value)} className={sel}>
+                            <option>$1,000/$2,500</option>
+                            <option>$2,500/$5,000</option>
+                            <option>$5,000/$10,000</option>
+                            <option>$10,000/$25,000</option>
+                        </select>
+                    </Row>
+                    <Row label="# Inland Marine Losses in last 5 years" bold>
+                        <select value={losses} onChange={e => setLosses(e.target.value)} className={sel}>
+                            <option value="0">0</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3+">3+</option>
+                        </select>
+                    </Row>
+                    <Row label="Years in Business" bold>
+                        <input type="number" value={yearsInBusiness} onChange={e => setYearsInBusiness(e.target.value)}
+                            placeholder="4" className={inp} />
+                    </Row>
+                    <Row label="Desired Effective Date" bold>
+                        <input type="date" value={effectiveDate} onChange={e => setEffectiveDate(e.target.value)} className={inp} />
+                    </Row>
+
+                    {/* Bundle selector */}
+                    <div className="bg-gray-100 rounded-lg p-5 my-5">
+                        <div className="grid grid-cols-4 gap-4">
+                            <BundleCard label="Bundle 1" price="$350" icon={<HammerIcon />} selected={bundle === 'bundle1'} onClick={() => setBundle('bundle1')} />
+                            <BundleCard label="Bundle 2" price="$475" icon={<HammerIcon />} selected={bundle === 'bundle2'} onClick={() => setBundle('bundle2')} />
+                            <BundleCard label="Custom" price="Varies" icon={<ListIcon />} selected={bundle === 'custom'} onClick={() => setBundle('custom')} />
+                            <BundleCard label="Rental" price="$350" icon={<HammerIcon />} selected={bundle === 'rental'} onClick={() => setBundle('rental')} />
+                        </div>
+                        {/* Rental bundle fields */}
+                        {bundle === 'rental' && (
+                            <div className="mt-4 space-y-4 border-t border-gray-100 pt-4">
+                                <Row label="Policy Duration">
+                                    <select value={policyDuration} onChange={e => setPolicyDuration(e.target.value)}
+                                        className="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-800 focus:outline-none focus:border-gray-400 bg-white">
+                                        <option>3 Months</option>
+                                        <option>6 Months</option>
+                                        <option>12 Months</option>
+                                    </select>
+                                </Row>
+                                <Row label="Rented/Leased Equipment Limit">
+                                    <input type="text" value={rentedEquipLimitRental} onChange={e => setRentedEquipLimitRental(e.target.value)}
+                                        className="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-800 focus:outline-none focus:border-gray-400" />
+                                </Row>
                             </div>
-
-                            <div className="border-t border-gray-200 mt-8 pt-6"></div>
-                            <LongGridRow label="Entity Type">
-                                <div className="grid grid-cols-3 gap-x-6 gap-y-4 pt-2">
-                                    {['Corporation', 'Individual', 'Partnership', 'Municipality', 'For Profit', 'Joint Venture', 'Other'].map(type => (
-                                        <label key={type} className="flex items-center gap-2 cursor-pointer group">
-                                            <input type="radio" checked={formData.entityType === type} onChange={() => handleInputChange('entityType', type)} className="w-4 h-4 text-[#9A8B7A] focus:ring-[#9A8B7A] border-gray-300" />
-                                            <span className="text-sm text-gray-700 group-hover:text-gray-900 transition-colors">{type}</span>
-                                        </label>
-                                    ))}
+                        )}
+                        {bundle === 'rental' && (
+                            <div className="mt-4 rounded border border-gray-200 overflow-hidden">
+                                {/* Header bar */}
+                                <div className="flex items-center justify-between bg-[#3A3A3A] px-4 py-2.5">
+                                    <span className="text-sm font-semibold text-white">Rented/Leased Equipment</span>
+                                    <span className="text-sm font-semibold text-white">Remaining Limit: {rentedEquipLimitRental}.00</span>
                                 </div>
-                            </LongGridRow>
-
-                            <LongGridRow label="How long have you been in operation under this business name?">
-                                <input type="text" value={formData.yearsInOperation} onChange={(e) => handleInputChange("yearsInOperation", e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded text-sm" />
-                            </LongGridRow>
-
-                            <div className="grid grid-cols-3 gap-6">
-                                <div className="flex flex-col gap-2">
-                                    <label className="text-xs font-bold text-gray-500 uppercase">Blanket Limit</label>
-                                    <input type="text" value={formData.blanketLimitRequested} onChange={(e) => handleInputChange("blanketLimitRequested", e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded text-sm" />
-                                </div>
-                                <div className="flex flex-col gap-2">
-                                    <label className="text-xs font-bold text-gray-500 uppercase">Occurrence Limit</label>
-                                    <input type="text" value={formData.occurrenceLimitRequested} onChange={(e) => handleInputChange("occurrenceLimitRequested", e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded text-sm" />
-                                </div>
-                                <div className="flex flex-col gap-2">
-                                    <label className="text-xs font-bold text-gray-500 uppercase">Deductible</label>
-                                    <input type="text" value={formData.deductibleRequested} onChange={(e) => handleInputChange("deductibleRequested", e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded text-sm" />
-                                </div>
-                            </div>
-
-                            {/* Loss Payees Table */}
-                            <div className="mt-8">
-                                <div className="flex justify-between items-center mb-4">
-                                    <h3 className="text-sm font-bold text-gray-700 tracking-wide uppercase">Loss Payees</h3>
-                                    <button onClick={() => {
-                                        const newPayees = [...formData.lossPayees, { name: "", address: "", serialNumbers: "" }];
-                                        handleInputChange('lossPayees', newPayees);
-                                    }} className="flex items-center gap-2 text-xs font-bold text-[#9A8B7A] hover:text-[#8A7B6A] transition-colors">
-                                        <Plus size={14} /> ADD LOSS PAYEE
+                                {/* Action row */}
+                                <div className="flex items-center justify-between px-4 py-3 bg-white">
+                                    <button className="flex items-center gap-1.5 text-sm font-semibold text-[#7A6F64] hover:text-[#5A4F44] transition-colors">
+                                        <span className="text-lg leading-none">+</span> Add Rented/Leased Item
                                     </button>
-                                </div>
-                                <table className="w-full border-collapse">
-                                    <thead>
-                                        <tr className="bg-gray-50">
-                                            <th className="border border-gray-200 p-2 text-left text-xs font-bold text-gray-600">Name</th>
-                                            <th className="border border-gray-200 p-2 text-left text-xs font-bold text-gray-600">Street Address</th>
-                                            <th className="border border-gray-200 p-2 text-left text-xs font-bold text-gray-600 w-1/4">Equipment Serial Numbers</th>
-                                            <th className="border border-gray-200 p-2 text-center text-xs font-bold text-gray-600 w-12"></th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {formData.lossPayees.map((row, idx) => (
-                                            <tr key={idx}>
-                                                <td className="border border-gray-200 p-2">
-                                                    <input type="text" value={row.name} onChange={(e) => {
-                                                        const newPayees = [...formData.lossPayees];
-                                                        newPayees[idx].name = e.target.value;
-                                                        handleInputChange('lossPayees', newPayees);
-                                                    }} className="w-full px-2 py-1 text-sm outline-none focus:bg-stone-50" />
-                                                </td>
-                                                <td className="border border-gray-200 p-2">
-                                                    <input type="text" value={row.address} onChange={(e) => {
-                                                        const newPayees = [...formData.lossPayees];
-                                                        newPayees[idx].address = e.target.value;
-                                                        handleInputChange('lossPayees', newPayees);
-                                                    }} className="w-full px-2 py-1 text-sm outline-none focus:bg-stone-50" />
-                                                </td>
-                                                <td className="border border-gray-200 p-2">
-                                                    <input type="text" value={row.serialNumbers} onChange={(e) => {
-                                                        const newPayees = [...formData.lossPayees];
-                                                        newPayees[idx].serialNumbers = e.target.value;
-                                                        handleInputChange('lossPayees', newPayees);
-                                                    }} className="w-full px-2 py-1 text-sm outline-none focus:bg-stone-50" />
-                                                </td>
-                                                <td className="border border-gray-200 p-2 text-center text-red-400">
-                                                    {formData.lossPayees.length > 1 && (
-                                                        <button onClick={() => {
-                                                            const newPayees = formData.lossPayees.filter((_, i) => i !== idx);
-                                                            handleInputChange('lossPayees', newPayees);
-                                                        }} className="hover:text-red-600 transition-colors">
-                                                            <Trash2 size={16} />
-                                                        </button>
-                                                    )}
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-
-                            {/* Receipts and Payroll Table */}
-                            <div className="mt-8">
-                                <h3 className="text-sm font-bold text-gray-700 mb-4 tracking-wide uppercase">Receipts and Payroll</h3>
-                                <table className="w-full border-collapse">
-                                    <thead>
-                                        <tr className="bg-gray-50">
-                                            <th className="border border-gray-200 p-2 text-left text-xs font-bold text-gray-600">Period</th>
-                                            <th className="border border-gray-200 p-2 text-left text-xs font-bold text-gray-600">Revenue ($)</th>
-                                            <th className="border border-gray-200 p-2 text-left text-xs font-bold text-gray-600">Payroll ($)</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {formData.revenuePayroll.map((row, idx) => (
-                                            <tr key={idx}>
-                                                <td className="border border-gray-200 p-2 text-sm text-gray-700 font-medium bg-gray-50">{row.period}</td>
-                                                <td className="border border-gray-200 p-2 text-sm text-gray-700">
-                                                    <input type="text" value={row.revenue} onChange={(e) => {
-                                                        const newRev = [...formData.revenuePayroll];
-                                                        newRev[idx].revenue = e.target.value;
-                                                        handleInputChange('revenuePayroll', newRev);
-                                                    }} className="w-full px-2 py-1 outline-none focus:bg- stone-50" />
-                                                </td>
-                                                <td className="border border-gray-200 p-2 text-sm text-gray-700">
-                                                    <input type="text" value={row.payroll} onChange={(e) => {
-                                                        const newRev = [...formData.revenuePayroll];
-                                                        newRev[idx].payroll = e.target.value;
-                                                        handleInputChange('revenuePayroll', newRev);
-                                                    }} className="w-full px-2 py-1 outline-none focus:bg-stone-50" />
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </>
-                    ))}
-
-                    {renderSection("Operations", (
-                        <>
-                            <div className="space-y-6">
-                                <LongGridRow label="Do you loan or rent equipment to others?">
-                                    <YesNoRadio value={formData.loansRentsToOthers} onChange={(v) => handleInputChange("loansRentsToOthers", v)} />
-                                </LongGridRow>
-                                <LongGridRow label="Is any equipment loaned or rented from others to you?">
-                                    <YesNoRadio value={formData.loansRentsFromOthers} onChange={(v) => handleInputChange("loansRentsFromOthers", v)} />
-                                </LongGridRow>
-
-                                {formData.loansRentsFromOthers === true && (
-                                    <div className="bg-gray-50 p-4 rounded-lg space-y-4">
-                                        <GridRow label="Rental expenditures (last 12 months)" className="border-0"><input type="text" value={formData.rentalExpendituresLast12} onChange={(e) => handleInputChange("rentalExpendituresLast12", e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded text-sm bg-white" /></GridRow>
-                                        <GridRow label="Projected rental expenditures (coming year)" className="border-0"><input type="text" value={formData.rentalExpendituresProjected} onChange={(e) => handleInputChange("rentalExpendituresProjected", e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded text-sm bg-white" /></GridRow>
-                                        <LongGridRow label="Are you contractually required to insure this equipment against damage or loss?" className="border-0"><YesNoRadio value={formData.requiredToInsureRentals} onChange={(v) => handleInputChange("requiredToInsureRentals", v)} /></LongGridRow>
-                                    </div>
-                                )}
-
-                                <div className="border-t border-gray-200 pt-8 mt-8">
-                                    <div className="flex justify-between items-center mb-4">
-                                        <h3 className="text-sm font-bold text-gray-700 tracking-wide uppercase">Scheduled Equipment</h3>
-                                        <button onClick={() => {
-                                            const newEquip = [...formData.scheduledEquipment, { makeModel: "", typeCapacity: "", serialVin: "", datePurchased: "", manufactureAge: "", purchasePrice: "", insuredValue: "" }];
-                                            handleInputChange('scheduledEquipment', newEquip);
-                                        }} className="flex items-center gap-2 text-xs font-bold text-[#9A8B7A] hover:text-[#8A7B6A] transition-colors">
-                                            <Plus size={14} /> ADD ITEM
+                                    <div className="flex items-center gap-2">
+                                        <button className="flex items-center gap-1.5 px-4 py-1.5 border border-gray-400 text-gray-700 text-sm font-medium rounded hover:bg-gray-50 transition-colors">
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
+                                            Clear All
+                                        </button>
+                                        <button className="flex items-center gap-1.5 px-4 py-1.5 bg-[#7A6F64] hover:bg-[#6A5F54] text-white text-sm font-semibold rounded transition-colors">
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            Set Limit
                                         </button>
                                     </div>
-                                    <div className="overflow-x-auto">
-                                        <table className="w-full border-collapse">
-                                            <thead>
-                                                <tr className="bg-gray-50 text-xs font-bold text-gray-600">
-                                                    <th className="border border-gray-200 p-2 text-left">Make & Model</th>
-                                                    <th className="border border-gray-200 p-2 text-left">Type & Capacity</th>
-                                                    <th className="border border-gray-200 p-2 text-left">Serial/VIN</th>
-                                                    <th className="border border-gray-200 p-2 text-left">Purchase Date</th>
-                                                    <th className="border border-gray-200 p-2 text-left">Price ($)</th>
-                                                    <th className="border border-gray-200 p-2 text-left">Value ($)</th>
-                                                    <th className="border border-gray-200 p-2 w-10"></th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {formData.scheduledEquipment.map((row, idx) => (
-                                                    <tr key={idx}>
-                                                        <td className="border border-gray-200 p-2"><input type="text" value={row.makeModel} onChange={(e) => { const n = [...formData.scheduledEquipment]; n[idx].makeModel = e.target.value; handleInputChange('scheduledEquipment', n); }} className="w-full text-xs outline-none focus:bg-stone-50 py-1" /></td>
-                                                        <td className="border border-gray-200 p-2"><input type="text" value={row.typeCapacity} onChange={(e) => { const n = [...formData.scheduledEquipment]; n[idx].typeCapacity = e.target.value; handleInputChange('scheduledEquipment', n); }} className="w-full text-xs outline-none focus:bg-stone-50 py-1" /></td>
-                                                        <td className="border border-gray-200 p-2"><input type="text" value={row.serialVin} onChange={(e) => { const n = [...formData.scheduledEquipment]; n[idx].serialVin = e.target.value; handleInputChange('scheduledEquipment', n); }} className="w-full text-xs outline-none focus:bg-stone-50 py-1" /></td>
-                                                        <td className="border border-gray-200 p-2"><input type="date" value={row.datePurchased} onChange={(e) => { const n = [...formData.scheduledEquipment]; n[idx].datePurchased = e.target.value; handleInputChange('scheduledEquipment', n); }} className="w-full text-xs outline-none focus:bg-stone-50 py-1" /></td>
-                                                        <td className="border border-gray-200 p-2"><input type="text" value={row.purchasePrice} onChange={(e) => { const n = [...formData.scheduledEquipment]; n[idx].purchasePrice = e.target.value; handleInputChange('scheduledEquipment', n); }} className="w-full text-xs outline-none focus:bg-stone-50 py-1" /></td>
-                                                        <td className="border border-gray-200 p-2"><input type="text" value={row.insuredValue} onChange={(e) => { const n = [...formData.scheduledEquipment]; n[idx].insuredValue = e.target.value; handleInputChange('scheduledEquipment', n); }} className="w-full text-xs outline-none focus:bg-stone-50 py-1" /></td>
-                                                        <td className="border border-gray-200 p-2 text-center">
-                                                            {formData.scheduledEquipment.length > 1 && (
-                                                                <button onClick={() => { const n = formData.scheduledEquipment.filter((_, i) => i !== idx); handleInputChange('scheduledEquipment', n); }} className="text-red-400 hover:text-red-600 transition-colors"><Trash2 size={14} /></button>
-                                                            )}
-                                                        </td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-
-                                <div className="border-t border-gray-200 pt-8 mt-8 space-y-6">
-                                    <LongGridRow label="Are all employees, including any temporary or seasonal hires, trained to handle the equipment they will operate?">
-                                        <YesNoRadio value={formData.employeesTrained} onChange={(v) => handleInputChange("employeesTrained", v)} />
-                                    </LongGridRow>
-                                    {formData.employeesTrained === false && (
-                                        <GridRow label="Please attach explanation">
-                                            <input type="text" value={formData.employeesTrainedExplanation} onChange={(e) => handleInputChange("employeesTrainedExplanation", e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded text-sm" placeholder="Details..." />
-                                        </GridRow>
-                                    )}
-
-                                    <LongGridRow label="Do you have a written employee handbook or formal safety guidelines?">
-                                        <YesNoRadio value={formData.hasEmployeeHandbook} onChange={(v) => handleInputChange("hasEmployeeHandbook", v)} />
-                                    </LongGridRow>
-                                    <GridRow label="How frequently are safety meetings held?">
-                                        <input type="text" value={formData.safetyMeetingsFrequency} onChange={(e) => handleInputChange("safetyMeetingsFrequency", e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded text-sm" />
-                                    </GridRow>
-
-                                    <LongGridRow label="How is equipment transported to job sites?">
-                                        <div className="grid grid-cols-2 gap-4 pt-2">
-                                            <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={formData.transportOwnVehicles} onChange={(e) => handleInputChange('transportOwnVehicles', e.target.checked)} className="rounded text-[#9A8B7A]" /><span className="text-sm">Own vehicles/Driven</span></label>
-                                            <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={formData.transportCommonCarrier} onChange={(e) => handleInputChange('transportCommonCarrier', e.target.checked)} className="rounded text-[#9A8B7A]" /><span className="text-sm">Common Carrier</span></label>
-                                            <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={formData.transportOther} onChange={(e) => handleInputChange('transportOther', e.target.checked)} className="rounded text-[#9A8B7A]" /><span className="text-sm">Other</span></label>
-                                            {formData.transportOther && <input type="text" value={formData.transportOtherText} onChange={(e) => handleInputChange("transportOtherText", e.target.value)} className="px-3 py-1 border border-gray-300 rounded text-sm col-span-2" placeholder="Describe..." />}
-                                        </div>
-                                    </LongGridRow>
-
-                                    <LongGridRow label="Will equipment be used near water, including on bridges, dams, and levees, or on barges?">
-                                        <YesNoRadio value={formData.usedNearWater} onChange={(v) => handleInputChange("usedNearWater", v)} />
-                                    </LongGridRow>
-                                    {formData.usedNearWater === true && (
-                                        <GridRow label="If yes, please attach details">
-                                            <input type="text" value={formData.usedNearWaterDetails} onChange={(e) => handleInputChange("usedNearWaterDetails", e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded text-sm" />
-                                        </GridRow>
-                                    )}
-
-                                    <LongGridRow label="Will equipment be used on bridges or overpasses not over or near water?">
-                                        <YesNoRadio value={formData.usedOnBridgesNotNearWater} onChange={(v) => handleInputChange("usedOnBridgesNotNearWater", v)} />
-                                    </LongGridRow>
-
-                                    <LongGridRow label="Will equipment be used underground, including in mining operations?">
-                                        <YesNoRadio value={formData.usedUnderground} onChange={(v) => handleInputChange("usedUnderground", v)} />
-                                    </LongGridRow>
-                                    {formData.usedUnderground === true && (
-                                        <GridRow label="If yes, please attach details">
-                                            <input type="text" value={formData.usedUndergroundDetails} onChange={(e) => handleInputChange("usedUndergroundDetails", e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded text-sm" />
-                                        </GridRow>
-                                    )}
-                                </div>
-
-                                {formData.loansRentsToOthers === true && (
-                                    <>
-                                        <div className="border-t border-gray-300 pt-8 mt-8"></div>
-                                        <h3 className="text-sm font-bold text-gray-700 tracking-wide uppercase mb-6 bg-gray-50 p-3 rounded border border-gray-200">Rentals Section (Only complete if renting equipment to others)</h3>
-                                        <div className="space-y-6 pl-4 border-l-4 border-[#9A8B7A]">
-                                            <LongGridRow label="Is equipment rental, leasing, or rent to own your sole operation?">
-                                                <YesNoRadio value={formData.rentalSoleOperation} onChange={(v) => handleInputChange("rentalSoleOperation", v)} />
-                                            </LongGridRow>
-
-                                            <LongGridRow label="Is all of your scheduled equipment available for rental, lease, or loan to others?">
-                                                <YesNoRadio value={formData.allEquipmentScheduledAvailable} onChange={(v) => handleInputChange("allEquipmentScheduledAvailable", v)} />
-                                            </LongGridRow>
-                                            {formData.allEquipmentScheduledAvailable === false && (
-                                                <GridRow label="If no, what equipment is not available to others?">
-                                                    <input type="text" value={formData.equipmentNotAvailableDetails} onChange={(e) => handleInputChange("equipmentNotAvailableDetails", e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded text-sm" />
-                                                </GridRow>
-                                            )}
-
-                                            <LongGridRow label="Do you provide rentals with operators?">
-                                                <YesNoRadio value={formData.rentalsWithOperators} onChange={(v) => handleInputChange("rentalsWithOperators", v)} />
-                                            </LongGridRow>
-
-                                            <LongGridRow label="Do you have a written rental contract, lease agreement, or loan agreement in place before releasing any equipment?">
-                                                <YesNoRadio value={formData.writtenRentalContract} onChange={(v) => handleInputChange("writtenRentalContract", v)} />
-                                            </LongGridRow>
-                                            {formData.writtenRentalContract === false && (
-                                                <GridRow label="If no, please attach an explanation">
-                                                    <input type="text" value={formData.writtenRentalContractExplanation} onChange={(e) => handleInputChange("writtenRentalContractExplanation", e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded text-sm" />
-                                                </GridRow>
-                                            )}
-                                        </div>
-                                    </>
-                                )}
-                            </div>
-                        </>
-                    ))}
-
-                    {renderSection("Equipment Security", (
-                        <>
-                            <div className="space-y-6">
-                                <div className="bg-gray-50 p-4 rounded-lg">
-                                    <h3 className="text-sm font-bold text-gray-700 mb-4 tracking-wide">Storage Location Security Measures</h3>
-                                    <div className="grid grid-cols-4 gap-4">
-                                        <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={formData.securityMeasuresStorage.lighting} onChange={(e) => handleInputChange('securityMeasuresStorage', { ...formData.securityMeasuresStorage, lighting: e.target.checked })} className="rounded text-[#9A8B7A]" /><span className="text-sm">Security Lighting</span></label>
-                                        <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={formData.securityMeasuresStorage.fencing} onChange={(e) => handleInputChange('securityMeasuresStorage', { ...formData.securityMeasuresStorage, fencing: e.target.checked })} className="rounded text-[#9A8B7A]" /><span className="text-sm">Locked Fencing</span></label>
-                                        <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={formData.securityMeasuresStorage.garages} onChange={(e) => handleInputChange('securityMeasuresStorage', { ...formData.securityMeasuresStorage, garages: e.target.checked })} className="rounded text-[#9A8B7A]" /><span className="text-sm">Locked Garages</span></label>
-                                        <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={formData.securityMeasuresStorage.cameras} onChange={(e) => handleInputChange('securityMeasuresStorage', { ...formData.securityMeasuresStorage, cameras: e.target.checked })} className="rounded text-[#9A8B7A]" /><span className="text-sm">Premise Cameras</span></label>
-                                        <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={formData.securityMeasuresStorage.guards} onChange={(e) => handleInputChange('securityMeasuresStorage', { ...formData.securityMeasuresStorage, guards: e.target.checked })} className="rounded text-[#9A8B7A]" /><span className="text-sm">Security Guards</span></label>
-                                        <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={formData.securityMeasuresStorage.other} onChange={(e) => handleInputChange('securityMeasuresStorage', { ...formData.securityMeasuresStorage, other: e.target.checked })} className="rounded text-[#9A8B7A]" /><span className="text-sm">Other</span></label>
-                                    </div>
-                                    {formData.securityMeasuresStorage.other && (
-                                        <div className="mt-3"><input type="text" value={formData.securityMeasuresStorage.otherText} onChange={(e) => handleInputChange("securityMeasuresStorage", { ...formData.securityMeasuresStorage, otherText: e.target.value })} className="w-full px-4 py-2 border border-gray-300 rounded text-sm bg-white" placeholder="Describe other measures..." /></div>
-                                    )}
-                                </div>
-
-                                <div className="bg-gray-50 p-4 rounded-lg">
-                                    <h3 className="text-sm font-bold text-gray-700 mb-4 tracking-wide">Job Site Security Measures</h3>
-                                    <div className="grid grid-cols-4 gap-4">
-                                        <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={formData.securityMeasuresJobSite.lighting} onChange={(e) => handleInputChange('securityMeasuresJobSite', { ...formData.securityMeasuresJobSite, lighting: e.target.checked })} className="rounded text-[#9A8B7A]" /><span className="text-sm">Security Lighting</span></label>
-                                        <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={formData.securityMeasuresJobSite.fencing} onChange={(e) => handleInputChange('securityMeasuresJobSite', { ...formData.securityMeasuresJobSite, fencing: e.target.checked })} className="rounded text-[#9A8B7A]" /><span className="text-sm">Locked Fencing</span></label>
-                                        <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={formData.securityMeasuresJobSite.guards} onChange={(e) => handleInputChange('securityMeasuresJobSite', { ...formData.securityMeasuresJobSite, guards: e.target.checked })} className="rounded text-[#9A8B7A]" /><span className="text-sm">Security Guards</span></label>
-                                        <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={formData.securityMeasuresJobSite.offSiteGaraging} onChange={(e) => handleInputChange('securityMeasuresJobSite', { ...formData.securityMeasuresJobSite, offSiteGaraging: e.target.checked })} className="rounded text-[#9A8B7A]" /><span className="text-sm">Off-site Garaging</span></label>
-                                        <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={formData.securityMeasuresJobSite.other} onChange={(e) => handleInputChange('securityMeasuresJobSite', { ...formData.securityMeasuresJobSite, other: e.target.checked })} className="rounded text-[#9A8B7A]" /><span className="text-sm">Other</span></label>
-                                    </div>
-                                    {formData.securityMeasuresJobSite.other && (
-                                        <div className="mt-3"><input type="text" value={formData.securityMeasuresJobSite.otherText} onChange={(e) => handleInputChange("securityMeasuresJobSite", { ...formData.securityMeasuresJobSite, otherText: e.target.value })} className="w-full px-4 py-2 border border-gray-300 rounded text-sm bg-white" placeholder="Describe other measures..." /></div>
-                                    )}
-                                </div>
-
-                                <div className="border-t border-gray-200 mt-8 pt-6 space-y-6">
-                                    <LongGridRow label="How frequently is equipment inspected?">
-                                        <input type="text" value={formData.inspectionFrequency} onChange={(e) => handleInputChange("inspectionFrequency", e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded text-sm" />
-                                    </LongGridRow>
-                                    <LongGridRow label="How frequently is equipment given routine maintenance?">
-                                        <input type="text" value={formData.maintenanceFrequency} onChange={(e) => handleInputChange("maintenanceFrequency", e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded text-sm" />
-                                    </LongGridRow>
-                                    <LongGridRow label="Is all equipment tracked with a GPS, LoJack, remote disable, or similar device?">
-                                        <YesNoRadio value={formData.equipmentTrackedGPS} onChange={(v) => handleInputChange("equipmentTrackedGPS", v)} />
-                                    </LongGridRow>
-
-                                    <div className="bg-gray-50 p-4 rounded-lg">
-                                        <h3 className="text-sm font-bold text-gray-700 mb-4 tracking-wide">Are all bulldozers, loaders, cranes, and backhoes equipped with the following:</h3>
-                                        <div className="space-y-4">
-                                            <GridRow label="Locking gas caps?" className="border-0 py-0"><YesNoRadio value={formData.heavyEquipLockingGasCaps} onChange={(v) => handleInputChange("heavyEquipLockingGasCaps", v)} /></GridRow>
-                                            <GridRow label="Anti-theft devices?" className="border-0 py-0"><YesNoRadio value={formData.heavyEquipAntiTheft} onChange={(v) => handleInputChange("heavyEquipAntiTheft", v)} /></GridRow>
-                                            <GridRow label="Additional deterrent devices (describe)" className="border-0 py-0">
-                                                <input type="text" value={formData.heavyEquipAdditionalDeterrent} onChange={(e) => handleInputChange("heavyEquipAdditionalDeterrent", e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded text-sm bg-white" />
-                                            </GridRow>
-                                        </div>
-                                    </div>
-
-                                    <LongGridRow label="Are fire extinguishers present on or in all equipment?">
-                                        <YesNoRadio value={formData.fireExtinguishersPresent} onChange={(v) => handleInputChange("fireExtinguishersPresent", v)} />
-                                    </LongGridRow>
-                                    {formData.fireExtinguishersPresent === false && (
-                                        <GridRow label="If no, please attach an explanation">
-                                            <input type="text" value={formData.fireExtinguishersExplanation} onChange={(e) => handleInputChange("fireExtinguishersExplanation", e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded text-sm" />
-                                        </GridRow>
-                                    )}
-                                    {formData.fireExtinguishersPresent === true && (
-                                        <GridRow label="How frequently are extinguishers charged or replaced?">
-                                            <input type="text" value={formData.fireExtinguishersChargingFreq} onChange={(e) => handleInputChange("fireExtinguishersChargingFreq", e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded text-sm" />
-                                        </GridRow>
-                                    )}
-
-                                    <LongGridRow label="Does any equipment have automatic fire suppression systems installed?">
-                                        <YesNoRadio value={formData.automaticFireSuppression} onChange={(v) => handleInputChange("automaticFireSuppression", v)} />
-                                    </LongGridRow>
-                                    {formData.automaticFireSuppression === true && (
-                                        <GridRow label="If yes, which equipment?">
-                                            <input type="text" value={formData.automaticFireSuppressionEquip} onChange={(e) => handleInputChange("automaticFireSuppressionEquip", e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded text-sm" />
-                                        </GridRow>
-                                    )}
-
-                                    <LongGridRow label="Is any equipment stored in areas subject to flooding or wildfire?">
-                                        <YesNoRadio value={formData.storedInFloodWildfireAreas} onChange={(v) => handleInputChange("storedInFloodWildfireAreas", v)} />
-                                    </LongGridRow>
-                                    {formData.storedInFloodWildfireAreas === true && (
-                                        <GridRow label="If yes, please attach details as to how these risks are mitigated.">
-                                            <input type="text" value={formData.storedInFloodWildfireDetails} onChange={(e) => handleInputChange("storedInFloodWildfireDetails", e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded text-sm" />
-                                        </GridRow>
-                                    )}
                                 </div>
                             </div>
-                        </>
-                    ))}
-
-                    {renderSection("Claims History", (
-                        <>
-                            <div className="space-y-6">
-                                <LongGridRow label="Do you know of any incidents not currently reported to insurance that may result in a claim against you?">
-                                    <YesNoRadio value={formData.unreportedIncidents} onChange={(v) => handleInputChange("unreportedIncidents", v)} />
-                                </LongGridRow>
-                                {formData.unreportedIncidents === true && (
-                                    <GridRow label="If yes, please attach an explanation">
-                                        <input type="text" value={formData.unreportedIncidentsExplanation} onChange={(e) => handleInputChange("unreportedIncidentsExplanation", e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded text-sm" />
-                                    </GridRow>
-                                )}
-
-                                <LongGridRow label="During the past five years, has any insurer ever canceled or non-renewed similar insurance to any applicant or has your insurance been canceled for nonpayment of premium?">
-                                    <YesNoRadio value={formData.insurerCanceledNonRenewed} onChange={(v) => handleInputChange("insurerCanceledNonRenewed", v)} />
-                                </LongGridRow>
-                                {formData.insurerCanceledNonRenewed === true && (
-                                    <GridRow label="If yes, please attach an explanation">
-                                        <input type="text" value={formData.insurerCanceledExplanation} onChange={(e) => handleInputChange("insurerCanceledExplanation", e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded text-sm" />
-                                    </GridRow>
-                                )}
-
-                                <div className="border-t border-gray-200 mt-8 pt-6"></div>
-                                <div className="flex justify-between items-center mb-6">
-                                    <h3 className="text-sm font-bold text-gray-700 tracking-wide uppercase">Claim Details</h3>
-                                    <button onClick={() => {
-                                        const newClaims = [...formData.claims, {
-                                            date: "", circumstances: "", totalClaimed: "",
-                                            coverageLines: { equip: false, equipRental: false, autoLiab: false, cgl: false, pollution: false, autoPhys: false, uninsured: false, other: false, otherText: "" },
-                                            closed: null, trialSettlement: null, open: null, anticipateTrial: null, anticipateTrialWhen: "", proceduresChanged: null, totalLoss: null, repairedReturned: null
-                                        }];
-                                        handleInputChange('claims', newClaims);
-                                    }} className="flex items-center gap-2 text-xs font-bold text-[#9A8B7A] hover:text-[#8A7B6A] transition-colors">
-                                        <Plus size={14} /> ADD CLAIM
-                                    </button>
-                                </div>
-
-                                <div className="space-y-8">
-                                    {formData.claims.map((claim, idx) => (
-                                        <div key={idx} className="bg-gray-50 border border-gray-200 rounded-lg p-6 relative">
-                                            {formData.claims.length > 1 && (
-                                                <button onClick={() => { const n = formData.claims.filter((_, i) => i !== idx); handleInputChange('claims', n); }} className="absolute top-4 right-4 text-red-400 hover:text-red-600 transition-colors bg-white rounded-full p-2 shadow-sm border border-gray-100">
-                                                    <Trash2 size={16} />
-                                                </button>
-                                            )}
-                                            <h4 className="font-bold text-gray-700 mb-6 pb-2 border-b border-gray-200">Claim {idx + 1}</h4>
-
-                                            <div className="space-y-6">
-                                                <GridRow label="Date of incident">
-                                                    <input type="date" value={claim.date} onChange={(e) => { const n = [...formData.claims]; n[idx].date = e.target.value; handleInputChange('claims', n); }} className="w-full px-4 py-2 border border-gray-300 rounded text-sm bg-white" />
-                                                </GridRow>
-
-                                                <div className="bg-white p-4 rounded border border-gray-100">
-                                                    <label className="text-sm font-medium text-gray-700 block mb-3">Coverage Line(s) Reported On</label>
-                                                    <div className="grid grid-cols-2 gap-3">
-                                                        <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={claim.coverageLines.equip} onChange={(e) => { const n = [...formData.claims]; n[idx].coverageLines.equip = e.target.checked; handleInputChange('claims', n); }} className="rounded text-[#9A8B7A]" /><span className="text-sm">Contractors Equipment</span></label>
-                                                        <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={claim.coverageLines.equipRental} onChange={(e) => { const n = [...formData.claims]; n[idx].coverageLines.equipRental = e.target.checked; handleInputChange('claims', n); }} className="rounded text-[#9A8B7A]" /><span className="text-sm">Contractors Equip. Rental</span></label>
-                                                        <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={claim.coverageLines.autoLiab} onChange={(e) => { const n = [...formData.claims]; n[idx].coverageLines.autoLiab = e.target.checked; handleInputChange('claims', n); }} className="rounded text-[#9A8B7A]" /><span className="text-sm">Commercial Auto - Liability</span></label>
-                                                        <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={claim.coverageLines.cgl} onChange={(e) => { const n = [...formData.claims]; n[idx].coverageLines.cgl = e.target.checked; handleInputChange('claims', n); }} className="rounded text-[#9A8B7A]" /><span className="text-sm">Commercial Gen. Liability</span></label>
-                                                        <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={claim.coverageLines.pollution} onChange={(e) => { const n = [...formData.claims]; n[idx].coverageLines.pollution = e.target.checked; handleInputChange('claims', n); }} className="rounded text-[#9A8B7A]" /><span className="text-sm">Transportation Pollution</span></label>
-                                                        <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={claim.coverageLines.autoPhys} onChange={(e) => { const n = [...formData.claims]; n[idx].coverageLines.autoPhys = e.target.checked; handleInputChange('claims', n); }} className="rounded text-[#9A8B7A]" /><span className="text-sm">Commercial Auto - Phys. Damage</span></label>
-                                                        <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={claim.coverageLines.uninsured} onChange={(e) => { const n = [...formData.claims]; n[idx].coverageLines.uninsured = e.target.checked; handleInputChange('claims', n); }} className="rounded text-[#9A8B7A]" /><span className="text-sm">Uninsured/Self Insured</span></label>
-                                                        <div className="flex items-center gap-2">
-                                                            <label className="flex items-center gap-2 cursor-pointer whitespace-nowrap"><input type="checkbox" checked={claim.coverageLines.other} onChange={(e) => { const n = [...formData.claims]; n[idx].coverageLines.other = e.target.checked; handleInputChange('claims', n); }} className="rounded text-[#9A8B7A]" /><span className="text-sm">Other</span></label>
-                                                            {claim.coverageLines.other && <input type="text" value={claim.coverageLines.otherText} onChange={(e) => { const n = [...formData.claims]; n[idx].coverageLines.otherText = e.target.value; handleInputChange('claims', n); }} className="w-full px-2 py-1 border border-gray-300 rounded text-sm bg-white" />}
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <div>
-                                                    <label className="text-sm font-medium text-gray-700 block mb-2">Description of circumstances</label>
-                                                    <textarea value={claim.circumstances} onChange={(e) => { const n = [...formData.claims]; n[idx].circumstances = e.target.value; handleInputChange('claims', n); }} className="w-full px-4 py-3 border border-gray-300 rounded text-sm bg-white min-h-[100px]" placeholder="Factual details, equipment lost, steps taken to mitigate..." />
-                                                </div>
-
-                                                <div className="grid grid-cols-2 gap-x-8 gap-y-4 pt-4 border-t border-gray-200">
-                                                    <div className="flex justify-between items-center"><span className="text-sm font-medium text-gray-700">If closed, did it require trial/arbitration?</span><YesNoRadio value={claim.trialSettlement} onChange={(v) => { const n = [...formData.claims]; n[idx].trialSettlement = v; handleInputChange('claims', n); }} /></div>
-                                                    <div className="flex justify-between items-center"><span className="text-sm font-medium text-gray-700">Were procedures changed after incident?</span><YesNoRadio value={claim.proceduresChanged} onChange={(v) => { const n = [...formData.claims]; n[idx].proceduresChanged = v; handleInputChange('claims', n); }} /></div>
-                                                    <div className="flex justify-between items-center"><span className="text-sm font-medium text-gray-700">If open, do you anticipate trial/arbitration?</span><YesNoRadio value={claim.anticipateTrial} onChange={(v) => { const n = [...formData.claims]; n[idx].anticipateTrial = v; handleInputChange('claims', n); }} /></div>
-                                                    <div className="flex justify-between items-center"><span className="text-sm font-medium text-gray-700">Was equipment a total loss claimed?</span><YesNoRadio value={claim.totalLoss} onChange={(v) => { const n = [...formData.claims]; n[idx].totalLoss = v; handleInputChange('claims', n); }} /></div>
-                                                </div>
-
-                                                {claim.anticipateTrial === true && (
-                                                    <GridRow label="If yes, when?"><input type="text" value={claim.anticipateTrialWhen} onChange={(e) => { const n = [...formData.claims]; n[idx].anticipateTrialWhen = e.target.value; handleInputChange('claims', n); }} className="w-full px-4 py-2 border border-gray-300 rounded text-sm bg-white" /></GridRow>
-                                                )}
-                                                {claim.totalLoss === false && (
-                                                    <GridRow label="If no, has equipment been repaired/returned?"><YesNoRadio value={claim.repairedReturned} onChange={(v) => { const n = [...formData.claims]; n[idx].repairedReturned = v; handleInputChange('claims', n); }} /></GridRow>
-                                                )}
-
-                                                <div className="flex items-center gap-4 justify-end pt-4">
-                                                    <label className="text-sm font-bold text-gray-700">Total claimed: $</label>
-                                                    <input type="text" value={claim.totalClaimed} onChange={(e) => { const n = [...formData.claims]; n[idx].totalClaimed = e.target.value.replace(/[^\d.]/g, ''); handleInputChange('claims', n); }} className="w-[150px] px-4 py-2 border border-gray-300 rounded font-mono text-sm bg-white text-right" placeholder="0.00" />
-                                                </div>
-                                            </div>
+                        )}
+                        {/* Custom bundle fields */}
+                        {bundle === 'custom' && (
+                            <div className="mt-4 space-y-4 border-t border-gray-100 pt-4">
+                                <Row label="Miscellaneous Tools Limit">
+                                    <input type="text" value={miscToolsLimit} onChange={e => setMiscToolsLimit(e.target.value)} className="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-800 focus:outline-none focus:border-gray-400" />
+                                </Row>
+                                <Row label="Scheduled - Light/Medium Limit">
+                                    <input type="text" value={lightMedLimit} onChange={e => setLightMedLimit(e.target.value)} className="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-800 focus:outline-none focus:border-gray-400" />
+                                </Row>
+                                <Row label="Scheduled - Heavy Limit">
+                                    <input type="text" value={heavyLimit} onChange={e => setHeavyLimit(e.target.value)} className="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-800 focus:outline-none focus:border-gray-400" />
+                                </Row>
+                                <Row label="Rented/Leased Equipment Limit">
+                                    <input type="text" value={rentedEquipLimit} onChange={e => setRentedEquipLimit(e.target.value)} className="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-800 focus:outline-none focus:border-gray-400" />
+                                </Row>
+                                <Row label="Installation Floater Limit">
+                                    <input type="text" value={installFloaterLimit} onChange={e => setInstallFloaterLimit(e.target.value)} className="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-800 focus:outline-none focus:border-gray-400" />
+                                </Row>
+                                <Row label="Office Contents Limit">
+                                    <input type="text" value={officeContentsLimit} onChange={e => setOfficeContentsLimit(e.target.value)} className="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-800 focus:outline-none focus:border-gray-400" />
+                                </Row>
+                            </div>
+                        )}
+                        {bundle === 'custom' && (
+                            <>
+                                <div className="mt-4 rounded border border-gray-200 overflow-hidden">
+                                    <div className="flex items-center justify-between bg-[#3A3A3A] px-4 py-2.5">
+                                        <span className="text-sm font-semibold text-white">Light/Medium Scheduled Equipment</span>
+                                        <span className="text-sm font-semibold text-white">Remaining Limit: {lightMedLimit}.00</span>
+                                    </div>
+                                    <div className="flex items-center justify-between px-4 py-3 bg-white">
+                                        <button className="flex items-center gap-1.5 text-sm font-semibold text-[#7A6F64] hover:text-[#5A4F44] transition-colors">
+                                            <span className="text-lg leading-none">+</span> Add Light/Medium Item
+                                        </button>
+                                        <div className="flex items-center gap-2">
+                                            <button className="flex items-center gap-1.5 px-4 py-1.5 border border-gray-400 text-gray-700 text-sm font-medium rounded hover:bg-gray-50 transition-colors">
+                                                <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                </svg>
+                                                Clear All
+                                            </button>
+                                            <button className="flex items-center gap-1.5 px-4 py-1.5 bg-[#7A6F64] hover:bg-[#6A5F54] text-white text-sm font-semibold rounded transition-colors">
+                                                <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                                Set Limit
+                                            </button>
                                         </div>
-                                    ))}
+                                    </div>
                                 </div>
-                            </div>
-                        </>
-                    ))}
-
-                    {renderSection("Overview & Submission", (
-                        <>
-                            <div className="space-y-6">
-                                <div className="bg-gray-50 border border-[#9A8B7A] rounded-lg p-6 mb-8 text-sm text-gray-700">
-                                    <p className="mb-4">By submitting this application, you declare that all information provided is accurate and complete to the best of your knowledge.</p>
-                                    <p>This document will form part of your insurance application and may be relied upon by underwriters.</p>
+                                <div className="mt-4 rounded border border-gray-200 overflow-hidden">
+                                    <div className="flex items-center justify-between bg-[#3A3A3A] px-4 py-2.5">
+                                        <span className="text-sm font-semibold text-white">Heavy Scheduled Equipment</span>
+                                        <span className="text-sm font-semibold text-white">Remaining Limit: {heavyLimit}.00</span>
+                                    </div>
+                                    <div className="flex items-center justify-between px-4 py-3 bg-white">
+                                        <button className="flex items-center gap-1.5 text-sm font-semibold text-[#7A6F64] hover:text-[#5A4F44] transition-colors">
+                                            <span className="text-lg leading-none">+</span> Add Heavy Item
+                                        </button>
+                                        <div className="flex items-center gap-2">
+                                            <button className="flex items-center gap-1.5 px-4 py-1.5 border border-gray-400 text-gray-700 text-sm font-medium rounded hover:bg-gray-50 transition-colors">
+                                                <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                </svg>
+                                                Clear All
+                                            </button>
+                                            <button className="flex items-center gap-1.5 px-4 py-1.5 bg-[#7A6F64] hover:bg-[#6A5F54] text-white text-sm font-semibold rounded transition-colors">
+                                                <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                                Set Limit
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
+                            </>
+                        )}
+                    </div>
+                </Section>
 
-                                <GridRow label="Applicant Name"><input type="text" value={formData.applicantName} onChange={(e) => handleInputChange("applicantName", e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded text-sm" /></GridRow>
-                                <GridRow label="Title"><input type="text" value={formData.applicantTitle} onChange={(e) => handleInputChange("applicantTitle", e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded text-sm" /></GridRow>
-                                <GridRow label="FEIN #"><input type="text" value={formData.fein} onChange={(e) => handleInputChange("fein", e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded text-sm" /></GridRow>
-                                <GridRow label="Date"><input type="date" value={formData.signatureDate} onChange={(e) => handleInputChange("signatureDate", e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded text-sm" /></GridRow>
-
-                                <GridRow label="Agent/Broker Name">
-                                    <input type="text" value={formData.agentBrokerName} onChange={(e) => handleInputChange("agentBrokerName", e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded text-sm" />
-                                </GridRow>
+                {/* ═══ 2. Additional Interests ═══════════════════════════════ */}
+                <Section title="Additional Interests">
+                    <QRow label="Is there an additional lienholder?" value={hasLienholder} onChange={setHasLienholder} />
+                    {hasLienholder === true && (
+                        <div className="py-4 space-y-4">
+                            <div>
+                                <label className="text-sm font-bold text-gray-700 block mb-1">Please explain:</label>
+                                <input type="text" value={lienholderExplain} onChange={e => setLienholderExplain(e.target.value)} className={`${inp} mb-3`} />
                             </div>
-                        </>
-                    ))}
-                </div>
+                            {interests.map((ai, i) => (
+                                <div key={i} className="space-y-3">
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="text-sm font-bold text-gray-700 block mb-1">Name</label>
+                                            <input type="text" value={ai.name} onChange={e => updateAI(i, 'name', e.target.value)} className={inp} />
+                                        </div>
+                                        <div>
+                                            <label className="text-sm font-bold text-gray-700 block mb-1">Contract Number</label>
+                                            <input type="text" value={ai.contractNumber} onChange={e => updateAI(i, 'contractNumber', e.target.value)} className={inp} />
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-5 gap-3">
+                                        <div className="col-span-2">
+                                            <label className="text-sm font-bold text-gray-700 block mb-1">Address</label>
+                                            <input type="text" value={ai.address} onChange={e => updateAI(i, 'address', e.target.value)} className={inp} />
+                                        </div>
+                                        <div>
+                                            <label className="text-sm font-bold text-gray-700 block mb-1">Apt/Suite</label>
+                                            <input type="text" value={ai.aptSuite} onChange={e => updateAI(i, 'aptSuite', e.target.value)} className={inp} />
+                                        </div>
+                                        <div>
+                                            <label className="text-sm font-bold text-gray-700 block mb-1">Zip</label>
+                                            <input type="text" value={ai.zip} onChange={e => updateAI(i, 'zip', e.target.value)} className={inp} />
+                                        </div>
+                                        <div>
+                                            <label className="text-sm font-bold text-gray-700 block mb-1">City</label>
+                                            <input type="text" value={ai.city} onChange={e => updateAI(i, 'city', e.target.value)} className={inp} />
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-5 gap-3">
+                                        <div>
+                                            <label className="text-sm font-bold text-gray-700 block mb-1">State</label>
+                                            <input type="text" value={ai.state} onChange={e => updateAI(i, 'state', e.target.value)} className={inp} />
+                                        </div>
+                                    </div>
+                                    <div className="flex justify-end">
+                                        <button className="px-6 py-2 bg-[#7A6F64] hover:bg-[#6A5F54] text-white text-sm font-semibold rounded transition-colors">
+                                            Save
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                            <button onClick={() => setInterests(prev => [...prev, emptyAI()])}
+                                className="flex items-center gap-2 text-sm font-semibold text-teal-500 hover:text-teal-700 transition-colors mt-2">
+                                <Plus size={16} className="rounded-full border-2 border-current" />
+                                Add Additional Interest
+                            </button>
+                        </div>
+                    )}
+                </Section>
 
-                {/* Continue Actions */}
-                <div className="flex justify-end pt-4 mt-8">
-                    <button
-                        onClick={() => {
-                            router.back();
-                        }}
-                        className="px-8 py-2.5 bg-[#9A8B7A] hover:bg-[#8A7B6A] text-white font-medium rounded shadow-sm transition-all flex items-center gap-2 text-sm"
-                    >
-                        Save & Continue
+                {/* ═══ 3. Endorsements ════════════════════════════════════════ */}
+                <Section title="Endorsements">
+                    <div className="py-3">
+                        <label className="flex items-center gap-3 border border-gray-200 rounded px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors">
+                            <input type="checkbox" checked={terrorism} onChange={e => setTerrorism(e.target.checked)}
+                                className="w-5 h-5 rounded accent-gray-700" />
+                            <span className="text-sm text-gray-700">Acts of Terrorism</span>
+                        </label>
+                    </div>
+                </Section>
+
+                {/* ═══ 4. Additional Business Info ════════════════════════════ */}
+                <Section title="Additional Business Info">
+                    <QRow label="Has insurance for this risk ever been cancelled?" value={cancelled} onChange={setCancelled} explainValue={cancelledExplain} onExplainChange={setCancelledExplain} />
+                    <QRow label="Have you filed for bankruptcy in the past 5 years?" value={bankruptcy} onChange={setBankruptcy} explainValue={bankruptcyExplain} onExplainChange={setBankruptcyExplain} />
+                    <QRow label="Have you had more than one Inland Marine contractor's equipment loss in the past three years?" value={moreThanOneLoss} onChange={setMoreThanOneLoss} explainValue={lossExplain} onExplainChange={setLossExplain} />
+                    <QRow label="Do you own or rent asphalt plants or cranes?" value={asphaltCranes} onChange={setAsphaltCranes} explainValue={asphaltExplain} onExplainChange={setAsphaltExplain} />
+                    <QRow label="Do your operations include or require any tandem lifting?" value={tandemLifting} onChange={setTandemLifting} explainValue={tandemExplain} onExplainChange={setTandemExplain} />
+                    <QRow label="Any operations next to or over water?" value={overWater} onChange={setOverWater} explainValue={waterExplain} onExplainChange={setWaterExplain} />
+                    <QRow label="Any oilfield support operations?" value={oilfield} onChange={setOilfield} explainValue={oilfieldExplain} onExplainChange={setOilfieldExplain} />
+                    <QRow label="Any demolition and/or blasting work?" value={demolition} onChange={setDemolition} explainValue={demolitionExplain} onExplainChange={setDemolitionExplain} />
+                    <QRow label="Is your equipment garaged at your physical location?" value={garaged} onChange={setGaraged} />
+                    <QRow label="Is any of your equipment, scheduled or otherwise, a stump grinder?" value={stumpGrinder} onChange={setStumpGrinder} explainValue={stumpExplain} onExplainChange={setStumpExplain} />
+                    <QRow label="Will you rent or lease your equipment to others?" value={rentToOthers} onChange={setRentToOthers} explainValue={rentExplain} onExplainChange={setRentExplain} />
+                    <QRow
+                        label="Will you perform or subcontract any work involving (including but not limited to construction or repair of) the following: blasting, wrecking, or demolition operations; chimney construction or smoke stack lining; foundry operations (any type); fuel tanks; liquefied petrochemical gases or gasoline; oil fields; pipelines; transportation of fuels/explosives/butane/propane?"
+                        value={subcontractHazardous} onChange={setSubcontractHazardous} explainValue={hazardousExplain} onExplainChange={setHazardousExplain}
+                    />
+                    <QRow
+                        label="Will you perform or subcontract any work involving (including but not limited to construction or repair of) the following: agricultural or farming operations; iron or steel rolling mill; logging/lumbering/sawmills; quarries and mining operations; silica, flint, spar grinding; stone cutting or polishing or crushing?"
+                        value={subcontractAgri} onChange={setSubcontractAgri} explainValue={agriExplain} onExplainChange={setAgriExplain}
+                    />
+                    <QRow
+                        label="Will you perform or subcontract any work involving (including but not limited to construction or repair of) the following: bridges; dams/levees; dredging; USL&H Exposures; Jones Act Exposures; marine salvage operations; marine wrecking; offshore exposures; ocean marine, when written as such; shoring buildings; public utilities – electric, gas, telephone, traffic signs, etc.?"
+                        value={subcontractBridges} onChange={setSubcontractBridges} explainValue={bridgesExplain} onExplainChange={setBridgesExplain}
+                    />
+                    <QRow
+                        label="Will you perform or subcontract any work or use equipment involving (including but not limited to use, rental, construction, or repair of) the following: drones; manufacturing equipment; homemade or altered equipment?"
+                        value={subcontractDrones} onChange={setSubcontractDrones} explainValue={dronesExplain} onExplainChange={setDronesExplain}
+                    />
+                    <QRow
+                        label="Will you perform or subcontract any work or use equipment involving (including but not limited to use, rental, construction, or repair of) the following: street legal trailers or any equipment which is licensed and tagged for public road use; equipment permanently affixed to a trailer (bolted or welded); street legal bucket trucks?"
+                        value={subcontractTrailers} onChange={setSubcontractTrailers} explainValue={trailersExplain} onExplainChange={setTrailersExplain}
+                    />
+                </Section>
+
+                {/* ═══ 5. Payment Options ════════════════════════════════════ */}
+                <Section title="Payment Options">
+                    <Row label="Broker Fee" bold>
+                        <input type="text" value={brokerFee} onChange={e => setBrokerFee(e.target.value)} className={inp} />
+                    </Row>
+                    <div className="flex items-center py-5 gap-6 border-b border-gray-50">
+                        <div className="w-[45%] shrink-0">
+                            <span className="text-sm font-bold text-gray-700">Display Broker Fee Line on Retail Proposal?</span>
+                        </div>
+                        <div className="flex-1 flex items-center gap-6 text-sm text-gray-700">
+                            <label className="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" checked={displayBrokerFee === true} onChange={() => setDisplayBrokerFee(true)} className="w-4 h-4 accent-gray-700" />
+                                Yes
+                            </label>
+                            <label className="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" checked={displayBrokerFee === false} onChange={() => setDisplayBrokerFee(false)} className="w-4 h-4 accent-gray-700" />
+                                No
+                            </label>
+                        </div>
+                    </div>
+                    <Row label="Payment Options" bold>
+                        <select value={paymentOption} onChange={e => setPaymentOption(e.target.value)} className={sel}>
+                            <option value=""></option>
+                            <option value="full">Full Payment</option>
+                            <option value="installment">Installment</option>
+                            <option value="financing">Premium Financing</option>
+                        </select>
+                    </Row>
+                </Section>
+
+                {/* ═══ 6. Company Information ════════════════════════════════ */}
+                <Section title="Company Information">
+                    <Row label="License #">
+                        <input type="text" value={licenseNum} onChange={e => setLicenseNum(e.target.value)} className={inp} />
+                    </Row>
+                    <Row label="License Classification">
+                        <input type="text" value={licenseClass} onChange={e => setLicenseClass(e.target.value)} className={inp} />
+                    </Row>
+                    <Row label="DBA">
+                        <input type="text" value={dba} onChange={e => setDba(e.target.value)} placeholder="Doing Business As" className={inp} />
+                    </Row>
+                    <Row label="First Name" bold>
+                        <input type="text" value={firstName} onChange={e => setFirstName(e.target.value)} placeholder="First Name" className={inp} />
+                    </Row>
+                    <Row label="Last Name" bold>
+                        <input type="text" value={lastName} onChange={e => setLastName(e.target.value)} placeholder="Last Name" className={inp} />
+                    </Row>
+                    <Row label="Years of Experience">
+                        <input type="text" value={yearsExp} onChange={e => setYearsExp(e.target.value)} placeholder="6" className={inp} />
+                    </Row>
+                    <Row label="Estimated Total Gross Receipts">
+                        <input type="text" value={grossReceipts} onChange={e => setGrossReceipts(e.target.value)} placeholder="$500,000" className={inp} />
+                    </Row>
+                    <Row label="Entity of Company">
+                        <select value={entityType} onChange={e => setEntityType(e.target.value)} className={sel}>
+                            <option>Individual</option>
+                            <option>Corporation</option>
+                            <option>Partnership</option>
+                            <option>LLC</option>
+                            <option>Other</option>
+                        </select>
+                    </Row>
+                    <Row label="Applicant SSN">
+                        <input type="text" value={ssn} onChange={e => setSsn(e.target.value)} placeholder="111-22-1234" className={inp} />
+                    </Row>
+                    <Row label="Applicant DL #">
+                        <input type="text" value={dlNum} onChange={e => setDlNum(e.target.value)} placeholder="111-22-1234" className={inp} />
+                    </Row>
+                    <Row label="Applicant Phone" bold>
+                        <input type="text" value={phone} onChange={e => setPhone(e.target.value)} placeholder="123-456-7890" className={inp} />
+                    </Row>
+                    <Row label="Applicant Fax">
+                        <input type="text" value={fax} onChange={e => setFax(e.target.value)} placeholder="123-456-7890" className={inp} />
+                    </Row>
+                    <Row label="Applicant Email" bold>
+                        <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="insured@example.com" className={inp} />
+                    </Row>
+
+                    {/* Full-width fields */}
+                    <div className="py-5 border-b border-gray-50">
+                        <label className="text-sm text-gray-700 block mb-2">
+                            Complete description of operations for which you are currently applying for insurance:
+                        </label>
+                        <textarea value={opsDescription} onChange={e => setOpsDescription(e.target.value)}
+                            className={`${inp} min-h-[80px]`} />
+                    </div>
+                    <div className="py-5">
+                        <label className="text-sm text-gray-700 block mb-2">
+                            States in which you do business for which you are currently applying for insurance:
+                        </label>
+                        <StatesMultiSelect selected={statesOfBusiness} onChange={setStatesOfBusiness} />
+                    </div>
+                </Section>
+
+                {/* ═══ 7. Applicant Physical Location ════════════════════════ */}
+                <Section title="Applicant Physical Location">
+                    <div className="py-5 border-b border-gray-50">
+                        <div className="flex items-center gap-2 mb-2">
+                            <label className="text-sm font-bold text-gray-700">Address</label>
+                            <span className="w-5 h-5 rounded-full bg-teal-400 text-white text-xs flex items-center justify-center font-bold cursor-help" title="Enter your physical street address">?</span>
+                        </div>
+                        <input type="text" value={physAddress} onChange={e => setPhysAddress(e.target.value)}
+                            placeholder="123 Main Street, San Diego, CA 92128" className={inp} />
+                    </div>
+                    <Row label="Apt/Suite">
+                        <input type="text" value={physApt} onChange={e => setPhysApt(e.target.value)}
+                            placeholder="Apt. #24" className={inp} />
+                    </Row>
+                </Section>
+
+                {/* ═══ 8. Applicant Mailing Address ══════════════════════════ */}
+                <Section title="Applicant Mailing Address">
+                    <div className="py-4 border-b border-gray-50">
+                        <label className="flex items-center gap-3 cursor-pointer">
+                            <input type="checkbox" checked={sameAsMailing} onChange={e => setSameAsMailing(e.target.checked)}
+                                className="w-4 h-4 accent-teal-500 rounded" />
+                            <span className="text-sm font-bold text-gray-700">Same as physical location</span>
+                        </label>
+                    </div>
+                    {!sameAsMailing && (
+                        <div className="pb-4 space-y-1">
+                            {/* Street Address - full width */}
+                            <div className="py-4 border-b border-gray-50">
+                                <label className="text-sm font-bold text-gray-700 block mb-2">Street Address</label>
+                                <input type="text" value={mailAddress} onChange={e => setMailAddress(e.target.value)}
+                                    className={inp} placeholder="123 Main St." />
+                            </div>
+                            {/* Apt/Suite */}
+                            <Row label="Apt/Suite">
+                                <input type="text" value={mailApt} onChange={e => setMailApt(e.target.value)} placeholder="Apt. #24" className={inp} />
+                            </Row>
+                            {/* Zip with validation */}
+                            <Row label="Zip">
+                                <div>
+                                    <input type="text" value={mailZip} onChange={e => handleMailZip(e.target.value)}
+                                        placeholder="90210"
+                                        className={`${inp} ${mailZipError ? 'border-red-400 focus:border-red-400' : ''}`} />
+                                    {mailZipError && (
+                                        <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+                                            <span>⚠</span> Not a valid zip.
+                                        </p>
+                                    )}
+                                </div>
+                            </Row>
+                            {/* City */}
+                            <Row label="City">
+                                <input type="text" value={mailCity} onChange={e => setMailCity(e.target.value)} placeholder="Mainville" className={inp} />
+                            </Row>
+                            {/* State — read-only, determined from zip */}
+                            <Row label="State">
+                                <input type="text" readOnly placeholder="Determined from Zip"
+                                    className={`${inp} bg-gray-100 text-gray-400 cursor-not-allowed`} />
+                            </Row>
+                        </div>
+                    )}
+                </Section>
+
+                {/* ═══ Fixed bottom bar ═══════════════════════════════════════════════ */}
+                <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-8 py-4 flex items-center justify-between z-50">
+                    <button onClick={() => router.back()}
+                        className="px-6 py-2.5 border border-gray-400 text-gray-700 text-sm font-semibold rounded hover:bg-gray-50 transition-colors">
+                        Return to Dashboard
                     </button>
+                    <div className="flex items-center gap-3">
+                        <button className="flex items-center gap-2 px-6 py-2.5 border border-gray-400 text-gray-700 text-sm font-semibold rounded hover:bg-gray-50 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            Download PDF
+                        </button>
+                        <button className="flex items-center gap-2 px-6 py-2.5 bg-[#7A6F64] hover:bg-[#6A5F54] text-white text-sm font-semibold rounded transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            Submit Application
+                        </button>
+                    </div>
                 </div>
+
             </div>
         </div>
-    );
+    )
 }

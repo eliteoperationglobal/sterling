@@ -6,6 +6,8 @@ import Submission from "@/models/Submission";
 import Agency from "@/models/Agency";
 import Quote from "@/models/Quote";
 import { generateApplicationPacketHTML, mapFormDataToPacketData, loadCapitalCoLogo } from "@/lib/services/pdf/ApplicationPacketPDF";
+import { mapApartmentDataToPacketData } from "@/lib/services/pdf/mappers/apartmentMapper";
+import { generateApartmentPacketHTML } from "@/lib/services/pdf/ApartmentPacketPDF";
 
 /**
  * GET /api/admin/submissions/[id]/pdf
@@ -60,17 +62,32 @@ export async function GET(
 
     // Map form data to packet data format
     const formData = submission.payload || {};
-    const packetData = mapFormDataToPacketData(
-      formData,
-      submission._id.toString(),
-      agency,
-      quote ? quote.toObject() : undefined,
-      submission,
-      capitalCoLogoSVG
-    );
 
-    // Generate 12-page application packet HTML
-    const htmlContent = await generateApplicationPacketHTML(packetData);
+    let htmlContent: string = "";
+
+    if (submission.programId === "apartment-buildings") {
+      console.log("📄 [Admin PDF Download] Generating Apartment Buildings PDF...");
+      const apartmentData = mapApartmentDataToPacketData(
+        formData,
+        submission.submissionNumber?.toString() || submission._id.toString(),
+        agency,
+        quote ? quote.toObject() : undefined,
+        submission
+      );
+      htmlContent = generateApartmentPacketHTML(apartmentData);
+    } else {
+      const packetData = mapFormDataToPacketData(
+        formData,
+        submission._id.toString(),
+        agency,
+        quote ? quote.toObject() : undefined,
+        submission,
+        capitalCoLogoSVG
+      );
+
+      // Generate 12-page application packet HTML
+      htmlContent = await generateApplicationPacketHTML(packetData);
+    }
 
     // Generate PDF using production service (PDFShift)
     const { generatePDFFromHTML } = await import('@/lib/services/pdf/PDFService');
@@ -91,7 +108,7 @@ export async function GET(
       headers: {
         'Content-Type': 'application/pdf',
         // 'Content-Disposition': `attachment; filename="application-${submission._id.toString()}.pdf"`,
-        'Content-Disposition': `attachment; filename="${formData.companyName}-Application.pdf"`,
+        'Content-Disposition': `attachment; filename="${formData.companyName || formData.applicantName || 'Application'}-Application.pdf"`,
       },
     });
   } catch (error: any) {

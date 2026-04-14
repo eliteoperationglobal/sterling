@@ -64,12 +64,12 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    type AgencySubmissionLean = Pick<ISubmission, "_id" | "submissionNumber" | "status" | "createdAt" | "updatedAt" | "state" | "agentName" | "agentId" | "payload" | "clientContact" | "templateId" | "files"> & {
+    type AgencySubmissionLean = Pick<ISubmission, "_id" | "submissionNumber" | "status" | "createdAt" | "updatedAt" | "state" | "agentName" | "agentId" | "payload" | "clientContact" | "templateId" | "files" | "programName"> & {
       templateId?: { industry?: string; subtype?: string; title?: string };
     };
 
     const submissions = await Submission.find(query)
-      .select("submissionNumber status createdAt updatedAt state agentName agentId payload.agentName clientContact templateId files")
+      .select("submissionNumber status createdAt updatedAt state agentName agentId payload.agentName clientContact templateId files programName")
       .populate("templateId", "industry subtype title")
       .sort({ createdAt: -1 })
       .skip(skip)
@@ -147,7 +147,7 @@ export async function GET(req: NextRequest) {
       return {
         _id: sub._id.toString(),
         submissionNumber: sub.submissionNumber ?? 0,
-        industry: sub.templateId?.industry || "Construction",
+        industry: sub.programName === "Apartment Building" ? "Apartment Building" : (sub.templateId?.industry || "Construction"),
         subtype: sub.templateId?.subtype || "Unknown",
         templateTitle: sub.templateId?.title || "Unknown",
         clientName: sub.clientContact?.name || "N/A",

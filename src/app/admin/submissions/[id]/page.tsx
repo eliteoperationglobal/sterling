@@ -124,6 +124,12 @@ function ApplicationDataViewer({ data, type }: { data: any; type: "key" | "addit
       "effectiveDate",
       "statesOfOperation",
       "carrierApprovedDescription",
+      // Apartment Buildings specific
+      "totalInsuredValue",
+      "buildingAge",
+      "numberOfUnits",
+      "buildingStories",
+      "constructionType"
     ];
     return importantFields.includes(key);
   };
@@ -928,7 +934,7 @@ export default function AdminSubmissionDetailsPage() {
           <div className="px-8 grid grid-cols-1 md:grid-cols-5 gap-y-6 gap-x-14 text-[14px]">
             <div>
               <p className="text-gray-500 mb-1 leading-tight">Program Name</p>
-              <p className="font-semibold text-gray-900 break-words">{(submission?.clientContact?.name || "—")}</p>
+              <p className="font-semibold text-gray-900 break-words">{(submission?.programName || "General Liability")}</p>
             </div>
             <div>
               <p className="text-gray-500 mb-1 leading-tight">Effective Date:</p>
@@ -939,9 +945,14 @@ export default function AdminSubmissionDetailsPage() {
               </p>
             </div>
             <div>
-              <p className="text-gray-500 mb-1 leading-tight">Estimated Gross Receipts:</p>
+              <p className="text-gray-500 mb-1 leading-tight">
+                {submission.programId === 'apartment-buildings' ? 'Total Insured Value (TIV):' : 'Estimated Gross Receipts:'}
+              </p>
               <p className="font-semibold text-gray-900">
-                {submission?.payload?.estimatedGrossReceipts ? `$${Number(submission.payload.estimatedGrossReceipts).toLocaleString()}` : "—"}
+                {submission.programId === 'apartment-buildings' 
+                  ? (submission?.payload?.propertyOccupancy?.totalInsuredValue ? `$${Number(submission.payload.propertyOccupancy.totalInsuredValue).toLocaleString()}` : "—")
+                  : (submission?.payload?.estimatedGrossReceipts ? `$${Number(submission.payload.estimatedGrossReceipts).toLocaleString()}` : "—")
+                }
               </p>
             </div>
             <div>

@@ -1,8 +1,9 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { toast } from "sonner";
 import {
     ChevronUp,
     ChevronDown,
@@ -73,6 +74,12 @@ const LongGridRow = ({ label, children, required = false }: any) => (
 export default function ApartmentBuildingsSubmission() {
     const router = useRouter();
     const { data: session } = useSession();
+    const searchParams = useSearchParams();
+    const mode = searchParams.get("mode");
+    const isViewMode = mode === "view";
+    const isEditMode = mode === "edit";
+    const submissionId = searchParams.get("id");
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     // Auth & Agent Logic
     const userName = session?.user?.name || "Agent";
@@ -266,6 +273,77 @@ export default function ApartmentBuildingsSubmission() {
         setFormData(prev => ({ ...prev, [field]: value }));
     };
 
+    useEffect(() => {
+        const fetchSubmissionData = async () => {
+            if (!submissionId) return;
+            try {
+                const res = await fetch(`/api/agency/submissions/${submissionId}`);
+                const result = await res.json();
+                if (!res.ok) throw new Error(result.error);
+
+                const payload = result.submission.payload;
+                setFormData((prev: any) => ({
+                    ...prev,
+                    ...payload,
+                }));
+                setFormCompleted(true);
+            } catch (err) {
+                console.error("Failed to fetch submission data:", err);
+            }
+        };
+
+        fetchSubmissionData();
+    }, [submissionId]);
+
+    const handleSubmit = async (e?: React.FormEvent) => {
+        if (e) e.preventDefault();
+
+        if (!formData.agentName || !formData.applicantName) {
+            toast.error("Agent Name and Applicant Name are required");
+            return;
+        }
+
+        try {
+            setIsSubmitting(true);
+            let response;
+            if (isEditMode && submissionId) {
+                response = await fetch(`/api/agency/submissions/${submissionId}`, {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ payload: formData }),
+                });
+            } else {
+                response = await fetch("/api/agency/applications/submit", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        programId: "apartment-buildings",
+                        programName: "Apartment Building",
+                        formData,
+                    }),
+                });
+            }
+
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || "Failed to submit");
+
+            toast.success(isEditMode ? "Application updated successfully!" : "Application submitted successfully!");
+
+            setTimeout(() => {
+                if (isEditMode && submissionId) {
+                    window.location.href = `/agency/submissions/${submissionId}?updated=true`;
+                } else {
+                    window.location.href = "/agency/dashboard?submitted=true";
+                }
+            }, 1000);
+        } catch (error: any) {
+            console.error("Submit error:", error);
+            toast.error(error.message || "Something went wrong");
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
     const renderOverview = () => (
         <div className="max-w-4xl mx-auto py-4 animate-in fade-in duration-500">
             <h1 className="text-[28px] font-medium text-center mb-12 text-gray-900 tracking-tight">Submission</h1>
@@ -322,10 +400,11 @@ export default function ApartmentBuildingsSubmission() {
                                                 </div>
                                                 <div className="text-right">
                                                     <button
+                                                        onClick={handleSubmit}
                                                         className={`px-6 py-1.5 rounded-md text-sm font-medium transition-all active:scale-95 ${formCompleted ? 'bg-[#9A8B7A] hover:bg-[#8A7B6A] text-white shadow-sm' : 'border border-gray-300 text-gray-400 cursor-not-allowed bg-white'}`}
-                                                        disabled={!formCompleted}
+                                                        disabled={!formCompleted || isSubmitting}
                                                     >
-                                                        Continue
+                                                        {isSubmitting ? "Submitting..." : (isViewMode ? "Lock (View Mode)" : (isEditMode ? "Update" : "Submit"))}
                                                     </button>
                                                 </div>
                                             </div>
@@ -386,7 +465,7 @@ export default function ApartmentBuildingsSubmission() {
 
     const renderForm = () => (
         <div className="max-w-[950px] mx-auto py-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="space-y-10">
+            <fieldset disabled={isViewMode} className={`space-y-10 ${isViewMode ? 'opacity-90 pointer-events-none' : ''}`}>
 
                 {renderSection("APARTMENT APPLICATION", (
                     <>
@@ -460,7 +539,6 @@ export default function ApartmentBuildingsSubmission() {
                         <GridRow label="Percentage Subsidized (%)"><div className="flex items-center justify-end gap-2"><input type="text" value={formData.percentageSubsidized} onChange={(e) => handleInputChange("percentageSubsidized", e.target.value.replace(/\D/g, ''))} className="w-[120px] px-4 py-2 border border-gray-300 rounded text-sm" /><span className="text-gray-500 text-sm">%</span></div></GridRow>
                         <GridRow label="Percentage Elderly (%)"><div className="flex items-center justify-end gap-2"><input type="text" value={formData.percentageElderly} onChange={(e) => handleInputChange("percentageElderly", e.target.value.replace(/\D/g, ''))} className="w-[120px] px-4 py-2 border border-gray-300 rounded text-sm" /><span className="text-gray-500 text-sm">%</span></div></GridRow>
                         <GridRow label="Percentage Sprinklered (%)"><div className="flex items-center justify-end gap-2"><input type="text" value={formData.percentageSprinklered} onChange={(e) => handleInputChange("percentageSprinklered", e.target.value.replace(/\D/g, ''))} className="w-[120px] px-4 py-2 border border-gray-300 rounded text-sm" /><span className="text-gray-500 text-sm">%</span></div></GridRow>
-
 
                         <div className="border-t border-gray-200 mt-6 pt-6"></div>
                         <h3 className="font-semibold text-gray-900 -mt-2 mb-4">Types of Systems</h3>
@@ -680,35 +758,27 @@ export default function ApartmentBuildingsSubmission() {
                 {/* Continue Actions */}
                 <div className="flex justify-end pt-4">
                     <button
-                        onClick={() => {
-                            const now = new Date();
-                            const formDate = now.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' });
-                            const formTime = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
-                            setFormCompleted(true);
-                            setFormCompletedAt(`${formDate} ${formTime}`);
-                            if (!appId) setAppId(Math.floor(1000000 + Math.random() * 9000000).toString());
-                            setCurrentView('overview');
-                            window.scrollTo(0, 0);
-                        }}
-                        className="px-8 py-2.5 bg-[#9A8B7A] hover:bg-[#8A7B6A] text-white font-medium rounded shadow-sm transition-all flex items-center gap-2 text-sm"
+                        onClick={handleSubmit}
+                        disabled={isSubmitting}
+                        className="px-8 py-2.5 bg-[#9A8B7A] hover:bg-[#8A7B6A] text-white font-medium rounded shadow-sm transition-all flex items-center justify-center gap-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        Save & Continue
+                        {isSubmitting ? "Submitting..." : (isViewMode ? "View Mode" : (isEditMode ? "Update Application" : "Submit Application"))}
                     </button>
                 </div>
-            </div>
+            </fieldset>
         </div>
     );
 
     return (
         <div className="min-h-screen bg-white md:bg-[#fafaf9] p-4 md:p-8 font-sans text-gray-800 overflow-x-hidden">
             <button
-                onClick={() => currentView === 'form' ? setCurrentView('overview') : router.back()}
+                onClick={() => router.back()}
                 className="flex items-center text-gray-500 hover:text-[#9A8B7A] transition-colors mb-6 font-medium text-sm w-fit"
             >
                 <ArrowLeft className="w-4 h-4 mr-1.5" /> Back
             </button>
 
-            {currentView === 'overview' ? renderOverview() : renderForm()}
+            {renderForm()}
         </div>
     );
 }

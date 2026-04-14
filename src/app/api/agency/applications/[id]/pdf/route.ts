@@ -6,6 +6,8 @@ import Submission from "@/models/Submission";
 import Agency from "@/models/Agency";
 import Quote from "@/models/Quote";
 import { generateApplicationPacketHTML, mapFormDataToPacketData, loadCapitalCoLogo } from "@/lib/services/pdf/ApplicationPacketPDF";
+import { mapApartmentDataToPacketData } from "@/lib/services/pdf/mappers/apartmentMapper";
+import { generateApartmentPacketHTML } from "@/lib/services/pdf/ApartmentPacketPDF";
 
 /**
  * GET /api/agency/applications/[id]/pdf
@@ -104,19 +106,32 @@ export async function GET(
     // Map form data to packet data format
     const formData = submission.payload || {};
 
+    let htmlContent: string = "";
 
-    const packetData = mapFormDataToPacketData(
-      formData,
-      submission._id.toString(),
-      agency,
-      quote,
-      submission,
-      capitalCoLogoSVG,
-      excludePages8910
-    );
+    if (submission.programId === "apartment-buildings") {
+      console.log("📄 [PDF Download] Generating Apartment Buildings PDF...");
+      const apartmentData = mapApartmentDataToPacketData(
+        formData,
+        submission.submissionNumber?.toString() || submission._id.toString(),
+        agency,
+        quote,
+        submission
+      );
+      htmlContent = generateApartmentPacketHTML(apartmentData);
+    } else {
+      const packetData = mapFormDataToPacketData(
+        formData,
+        submission._id.toString(),
+        agency,
+        quote,
+        submission,
+        capitalCoLogoSVG,
+        excludePages8910
+      );
 
-    // Generate 12-page application packet HTML
-    const htmlContent = await generateApplicationPacketHTML(packetData);
+      // Generate 12-page application packet HTML
+      htmlContent = await generateApplicationPacketHTML(packetData);
+    }
 
     // Generate PDF using production service (PDFShift)
     let pdfBuffer: Buffer;
@@ -165,7 +180,7 @@ export async function GET(
       return new NextResponse(new Uint8Array(pdfBuffer), {
         headers: {
           'Content-Type': 'application/pdf',
-          'Content-Disposition': `attachment; filename="${formData.companyName}-Application.pdf"`,
+          'Content-Disposition': `attachment; filename="${formData.companyName || formData.applicantName || 'Application'}-Application.pdf"`,
           'Content-Length': pdfBuffer.length.toString(),
         },
       });

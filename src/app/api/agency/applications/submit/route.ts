@@ -5,6 +5,8 @@ import connectDB from "@/lib/mongodb";
 import Submission from "@/models/Submission";
 import Agency from "@/models/Agency";
 import { generateApplicationPacketHTML, mapFormDataToPacketData, loadCapitalCoLogo } from "@/lib/services/pdf/ApplicationPacketPDF";
+import { generateApartmentPacketHTML } from "@/lib/services/pdf/ApartmentPacketPDF";
+import { mapApartmentDataToPacketData } from "@/lib/services/pdf/mappers/apartmentMapper";
 import { savePDFToStorage } from "@/lib/services/pdf/storage";
 import { sendEmail } from "@/lib/services/email/EmailService";
 import { logActivity, createActivityLogData } from "@/utils/activityLogger";
@@ -114,18 +116,20 @@ export async function POST(req: NextRequest) {
       !formData?.streetAddress ||
       !formData?.city
     ) {
-      return NextResponse.json(
-        {
-          error: "Missing required client contact details",
-          missingFields: {
-            phone: !formData?.phone,
-            email: !formData?.email,
-            streetAddress: !formData?.streetAddress,
-            city: !formData?.city,
+      if (programId !== "apartment-buildings") {
+        return NextResponse.json(
+          {
+            error: "Missing required client contact details",
+            missingFields: {
+              phone: !formData?.phone,
+              email: !formData?.email,
+              streetAddress: !formData?.streetAddress,
+              city: !formData?.city,
+            },
           },
-        },
-        { status: 400 }
-      );
+          { status: 400 }
+        );
+      }
     }
 
 
@@ -149,12 +153,12 @@ export async function POST(req: NextRequest) {
 
     // Prepare client contact from form data
     const clientContact = {
-      name: formData.companyName || "Unknown",
-      phone: formData.phone.trim(),
-      email: formData.email.trim(),
+      name: formData.companyName || formData.applicantName || "Unknown",
+      phone: formData.phone?.trim() || "000-000-0000",
+      email: formData.email?.trim() || "unknown@example.com",
       businessAddress: {
-        street: formData.streetAddress.trim(),
-        city: formData.city.trim(),
+        street: formData.streetAddress?.trim() || formData.applicantMailingAddress || "Unknown Street",
+        city: formData.city?.trim() || "Unknown City",
         state: formData.state || "CA",
         zip: formData.zip || "00000",
       },
@@ -205,7 +209,7 @@ export async function POST(req: NextRequest) {
             applicationNumber,
             programName,
             agencyId: user.agencyId,
-            clientName: formData.companyName || "Unknown",
+            clientName: formData.companyName || formData.applicantName || "Unknown",
           },
         }
       )
@@ -218,7 +222,7 @@ export async function POST(req: NextRequest) {
       html: `
     <h2>Application Submitted</h2>
     <p>Application #: ${applicationNumber}</p>
-    <p>Company: ${formData.companyName}</p>
+    <p>Company: ${formData.companyName || formData.applicantName || "Unknown"}</p>
   `,
       text: `Application ${applicationNumber} submitted successfully`,
     });
@@ -235,97 +239,108 @@ export async function POST(req: NextRequest) {
       // Load Capital & Co logo SVG
       const capitalCoLogoSVG = await loadCapitalCoLogo();
 
-      // Map form data to packet data format (no quote yet for new submissions)
-      let packetData;
-      try {
-        packetData = mapFormDataToPacketData(
+      let htmlContent: string = "";
+
+      if (programId === "apartment-buildings") {
+        console.log("📄 Generating Apartment Buildings PDF...");
+        const apartmentData = mapApartmentDataToPacketData(
           submission.payload,
-          submission._id.toString(),
-          agency,
-          undefined,
-          submission,
-          capitalCoLogoSVG
+          submission.submissionNumber?.toString() || applicationNumber,
+          agency
         );
-
-        console.log("✅ Form data mapped successfully");
-      } catch (mapError: any) {
-        console.error("❌ Error mapping form data:", mapError?.message);
-        throw new Error(`Failed to map form data: ${mapError?.message}`);
-      }
-
-      console.log("📄 Generating 12-page application packet HTML...");
-      let htmlContent: string;
-      try {
-        htmlContent = await generateApplicationPacketHTML(packetData);
-        console.log(`📄 HTML content length: ${htmlContent.length} characters`);
-      } catch (htmlError: any) {
-        console.error("❌ Error generating HTML:", htmlError?.message);
-        throw new Error(`Failed to generate HTML: ${htmlError?.message}`);
-      }
-
-      // Generate PDF using production service (PDFShift)
-      console.log("📄 Generating PDF using PDFShift...");
-      try {
-        const { generatePDFFromHTML } = await import('@/lib/services/pdf/PDFService');
-        pdfBuffer = await generatePDFFromHTML({
-          html: htmlContent,
-          format: 'A4',
-          printBackground: true,
-          margin: {
-            top: '20px',
-            right: '20px',
-            bottom: '20px',
-            left: '20px',
-          },
-        });
-        console.log(`📄 PDF generated - Size: ${pdfBuffer.length} bytes`);
-      } catch (pdfGenError: any) {
-        console.error("❌ PDF generation failed:", pdfGenError?.message);
-        // Don't throw - allow submission to continue without PDF
-        throw pdfGenError; // Re-throw to be caught by outer catch
-      }
-
-      // Save PDF to storage (skip in serverless environments like Vercel)
-      if (pdfBuffer) {
+        htmlContent = generateApartmentPacketHTML(apartmentData);
+      } else {
+        // Map form data to packet data format (no quote yet for new submissions)
+        let packetData;
         try {
-          // In Vercel/serverless, filesystem is read-only, so skip file storage
-          // PDF can be regenerated on-demand from submission data
-          if (process.env.VERCEL || process.env.NODE_ENV === 'production') {
-            console.log("⚠️ Skipping PDF file storage in serverless environment");
-            console.log("📄 PDF can be regenerated on-demand from submission data");
-            // Submission will succeed without PDF URL - PDF can be generated later
-            await submission.save();
-          } else {
-            // Local development - save to filesystem
-            const fileName = `application-${submission._id.toString()}.pdf`;
-            console.log(`📄 Saving PDF to storage: ${fileName}`);
-            pdfUrl = await savePDFToStorage(pdfBuffer, fileName);
-            console.log(`📄 PDF saved successfully: ${pdfUrl}`);
+          packetData = mapFormDataToPacketData(
+            submission.payload,
+            submission._id.toString(),
+            agency,
+            undefined,
+            submission,
+            capitalCoLogoSVG
+          );
 
-            // Update submission with PDF URL
-            submission.applicationPdfUrl = pdfUrl;
-            await submission.save();
-            console.log("✅ PDF generation and save completed successfully");
-          }
-        } catch (saveError: any) {
-          console.error("❌ PDF save error (non-fatal):", saveError?.message);
-          // Continue - PDF generation succeeded but save failed
-          // In production/serverless, PDF can be regenerated on-demand
-          console.log("⚠️ Submission will continue without PDF URL - can be regenerated later");
-          // Save submission without PDF URL
-          await submission.save().catch((saveErr) => {
-            console.error("❌ Failed to save submission:", saveErr?.message);
-            // This is non-fatal - submission was already created
-          });
+          console.log("✅ Form data mapped successfully");
+        } catch (mapError: any) {
+          console.error("❌ Error mapping form data:", mapError?.message);
+          throw new Error(`Failed to map form data: ${mapError?.message}`);
+        }
+
+        console.log("📄 Generating 12-page application packet HTML...");
+        try {
+          htmlContent = await generateApplicationPacketHTML(packetData);
+          console.log(`📄 HTML content length: ${htmlContent.length} characters`);
+        } catch (htmlError: any) {
+          console.error("❌ Error generating HTML:", htmlError?.message);
+          throw new Error(`Failed to generate HTML: ${htmlError?.message}`);
         }
       }
-    } catch (pdfError: any) {
-      console.error("❌ PDF generation error (non-fatal):", pdfError);
-      console.error("❌ Error message:", pdfError?.message);
-      console.error("❌ Error stack:", pdfError?.stack);
-      // Continue even if PDF fails - submission should still succeed
-      // PDF can be regenerated later from the submission data
-      console.log("⚠️ Continuing submission without PDF - can be regenerated later");
+
+        // Generate PDF using production service (PDFShift)
+        console.log("📄 Generating PDF using PDFShift...");
+        try {
+          const { generatePDFFromHTML } = await import('@/lib/services/pdf/PDFService');
+          pdfBuffer = await generatePDFFromHTML({
+            html: htmlContent,
+            format: 'A4',
+            printBackground: true,
+            margin: {
+              top: '20px',
+              right: '20px',
+              bottom: '20px',
+              left: '20px',
+            },
+          });
+          console.log(`📄 PDF generated - Size: ${pdfBuffer.length} bytes`);
+        } catch (pdfGenError: any) {
+          console.error("❌ PDF generation failed:", pdfGenError?.message);
+          // Don't throw - allow submission to continue without PDF
+          throw pdfGenError; // Re-throw to be caught by outer catch
+        }
+
+        // Save PDF to storage (skip in serverless environments like Vercel)
+        if (pdfBuffer) {
+          try {
+            // In Vercel/serverless, filesystem is read-only, so skip file storage
+            // PDF can be regenerated on-demand from submission data
+            if (process.env.VERCEL || process.env.NODE_ENV === 'production') {
+              console.log("⚠️ Skipping PDF file storage in serverless environment");
+              console.log("📄 PDF can be regenerated on-demand from submission data");
+              // Submission will succeed without PDF URL - PDF can be generated later
+              await submission.save();
+            } else {
+              // Local development - save to filesystem
+              const fileName = `application-${submission._id.toString()}.pdf`;
+              console.log(`📄 Saving PDF to storage: ${fileName}`);
+              pdfUrl = await savePDFToStorage(pdfBuffer, fileName);
+              console.log(`📄 PDF saved successfully: ${pdfUrl}`);
+
+              // Update submission with PDF URL
+              submission.applicationPdfUrl = pdfUrl;
+              await submission.save();
+              console.log("✅ PDF generation and save completed successfully");
+            }
+          } catch (saveError: any) {
+            console.error("❌ PDF save error (non-fatal):", saveError?.message);
+            // Continue - PDF generation succeeded but save failed
+            // In production/serverless, PDF can be regenerated on-demand
+            console.log("⚠️ Submission will continue without PDF URL - can be regenerated later");
+            // Save submission without PDF URL
+            await submission.save().catch((saveErr) => {
+              console.error("❌ Failed to save submission:", saveErr?.message);
+              // This is non-fatal - submission was already created
+            });
+          }
+        }
+      } catch (pdfError: any) {
+        console.error("❌ PDF generation error (non-fatal):", pdfError);
+        console.error("❌ Error message:", pdfError?.message);
+        console.error("❌ Error stack:", pdfError?.stack);
+        // Continue even if PDF fails - submission should still succeed
+        // PDF can be regenerated later from the submission data
+        console.log("⚠️ Continuing submission without PDF - can be regenerated later");
     }
 
     // Send email to carrier with PDF attachment

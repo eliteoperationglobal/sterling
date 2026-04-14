@@ -8,6 +8,8 @@ import Quote, { IPopulatedQuote } from "@/models/Quote";
 import PDFCache from "@/models/PDFCache";
 import crypto from "crypto";
 import { generateProposalHTML } from "@/lib/services/pdf/ProposalPDFHTML";
+import { mapApartmentDataToPacketData } from "@/lib/services/pdf/mappers/apartmentMapper";
+import { generateApartmentProposalHTML } from "@/lib/services/pdf/ApartmentPacketPDF";
 export type ProposalData = {
   quoteNumber: string;
   proposalDate: string;
@@ -270,7 +272,21 @@ export async function GET(
     }
 
     // Generate proposal HTML
-    const proposalHTML = generateProposalHTML(proposalData);
+    let proposalHTML: string = "";
+
+    if (submission.programId === "apartment-buildings") {
+      console.log("📄 [Admin Proposal Download] Generating Apartment Buildings Proposal...");
+      const apartmentData = mapApartmentDataToPacketData(
+        formData,
+        submission._id.toString(),
+        agency,
+        quote,
+        submission
+      );
+      proposalHTML = generateApartmentProposalHTML(apartmentData);
+    } else {
+      proposalHTML = generateProposalHTML(proposalData);
+    }
 
     // Generate PDF
     const { generatePDFFromHTML } = await import('@/lib/services/pdf/PDFService');

@@ -773,8 +773,8 @@ function AgencyDashboardContent() {
                     <th className="px-6 py-4 text-left">Applicant Company</th>
                     <th className="px-6 py-4 text-left">Program</th>
                     <th className="px-6 py-4 text-left">Effective Date</th>
-                    <th className="px-6 py-4 text-center">Richmond</th>
-                    <th className="px-6 py-4 text-center">Kinsale</th>
+                    {/* <th className="px-6 py-4 text-center">Richmond</th>
+                    <th className="px-6 py-4 text-center">Kinsale</th> */}
                   </tr>
                 </thead>
 
@@ -786,8 +786,10 @@ function AgencyDashboardContent() {
                           "New business"
                         ) : (
                           <>
-                            {sub.hasGeneral && sub.hasExcess ? "General & Excess Liability" :
-                             sub.hasExcess ? "Excess Liability" : "General Liability"}
+                            {sub.industry === "Apartment Building" ? "Property" : (
+                             sub.hasGeneral && sub.hasExcess ? "General & Excess Liability" :
+                             sub.hasExcess ? "Excess Liability" : "General Liability"
+                            )}
                           </>
                         )}
                       </td>
@@ -800,7 +802,7 @@ function AgencyDashboardContent() {
                         {new Date(sub.createdAt).toLocaleDateString("en-US")}
                       </td>
 
-                      <td className="px-6 py-4 text-center">
+                      {/* <td className="px-6 py-4 text-center">
                         {sub.quote1Total != null ? (
                           <span className="inline-flex items-center gap-1 text-emerald-500 font-semibold">
                             <svg className="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -811,9 +813,9 @@ function AgencyDashboardContent() {
                         ) : (
                           <span className="text-gray-400 text-xs font-medium">—</span>
                         )}
-                      </td>
+                      </td> */}
 
-                      <td className="px-6 py-4 text-center">
+                      {/* <td className="px-6 py-4 text-center">
                         {sub.quote2Total != null ? (
                           <span className="inline-flex items-center gap-1 text-orange-500 font-semibold">
                             <svg className="w-4 h-4 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -824,7 +826,7 @@ function AgencyDashboardContent() {
                         ) : (
                           <span className="text-gray-400 text-xs font-medium">—</span>
                         )}
-                      </td>
+                      </td> */}
                     </tr>
                   ))}
                 </tbody>

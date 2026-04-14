@@ -8,6 +8,9 @@ import Quote, { IPopulatedQuote } from "@/models/Quote";
 import PDFCache from "@/models/PDFCache";
 import crypto from "crypto";
 import { generateProposalHTML } from "@/lib/services/pdf/ProposalPDFHTML";
+import { mapApartmentDataToPacketData } from "@/lib/services/pdf/mappers/apartmentMapper";
+import { generateApartmentProposalHTML } from "@/lib/services/pdf/ApartmentPacketPDF";
+import { mapFormDataToPacketData } from "@/lib/services/pdf/ApplicationPacketPDF";
 
 
 
@@ -354,7 +357,21 @@ export async function GET(
     }
 
     // Generate proposal HTML after cache miss
-    const proposalHTML = generateProposalHTML(proposalData);
+    let proposalHTML: string = "";
+
+    if (submission.programId === "apartment-buildings") {
+      console.log("📄 [Proposal Download] Generating Apartment Buildings Proposal...");
+      const apartmentData = mapApartmentDataToPacketData(
+        formData,
+        submission._id.toString(),
+        agency,
+        quote,
+        submission
+      );
+      proposalHTML = generateApartmentProposalHTML(apartmentData);
+    } else {
+      proposalHTML = generateProposalHTML(proposalData);
+    }
 
     // Generate PDF using production service (PDFShift)
     let pdfBuffer: Buffer;

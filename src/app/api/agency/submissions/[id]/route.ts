@@ -243,12 +243,25 @@ export async function PATCH(
     // -----------------------------
     if (body.payload) {
       submission.payload = body.payload;
+      submission.markModified("payload");
 
-      // Sync clientContact.name from companyName field if present
-      if (body.payload.companyName) {
+      // Sync clientContact.name from companyName/applicantName field if present
+      const newName = body.payload.companyName || body.payload.applicantName;
+      if (newName) {
         submission.clientContact = {
           ...submission.clientContact,
-          name: body.payload.companyName,
+          name: newName,
+        };
+      }
+
+      // Sync address if present
+      if (body.payload.applicantMailingAddress) {
+        submission.clientContact = {
+          ...submission.clientContact,
+          businessAddress: {
+            ...submission.clientContact.businessAddress,
+            street: body.payload.applicantMailingAddress,
+          }
         };
       }
     }
