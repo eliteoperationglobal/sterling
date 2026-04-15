@@ -270,7 +270,7 @@ export default function MarketplacePage() {
               mr-10
             "
           >
-            Apartment Buildings
+            Commercial Property
           </button>
           <button
             className="

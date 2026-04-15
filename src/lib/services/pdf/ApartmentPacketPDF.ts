@@ -3320,7 +3320,7 @@ function generateHeader(pageTitle: string, data: ApartmentPacketData): string {
         <div class="header">
             <div class="header-left">
                 <div class="form-id">STERLING APARTMENT FORM</div>
-                <div class="program-subtitle">Apartment Buildings Program</div>
+                <div class="program-subtitle">Commercial Property Program</div>
             </div>
             <div class="header-right">
                 <div class="page-title">${pageTitle}</div>
@@ -3456,7 +3456,8 @@ function generatePage1(data: ApartmentPacketData): string {
  */
 function generatePage2(data: ApartmentPacketData): string {
     return `
-        <div class="page">
+        <div class="page page2-isc">
+            <div class="main-content main-content-page2">
 
             
             <div class="section-container">
@@ -3514,6 +3515,7 @@ function generatePage2(data: ApartmentPacketData): string {
                     </div>
                 </div>
             </div>
+            </div>
         </div>
     `;
 }
@@ -3523,7 +3525,8 @@ function generatePage2(data: ApartmentPacketData): string {
  */
 function generatePage3(data: ApartmentPacketData): string {
     return `
-        <div class="page">
+        <div class="page page2-isc">
+            <div class="main-content main-content-page2">
 
             
             <div class="section-container">
@@ -3566,6 +3569,7 @@ function generatePage3(data: ApartmentPacketData): string {
                 <div class="sub-header-line" style="margin-top: 15px;">Fire Safety</div>
                 ${renderField("Other Fire Safety Systems (if any)", data.otherFireSafetySystems)}
             </div>
+            </div>
         </div>
     `;
 }
@@ -3575,7 +3579,8 @@ function generatePage3(data: ApartmentPacketData): string {
  */
 function generatePage4(data: ApartmentPacketData): string {
     return `
-        <div class="page">
+        <div class="page page2-isc">
+            <div class="main-content main-content-page2">
 
             
             <div class="section-container">
@@ -3599,6 +3604,7 @@ function generatePage4(data: ApartmentPacketData): string {
                     ${renderYesNo("Do you perform police background checks on all employees?", data.policeBackgroundChecks, data.backgroundCheckCriteria)}
                 </div>
             </div>
+            </div>
         </div>
     `;
 }
@@ -3608,7 +3614,8 @@ function generatePage4(data: ApartmentPacketData): string {
  */
 function generatePage5(data: ApartmentPacketData): string {
     return `
-        <div class="page">
+        <div class="page page2-isc">
+            <div class="main-content main-content-page2">
 
             
             <div class="section-container">
@@ -3635,6 +3642,7 @@ function generatePage5(data: ApartmentPacketData): string {
                     ${renderYesNo("Do you have written procedures for responding to tenant complaints concerning building, property or systems-related issues with records retained for two years?", data.proceduresTenantComplaintsBuilding, data.proceduresTenantComplaintsBuildingDescription)}
                 </div>
             </div>
+            </div>
         </div>
     `;
 }
@@ -3644,7 +3652,8 @@ function generatePage5(data: ApartmentPacketData): string {
  */
 function generatePage6(data: ApartmentPacketData): string {
     return `
-        <div class="page">
+        <div class="page page2-isc">
+            <div class="main-content main-content-page2">
 
             
             <div class="section-container">
@@ -3679,6 +3688,7 @@ function generatePage6(data: ApartmentPacketData): string {
                 <div class="divider" style="margin: 20px 0;"></div>
                 ${renderYesNo("Do you directly or indirectly provide medical, food or transportation services to tenants?", data.provideMedicalFoodTransport)}
             </div>
+            </div>
         </div>
     `;
 }
@@ -3688,7 +3698,8 @@ function generatePage6(data: ApartmentPacketData): string {
  */
 function generatePage7(data: ApartmentPacketData): string {
     return `
-        <div class="page">
+        <div class="page page2-isc">
+            <div class="main-content main-content-page2">
 
             
             <div class="section-container">
@@ -3709,6 +3720,7 @@ function generatePage7(data: ApartmentPacketData): string {
                 
                 <div class="divider" style="margin: 20px 0;"></div>
                 ${renderYesNo("Has your insurance agent completed a physical inspection of the property within the last year?", data.insuranceAgentCompletedInspection)}
+            </div>
             </div>
         </div>
     `;
@@ -3919,23 +3931,31 @@ const cssContent = `
 	}
 
     /* General Layout Helpers */
-    .section-container { margin-bottom: 30px; padding: 0 0.45in; }
-    .section-header { font-weight: bold; font-size: 11pt; text-transform: uppercase; margin-top: 15px; margin-bottom: 4px; color: #000; letter-spacing: 0.5px; }
+    .section-container { margin-top: 0.18in; padding: 0 0.45in; }
+    .section-header { font-weight: bold; font-size: 11pt; text-transform: uppercase; margin-top: 0; margin-bottom: 6px; color: #000; letter-spacing: 0.5px; }
     .section-divider { border: none; border-top: 2px solid #000; margin: 0 0 15px 0; padding: 0; width: 100%; }
     
     .flex-row { display: flex; width: 100%; margin-bottom: 8px; }
     .field-grid { display: flex; width: 100%; margin-bottom: 8px; }
     
-    .field-item { margin-bottom: 6px; }
+    .field-item { margin-bottom: 4px; }
     .field-label { font-weight: 600; color: #333; margin-right: 4px; }
     .field-value { font-weight: bold; color: #000; }
     
-    .question-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 5px; padding: 2px 0; }
+    .question-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; padding: 2px 0; }
     .question-text { flex: 1; font-weight: 500; font-size: 9.5pt; color: #1a1a1a; padding-right: 20px; }
     .yes-no-options { display: flex; gap: 12px; font-size: 10pt; min-width: 80px; justify-content: flex-end; }
+    .option { color: #999; }
+    .option.selected { color: #000; font-weight: bold; text-decoration: underline; }
+    .explanation-text { font-size: 8.5pt; color: #444; margin-top: 2px; margin-bottom: 8px; padding-left: 10px; border-left: 2px solid #eee; }
     
     .divider { border-top: 0.5px solid #ccc; margin: 15px 0; }
     .footer { position: absolute; bottom: 0.5in; left: 0.6in; right: 0.6in; border-top: 1px solid #eee; padding-top: 5px; font-size: 8.5pt; color: #999; text-align: center; }
+    
+    .sub-header-line { font-size: 10pt; font-weight: bold; border-bottom: 1px solid #ddd; margin-bottom: 10px; padding-bottom: 2px; }
+    .question-block { width: 100%; }
+    .sub-section { margin-left: 20px; border-left: 1px dashed #eee; padding-left: 15px; }
+    .agency-bar { background: #f8fafc; padding: 15px; border-radius: 4px; margin-bottom: 20px; font-size: 10pt; line-height: 1.4; color: #1e293b; border-left: 4px solid var(--primary-color); }
 `;
 
 
@@ -3944,7 +3964,8 @@ const cssContent = `
  */
 function generateProposalPage(data: ApartmentPacketData): string {
     return `
-        <div class="page">
+        <div class="page page2-isc">
+            <div class="main-content main-content-page2">
             <div class="section-container">
                 <div class="section-header">QUOTATION SUMMARY</div>
                 <hr class="section-divider" />
@@ -4029,6 +4050,7 @@ function generateProposalPage(data: ApartmentPacketData): string {
             </div>
 
             <div class="footer">Proposal Page</div>
+            </div>
         </div>
     `;
 }
@@ -4038,8 +4060,9 @@ function generateProposalPage(data: ApartmentPacketData): string {
  */
 function generateInvoicePage(data: ApartmentPacketData): string {
     return `
-        <div class="page">
-            <div class="agency-bar">
+        <div class="page page2-isc">
+            <div class="main-content main-content-page2">
+                <div class="agency-bar">
                 <div><strong>REMIT PAYMENT TO:</strong></div>
                 <div>${data.agencyName}</div>
                 <div>${data.agencyAddress}, ${data.agencyCity}, ${data.agencyState} ${data.agencyZip}</div>
@@ -4082,6 +4105,7 @@ function generateInvoicePage(data: ApartmentPacketData): string {
             </div>
 
             <div class="footer">Invoice Statement</div>
+            </div>
         </div>
     `;
 }
@@ -4096,7 +4120,6 @@ export function generateApartmentPacketHTML(data: ApartmentPacketData): string {
         </head>
         <body>
             ${generatePage1(data)}
-            ${generatePage2(data)}
             ${generatePage2(data)}
             ${generatePage3(data)}
             ${generatePage4(data)}

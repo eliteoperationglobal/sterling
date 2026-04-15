@@ -363,6 +363,9 @@ export default function AdminSubmissionsPage() {
                         <div className="font-semibold text-[#2d2a26]">
                           {(() => {
                             const program = sub.programName || sub.industry || "N/A";
+                            if (program.toLowerCase().includes("equipment")) {
+                              return "Construction Equipment";
+                            }
                             if (
                               program.includes("Advantage") ||
                               program.includes("Advanteg") ||

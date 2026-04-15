@@ -1,5 +1,5 @@
 /**
- * Apartment Buildings Data Mapper for PDF Generation
+ * Commercial Property Data Mapper for PDF Generation
  */
 
 export interface ApartmentPacketData {

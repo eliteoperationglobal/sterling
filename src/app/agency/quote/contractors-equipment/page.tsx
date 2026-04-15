@@ -1,8 +1,10 @@
 "use client"
 
-import React, { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import React, { useState, useRef, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { useSession } from 'next-auth/react'
 import { ArrowLeft, Plus } from 'lucide-react'
+import { toast } from 'sonner'
 
 // ── Sterling section wrapper ──────────────────────────────────────
 const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
@@ -116,6 +118,29 @@ const ALL_STATES = [
     'West Virginia', 'Wisconsin', 'Wyoming',
 ]
 
+// ── Smarty state code to full name map ──────────────────────────
+const STATE_CODE_TO_NAME: Record<string, string> = {
+    AL: 'Alabama', AK: 'Alaska', AZ: 'Arizona', AR: 'Arkansas',
+    CA: 'California', CO: 'Colorado', CT: 'Connecticut', DE: 'Delaware',
+    DC: 'District of Columbia', FL: 'Florida', GA: 'Georgia', HI: 'Hawaii',
+    ID: 'Idaho', IL: 'Illinois', IN: 'Indiana', IA: 'Iowa', KS: 'Kansas',
+    KY: 'Kentucky', LA: 'Louisiana', ME: 'Maine', MD: 'Maryland',
+    MA: 'Massachusetts', MI: 'Michigan', MN: 'Minnesota', MS: 'Mississippi',
+    MO: 'Missouri', MT: 'Montana', NE: 'Nebraska', NV: 'Nevada',
+    NH: 'New Hampshire', NJ: 'New Jersey', NM: 'New Mexico', NY: 'New York',
+    NC: 'North Carolina', ND: 'North Dakota', OH: 'Ohio', OK: 'Oklahoma',
+    OR: 'Oregon', PA: 'Pennsylvania', RI: 'Rhode Island', SC: 'South Carolina',
+    SD: 'South Dakota', TN: 'Tennessee', TX: 'Texas', UT: 'Utah',
+    VT: 'Vermont', VA: 'Virginia', WA: 'Washington', WV: 'West Virginia',
+    WI: 'Wisconsin', WY: 'Wyoming',
+};
+
+// ── Agent Lists ───────────────────────────────────────────────────
+const CAPCO_AGENTS = ["Eidan Gamaty", "Moshe Gamaty", "Michael Gamaty", "Yoav Anatian", "Jake Weiner", "Benjamin Solender", "Michal Kraut", "Jonathan Akwa"];
+const BLUE_ANGEL_AGENTS = ["Max Mintz"];
+const SJJ_AGENTS = ["Sam Joffe", "Nathan Gawronsky", "Jack Douek", "Will Feldsher", "Joel Gabai", "Dean Halleluyan", "Harel Fedida"];
+const PATRICK_ARIAS_AGENTS = ["Patrick Arias"];
+
 // ── Multi-select states dropdown ──────────────────────────────────
 const StatesMultiSelect = ({ selected, onChange }: { selected: string[]; onChange: (v: string[]) => void }) => {
     const [open, setOpen] = React.useState(false)
@@ -183,6 +208,146 @@ const StatesMultiSelect = ({ selected, onChange }: { selected: string[]; onChang
 // ═══════════════════════════════════════════════════════════════════
 export default function ContractorsEquipmentPage() {
     const router = useRouter()
+    const searchParams = useSearchParams()
+    const mode = searchParams.get('mode')
+    const submissionId = searchParams.get('id')
+    const isViewMode = mode === 'view'
+    const isEditMode = mode === 'edit'
+
+    const { data: session } = useSession()
+    const userName = session?.user?.name || ""
+    const userEmail = (session?.user as any)?.email || ""
+    const agencyName = (session?.user as any)?.agencyName || ""
+
+    const isCapco = agencyName.includes("Capital & Co") || agencyName.includes("Capco") || userEmail.includes("capcoinsurance") || userEmail === "admin@agency1.com" || userName.includes("Gamaty")
+    const isBlueAngel = agencyName.includes("Blue Angel") || userEmail === "admin@blueangel.com"
+    const isSJJ = agencyName.includes("SJJ") || userEmail === "admin@sjjinsurance.com"
+    const isPatrickArias = agencyName.includes("Patrick Arias") || userEmail.includes("patrickariasinsurance")
+
+    const agentOptions = isCapco ? CAPCO_AGENTS : isBlueAngel ? BLUE_ANGEL_AGENTS : isSJJ ? SJJ_AGENTS : isPatrickArias ? PATRICK_ARIAS_AGENTS : []
+
+    // State
+    const [agentName, setAgentName] = useState('')
+
+    // Auto-select agent if userName matches
+    useEffect(() => {
+        if (!agentName && userName && agentOptions.includes(userName)) {
+            setAgentName(userName)
+        }
+    }, [userName, agentOptions, agentName])
+
+    // Load existing submission data
+    useEffect(() => {
+        const fetchSubmissionData = async () => {
+            if (!submissionId) return;
+
+            try {
+                const res = await fetch(`/api/agency/submissions/${submissionId}`);
+                const result = await res.json();
+                if (!res.ok) throw new Error(result.error);
+
+                const p = result.submission.payload;
+                if (!p) return;
+
+                // Hydrate all fields
+                if (p.agentName) setAgentName(p.agentName);
+                if (p.leadSource) setLeadSource(p.leadSource);
+                if (p.companyName) setCompanyName(p.companyName);
+                if (p.zip) setZip(p.zip);
+                if (p.deductible) setDeductible(p.deductible);
+                if (p.losses) setLosses(p.losses);
+                if (p.yearsInBusiness) setYearsInBusiness(p.yearsInBusiness);
+                if (p.effectiveDate) setEffectiveDate(p.effectiveDate);
+                if (p.bundle) setBundle(p.bundle);
+
+                if (p.policyDuration) setPolicyDuration(p.policyDuration);
+                if (p.rentedEquipLimitRental) setRentedEquipLimitRental(p.rentedEquipLimitRental);
+                if (p.rentedItems) setRentedItems(p.rentedItems);
+
+                if (p.miscToolsLimit) setMiscToolsLimit(p.miscToolsLimit);
+                if (p.lightMedLimit) setLightMedLimit(p.lightMedLimit);
+                if (p.heavyLimit) setHeavyLimit(p.heavyLimit);
+                if (p.rentedEquipLimit) setRentedEquipLimit(p.rentedEquipLimit);
+                if (p.installFloaterLimit) setInstallFloaterLimit(p.installFloaterLimit);
+                if (p.officeContentsLimit) setOfficeContentsLimit(p.officeContentsLimit);
+
+                if (p.hasLienholder !== undefined) setHasLienholder(p.hasLienholder);
+                if (p.lienholderExplain) setLienholderExplain(p.lienholderExplain);
+                if (p.interests) setInterests(p.interests);
+
+                if (p.terrorism !== undefined) setTerrorism(p.terrorism);
+
+                if (p.cancelled !== undefined) setCancelled(p.cancelled);
+                if (p.bankruptcy !== undefined) setBankruptcy(p.bankruptcy);
+                if (p.moreThanOneLoss !== undefined) setMoreThanOneLoss(p.moreThanOneLoss);
+                if (p.asphaltCranes !== undefined) setAsphaltCranes(p.asphaltCranes);
+                if (p.tandemLifting !== undefined) setTandemLifting(p.tandemLifting);
+                if (p.overWater !== undefined) setOverWater(p.overWater);
+                if (p.oilfield !== undefined) setOilfield(p.oilfield);
+                if (p.demolition !== undefined) setDemolition(p.demolition);
+                if (p.garaged !== undefined) setGaraged(p.garaged);
+                if (p.stumpGrinder !== undefined) setStumpGrinder(p.stumpGrinder);
+                if (p.rentToOthers !== undefined) setRentToOthers(p.rentToOthers);
+                if (p.subcontractHazardous !== undefined) setSubcontractHazardous(p.subcontractHazardous);
+                if (p.subcontractAgri !== undefined) setSubcontractAgri(p.subcontractAgri);
+                if (p.subcontractBridges !== undefined) setSubcontractBridges(p.subcontractBridges);
+                if (p.subcontractDrones !== undefined) setSubcontractDrones(p.subcontractDrones);
+                if (p.subcontractTrailers !== undefined) setSubcontractTrailers(p.subcontractTrailers);
+
+                if (p.cancelledExplain) setCancelledExplain(p.cancelledExplain);
+                if (p.bankruptcyExplain) setBankruptcyExplain(p.bankruptcyExplain);
+                if (p.lossExplain) setLossExplain(p.lossExplain);
+                if (p.asphaltExplain) setAsphaltExplain(p.asphaltExplain);
+                if (p.tandemExplain) setTandemExplain(p.tandemExplain);
+                if (p.waterExplain) setWaterExplain(p.waterExplain);
+                if (p.oilfieldExplain) setOilfieldExplain(p.oilfieldExplain);
+                if (p.demolitionExplain) setDemolitionExplain(p.demolitionExplain);
+                if (p.stumpExplain) setStumpExplain(p.stumpExplain);
+                if (p.rentExplain) setRentExplain(p.rentExplain);
+                if (p.hazardousExplain) setHazardousExplain(p.hazardousExplain);
+                if (p.agriExplain) setAgriExplain(p.agriExplain);
+                if (p.bridgesExplain) setBridgesExplain(p.bridgesExplain);
+                if (p.dronesExplain) setDronesExplain(p.dronesExplain);
+                if (p.trailersExplain) setTrailersExplain(p.trailersExplain);
+
+                if (p.brokerFee) setBrokerFee(p.brokerFee);
+                if (p.displayBrokerFee !== undefined) setDisplayBrokerFee(p.displayBrokerFee);
+                if (p.paymentOption) setPaymentOption(p.paymentOption);
+
+                if (p.licenseNum) setLicenseNum(p.licenseNum);
+                if (p.licenseClass) setLicenseClass(p.licenseClass);
+                if (p.dba) setDba(p.dba);
+                if (p.firstName) setFirstName(p.firstName);
+                if (p.lastName) setLastName(p.lastName);
+                if (p.yearsExp) setYearsExp(p.yearsExp);
+                if (p.grossReceipts) setGrossReceipts(p.grossReceipts);
+                if (p.entityType) setEntityType(p.entityType);
+                if (p.ssn) setSsn(p.ssn);
+                if (p.dlNum) setDlNum(p.dlNum);
+                if (p.phone) setPhone(p.phone);
+                if (p.fax) setFax(p.fax);
+                if (p.email) setEmail(p.email);
+                if (p.opsDescription) setOpsDescription(p.opsDescription);
+                if (p.statesOfBusiness) setStatesOfBusiness(p.statesOfBusiness);
+
+                if (p.physAddress) setPhysAddress(p.physAddress);
+                if (p.physCity) setPhysCity(p.physCity);
+                if (p.physApt) setPhysApt(p.physApt);
+                if (p.sameAsMailing !== undefined) setSameAsMailing(p.sameAsMailing);
+                if (p.mailAddress) setMailAddress(p.mailAddress);
+                if (p.mailApt) setMailApt(p.mailApt);
+                if (p.mailZip) setMailZip(p.mailZip);
+                if (p.mailCity) setMailCity(p.mailCity);
+                if (p.mailState) setMailState(p.mailState);
+
+            } catch (err) {
+                console.error("Failed to fetch submission data:", err);
+                toast.error("Failed to load application data");
+            }
+        };
+
+        fetchSubmissionData();
+    }, [submissionId]);
 
     // Quick Quote
     const [leadSource, setLeadSource] = useState('capital_co')
@@ -274,21 +439,161 @@ export default function ContractorsEquipmentPage() {
 
     // Physical / Mailing Address
     const [physAddress, setPhysAddress] = useState('')
+    const [physCity, setPhysCity] = useState('')
     const [physApt, setPhysApt] = useState('')
     const [sameAsMailing, setSameAsMailing] = useState(false)
     const [mailAddress, setMailAddress] = useState('')
     const [mailApt, setMailApt] = useState('')
     const [mailZip, setMailZip] = useState('')
     const [mailCity, setMailCity] = useState('')
+    const [mailState, setMailState] = useState('')
     const [mailZipError, setMailZipError] = useState(false)
+
+    // Address Autocomplete State
+    const suggestionRef = useRef<HTMLDivElement>(null)
+    const [addressSuggestions, setAddressSuggestions] = useState<any[]>([])
+    const [showSuggestions, setShowSuggestions] = useState(false)
+    const [addressLoading, setAddressLoading] = useState(false)
+    const [activeSearchType, setActiveSearchType] = useState<'physical' | 'mailing' | null>(null)
+
+    const handleAddressSearch = async (value: string, type: 'physical' | 'mailing') => {
+        if (type === 'physical') setPhysAddress(value)
+        else setMailAddress(value)
+
+        if (value.length < 3) {
+            setAddressSuggestions([])
+            setShowSuggestions(false)
+            return
+        }
+
+        setAddressLoading(true)
+        setActiveSearchType(type)
+        try {
+            const res = await fetch(`/api/address/autocomplete?search=${encodeURIComponent(value)}`)
+            const data = await res.json()
+            setAddressSuggestions(data.suggestions || [])
+            setShowSuggestions(true)
+        } catch (err) {
+            console.error('Address search error:', err)
+        } finally {
+            setAddressLoading(false)
+        }
+    }
+
+    const handleSelectSuggestion = (suggestion: any) => {
+        const fullStateName = STATE_CODE_TO_NAME[suggestion.state] || suggestion.state
+
+        if (activeSearchType === 'physical') {
+            setPhysAddress(`${suggestion.street_line} ${suggestion.secondary || ''}, ${suggestion.city}, ${suggestion.state} ${suggestion.zipcode}`.trim())
+            setPhysCity(suggestion.city)
+        } else {
+            setMailAddress(`${suggestion.street_line} ${suggestion.secondary || ''}`.trim())
+            setMailCity(suggestion.city)
+            setMailZip(suggestion.zipcode)
+            setMailState(fullStateName)
+        }
+        setAddressSuggestions([])
+        setShowSuggestions(false)
+        setActiveSearchType(null)
+    }
+
+    // Close dropdown on outside click
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            if (suggestionRef.current && !suggestionRef.current.contains(e.target as Node)) {
+                setShowSuggestions(false)
+            }
+        }
+        document.addEventListener('mousedown', handleClickOutside)
+        return () => document.removeEventListener('mousedown', handleClickOutside)
+    }, [])
 
     const handleMailZip = (val: string) => {
         setMailZip(val)
         setMailZipError(val.length > 0 && !/^\d{5}(-\d{4})?$/.test(val))
     }
 
+    const removeAI = (i: number) => {
+        setInterests(prev => prev.filter((_, idx) => idx !== i))
+    }
+
     const updateAI = (i: number, field: keyof AI, val: string) =>
         setInterests(prev => prev.map((ai, idx) => idx === i ? { ...ai, [field]: val } : ai))
+
+    const [isSubmitting, setIsSubmitting] = useState(false)
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault()
+
+        if (!companyName.trim()) {
+            toast.error("Company name is required")
+            return
+        }
+
+        try {
+            setIsSubmitting(true)
+
+            const payload = {
+                agentName, leadSource, companyName, zip, deductible, losses, yearsInBusiness, effectiveDate, bundle,
+                policyDuration, rentedEquipLimitRental, rentedItems,
+                miscToolsLimit, lightMedLimit, heavyLimit, rentedEquipLimit, installFloaterLimit, officeContentsLimit,
+                hasLienholder, lienholderExplain, interests, terrorism,
+                cancelled, cancelledExplain, bankruptcy, bankruptcyExplain, moreThanOneLoss, lossExplain,
+                asphaltCranes, asphaltExplain, tandemLifting, tandemExplain, overWater, waterExplain,
+                oilfield, oilfieldExplain, demolition, demolitionExplain, garaged, stumpGrinder, stumpExplain,
+                rentToOthers, rentExplain, subcontractHazardous, hazardousExplain, subcontractAgri, agriExplain,
+                subcontractBridges, bridgesExplain, subcontractDrones, dronesExplain, subcontractTrailers, trailersExplain,
+                brokerFee, displayBrokerFee, paymentOption,
+                licenseNum, licenseClass, dba, firstName, lastName, yearsExp, grossReceipts, entityType,
+                ssn, dlNum, phone, fax, email, opsDescription, statesOfBusiness,
+                physAddress, physCity, physApt,
+                streetAddress: physAddress, // Map for backend validation
+                city: physCity || 'N/A', // Map for backend validation
+                state: statesOfBusiness[0] || 'CA', // Map for backend validation
+                sameAsMailing, mailAddress, mailApt, mailZip, mailCity, mailState
+            }
+
+            let response;
+            if (isEditMode && submissionId) {
+                response = await fetch(`/api/agency/submissions/${submissionId}`, {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        payload: payload,
+                    }),
+                });
+            } else {
+                response = await fetch("/api/agency/applications/submit", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        programId: "contractors-equipment",
+                        programName: "Construction Equipment",
+                        formData: payload,
+                    }),
+                });
+            }
+
+            const data = await response.json()
+
+            if (!response.ok) {
+                throw new Error(data.error || "Failed to submit")
+            }
+
+            toast.success(isEditMode ? "Application updated successfully!" : "Application submitted successfully!")
+
+            setTimeout(() => {
+                router.refresh()
+                router.push("/agency/dashboard")
+            }, 1500)
+
+        } catch (error: any) {
+            console.error(error)
+            toast.error(error.message || "Failed to submit application")
+        } finally {
+            setIsSubmitting(false)
+        }
+    }
 
     return (
         <div className="min-h-screen bg-gray-100 pb-24">
@@ -300,9 +605,21 @@ export default function ContractorsEquipmentPage() {
             </div>
 
             <div className="max-w-[980px] mx-auto px-4">
+                <form id="contractors-form" onSubmit={handleSubmit}>
+                <fieldset disabled={isViewMode} className="contents">
 
                 {/* ═══ 1. Quick Quote Information ═══════════════════════════ */}
                 <Section title="Quick Quote Information">
+                    {agentOptions.length > 0 && (
+                        <Row label="Agent Name" bold required>
+                            <select value={agentName} onChange={e => setAgentName(e.target.value)} className={sel}>
+                                <option value="">Select Agent</option>
+                                {agentOptions.map(name => (
+                                    <option key={name} value={name}>{name}</option>
+                                ))}
+                            </select>
+                        </Row>
+                    )}
                     <Row label="Lead Source" bold>
                         <select value={leadSource} onChange={e => setLeadSource(e.target.value)} className={sel}>
                             <option value="capital_co"></option>
@@ -522,7 +839,12 @@ export default function ContractorsEquipmentPage() {
                                             <input type="text" value={ai.state} onChange={e => updateAI(i, 'state', e.target.value)} className={inp} />
                                         </div>
                                     </div>
-                                    <div className="flex justify-end">
+                                    <div className="flex justify-end gap-3 pt-2">
+                                        {interests.length > 1 && (
+                                            <button onClick={() => removeAI(i)} className="px-5 py-2 border border-red-200 text-red-500 hover:bg-red-50 text-sm font-semibold rounded transition-colors">
+                                                Remove
+                                            </button>
+                                        )}
                                         <button className="px-6 py-2 bg-[#7A6F64] hover:bg-[#6A5F54] text-white text-sm font-semibold rounded transition-colors">
                                             Save
                                         </button>
@@ -685,8 +1007,39 @@ export default function ContractorsEquipmentPage() {
                             <label className="text-sm font-bold text-gray-700">Address</label>
                             <span className="w-5 h-5 rounded-full bg-teal-400 text-white text-xs flex items-center justify-center font-bold cursor-help" title="Enter your physical street address">?</span>
                         </div>
-                        <input type="text" value={physAddress} onChange={e => setPhysAddress(e.target.value)}
-                            placeholder="123 Main Street, San Diego, CA 92128" className={inp} />
+                        <div className="relative">
+                            <input
+                                type="text"
+                                value={physAddress}
+                                onChange={e => handleAddressSearch(e.target.value, 'physical')}
+                                placeholder="Start typing address..."
+                                className={inp}
+                                autoComplete="off"
+                            />
+                            {/* Loading */}
+                            {addressLoading && activeSearchType === 'physical' && (
+                                <div className="absolute right-3 top-2.5 text-xs text-gray-400">Searching...</div>
+                            )}
+
+                            {/* Dropdown */}
+                            {showSuggestions && activeSearchType === 'physical' && addressSuggestions.length > 0 && (
+                                <div
+                                    ref={suggestionRef}
+                                    className="absolute z-50 w-full bg-white border border-gray-200 rounded shadow-lg mt-1 max-h-60 overflow-y-auto"
+                                >
+                                    {addressSuggestions.map((suggestion, index) => (
+                                        <div
+                                            key={index}
+                                            onMouseDown={() => handleSelectSuggestion(suggestion)}
+                                            className="px-4 py-3 hover:bg-[#f5f2ef] cursor-pointer text-sm border-b border-gray-100 last:border-0"
+                                        >
+                                            <span className="font-medium text-gray-900">{suggestion.street_line} {suggestion.secondary}</span>
+                                            <span className="text-gray-500 ml-1">{suggestion.city}, {suggestion.state} {suggestion.zipcode}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
                     </div>
                     <Row label="Apt/Suite">
                         <input type="text" value={physApt} onChange={e => setPhysApt(e.target.value)}
@@ -708,8 +1061,39 @@ export default function ContractorsEquipmentPage() {
                             {/* Street Address - full width */}
                             <div className="py-4 border-b border-gray-50">
                                 <label className="text-sm font-bold text-gray-700 block mb-2">Street Address</label>
-                                <input type="text" value={mailAddress} onChange={e => setMailAddress(e.target.value)}
-                                    className={inp} placeholder="123 Main St." />
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        value={mailAddress}
+                                        onChange={e => handleAddressSearch(e.target.value, 'mailing')}
+                                        className={inp}
+                                        placeholder="Start typing address..."
+                                        autoComplete="off"
+                                    />
+                                    {/* Loading indicator */}
+                                    {addressLoading && activeSearchType === 'mailing' && (
+                                        <div className="absolute right-3 top-2.5 text-xs text-gray-400">Searching...</div>
+                                    )}
+
+                                    {/* Dropdown for Mailing */}
+                                    {showSuggestions && activeSearchType === 'mailing' && addressSuggestions.length > 0 && (
+                                        <div
+                                            ref={suggestionRef}
+                                            className="absolute z-50 w-full bg-white border border-gray-200 rounded shadow-lg mt-1 max-h-60 overflow-y-auto"
+                                        >
+                                            {addressSuggestions.map((suggestion, index) => (
+                                                <div
+                                                    key={index}
+                                                    onMouseDown={() => handleSelectSuggestion(suggestion)}
+                                                    className="px-4 py-3 hover:bg-[#f5f2ef] cursor-pointer text-sm border-b border-gray-100 last:border-0"
+                                                >
+                                                    <span className="font-medium text-gray-900">{suggestion.street_line} {suggestion.secondary}</span>
+                                                    <span className="text-gray-500 ml-1">{suggestion.city}, {suggestion.state} {suggestion.zipcode}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                             {/* Apt/Suite */}
                             <Row label="Apt/Suite">
@@ -734,12 +1118,14 @@ export default function ContractorsEquipmentPage() {
                             </Row>
                             {/* State — read-only, determined from zip */}
                             <Row label="State">
-                                <input type="text" readOnly placeholder="Determined from Zip"
+                                <input type="text" readOnly placeholder="Determined from Zip" value={mailState}
                                     className={`${inp} bg-gray-100 text-gray-400 cursor-not-allowed`} />
                             </Row>
                         </div>
                     )}
                 </Section>
+                </fieldset>
+                </form>
 
                 {/* ═══ Fixed bottom bar ═══════════════════════════════════════════════ */}
                 <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-8 py-4 flex items-center justify-between z-50">
@@ -748,18 +1134,25 @@ export default function ContractorsEquipmentPage() {
                         Return to Dashboard
                     </button>
                     <div className="flex items-center gap-3">
-                        <button className="flex items-center gap-2 px-6 py-2.5 border border-gray-400 text-gray-700 text-sm font-semibold rounded hover:bg-gray-50 transition-colors">
+                        <button type="button" disabled className="flex items-center gap-2 px-6 py-2.5 border border-gray-400 text-gray-700 text-sm font-semibold rounded hover:bg-gray-50 transition-colors opacity-50 cursor-not-allowed">
                             <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                             </svg>
                             Download PDF
                         </button>
-                        <button className="flex items-center gap-2 px-6 py-2.5 bg-[#7A6F64] hover:bg-[#6A5F54] text-white text-sm font-semibold rounded transition-colors">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            Submit Application
-                        </button>
+                        
+                        {!isViewMode && (
+                            <button type="submit" form="contractors-form" disabled={isSubmitting} className="flex items-center gap-2 px-6 py-2.5 bg-[#7A6F64] hover:bg-[#6A5F54] text-white text-sm font-semibold rounded transition-colors disabled:opacity-50">
+                                {isSubmitting ? (
+                                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                ) : (
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                )}
+                                {isSubmitting ? "Submitting..." : isEditMode ? "Update Application" : "Submit Application"}
+                            </button>
+                        )}
                     </div>
                 </div>
 

@@ -129,6 +129,32 @@ function ApartmentBuildingsContent() {
         proposedEffectiveDateFrom: "",
         proposedEffectiveDateTo: "",
         bankruptcyPending: null as boolean | null,
+        isPropertyAddressSame: false,
+        buildingType: "",
+        mixedUseResidentialPct: "",
+        mixedUseCommercialPct: "",
+        mixedUseCommercialTenants: "",
+        mixedUseCookingExposure: null as boolean | null,
+        mixedUseSeparateEntrances: null as boolean | null,
+        mixedUseSeparateUtilities: null as boolean | null,
+        officeOccupancyType: "",
+        officeTenantTypes: "",
+        officeMedicalOffices: null as boolean | null,
+        officeHighFootTraffic: null as boolean | null,
+        retailType: "",
+        retailCooking: null as boolean | null,
+        retailHours: "",
+        warehouseStoredItems: "",
+        warehouseStorageHeight: "",
+        warehouseHazardousMaterials: null as boolean | null,
+        warehouseOccupancyType: "",
+        warehouseUsageType: "",
+        mfgOpsDescription: "",
+        mfgProductTypes: "",
+        mfgHeavyMachinery: null as boolean | null,
+        mfgFlammableMaterials: null as boolean | null,
+        mfgMfgPct: "",
+        mfgStoragePct: "",
 
         // 1
         interestInPropertyRadio: "" as "Owner" | "Manager" | "",
@@ -139,17 +165,33 @@ function ApartmentBuildingsContent() {
         yearFirstOwnedOrManaged: "",
 
         // 3
-        buildingAge: "",
-        roofAge: "",
+        yearBuilt: "",
+        yearRoofInstalled: "",
+        yearWiringInstalled: "",
+        yearPlumbingInstalled: "",
+        yearHeatingInstalled: "",
+
         numberOfUnits: "",
         numberOfStories: "",
+        hasBasement: null as boolean | null,
+        totalBuildingArea: "",
         protectionClass: "",
         constructionType: "",
         percentageOccupied: "",
-        percentageStudents: "",
-        percentageSubsidized: "",
+        distanceToFireHydrant: "",
+        distanceToFireStation: "",
+        fireDistrict: "",
+
         percentageElderly: "",
         percentageSprinklered: "",
+        hasMultipleBuildings: null as boolean | null,
+        subjectOfInsurance: "",
+        propertyLimit: "",
+        propertyCoinsurance: "",
+        propertyValuation: "",
+        propertyCausesOfLoss: "",
+        propertyDeductible: "",
+        propertyDeductibleType: "",
 
         // 4
         heatingType: "",
@@ -272,7 +314,60 @@ function ApartmentBuildingsContent() {
     });
 
     const handleInputChange = (field: keyof typeof formData, value: any) => {
-        setFormData(prev => ({ ...prev, [field]: value }));
+        setFormData(prev => {
+            const newState = { ...prev, [field]: value };
+            
+            // Sync logic for Property Name and Address
+            if (field === "isPropertyAddressSame") {
+                if (value === true) {
+                    newState.propertyNameAndAddress = prev.applicantMailingAddress;
+                }
+            } else if (field === "applicantMailingAddress") {
+                if (prev.isPropertyAddressSame) {
+                    newState.propertyNameAndAddress = value;
+                }
+            }
+
+            // Sync logic for Proposed Effective Date (1-year term)
+            if (field === "proposedEffectiveDateFrom" && value) {
+                const date = new Date(value + 'T00:00:00');
+                if (!isNaN(date.getTime())) {
+                    date.setFullYear(date.getFullYear() + 1);
+                    const y = date.getFullYear();
+                    const m = String(date.getMonth() + 1).padStart(2, '0');
+                    const d = String(date.getDate()).padStart(2, '0');
+                    newState.proposedEffectiveDateTo = `${y}-${m}-${d}`;
+                }
+            }
+
+            // Sync logic for Mixed-Use Percentages
+            if (field === "mixedUseResidentialPct") {
+                const val = value === "" ? 0 : parseInt(value) || 0;
+                const cappedVal = Math.min(Math.max(val, 0), 100);
+                newState.mixedUseResidentialPct = value === "" ? "" : String(cappedVal);
+                newState.mixedUseCommercialPct = value === "" ? "" : String(100 - cappedVal);
+            }
+
+            // Sync logic for Manufacturing Percentages
+            if (field === "mfgMfgPct") {
+                const val = value === "" ? 0 : parseInt(value) || 0;
+                const cappedVal = Math.min(Math.max(val, 0), 100);
+                newState.mfgMfgPct = value === "" ? "" : String(cappedVal);
+                newState.mfgStoragePct = value === "" ? "" : String(100 - cappedVal);
+            } else if (field === "mfgStoragePct") {
+                const val = value === "" ? 0 : parseInt(value) || 0;
+                const cappedVal = Math.min(Math.max(val, 0), 100);
+                newState.mfgStoragePct = value === "" ? "" : String(cappedVal);
+                newState.mfgMfgPct = value === "" ? "" : String(100 - cappedVal);
+            } else if (field === "mixedUseCommercialPct") {
+                const val = value === "" ? 0 : parseInt(value) || 0;
+                const cappedVal = Math.min(Math.max(val, 0), 100);
+                newState.mixedUseCommercialPct = value === "" ? "" : String(cappedVal);
+                newState.mixedUseResidentialPct = value === "" ? "" : String(100 - cappedVal);
+            }
+            
+            return newState;
+        });
     };
 
     useEffect(() => {
@@ -320,7 +415,7 @@ function ApartmentBuildingsContent() {
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
                         programId: "apartment-buildings",
-                        programName: "Apartment Building",
+                        programName: "Commercial Property",
                         formData,
                     }),
                 });
@@ -390,7 +485,7 @@ function ApartmentBuildingsContent() {
                                                     <div className="p-1.5 bg-[#f5f1eb] text-[#9A8B7A] rounded-md">
                                                         <Home className="w-[18px] h-[18px]" />
                                                     </div>
-                                                    1-8 Unit Dwelling
+                                                    Commercial Property
                                                 </div>
                                                 <div className="text-gray-500 font-medium text-[13px]">
                                                     {appId || 'To be assigned'}
@@ -469,7 +564,7 @@ function ApartmentBuildingsContent() {
         <div className="max-w-[950px] mx-auto py-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <fieldset disabled={isViewMode} className={`space-y-10 ${isViewMode ? 'opacity-90 pointer-events-none' : ''}`}>
 
-                {renderSection("APARTMENT APPLICATION", (
+                {renderSection("Commercial Property Application", (
                     <>
                         <GridRow label="Agent Name" required>
                             {agentOptions.length > 0 ? (
@@ -487,9 +582,19 @@ function ApartmentBuildingsContent() {
                         <GridRow label="Applicant Mailing Address">
                             <textarea value={formData.applicantMailingAddress} onChange={(e) => handleInputChange("applicantMailingAddress", e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded focus:ring-[#9A8B7A] text-sm h-16 resize-none" />
                         </GridRow>
-                        <GridRow label="Property Name and Address">
-                            <textarea value={formData.propertyNameAndAddress} onChange={(e) => handleInputChange("propertyNameAndAddress", e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded focus:ring-[#9A8B7A] text-sm h-16 resize-none" />
+                        <GridRow label="Property Name and Address same as Applicant Mailing Address">
+                            <div className="pt-2">
+                                <YesNoRadio 
+                                    value={formData.isPropertyAddressSame} 
+                                    onChange={(v) => handleInputChange("isPropertyAddressSame", v)} 
+                                />
+                            </div>
                         </GridRow>
+                        {!formData.isPropertyAddressSame && (
+                            <GridRow label="Property Name and Address">
+                                <textarea value={formData.propertyNameAndAddress} onChange={(e) => handleInputChange("propertyNameAndAddress", e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded focus:ring-[#9A8B7A] text-sm h-16 resize-none" />
+                            </GridRow>
+                        )}
                         <GridRow label="Proposed Effective Date From">
                             <input type="date" value={formData.proposedEffectiveDateFrom} onChange={(e) => handleInputChange("proposedEffectiveDateFrom", e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded text-sm focus:ring-[#9A8B7A]" />
                             <p className="text-xs text-gray-500 mt-1">12:01 A.M. Standard Time</p>
@@ -500,6 +605,138 @@ function ApartmentBuildingsContent() {
                         <LongGridRow label="Bankruptcy – Within the last 5 years, were there any pending or planned bankruptcies, or judgements for unpaid taxes against you, or your majority partner?">
                             <div className="pt-2"><YesNoRadio value={formData.bankruptcyPending} onChange={(v) => handleInputChange("bankruptcyPending", v)} /></div>
                         </LongGridRow>
+                        <GridRow label="Building Type">
+                            <select 
+                                value={formData.buildingType} 
+                                onChange={(e) => handleInputChange("buildingType", e.target.value)} 
+                                className="w-full px-4 py-2 border border-gray-300 rounded focus:ring-[#9A8B7A] text-sm"
+                            >
+                                <option value="" disabled hidden>Select Building Type</option>
+                                <option value="Apartment">Apartment</option>
+                                <option value="Mixed-Use">Mixed-Use</option>
+                                <option value="Office">Office</option>
+                                <option value="Retail">Retail</option>
+                                <option value="Warehouse">Warehouse</option>
+                                <option value="Manufacturing">Manufacturing</option>
+                            </select>
+                        </GridRow>
+
+                        {formData.buildingType === 'Mixed-Use' && (
+                            <div className="bg-gray-50/50 p-6 rounded-lg border border-gray-200 mt-4 space-y-6 animate-in fade-in slide-in-from-top-2 duration-300">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <CircleDot className="w-4 h-4 text-[#9A8B7A]" />
+                                    <h4 className="text-sm font-bold text-[#7A6F64] uppercase tracking-wider">Mixed-Use Details</h4>
+                                </div>
+                                <GridRow label="% Residential & Commercial">
+                                    <div className="flex items-center justify-end gap-2">
+                                        <input type="text" value={formData.mixedUseResidentialPct} onChange={(e) => handleInputChange("mixedUseResidentialPct", e.target.value.replace(/\D/g, ''))} className="w-[120px] px-4 py-2 border border-gray-300 rounded text-sm focus:ring-[#9A8B7A]" />
+                                        <span className="text-gray-500 text-sm">%</span>
+                                    </div>
+                                </GridRow>
+                                <GridRow label="Types of Commercial Tenants">
+                                    <input type="text" value={formData.mixedUseCommercialTenants} onChange={(e) => handleInputChange("mixedUseCommercialTenants", e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded text-sm focus:ring-[#9A8B7A]" />
+                                </GridRow>
+                                <GridRow label="Any Cooking Exposure?">
+                                    <div className="pt-2"><YesNoRadio value={formData.mixedUseCookingExposure} onChange={(v) => handleInputChange("mixedUseCookingExposure", v)} /></div>
+                                </GridRow>
+                                <GridRow label="Separate Entrances?">
+                                    <div className="pt-2"><YesNoRadio value={formData.mixedUseSeparateEntrances} onChange={(v) => handleInputChange("mixedUseSeparateEntrances", v)} /></div>
+                                </GridRow>
+                                <GridRow label="Separate Utilities?">
+                                    <div className="pt-2"><YesNoRadio value={formData.mixedUseSeparateUtilities} onChange={(v) => handleInputChange("mixedUseSeparateUtilities", v)} /></div>
+                                </GridRow>
+                            </div>
+                        )}
+
+                        {formData.buildingType === 'Office' && (
+                            <div className="bg-gray-50/50 p-6 rounded-lg border border-gray-200 mt-4 space-y-6 animate-in fade-in slide-in-from-top-2 duration-300">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <CircleDot className="w-4 h-4 text-[#9A8B7A]" />
+                                    <h4 className="text-sm font-bold text-[#7A6F64] uppercase tracking-wider">Office Details</h4>
+                                </div>
+                                <GridRow label="Owner-Occupied or Tenant-Occupied?">
+                                    <input type="text" value={formData.officeOccupancyType} onChange={(e) => handleInputChange("officeOccupancyType", e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded text-sm focus:ring-[#9A8B7A]" />
+                                </GridRow>
+                                <GridRow label="Type of Tenants (Professional, Call Center, Medical, etc.)">
+                                    <textarea value={formData.officeTenantTypes} onChange={(e) => handleInputChange("officeTenantTypes", e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded text-sm focus:ring-[#9A8B7A] h-16 resize-none" />
+                                </GridRow>
+                                <GridRow label="Any Medical Offices?">
+                                    <div className="pt-2"><YesNoRadio value={formData.officeMedicalOffices} onChange={(v) => handleInputChange("officeMedicalOffices", v)} /></div>
+                                </GridRow>
+                                <GridRow label="High Foot Traffic?">
+                                    <div className="pt-2"><YesNoRadio value={formData.officeHighFootTraffic} onChange={(v) => handleInputChange("officeHighFootTraffic", v)} /></div>
+                                </GridRow>
+                            </div>
+                        )}
+
+                        {formData.buildingType === 'Retail' && (
+                            <div className="bg-gray-50/50 p-6 rounded-lg border border-gray-200 mt-4 space-y-6 animate-in fade-in slide-in-from-top-2 duration-300">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <CircleDot className="w-4 h-4 text-[#9A8B7A]" />
+                                    <h4 className="text-sm font-bold text-[#7A6F64] uppercase tracking-wider">Retail Details</h4>
+                                </div>
+                                <GridRow label="Type of Retail (Clothing, Liquor, Smoke Shop, etc.)">
+                                    <input type="text" value={formData.retailType} onChange={(e) => handleInputChange("retailType", e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded text-sm focus:ring-[#9A8B7A]" />
+                                </GridRow>
+                                <GridRow label="Any Cooking?">
+                                    <div className="pt-2"><YesNoRadio value={formData.retailCooking} onChange={(v) => handleInputChange("retailCooking", v)} /></div>
+                                </GridRow>
+                                <GridRow label="Hours of Operation">
+                                    <input type="text" value={formData.retailHours} onChange={(e) => handleInputChange("retailHours", e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded text-sm focus:ring-[#9A8B7A]" placeholder="e.g., 9 AM - 9 PM" />
+                                </GridRow>
+                            </div>
+                        )}
+
+                        {formData.buildingType === 'Warehouse' && (
+                            <div className="bg-gray-50/50 p-6 rounded-lg border border-gray-200 mt-4 space-y-6 animate-in fade-in slide-in-from-top-2 duration-300">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <CircleDot className="w-4 h-4 text-[#9A8B7A]" />
+                                    <h4 className="text-sm font-bold text-[#7A6F64] uppercase tracking-wider">Warehouse Details</h4>
+                                </div>
+                                <GridRow label="What is Stored? (Description)">
+                                    <textarea value={formData.warehouseStoredItems} onChange={(e) => handleInputChange("warehouseStoredItems", e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded text-sm focus:ring-[#9A8B7A] h-20 resize-none" />
+                                </GridRow>
+                                <GridRow label="Storage Height">
+                                    <input type="text" value={formData.warehouseStorageHeight} onChange={(e) => handleInputChange("warehouseStorageHeight", e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded text-sm focus:ring-[#9A8B7A]" placeholder="e.g., 20 ft" />
+                                </GridRow>
+                                <GridRow label="Any Hazardous Materials?">
+                                    <div className="pt-2"><YesNoRadio value={formData.warehouseHazardousMaterials} onChange={(v) => handleInputChange("warehouseHazardousMaterials", v)} /></div>
+                                </GridRow>
+                                <GridRow label="Owner-Occupied or Tenant-Occupied?">
+                                    <input type="text" value={formData.warehouseOccupancyType} onChange={(e) => handleInputChange("warehouseOccupancyType", e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded text-sm focus:ring-[#9A8B7A]" />
+                                </GridRow>
+                                <GridRow label="Distribution or Storage Only?">
+                                    <input type="text" value={formData.warehouseUsageType} onChange={(e) => handleInputChange("warehouseUsageType", e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded text-sm focus:ring-[#9A8B7A]" />
+                                </GridRow>
+                            </div>
+                        )}
+
+                        {formData.buildingType === 'Manufacturing' && (
+                            <div className="bg-gray-50/50 p-6 rounded-lg border border-gray-200 mt-4 space-y-6 animate-in fade-in slide-in-from-top-2 duration-300">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <CircleDot className="w-4 h-4 text-[#9A8B7A]" />
+                                    <h4 className="text-sm font-bold text-[#7A6F64] uppercase tracking-wider">Manufacturing Details</h4>
+                                </div>
+                                <GridRow label="Description of Operations">
+                                    <textarea value={formData.mfgOpsDescription} onChange={(e) => handleInputChange("mfgOpsDescription", e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded text-sm focus:ring-[#9A8B7A] h-20 resize-none" />
+                                </GridRow>
+                                <GridRow label="Type of Products Manufactured">
+                                    <input type="text" value={formData.mfgProductTypes} onChange={(e) => handleInputChange("mfgProductTypes", e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded text-sm focus:ring-[#9A8B7A]" />
+                                </GridRow>
+                                <GridRow label="Any Heavy Machinery?">
+                                    <div className="pt-2"><YesNoRadio value={formData.mfgHeavyMachinery} onChange={(v) => handleInputChange("mfgHeavyMachinery", v)} /></div>
+                                </GridRow>
+                                <GridRow label="Any Flammable Materials?">
+                                    <div className="pt-2"><YesNoRadio value={formData.mfgFlammableMaterials} onChange={(v) => handleInputChange("mfgFlammableMaterials", v)} /></div>
+                                </GridRow>
+                                <GridRow label="% Manufacturing & Storage">
+                                    <div className="flex items-center justify-end gap-2">
+                                        <input type="text" value={formData.mfgMfgPct} onChange={(e) => handleInputChange("mfgMfgPct", e.target.value.replace(/\D/g, ''))} className="w-[120px] px-4 py-2 border border-gray-300 rounded text-sm focus:ring-[#9A8B7A]" />
+                                        <span className="text-gray-500 text-sm">%</span>
+                                    </div>
+                                </GridRow>
+                            </div>
+                        )}
                     </>
                 ))}
 
@@ -511,7 +748,7 @@ function ApartmentBuildingsContent() {
                                 <label className="flex items-center gap-2"><input type="radio" checked={formData.interestInPropertyRadio === 'Manager'} onChange={() => handleInputChange('interestInPropertyRadio', 'Manager')} className="text-[#9A8B7A] focus:ring-[#9A8B7A]" /> Manager</label>
                             </div>
                         </GridRow>
-                        {formData.interestInPropertyRadio === 'Owner' && (
+                        {formData.interestInPropertyRadio === 'Manager' && (
                             <>
                                 <LongGridRow label="Name of Property Management Firm:">
                                     <input type="text" value={formData.propertyManagementFirmName} onChange={(e) => handleInputChange("propertyManagementFirmName", e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded text-sm focus:ring-[#9A8B7A]" />
@@ -530,17 +767,133 @@ function ApartmentBuildingsContent() {
 
                 {renderSection("Property Details", (
                     <>
-                        <GridRow label="Age of Building(s)"><input type="text" value={formData.buildingAge} onChange={(e) => handleInputChange("buildingAge", e.target.value.replace(/\D/g, '').slice(0, 4))} className="w-full px-4 py-2 border border-gray-300 rounded text-sm" /></GridRow>
-                        <GridRow label="Age of Roof"><input type="text" value={formData.roofAge} onChange={(e) => handleInputChange("roofAge", e.target.value.replace(/\D/g, '').slice(0, 4))} className="w-full px-4 py-2 border border-gray-300 rounded text-sm" /></GridRow>
+                        <GridRow label="Year Built"><input type="text" value={formData.yearBuilt} onChange={(e) => handleInputChange("yearBuilt", e.target.value.replace(/\D/g, '').slice(0, 4))} className="w-full px-4 py-2 border border-gray-300 rounded text-sm" /></GridRow>
+                        <GridRow label="Year of Roof Installation (or Last Replacement)"><input type="text" value={formData.yearRoofInstalled} onChange={(e) => handleInputChange("yearRoofInstalled", e.target.value.replace(/\D/g, '').slice(0, 4))} className="w-full px-4 py-2 border border-gray-300 rounded text-sm" /></GridRow>
+                        <GridRow label="Year of Wiring Installation (or Last Replacement)"><input type="text" value={formData.yearWiringInstalled} onChange={(e) => handleInputChange("yearWiringInstalled", e.target.value.replace(/\D/g, '').slice(0, 4))} className="w-full px-4 py-2 border border-gray-300 rounded text-sm" /></GridRow>
+                        <GridRow label="Year of Plumbing Installation (or Last Replacement)"><input type="text" value={formData.yearPlumbingInstalled} onChange={(e) => handleInputChange("yearPlumbingInstalled", e.target.value.replace(/\D/g, '').slice(0, 4))} className="w-full px-4 py-2 border border-gray-300 rounded text-sm" /></GridRow>
+                        <GridRow label="Year of Heating Installation (or Last Replacement)"><input type="text" value={formData.yearHeatingInstalled} onChange={(e) => handleInputChange("yearHeatingInstalled", e.target.value.replace(/\D/g, '').slice(0, 4))} className="w-full px-4 py-2 border border-gray-300 rounded text-sm" /></GridRow>
+
                         <GridRow label="Number of Units"><input type="text" value={formData.numberOfUnits} onChange={(e) => handleInputChange("numberOfUnits", e.target.value.replace(/\D/g, ''))} className="w-full px-4 py-2 border border-gray-300 rounded text-sm" /></GridRow>
                         <GridRow label="Number of Stories"><input type="text" value={formData.numberOfStories} onChange={(e) => handleInputChange("numberOfStories", e.target.value.replace(/\D/g, ''))} className="w-full px-4 py-2 border border-gray-300 rounded text-sm" /></GridRow>
-                        <GridRow label="Construction"><input type="text" value={formData.constructionType} onChange={(e) => handleInputChange("constructionType", e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded text-sm" /></GridRow>
+                        <GridRow label="Basement">
+                            <div className="pt-2">
+                                <YesNoRadio value={formData.hasBasement} onChange={(v) => handleInputChange("hasBasement", v)} />
+                            </div>
+                        </GridRow>
+                        <GridRow label="Total Building Area (Sq Ft)">
+                            <div className="flex items-center justify-end gap-2">
+                                <input type="text" value={formData.totalBuildingArea} onChange={(e) => handleInputChange("totalBuildingArea", e.target.value.replace(/\D/g, ''))} className="w-full px-4 py-2 border border-gray-300 rounded text-sm focus:ring-[#9A8B7A]" placeholder="e.g., 5,000" />
+                                <span className="text-gray-500 text-sm whitespace-nowrap">Sq Ft</span>
+                            </div>
+                        </GridRow>
+                        <GridRow label="Construction Type">
+                            <select 
+                                value={formData.constructionType} 
+                                onChange={(e) => handleInputChange("constructionType", e.target.value)} 
+                                className="w-full px-4 py-2 border border-gray-300 rounded focus:ring-[#9A8B7A] text-sm"
+                            >
+                                <option value="" disabled hidden>Select Construction Type</option>
+                                <option value="Frame">Frame</option>
+                                <option value="Joisted Masonry">Joisted Masonry</option>
+                                <option value="Non-Combustible">Non-Combustible</option>
+                                <option value="Masonry Non-Combustible">Masonry Non-Combustible</option>
+                                <option value="Fire Resistive">Fire Resistive</option>
+                            </select>
+                        </GridRow>
                         <GridRow label="Protection Class"><input type="text" value={formData.protectionClass} onChange={(e) => handleInputChange("protectionClass", e.target.value.replace(/\D/g, ''))} className="w-full px-4 py-2 border border-gray-300 rounded text-sm" /></GridRow>
                         <GridRow label="Percentage Occupied (%)"><div className="flex items-center justify-end gap-2"><input type="text" value={formData.percentageOccupied} onChange={(e) => handleInputChange("percentageOccupied", e.target.value.replace(/\D/g, ''))} className="w-[120px] px-4 py-2 border border-gray-300 rounded text-sm" /><span className="text-gray-500 text-sm">%</span></div></GridRow>
-                        <GridRow label="Percentage Students (%)"><div className="flex items-center justify-end gap-2"><input type="text" value={formData.percentageStudents} onChange={(e) => handleInputChange("percentageStudents", e.target.value.replace(/\D/g, ''))} className="w-[120px] px-4 py-2 border border-gray-300 rounded text-sm" /><span className="text-gray-500 text-sm">%</span></div></GridRow>
-                        <GridRow label="Percentage Subsidized (%)"><div className="flex items-center justify-end gap-2"><input type="text" value={formData.percentageSubsidized} onChange={(e) => handleInputChange("percentageSubsidized", e.target.value.replace(/\D/g, ''))} className="w-[120px] px-4 py-2 border border-gray-300 rounded text-sm" /><span className="text-gray-500 text-sm">%</span></div></GridRow>
+                        <GridRow label="Distance to Fire Hydrant"><input type="text" value={formData.distanceToFireHydrant} onChange={(e) => handleInputChange("distanceToFireHydrant", e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded text-sm focus:ring-[#9A8B7A]" placeholder="e.g., 500 ft" /></GridRow>
+                        <GridRow label="Distance to Fire Station"><input type="text" value={formData.distanceToFireStation} onChange={(e) => handleInputChange("distanceToFireStation", e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded text-sm focus:ring-[#9A8B7A]" placeholder="e.g., 2 miles" /></GridRow>
+                        <GridRow label="Fire District"><input type="text" value={formData.fireDistrict} onChange={(e) => handleInputChange("fireDistrict", e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded text-sm focus:ring-[#9A8B7A]" /></GridRow>
+
                         <GridRow label="Percentage Elderly (%)"><div className="flex items-center justify-end gap-2"><input type="text" value={formData.percentageElderly} onChange={(e) => handleInputChange("percentageElderly", e.target.value.replace(/\D/g, ''))} className="w-[120px] px-4 py-2 border border-gray-300 rounded text-sm" /><span className="text-gray-500 text-sm">%</span></div></GridRow>
                         <GridRow label="Percentage Sprinklered (%)"><div className="flex items-center justify-end gap-2"><input type="text" value={formData.percentageSprinklered} onChange={(e) => handleInputChange("percentageSprinklered", e.target.value.replace(/\D/g, ''))} className="w-[120px] px-4 py-2 border border-gray-300 rounded text-sm" /><span className="text-gray-500 text-sm">%</span></div></GridRow>
+
+                        <GridRow label="Are there multiple buildings or structures?">
+                            <div className="pt-2">
+                                <YesNoRadio value={formData.hasMultipleBuildings} onChange={(v) => handleInputChange("hasMultipleBuildings", v)} />
+                            </div>
+                        </GridRow>
+
+                        {formData.hasMultipleBuildings && (
+                            <GridRow label="Subject of Insurance">
+                                <select 
+                                    value={formData.subjectOfInsurance} 
+                                    onChange={(e) => handleInputChange("subjectOfInsurance", e.target.value)} 
+                                    className="w-full px-4 py-2 border border-gray-300 rounded focus:ring-[#9A8B7A] text-sm"
+                                >
+                                    <option value="" disabled hidden>Select Subject</option>
+                                    <option value="Building">Building</option>
+                                    <option value="Business Personal Property (BPP)">Business Personal Property (BPP)</option>
+                                    <option value="Business Income">Business Income</option>
+                                </select>
+                            </GridRow>
+                        )}
+
+                        <GridRow label="Limit ($)">
+                            <div className="flex items-center justify-end gap-2">
+                                <span className="text-gray-500 text-sm">$</span>
+                                <input type="text" value={formData.propertyLimit} onChange={(e) => handleInputChange("propertyLimit", e.target.value.replace(/\D/g, ''))} className="w-full px-4 py-2 border border-gray-300 rounded text-sm focus:ring-[#9A8B7A]" />
+                            </div>
+                        </GridRow>
+
+                        <GridRow label="Coinsurance (%)">
+                            <select 
+                                value={formData.propertyCoinsurance} 
+                                onChange={(e) => handleInputChange("propertyCoinsurance", e.target.value)} 
+                                className="w-full px-4 py-2 border border-gray-300 rounded focus:ring-[#9A8B7A] text-sm"
+                            >
+                                <option value="" disabled hidden>Select Coinsurance</option>
+                                <option value="80%">80%</option>
+                                <option value="90%">90%</option>
+                                <option value="100%">100%</option>
+                            </select>
+                        </GridRow>
+
+                        <GridRow label="Valuation">
+                            <select 
+                                value={formData.propertyValuation} 
+                                onChange={(e) => handleInputChange("propertyValuation", e.target.value)} 
+                                className="w-full px-4 py-2 border border-gray-300 rounded focus:ring-[#9A8B7A] text-sm"
+                            >
+                                <option value="" disabled hidden>Select Valuation</option>
+                                <option value="Replacement Cost (RC)">Replacement Cost (RC)</option>
+                                <option value="Actual Cash Value (ACV)">Actual Cash Value (ACV)</option>
+                            </select>
+                        </GridRow>
+
+                        <GridRow label="Causes of Loss">
+                            <select 
+                                value={formData.propertyCausesOfLoss} 
+                                onChange={(e) => handleInputChange("propertyCausesOfLoss", e.target.value)} 
+                                className="w-full px-4 py-2 border border-gray-300 rounded focus:ring-[#9A8B7A] text-sm"
+                            >
+                                <option value="" disabled hidden>Select Causes of Loss</option>
+                                <option value="Basic">Basic</option>
+                                <option value="Broad">Broad</option>
+                                <option value="Special (All Risk)">Special (All Risk)</option>
+                            </select>
+                        </GridRow>
+
+                        <GridRow label="Deductible ($)">
+                            <div className="flex items-center justify-end gap-2">
+                                <span className="text-gray-500 text-sm">$</span>
+                                <input type="text" value={formData.propertyDeductible} onChange={(e) => handleInputChange("propertyDeductible", e.target.value.replace(/\D/g, ''))} className="w-full px-4 py-2 border border-gray-300 rounded text-sm focus:ring-[#9A8B7A]" />
+                            </div>
+                        </GridRow>
+
+                        <GridRow label="Deductible Type">
+                            <select 
+                                value={formData.propertyDeductibleType} 
+                                onChange={(e) => handleInputChange("propertyDeductibleType", e.target.value)} 
+                                className="w-full px-4 py-2 border border-gray-300 rounded focus:ring-[#9A8B7A] text-sm"
+                            >
+                                <option value="" disabled hidden>Select Deductible Type</option>
+                                <option value="Per Occurrence">Per Occurrence</option>
+                                <option value="Per Claim">Per Claim</option>
+                                <option value="All Other Perils (AOP)">All Other Perils (AOP)</option>
+                            </select>
+                        </GridRow>
 
                         <div className="border-t border-gray-200 mt-6 pt-6"></div>
                         <h3 className="font-semibold text-gray-900 -mt-2 mb-4">Types of Systems</h3>

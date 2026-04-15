@@ -242,7 +242,7 @@ export async function POST(req: NextRequest) {
       let htmlContent: string = "";
 
       if (programId === "apartment-buildings") {
-        console.log("📄 Generating Apartment Buildings PDF...");
+        console.log("📄 Generating Commercial Property PDF...");
         const apartmentData = mapApartmentDataToPacketData(
           submission.payload,
           submission.submissionNumber?.toString() || applicationNumber,

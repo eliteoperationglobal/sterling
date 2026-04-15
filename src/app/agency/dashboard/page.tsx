@@ -786,10 +786,11 @@ function AgencyDashboardContent() {
                           "New business"
                         ) : (
                           <>
-                            {sub.industry === "Apartment Building" ? "Property" : (
-                             sub.hasGeneral && sub.hasExcess ? "General & Excess Liability" :
-                             sub.hasExcess ? "Excess Liability" : "General Liability"
-                            )}
+                            {sub.industry === "Construction Equipment" ? "Inland Marine" :
+                              sub.industry === "Apartment Building" || sub.industry === "Commercial Property" ? "Property" : (
+                                sub.hasGeneral && sub.hasExcess ? "General & Excess Liability" :
+                                  sub.hasExcess ? "Excess Liability" : "General Liability"
+                              )}
                           </>
                         )}
                       </td>

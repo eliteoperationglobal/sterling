@@ -695,6 +695,11 @@ function SubmissionDetailsContent() {
   const isBindRequested = submission?.status === "BIND_REQUESTED";
   const isBound = submission?.status === "BOUND";
 
+  const baseQuoteUrl = ["inland-marine", "contractors-equipment"].includes(submission?.programId || "") || 
+                       ["Equipment", "Construction Equipment"].includes(submission?.programName || "")
+    ? "/agency/quote/contractors-equipment"
+    : `/agency/quote/${submission?.programId}`;
+
   const boundQuote = quotes.find(q => q.status === "BOUND");
 
 
@@ -954,7 +959,7 @@ function SubmissionDetailsContent() {
                   <button
                     onClick={() =>
                       window.open(
-                        `/agency/quote/${submission.programId}?mode=view&id=${currentQuote?._id || submission._id}`,
+                        `${baseQuoteUrl}?mode=view&id=${currentQuote?._id || submission._id}`,
                         "_blank"
                       )
                     }
@@ -965,7 +970,7 @@ function SubmissionDetailsContent() {
                   <button
                     onClick={() =>
                       window.open(
-                        `/agency/quote/${submission.programId}?mode=edit&id=${submission._id}`,
+                        `${baseQuoteUrl}?mode=edit&id=${submission._id}`,
                         "_blank"
                       )
                     }
@@ -1007,7 +1012,7 @@ function SubmissionDetailsContent() {
                   <button
                     onClick={() =>
                       window.open(
-                        `/agency/quote/${submission.programId}?mode=view&id=${submission._id}`,
+                        `${baseQuoteUrl}?mode=view&id=${submission._id}`,
                         "_blank"
                       )
                     }
@@ -1019,7 +1024,7 @@ function SubmissionDetailsContent() {
                   <button
                     onClick={() =>
                       window.open(
-                        `/agency/quote/${submission.programId}?mode=edit&id=${submission._id}`,
+                        `${baseQuoteUrl}?mode=edit&id=${submission._id}`,
                         "_blank"
                       )
                     }
@@ -1086,7 +1091,7 @@ function SubmissionDetailsContent() {
                   <button
                     onClick={() =>
                       window.open(
-                        `/agency/quote/${submission.programId}?mode=view&id=${submission._id}`,
+                        `${baseQuoteUrl}?mode=view&id=${submission._id}`,
                         "_blank"
                       )
                     }
@@ -1117,7 +1122,7 @@ function SubmissionDetailsContent() {
                     className={iscOutlineBtn}
                     onClick={() =>
                       window.open(
-                        `/agency/quote/${submission.programId}?mode=edit&id=${submission._id}`,
+                        `${baseQuoteUrl}?mode=edit&id=${submission._id}`,
                         "_blank"
                       )
                     }>
@@ -1214,7 +1219,7 @@ function SubmissionDetailsContent() {
                   <button
                     onClick={() =>
                       window.open(
-                        `/agency/quote/${submission.programId}?mode=view&id=${submission._id}`,
+                        `${baseQuoteUrl}?mode=view&id=${submission._id}`,
                         "_blank"
                       )
                     }
@@ -1237,7 +1242,7 @@ function SubmissionDetailsContent() {
                     className={iscOutlineBtn}
                     onClick={() =>
                       window.open(
-                        `/agency/quote/${submission.programId}?mode=edit&id=${submission._id}`,
+                        `${baseQuoteUrl}?mode=edit&id=${submission._id}`,
                         "_blank"
                       )
                     }>

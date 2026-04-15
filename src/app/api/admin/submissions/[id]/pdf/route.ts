@@ -66,7 +66,7 @@ export async function GET(
     let htmlContent: string = "";
 
     if (submission.programId === "apartment-buildings") {
-      console.log("📄 [Admin PDF Download] Generating Apartment Buildings PDF...");
+      console.log("📄 [Admin PDF Download] Generating Commercial Property PDF...");
       const apartmentData = mapApartmentDataToPacketData(
         formData,
         submission.submissionNumber?.toString() || submission._id.toString(),

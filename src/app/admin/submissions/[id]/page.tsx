@@ -124,12 +124,18 @@ function ApplicationDataViewer({ data, type }: { data: any; type: "key" | "addit
       "effectiveDate",
       "statesOfOperation",
       "carrierApprovedDescription",
-      // Apartment Buildings specific
+      // Commercial Property specific
       "totalInsuredValue",
       "buildingAge",
       "numberOfUnits",
       "buildingStories",
-      "constructionType"
+      "constructionType",
+      // Contractors Equipment specific
+      "heavyLimit",
+      "lightMedLimit",
+      "miscToolsLimit",
+      "rentedEquipLimit",
+      "deductible"
     ];
     return importantFields.includes(key);
   };
@@ -946,11 +952,14 @@ export default function AdminSubmissionDetailsPage() {
             </div>
             <div>
               <p className="text-gray-500 mb-1 leading-tight">
-                {submission.programId === 'apartment-buildings' ? 'Total Insured Value (TIV):' : 'Estimated Gross Receipts:'}
+                {submission.programId === 'apartment-buildings' ? 'Total Insured Value (TIV):' : 
+                 submission.programId === 'contractors-equipment' ? 'Total Equipment Value:' : 'Estimated Gross Receipts:'}
               </p>
               <p className="font-semibold text-gray-900">
                 {submission.programId === 'apartment-buildings' 
                   ? (submission?.payload?.propertyOccupancy?.totalInsuredValue ? `$${Number(submission.payload.propertyOccupancy.totalInsuredValue).toLocaleString()}` : "—")
+                  : submission.programId === 'contractors-equipment'
+                  ? (submission?.payload?.heavyLimit || submission?.payload?.lightMedLimit ? `$${(Number(submission.payload.heavyLimit || 0) + Number(submission.payload.lightMedLimit || 0)).toLocaleString()}` : "—")
                   : (submission?.payload?.estimatedGrossReceipts ? `$${Number(submission.payload.estimatedGrossReceipts).toLocaleString()}` : "—")
                 }
               </p>
