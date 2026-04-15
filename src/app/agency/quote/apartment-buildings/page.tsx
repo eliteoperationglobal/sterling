@@ -1,7 +1,9 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+
 import { useSession } from "next-auth/react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import {
@@ -71,7 +73,7 @@ const LongGridRow = ({ label, children, required = false }: any) => (
     </div>
 );
 
-export default function ApartmentBuildingsSubmission() {
+function ApartmentBuildingsContent() {
     const router = useRouter();
     const { data: session } = useSession();
     const searchParams = useSearchParams();
@@ -780,5 +782,20 @@ export default function ApartmentBuildingsSubmission() {
 
             {renderForm()}
         </div>
+    );
+}
+
+export default function ApartmentBuildingsSubmission() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-[#fafaf9] flex items-center justify-center">
+                <div className="text-center">
+                    <div className="inline-block w-8 h-8 border-4 border-[#9A8B7A] border-t-transparent rounded-full animate-spin mb-4"></div>
+                    <p className="text-gray-500 font-medium">Loading Application...</p>
+                </div>
+            </div>
+        }>
+            <ApartmentBuildingsContent />
+        </Suspense>
     );
 }

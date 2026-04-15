@@ -165,6 +165,14 @@ export interface ApartmentPacketData {
 
     desiredCoverageDates?: string;
     policyEndorsements?: string;
+
+    // Coverage Limits
+    occurrenceLimit?: string;
+    aggregateLimit?: string;
+    productsCompletedOpsLimit?: string;
+    personalAdvertisingInjuryLimit?: string;
+    fireLegalLimit?: string;
+    medPayLimit?: string;
 }
 
 export function mapApartmentDataToPacketData(
@@ -334,6 +342,14 @@ export function mapApartmentDataToPacketData(
 
         desiredCoverageDates: quote ? `${new Date(quote.effectiveDate).toLocaleDateString()} - ${new Date(quote.expirationDate).toLocaleDateString()}` : "",
         policyEndorsements: quote?.endorsements ? quote.endorsements.join(", ") : "-",
+
+        // Limits mapping from quote metadata
+        occurrenceLimit: quote?.metadata?.limits?.occurrence ? `$${quote.metadata.limits.occurrence.toLocaleString()}` : undefined,
+        aggregateLimit: quote?.metadata?.limits?.aggregate ? `$${quote.metadata.limits.aggregate.toLocaleString()}` : undefined,
+        productsCompletedOpsLimit: quote?.metadata?.limits?.productsCompletedOps ? `$${quote.metadata.limits.productsCompletedOps.toLocaleString()}` : undefined,
+        personalAdvertisingInjuryLimit: quote?.metadata?.limits?.personalAdvertisingInjury ? `$${quote.metadata.limits.personalAdvertisingInjury.toLocaleString()}` : undefined,
+        fireLegalLimit: quote?.metadata?.limits?.fireLegal ? `$${quote.metadata.limits.fireLegal.toLocaleString()}` : undefined,
+        medPayLimit: quote?.metadata?.limits?.medicalExpense ? `$${quote.metadata.limits.medicalExpense.toLocaleString()}` : undefined,
     };
 }
 

@@ -528,6 +528,158 @@ const cssContent = `
     .footer { position: absolute; bottom: 0.5in; left: 0.6in; right: 0.6in; border-top: 1px solid #eee; padding-top: 5px; font-size: 8.5pt; color: #999; text-align: center; }
 `;
 
+
+/**
+ * Page: Proposal Cover & Financials
+ */
+function generateProposalPage(data: ApartmentPacketData): string {
+    return `
+        <div class="page">
+            ${generateHeader("INSURANCE PROPOSAL", data)}
+            
+            <div class="section-container">
+                <div class="section-header">QUOTATION SUMMARY</div>
+                <hr class="section-divider" />
+                
+                <div class="field-grid">
+                    ${renderField("Carrier", data.carrierName, "50%")}
+                    ${renderField("Quote Type", data.quoteType, "50%")}
+                </div>
+                <div class="field-grid">
+                    ${renderField("Coverage Type", data.coverageType, "50%")}
+                    ${renderField("Coverage Dates", data.desiredCoverageDates, "50%")}
+                </div>
+            </div>
+
+            <div class="section-container">
+                <div class="section-header">LIMITS OF LIABILITY</div>
+                <hr class="section-divider" />
+                <div class="question-list">
+                    <div class="question-row">
+                        <div class="question-text">Each Occurrence Limit</div>
+                        <div class="field-value">${data.occurrenceLimit || "$1,000,000"}</div>
+                    </div>
+                    <div class="question-row">
+                        <div class="question-text">General Aggregate Limit</div>
+                        <div class="field-value">${data.aggregateLimit || "$2,000,000"}</div>
+                    </div>
+                    <div class="question-row">
+                        <div class="question-text">Products/Completed Operations Aggregate</div>
+                        <div class="field-value">${data.productsCompletedOpsLimit || "$2,000,000"}</div>
+                    </div>
+                    <div class="question-row">
+                        <div class="question-text">Personal & Advertising Injury</div>
+                        <div class="field-value">${data.personalAdvertisingInjuryLimit || "$1,000,000"}</div>
+                    </div>
+                    <div class="question-row">
+                        <div class="question-text">Damage to Premises Rented to You (Fire Legal)</div>
+                        <div class="field-value">${data.fireLegalLimit || "$100,000"}</div>
+                    </div>
+                    <div class="question-row">
+                        <div class="question-text">Medical Expense Limit</div>
+                        <div class="field-value">${data.medPayLimit || "$5,000"}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-container">
+                <div class="section-header">PREMIUM & FEES BREAKDOWN</div>
+                <hr class="section-divider" />
+                <div class="question-list">
+                    <div class="question-row">
+                        <div class="question-text">Base Premium</div>
+                        <div class="field-value">${data.premium}</div>
+                    </div>
+                    <div class="question-row">
+                        <div class="question-text">Wholesale Fee</div>
+                        <div class="field-value">${data.carrierPolicyFee}</div>
+                    </div>
+                    <div class="question-row">
+                        <div class="question-text">Broker Fee</div>
+                        <div class="field-value">${data.sterlingFees}</div>
+                    </div>
+                    <div class="question-row">
+                        <div class="question-text">Surplus Lines Tax</div>
+                        <div class="field-value">${data.surplusLinesTax}</div>
+                    </div>
+                    <div class="question-row">
+                        <div class="question-text">Stamping Fee</div>
+                        <div class="field-value">${data.stampingFee}</div>
+                    </div>
+                    ${data.fireMarshalTax && data.fireMarshalTax !== "$0.00" ? `
+                        <div class="question-row">
+                            <div class="question-text">Fire Marshal Tax</div>
+                            <div class="field-value">${data.fireMarshalTax}</div>
+                        </div>
+                    ` : ''}
+                    <div class="divider"></div>
+                    <div class="question-row" style="font-size: 12pt;">
+                        <div class="question-text" style="font-weight: bold;">TOTAL COST</div>
+                        <div class="field-value" style="font-weight: bold;">${data.totalCostOfPolicy}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer">Proposal Page</div>
+        </div>
+    `;
+}
+
+/**
+ * Page: Invoice Statement
+ */
+function generateInvoicePage(data: ApartmentPacketData): string {
+    return `
+        <div class="page">
+            ${generateHeader("INVOICE STATEMENT", data)}
+            
+            <div class="agency-bar">
+                <div><strong>REMIT PAYMENT TO:</strong></div>
+                <div>${data.agencyName}</div>
+                <div>${data.agencyAddress}, ${data.agencyCity}, ${data.agencyState} ${data.agencyZip}</div>
+            </div>
+
+            <div class="section-container">
+                <div class="section-header">BILLING SUMMARY</div>
+                <hr class="section-divider" />
+                <div class="field-grid">
+                    ${renderField("Insured", data.companyName, "60%")}
+                    ${renderField("Submission #", data.submissionNumber, "40%")}
+                </div>
+                <div class="field-grid">
+                    ${renderField("Policy Period", data.desiredCoverageDates, "100%")}
+                </div>
+            </div>
+
+            <div class="section-container">
+                <div class="section-header">AMOUNT DUE</div>
+                <hr class="section-divider" />
+                <div class="question-list">
+                    <div class="question-row">
+                        <div class="question-text">Total Policy Premium & Taxes</div>
+                        <div class="field-value">${data.totalCostOfPolicy}</div>
+                    </div>
+                    <div class="question-row">
+                        <div class="question-text">Minimum Deposit Required</div>
+                        <div class="field-value">${data.totalDeposit}</div>
+                    </div>
+                    <div class="divider"></div>
+                    <div class="question-row" style="font-size: 12pt;">
+                        <div class="question-text" style="font-weight: bold;">TOTAL AMOUNT PAYABLE</div>
+                        <div class="field-value" style="font-weight: bold;">${data.totalToBeSent}</div>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 40px; font-size: 9pt; color: #666; line-height: 1.5;">
+                    <p><strong>Notice:</strong> Please make checks payable to <strong>${data.agencyName}</strong>. Standard processing time for binding is 24-48 hours after receipt of all signed documents and payment.</p>
+                </div>
+            </div>
+
+            <div class="footer">Invoice Statement</div>
+        </div>
+    `;
+}
+
 export function generateApartmentPacketHTML(data: ApartmentPacketData): string {
     return `
         <!DOCTYPE html>
@@ -549,6 +701,34 @@ export function generateApartmentPacketHTML(data: ApartmentPacketData): string {
     `;
 }
 
-// Invoice and Proposal functions removed as they are not part of the input form
+export function generateApartmentProposalHTML(data: ApartmentPacketData): string {
+    return `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <style>${cssContent}</style>
+        </head>
+        <body>
+            ${generateProposalPage(data)}
+        </body>
+        </html>
+    `;
+}
+
+export function generateApartmentInvoiceHTML(data: ApartmentPacketData): string {
+    return `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <style>${cssContent}</style>
+        </head>
+        <body>
+            ${generateInvoicePage(data)}
+        </body>
+        </html>
+    `;
+}
 
 
