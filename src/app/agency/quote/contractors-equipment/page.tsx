@@ -1,6 +1,8 @@
 "use client"
 
-import React, { useState, useRef, useEffect } from 'react'
+export const dynamic = 'force-dynamic';
+
+import React, { useState, useRef, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { ArrowLeft, Plus } from 'lucide-react'
@@ -206,7 +208,7 @@ const StatesMultiSelect = ({ selected, onChange }: { selected: string[]; onChang
 }
 
 // ═══════════════════════════════════════════════════════════════════
-export default function ContractorsEquipmentPage() {
+function ContractorsEquipmentContent() {
     const router = useRouter()
     const searchParams = useSearchParams()
     const mode = searchParams.get('mode')
@@ -1158,5 +1160,20 @@ export default function ContractorsEquipmentPage() {
 
             </div>
         </div>
+    )
+}
+
+export default function ContractorsEquipmentPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="inline-block w-8 h-8 border-4 border-[#7A6F64] border-t-transparent rounded-full animate-spin mb-4"></div>
+                    <p className="text-gray-500 font-medium text-sm">Loading Application...</p>
+                </div>
+            </div>
+        }>
+            <ContractorsEquipmentContent />
+        </Suspense>
     )
 }
