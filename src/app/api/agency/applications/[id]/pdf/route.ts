@@ -115,7 +115,8 @@ export async function GET(
         submission.submissionNumber?.toString() || submission._id.toString(),
         agency,
         quote,
-        submission
+        submission,
+        capitalCoLogoSVG
       );
       htmlContent = generateApartmentPacketHTML(apartmentData);
     } else {

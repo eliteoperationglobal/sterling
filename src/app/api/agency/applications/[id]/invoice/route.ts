@@ -104,7 +104,8 @@ export async function GET(
         submission._id.toString(),
         agency,
         quote,
-        submission
+        submission,
+        capitalCoLogoSVG
       );
       invoiceHTML = generateApartmentInvoiceHTML(apartmentData);
     } else {

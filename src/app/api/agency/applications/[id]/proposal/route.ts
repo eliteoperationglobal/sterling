@@ -10,7 +10,7 @@ import crypto from "crypto";
 import { generateProposalHTML } from "@/lib/services/pdf/ProposalPDFHTML";
 import { mapApartmentDataToPacketData } from "@/lib/services/pdf/mappers/apartmentMapper";
 import { generateApartmentProposalHTML } from "@/lib/services/pdf/ApartmentPacketPDF";
-import { mapFormDataToPacketData } from "@/lib/services/pdf/ApplicationPacketPDF";
+import { mapFormDataToPacketData, loadCapitalCoLogo } from "@/lib/services/pdf/ApplicationPacketPDF";
 
 
 
@@ -361,12 +361,14 @@ export async function GET(
 
     if (submission.programId === "apartment-buildings") {
       console.log("📄 [Proposal Download] Generating Apartment Buildings Proposal...");
+      const capitalCoLogoSVG = await loadCapitalCoLogo();
       const apartmentData = mapApartmentDataToPacketData(
         formData,
         submission._id.toString(),
         agency,
         quote,
-        submission
+        submission,
+        capitalCoLogoSVG
       );
       proposalHTML = generateApartmentProposalHTML(apartmentData);
     } else {

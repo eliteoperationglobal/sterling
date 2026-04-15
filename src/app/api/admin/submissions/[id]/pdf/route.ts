@@ -72,7 +72,8 @@ export async function GET(
         submission.submissionNumber?.toString() || submission._id.toString(),
         agency,
         quote ? quote.toObject() : undefined,
-        submission
+        submission,
+        capitalCoLogoSVG
       );
       htmlContent = generateApartmentPacketHTML(apartmentData);
     } else {

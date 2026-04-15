@@ -246,7 +246,10 @@ export async function POST(req: NextRequest) {
         const apartmentData = mapApartmentDataToPacketData(
           submission.payload,
           submission.submissionNumber?.toString() || applicationNumber,
-          agency
+          agency,
+          undefined,
+          submission,
+          capitalCoLogoSVG
         );
         htmlContent = generateApartmentPacketHTML(apartmentData);
       } else {

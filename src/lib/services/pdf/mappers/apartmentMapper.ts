@@ -180,7 +180,8 @@ export function mapApartmentDataToPacketData(
     submissionId: string,
     agency: any,
     quote?: any,
-    submission?: any
+    submission?: any,
+    capitalCoLogoSVG?: string
 ): ApartmentPacketData {
     return {
         applicationId: formData.applicationId || submissionId,
@@ -312,7 +313,7 @@ export function mapApartmentDataToPacketData(
 
         // Metadata & Financials
         submissionNumber: submission?.submissionNumber?.toString() || formData.applicationId || submissionId,
-        capitalCoLogoSVG: agency?.capitalCoLogoSVG,
+        capitalCoLogoSVG: agency?.capitalCoLogoSVG || capitalCoLogoSVG,
         quoteType: quote?.metadata?.type || "General Liability",
         coverageType: quote?.metadata?.coverageType || "Occurrence",
         policyType: quote?.metadata?.type || "GENERAL_LIABILITY",
