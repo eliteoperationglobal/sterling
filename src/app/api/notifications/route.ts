@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/authOptions";
@@ -7,7 +8,6 @@ import Submission from "@/models/Submission";
 import Quote from "@/models/Quote";
 import Agency from "@/models/Agency";
 
-export const dynamic = 'force-dynamic';
 
 /**
  * GET /api/notifications
@@ -36,7 +36,7 @@ export async function GET(req: NextRequest) {
 
     const userRole = (session.user as any)?.role || "agency_admin";
     const userEmail = session.user.email || "";
-    const userId = (session.user as any)?._id || "";
+    const userId = (session.user as any)?.id || "";
 
     const notifications: any[] = [];
 
