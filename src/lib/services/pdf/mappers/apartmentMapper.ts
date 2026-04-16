@@ -35,6 +35,33 @@ export interface ApartmentPacketData {
     proposedEffectiveDateTo: string;
     bankruptcyPending: boolean | null;
 
+    // Building Type Sub-fields
+    buildingType: string;
+    mixedUseResidentialPct: string;
+    mixedUseCommercialPct: string;
+    mixedUseCommercialTenants: string;
+    mixedUseCookingExposure: boolean | null;
+    mixedUseSeparateEntrances: boolean | null;
+    mixedUseSeparateUtilities: boolean | null;
+    officeOccupancyType: string;
+    officeTenantTypes: string;
+    officeMedicalOffices: boolean | null;
+    officeHighFootTraffic: boolean | null;
+    retailType: string;
+    retailCooking: boolean | null;
+    retailHours: string;
+    warehouseStoredItems: string;
+    warehouseStorageHeight: string;
+    warehouseHazardousMaterials: boolean | null;
+    warehouseOccupancyType: string;
+    warehouseUsageType: string;
+    mfgOpsDescription: string;
+    mfgProductTypes: string;
+    mfgHeavyMachinery: boolean | null;
+    mfgFlammableMaterials: boolean | null;
+    mfgMfgPct: string;
+    mfgStoragePct: string;
+
     // 2. Properties & Systems
     interestInPropertyRadio: "Owner" | "Manager" | "";
     propertyManagementFirmName: string;
@@ -42,59 +69,56 @@ export interface ApartmentPacketData {
     yearFirstOwnedOrManaged: string;
 
     // 3. Property Details
-    buildingAge: string;
-    roofAge: string;
+    yearBuilt: string;
+    yearRoofInstalled: string;
+    yearWiringInstalled: string;
+    yearPlumbingInstalled: string;
+    yearHeatingInstalled: string;
     numberOfUnits: string;
     numberOfStories: string;
+    hasBasement: boolean | null;
+    totalBuildingArea: string;
     protectionClass: string;
     constructionType: string;
     percentageOccupied: string;
-    percentageStudents: string;
-    percentageSubsidized: string;
+    distanceToFireHydrant: string;
+    distanceToFireStation: string;
+    fireDistrict: string;
     percentageElderly: string;
-    percentageSprinklered: string;
+    hasMultipleBuildings: boolean | null;
+
+    // Property Insurance Details
+    subjectOfInsurance: string;
+    propertyLimit: string;
+    propertyCoinsurance: string;
+    propertyValuation: string;
+    propertyCausesOfLoss: string;
+    propertyDeductible: string;
+    propertyDeductibleType: string;
 
     // Systems
     heatingType: string;
-    heatingLastInspection: string;
-    heatingRecordsOnFile: boolean | null;
-
-    airConditioningType: string;
-    airConditioningLastInspection: string;
-    airConditioningRecordsOnFile: boolean | null;
-
-    waterHeaterType: string;
-    waterHeaterLastInspection: string;
-    waterHeaterRecordsOnFile: boolean | null;
-
-    boilerType: string;
-    boilerLastInspection: string;
-    boilerRecordsOnFile: boolean | null;
-
-    buildingWiring: "Copper" | "Aluminum" | "";
+    buildingWiring: "Copper" | "Aluminum" | "Other" | "";
     aluminumWiringPigtailedOrCOALR: boolean | null;
+    plumbingType: string;
+    roofingType: string;
 
     // 4. Safety, Security & Operations
+    hasSprinklers: boolean | null;
+    percentageSprinklered: string;
+    hasBurglarAlarm: boolean | null;
+    burglarAlarmType: string;
+    burglarAlarmInstalledBy: string;
     smokeAlarms: "Hardwire" | "Battery" | "";
     hardwiredCentralStation: boolean | null;
     batteryRoutineInspection: boolean | null;
-    smokeAlarmsDetails: string;
-    otherFireSafetySystems: string;
     complianceWithSafetyLaws: boolean | null;
-    complexDemastered: boolean | null;
-    proceduresForMasterKey: string;
-    keysCodedAndProtected: boolean | null;
     unitsRekeyed: boolean | null;
     doorDoubleLocksPeepHoles: boolean | null;
     perimeterFencing: boolean | null;
-    securityLighting: boolean | null;
     securityGuardOnsite: boolean | null;
-    policeBackgroundChecks: boolean | null;
-    backgroundCheckCriteria: string;
     proceduresNotifyingTenantsCriminal: boolean | null;
-    proceduresNotifyingTenantsCriminalDescription: string;
     proceduresTenantSafetyComplaints: boolean | null;
-    proceduresTenantSafetyComplaintsDescription: string;
     fullTimeMaintenanceStaff: boolean | null;
     proceduresInspectingSystems: boolean | null;
 
@@ -104,9 +128,9 @@ export interface ApartmentPacketData {
     contractorsRequiredCGL: boolean | null;
     contractorsRequiredCGLExplanation: string;
     proceduresTenantComplaintsBuilding: boolean | null;
-    proceduresTenantComplaintsBuildingDescription: string;
     
     // Swimming Pools
+    hasPools: boolean | null;
     poolNumber: string;
     heightOfDivingBoards: string;
     lengthHeightOfSlides: string;
@@ -119,17 +143,12 @@ export interface ApartmentPacketData {
     poolHours: string;
 
     nurseryDayCareFacility: boolean | null;
-    proceduresProhibitingEmployeesDogs: boolean | null;
     leaseProhibitsTenantsDogs: boolean | null;
-    dogWeightLimit: string;
-    provideMedicalFoodTransport: boolean | null;
     describeOtherBuildingsHazards: string;
     ownControlParkingFacilities: boolean | null;
     parkingAccessControlled: boolean | null;
     parkingDescription: string;
     proceduresRegularInspectionsHazards: boolean | null;
-    proceduresRegularInspectionsHazardsDescription: string;
-    insuranceAgentCompletedInspection: boolean | null;
 
     // Packet metadata
     submissionNumber?: string;
@@ -202,7 +221,7 @@ export function mapApartmentDataToPacketData(
         applicantName: formData.applicantName || "-",
         companyName: formData.applicantName || "-",
         dba: formData.dba || "None",
-        contactPerson: formData.contactPerson || formData.applicantName || "-",
+        contactPerson: formData.applicantName || "-",
         applicantMailingAddress: formData.applicantMailingAddress || "-",
         applicantAddress: formData.applicantMailingAddress || "-",
         applicantCity: formData.applicantCity || agency?.address?.city || "-",
@@ -215,6 +234,33 @@ export function mapApartmentDataToPacketData(
         proposedEffectiveDateTo: formData.proposedEffectiveDateTo || "-",
         bankruptcyPending: formData.bankruptcyPending,
 
+        // Building Type Sub-fields
+        buildingType: formData.buildingType || "-",
+        mixedUseResidentialPct: formData.mixedUseResidentialPct || "0",
+        mixedUseCommercialPct: formData.mixedUseCommercialPct || "0",
+        mixedUseCommercialTenants: formData.mixedUseCommercialTenants || "-",
+        mixedUseCookingExposure: formData.mixedUseCookingExposure,
+        mixedUseSeparateEntrances: formData.mixedUseSeparateEntrances,
+        mixedUseSeparateUtilities: formData.mixedUseSeparateUtilities,
+        officeOccupancyType: formData.officeOccupancyType || "-",
+        officeTenantTypes: formData.officeTenantTypes || "-",
+        officeMedicalOffices: formData.officeMedicalOffices,
+        officeHighFootTraffic: formData.officeHighFootTraffic,
+        retailType: formData.retailType || "-",
+        retailCooking: formData.retailCooking,
+        retailHours: formData.retailHours || "-",
+        warehouseStoredItems: formData.warehouseStoredItems || "-",
+        warehouseStorageHeight: formData.warehouseStorageHeight || "-",
+        warehouseHazardousMaterials: formData.warehouseHazardousMaterials,
+        warehouseOccupancyType: formData.warehouseOccupancyType || "-",
+        warehouseUsageType: formData.warehouseUsageType || "-",
+        mfgOpsDescription: formData.mfgOpsDescription || "-",
+        mfgProductTypes: formData.mfgProductTypes || "-",
+        mfgHeavyMachinery: formData.mfgHeavyMachinery,
+        mfgFlammableMaterials: formData.mfgFlammableMaterials,
+        mfgMfgPct: formData.mfgMfgPct || "0",
+        mfgStoragePct: formData.mfgStoragePct || "0",
+
         // 2. Properties & Systems
         interestInPropertyRadio: formData.interestInPropertyRadio || "",
         propertyManagementFirmName: formData.propertyManagementFirmName || "-",
@@ -222,59 +268,56 @@ export function mapApartmentDataToPacketData(
         yearFirstOwnedOrManaged: formData.yearFirstOwnedOrManaged || "-",
 
         // 3. Property Details
-        buildingAge: formData.buildingAge || "-",
-        roofAge: formData.roofAge || "-",
+        yearBuilt: formData.yearBuilt || "-",
+        yearRoofInstalled: formData.yearRoofInstalled || "-",
+        yearWiringInstalled: formData.yearWiringInstalled || "-",
+        yearPlumbingInstalled: formData.yearPlumbingInstalled || "-",
+        yearHeatingInstalled: formData.yearHeatingInstalled || "-",
         numberOfUnits: formData.numberOfUnits || "-",
         numberOfStories: formData.numberOfStories || "-",
+        hasBasement: formData.hasBasement,
+        totalBuildingArea: formData.totalBuildingArea || "-",
         protectionClass: formData.protectionClass || "-",
         constructionType: formData.constructionType || "-",
         percentageOccupied: formData.percentageOccupied || "-",
-        percentageStudents: formData.percentageStudents || "-",
-        percentageSubsidized: formData.percentageSubsidized || "-",
+        distanceToFireHydrant: formData.distanceToFireHydrant || "-",
+        distanceToFireStation: formData.distanceToFireStation || "-",
+        fireDistrict: formData.fireDistrict || "-",
         percentageElderly: formData.percentageElderly || "-",
-        percentageSprinklered: formData.percentageSprinklered || "-",
+        hasMultipleBuildings: formData.hasMultipleBuildings,
+
+        // Property Insurance Details
+        subjectOfInsurance: formData.subjectOfInsurance || "-",
+        propertyLimit: formData.propertyLimit || "-",
+        propertyCoinsurance: formData.propertyCoinsurance || "-",
+        propertyValuation: formData.propertyValuation || "-",
+        propertyCausesOfLoss: formData.propertyCausesOfLoss || "-",
+        propertyDeductible: formData.propertyDeductible || "-",
+        propertyDeductibleType: formData.propertyDeductibleType || "-",
 
         // Systems
         heatingType: formData.heatingType || "-",
-        heatingLastInspection: formData.heatingLastInspection || "-",
-        heatingRecordsOnFile: formData.heatingRecordsOnFile,
-
-        airConditioningType: formData.airConditioningType || "-",
-        airConditioningLastInspection: formData.airConditioningLastInspection || "-",
-        airConditioningRecordsOnFile: formData.airConditioningRecordsOnFile,
-
-        waterHeaterType: formData.waterHeaterType || "-",
-        waterHeaterLastInspection: formData.waterHeaterLastInspection || "-",
-        waterHeaterRecordsOnFile: formData.waterHeaterRecordsOnFile,
-
-        boilerType: formData.boilerType || "-",
-        boilerLastInspection: formData.boilerLastInspection || "-",
-        boilerRecordsOnFile: formData.boilerRecordsOnFile,
-
         buildingWiring: formData.buildingWiring || "",
         aluminumWiringPigtailedOrCOALR: formData.aluminumWiringPigtailedOrCOALR,
+        plumbingType: formData.plumbingType || "-",
+        roofingType: formData.roofingType || "-",
 
         // 4. Safety, Security & Operations
+        hasSprinklers: formData.hasSprinklers,
+        percentageSprinklered: formData.percentageSprinklered || "0",
+        hasBurglarAlarm: formData.hasBurglarAlarm,
+        burglarAlarmType: formData.burglarAlarmType || "-",
+        burglarAlarmInstalledBy: formData.burglarAlarmInstalledBy || "-",
         smokeAlarms: formData.smokeAlarms || "",
         hardwiredCentralStation: formData.hardwiredCentralStation,
         batteryRoutineInspection: formData.batteryRoutineInspection,
-        smokeAlarmsDetails: formData.smokeAlarmsDetails || "-",
-        otherFireSafetySystems: formData.otherFireSafetySystems || "-",
         complianceWithSafetyLaws: formData.complianceWithSafetyLaws,
-        complexDemastered: formData.complexDemastered,
-        proceduresForMasterKey: formData.proceduresForMasterKey || "-",
-        keysCodedAndProtected: formData.keysCodedAndProtected,
         unitsRekeyed: formData.unitsRekeyed,
         doorDoubleLocksPeepHoles: formData.doorDoubleLocksPeepHoles,
         perimeterFencing: formData.perimeterFencing,
-        securityLighting: formData.securityLighting,
         securityGuardOnsite: formData.securityGuardOnsite,
-        policeBackgroundChecks: formData.policeBackgroundChecks,
-        backgroundCheckCriteria: formData.backgroundCheckCriteria || "-",
         proceduresNotifyingTenantsCriminal: formData.proceduresNotifyingTenantsCriminal,
-        proceduresNotifyingTenantsCriminalDescription: formData.proceduresNotifyingTenantsCriminalDescription || "-",
         proceduresTenantSafetyComplaints: formData.proceduresTenantSafetyComplaints,
-        proceduresTenantSafetyComplaintsDescription: formData.proceduresTenantSafetyComplaintsDescription || "-",
         fullTimeMaintenanceStaff: formData.fullTimeMaintenanceStaff,
         proceduresInspectingSystems: formData.proceduresInspectingSystems,
 
@@ -284,9 +327,9 @@ export function mapApartmentDataToPacketData(
         contractorsRequiredCGL: formData.contractorsRequiredCGL,
         contractorsRequiredCGLExplanation: formData.contractorsRequiredCGLExplanation || "-",
         proceduresTenantComplaintsBuilding: formData.proceduresTenantComplaintsBuilding,
-        proceduresTenantComplaintsBuildingDescription: formData.proceduresTenantComplaintsBuildingDescription || "-",
         
         // Swimming Pools
+        hasPools: formData.hasPools,
         poolNumber: formData.poolNumber || "-",
         heightOfDivingBoards: formData.heightOfDivingBoards || "-",
         lengthHeightOfSlides: formData.lengthHeightOfSlides || "-",
@@ -299,17 +342,12 @@ export function mapApartmentDataToPacketData(
         poolHours: formData.poolHours || "-",
 
         nurseryDayCareFacility: formData.nurseryDayCareFacility,
-        proceduresProhibitingEmployeesDogs: formData.proceduresProhibitingEmployeesDogs,
         leaseProhibitsTenantsDogs: formData.leaseProhibitsTenantsDogs,
-        dogWeightLimit: formData.dogWeightLimit || "-",
-        provideMedicalFoodTransport: formData.provideMedicalFoodTransport,
-        describeOtherBuildingsHazards: formData.describeOtherBuildingsHazards || "-",
+        describeOtherBuildingsHazards: formData.describeOtherBuildingsHazards || "N/A",
         ownControlParkingFacilities: formData.ownControlParkingFacilities,
         parkingAccessControlled: formData.parkingAccessControlled,
         parkingDescription: formData.parkingDescription || "-",
         proceduresRegularInspectionsHazards: formData.proceduresRegularInspectionsHazards,
-        proceduresRegularInspectionsHazardsDescription: formData.proceduresRegularInspectionsHazardsDescription || "-",
-        insuranceAgentCompletedInspection: formData.insuranceAgentCompletedInspection,
 
         // Metadata & Financials
         submissionNumber: submission?.submissionNumber?.toString() || formData.applicationId || submissionId,
@@ -353,5 +391,3 @@ export function mapApartmentDataToPacketData(
         medPayLimit: quote?.metadata?.limits?.medicalExpense ? `$${quote.metadata.limits.medicalExpense.toLocaleString()}` : undefined,
     };
 }
-
-

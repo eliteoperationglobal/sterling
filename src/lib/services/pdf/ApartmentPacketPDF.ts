@@ -8,11 +8,11 @@ import { ApartmentPacketData } from './mappers/apartmentMapper';
  * Format Yes/No with underlined text selections
  */
 function renderYesNo(label: string, value: boolean | null | undefined, explanation?: string): string {
-    const isYes = value === true;
-    const isNo = value === false;
-    const isNone = value === null || value === undefined;
+	const isYes = value === true;
+	const isNo = value === false;
+	const isNone = value === null || value === undefined;
 
-    return `
+	return `
         <div class="question-row">
             <div class="question-text">${label}</div>
             <div class="yes-no-options">
@@ -28,7 +28,7 @@ function renderYesNo(label: string, value: boolean | null | undefined, explanati
  * Format Standard Field (Label: Value)
  */
 function renderField(label: string, value: string | number | undefined, width: string = '100%'): string {
-    return `
+	return `
         <div class="field-item" style="width: ${width};">
             <span class="field-label">${label}:</span>
             <span class="field-value">${value || '-'}</span>
@@ -40,22 +40,22 @@ function renderField(label: string, value: string | number | undefined, width: s
  * Generate Capital & Co Logo HTML (with two hands)
  */
 function generateCapitalCoLogoHTML(svgContent?: string, size: string = '100%'): string {
-    if (svgContent) {
-        let optimizedSVG = svgContent
-            .replace(/<\?xml[^>]*\?>/g, '')
-            .replace(/<!--[\s\S]*?-->/g, '')
-            .replace(/\s+/g, ' ')
-            .replace(/>\s+</g, '><')
-            .trim();
+	if (svgContent) {
+		let optimizedSVG = svgContent
+			.replace(/<\?xml[^>]*\?>/g, '')
+			.replace(/<!--[\s\S]*?-->/g, '')
+			.replace(/\s+/g, ' ')
+			.replace(/>\s+</g, '><')
+			.trim();
 
-        const viewBoxMatch = optimizedSVG.match(/viewBox=["']([^"']+)["']/);
-        const viewBox = viewBoxMatch ? viewBoxMatch[1] : '0 0 100 120';
-        optimizedSVG = optimizedSVG.replace(/<svg([^>]*)>/, `<svg$1>`);
+		const viewBoxMatch = optimizedSVG.match(/viewBox=["']([^"']+)["']/);
+		const viewBox = viewBoxMatch ? viewBoxMatch[1] : '0 0 100 120';
+		optimizedSVG = optimizedSVG.replace(/<svg([^>]*)>/, `<svg$1>`);
 
-        return `<svg viewBox="${viewBox}" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:${size};height:${size};" preserveAspectRatio="xMidYMid meet">${optimizedSVG.replace(/<svg[^>]*>/, '').replace(/<\/svg>/, '')}</svg>`;
-    }
-    // Fallback hands logo
-    return `<svg viewBox="0 0 100 120" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:${size};height:${size};"><defs><linearGradient id="handsGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#7dd3fc" stop-opacity="0.95"/><stop offset="50%" stop-color="#60a5fa" stop-opacity="0.9"/><stop offset="100%" stop-color="#3b82f6" stop-opacity="0.85"/></linearGradient></defs><path d="M30 15 Q35 10 45 12 Q55 14 60 20 Q65 28 62 38 Q60 45 55 50 Q50 52 45 50 Q40 48 38 45 Q35 40 35 35 Q33 28 35 22 Q32 18 30 15 Z" fill="url(#handsGradient)"/><path d="M70 15 Q65 10 55 12 Q45 14 40 20 Q35 28 38 38 Q40 45 45 50 Q50 52 55 50 Q60 48 62 45 Q65 40 65 35 Q67 28 65 22 Q68 18 70 15 Z" fill="url(#handsGradient)"/><ellipse cx="50" cy="45" rx="12" ry="8" fill="url(#handsGradient)" opacity="0.4"/></svg>`;
+		return `<svg viewBox="${viewBox}" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:${size};height:${size};" preserveAspectRatio="xMidYMid meet">${optimizedSVG.replace(/<svg[^>]*>/, '').replace(/<\/svg>/, '')}</svg>`;
+	}
+	// Fallback hands logo
+	return `<svg viewBox="0 0 100 120" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:${size};height:${size};"><defs><linearGradient id="handsGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#7dd3fc" stop-opacity="0.95"/><stop offset="50%" stop-color="#60a5fa" stop-opacity="0.9"/><stop offset="100%" stop-color="#3b82f6" stop-opacity="0.85"/></linearGradient></defs><path d="M30 15 Q35 10 45 12 Q55 14 60 20 Q65 28 62 38 Q60 45 55 50 Q50 52 45 50 Q40 48 38 45 Q35 40 35 35 Q33 28 35 22 Q32 18 30 15 Z" fill="url(#handsGradient)"/><path d="M70 15 Q65 10 55 12 Q45 14 40 20 Q35 28 38 38 Q40 45 45 50 Q50 52 55 50 Q60 48 62 45 Q65 40 65 35 Q67 28 65 22 Q68 18 70 15 Z" fill="url(#handsGradient)"/><ellipse cx="50" cy="45" rx="12" ry="8" fill="url(#handsGradient)" opacity="0.4"/></svg>`;
 }
 
 const blueAngelLogoSVG = `
@@ -3311,47 +3311,29 @@ const patrickAriasLogoSVG = `
 </svg>
 `;
 
-/**
- * Page Header (Professional Form Format)
- * Used for Pages 2-7 to provide consistent context
- */
-function generateHeader(pageTitle: string, data: ApartmentPacketData): string {
-    return `
-        <div class="header">
-            <div class="header-left">
-                <div class="form-id">STERLING APARTMENT FORM</div>
-                <div class="program-subtitle">Commercial Property Program</div>
-            </div>
-            <div class="header-right">
-                <div class="page-title">${pageTitle}</div>
-                <div class="meta-row">App ID: <strong>${data.applicationId}</strong> | Date: <strong>${data.formDate}</strong></div>
-            </div>
-        </div>
-    `;
-}
 
 /**
  * Page 1: General Application Info
  */
 function generatePage1(data: ApartmentPacketData): string {
-    const email = data.agencyEmail?.toLowerCase() || "";
-    let selectedLogo = data.capitalCoLogoSVG;
+	const email = data.agencyEmail?.toLowerCase() || "";
+	let selectedLogo = data.capitalCoLogoSVG;
 
-    if (email === "max@blueangelins.com") {
-        selectedLogo = blueAngelLogoSVG;
-    }
-    if (email === "office@sjinsuranceservices.com") {
-        selectedLogo = sjjLogoSVG;
-    }
-    if (email === "patrick@patrickariasinsurance.com") {
-        selectedLogo = patrickAriasLogoSVG;
-    }
+	if (email === "max@blueangelins.com") {
+		selectedLogo = blueAngelLogoSVG;
+	}
+	if (email === "office@sjinsuranceservices.com") {
+		selectedLogo = sjjLogoSVG;
+	}
+	if (email === "patrick@patrickariasinsurance.com") {
+		selectedLogo = patrickAriasLogoSVG;
+	}
 
-    const logoSize = email === "patrick@patrickariasinsurance.com" ? "60%" : "100%";
+	const logoSize = email === "patrick@patrickariasinsurance.com" ? "60%" : "100%";
 
-    return `
+	return `
         <div class="page page2-isc">
-            <div class="main-content main-content-page2" style="padding-top: 0.35in; padding-left: 0.20in;">
+            <div class="main-content main-content-page2">
                 <!-- Top Agency + Logo -->
                 <div class="header-top-page2">
                     <div class="agency-info-page2-left">
@@ -3385,7 +3367,6 @@ function generatePage1(data: ApartmentPacketData): string {
                     <div>
                         <div class="section-title-page2">Insured Information</div>
                         <div class="insured-detail-page2"><strong>${data.applicantName || ""}</strong></div>
-                        <div class="insured-detail-page2">${data.contactPerson || ""}</div>
                         <div class="insured-detail-page2">${data.applicantAddress || ""}</div>
                         <div class="insured-detail-page2">
                             ${data.applicantCity || ""}, ${data.applicantState || ""} ${data.applicantZip || ""}
@@ -3397,7 +3378,7 @@ function generatePage1(data: ApartmentPacketData): string {
                     <!-- Quote Information -->
                     <div>
                         <div class="section-title-page2">Quote Information</div>
-                        <div class="quote-detail-page2">${data.quoteType || "PROPERTY"}</div>
+                        <div class="quote-detail-page2">PROPERTY</div>
                         <div class="quote-detail-page2">${data.carrierName || "-"}</div>
                         <div class="quote-detail-page2">${data.coverageType || "General Liability"}</div>
                         <div class="quote-detail-page2">
@@ -3410,20 +3391,73 @@ function generatePage1(data: ApartmentPacketData): string {
                     <div class="section-header">1. APARTMENT APPLICATION</div>
                     <hr class="section-divider" />
                     
-                    <div class="flex-row">
-                        ${renderField("Applicant Name", data.applicantName, "50%")}
-                        ${renderField("Agent Name", data.agentName, "50%")}
-                    </div>
+                    ${renderField("Applicant Name", data.applicantName)}
+                    ${renderField("DBA", data.dba)}
+                    ${renderField("Agent Name", data.agentName)}
                     ${renderField("Applicant Mailing Address", data.applicantMailingAddress || "-")}
                     ${renderField("Property Name and Address", data.propertyNameAndAddress || "-")}
-                    <div class="flex-row">
-                        ${renderField("Proposed Effective Date From", data.proposedEffectiveDateFrom, "50%")}
-                        ${renderField("Proposed Effective Date To", data.proposedEffectiveDateTo, "50%")}
-                    </div>
+                    ${renderField("Proposed Effective Date From", data.proposedEffectiveDateFrom)}
+                    ${renderField("Proposed Effective Date To", data.proposedEffectiveDateTo)}
                     
                     <div class="question-block">
                         ${renderYesNo("Bankruptcy – Within the last 5 years, were there any pending or planned bankruptcies, or judgements for unpaid taxes against you, or your majority partner?", data.bankruptcyPending)}
                     </div>
+
+                    <div style="margin-top: 15px;">
+                        ${renderField("Building Type", data.buildingType)}
+                    </div>
+
+                    ${data.buildingType === 'Mixed-Use' ? `
+                        <div class="sub-section" style="margin-top: 10px; padding-left: 15px; border-left: 2px solid #eee;">
+                            <div style="font-weight: bold; font-size: 11px; margin-bottom: 5px; color: #7A6F64;">MIXED-USE DETAILS</div>
+                            ${renderField("% Residential & Commercial", `${data.mixedUseResidentialPct}% / ${data.mixedUseCommercialPct}%`)}
+                            ${renderField("Types of Commercial Tenants", data.mixedUseCommercialTenants)}
+                            ${renderYesNo("Any Cooking Exposure?", data.mixedUseCookingExposure)}
+                            ${renderYesNo("Separate Entrances?", data.mixedUseSeparateEntrances)}
+                            ${renderYesNo("Separate Utilities?", data.mixedUseSeparateUtilities)}
+                        </div>
+                    ` : ''}
+
+                    ${data.buildingType === 'Office' ? `
+                        <div class="sub-section" style="margin-top: 10px; padding-left: 15px; border-left: 2px solid #eee;">
+                            <div style="font-weight: bold; font-size: 11px; margin-bottom: 5px; color: #7A6F64;">OFFICE DETAILS</div>
+                            ${renderField("Occupancy Type", data.officeOccupancyType)}
+                            ${renderField("Type of Tenants", data.officeTenantTypes)}
+                            ${renderYesNo("Any Medical Offices?", data.officeMedicalOffices)}
+                            ${renderYesNo("High Foot Traffic?", data.officeHighFootTraffic)}
+                        </div>
+                    ` : ''}
+
+                    ${data.buildingType === 'Retail' ? `
+                        <div class="sub-section" style="margin-top: 10px; padding-left: 15px; border-left: 2px solid #eee;">
+                            <div style="font-weight: bold; font-size: 11px; margin-bottom: 5px; color: #7A6F64;">RETAIL DETAILS</div>
+                            ${renderField("Type of Retail", data.retailType)}
+                            ${renderYesNo("Any Cooking?", data.retailCooking)}
+                            ${renderField("Hours of Operation", data.retailHours)}
+                        </div>
+                    ` : ''}
+
+                    ${data.buildingType === 'Warehouse' ? `
+                        <div class="sub-section" style="margin-top: 10px; padding-left: 15px; border-left: 2px solid #eee;">
+                            <div style="font-weight: bold; font-size: 11px; margin-bottom: 5px; color: #7A6F64;">WAREHOUSE DETAILS</div>
+                            ${renderField("What is Stored?", data.warehouseStoredItems)}
+                            ${renderField("Storage Height", data.warehouseStorageHeight)}
+                            ${renderYesNo("Any Hazardous Materials?", data.warehouseHazardousMaterials)}
+                            ${renderField("Occupancy Type", data.warehouseOccupancyType)}
+                            ${renderField("Usage Type", data.warehouseUsageType)}
+                        </div>
+                    ` : ''}
+
+                    ${data.buildingType === 'Manufacturing' ? `
+                        <div class="sub-section" style="margin-top: 10px; padding-left: 15px; border-left: 2px solid #eee;">
+                            <div style="font-weight: bold; font-size: 11px; margin-bottom: 5px; color: #7A6F64;">MANUFACTURING DETAILS</div>
+                            ${renderField("Ops Description", data.mfgOpsDescription)}
+                            ${renderField("Products Manufactured", data.mfgProductTypes)}
+                            ${renderYesNo("Any Heavy Machinery?", data.mfgHeavyMachinery)}
+                            ${renderYesNo("Any Flammable Materials?", data.mfgFlammableMaterials)}
+                            ${renderField("% Mfg & Storage", `${data.mfgMfgPct}% / ${data.mfgStoragePct}%`)}
+                        </div>
+                    ` : ''}
                 </div>
 
                 <div class="section-container">
@@ -3455,272 +3489,253 @@ function generatePage1(data: ApartmentPacketData): string {
  * Page 2: Property Details
  */
 function generatePage2(data: ApartmentPacketData): string {
-    return `
+	return `
         <div class="page page2-isc">
             <div class="main-content main-content-page2">
+                <div class="section-container">
+                    <div class="section-header">3. PROPERTY DETAILS</div>
+                    <hr class="section-divider" />
 
-            
-            <div class="section-container">
-                <div class="section-header">3. PROPERTY DETAILS</div>
-                <hr class="section-divider" />
+                    ${renderField("Year Built", data.yearBuilt)}
+                    ${renderField("Year of Roof Installation", data.yearRoofInstalled)}
+                    ${renderField("Year of Wiring Installation", data.yearWiringInstalled)}
+                    ${renderField("Year of Plumbing Installation", data.yearPlumbingInstalled)}
+                    ${renderField("Year of Heating Installation", data.yearHeatingInstalled)}
+                    
+                    ${renderField("Number of Units", data.numberOfUnits)}
+                    ${renderField("Number of Stories", data.numberOfStories)}
+                    
+                    ${renderYesNo("Basement?", data.hasBasement)}
+                    ${renderField("Total Building Area", `${data.totalBuildingArea} Sq Ft`)}
 
-                <div class="field-grid">
-                    ${renderField("Age of Building(s)", data.buildingAge, "33%")}
-                    ${renderField("Age of Roof", data.roofAge, "33%")}
-                    ${renderField("Number of Units", data.numberOfUnits, "33%")}
-                </div>
-                <div class="field-grid">
-                    ${renderField("Number of Stories", data.numberOfStories, "33%")}
-                    ${renderField("Construction Type", data.constructionType, "33%")}
-                    ${renderField("Protection Class", data.protectionClass, "33%")}
-                </div>
-                
-                <div class="field-grid" style="margin-top: 10px;">
-                    ${renderField("% Occupied", data.percentageOccupied, "33%")}
-                    ${renderField("% Students", data.percentageStudents, "33%")}
-                    ${renderField("% Subsidized", data.percentageSubsidized, "33%")}
-                </div>
-                <div class="field-grid">
-                    ${renderField("% Elderly", data.percentageElderly, "33%")}
-                    ${renderField("% Sprinklered", data.percentageSprinklered, "33%")}
-                    <div style="width: 33%;"></div>
-                </div>
+                    ${renderField("Construction Type", data.constructionType)}
+                    ${renderField("Protection Class", data.protectionClass)}
 
-                <div class="sub-header-line">Types of Systems</div>
-                
-                <div class="system-item">
-                    <div class="system-label">HEATING:</div>
-                    <div class="flex-row">
-                        ${renderField("Type", data.heatingType, "40%")}
-                        ${renderField("Last Inspection", data.heatingLastInspection, "30%")}
-                        ${renderField("Records on File", data.heatingRecordsOnFile === true ? 'Yes' : (data.heatingRecordsOnFile === false ? 'No' : '-'), "30%")}
-                    </div>
-                </div>
+                    ${renderField("% Occupied", `${data.percentageOccupied}%`)}
+                    ${renderField("% Elderly", `${data.percentageElderly}%`)}
 
-                <div class="system-item">
-                    <div class="system-label">AIR CONDITIONING:</div>
-                    <div class="flex-row">
-                        ${renderField("Type", data.airConditioningType, "40%")}
-                        ${renderField("Last Inspection", data.airConditioningLastInspection, "30%")}
-                        ${renderField("Records on File", data.airConditioningRecordsOnFile === true ? 'Yes' : (data.airConditioningRecordsOnFile === false ? 'No' : '-'), "30%")}
-                    </div>
-                </div>
+                    ${renderField("Distance to Fire Hydrant", data.distanceToFireHydrant)}
+                    ${renderField("Distance to Fire Station", data.distanceToFireStation)}
+                    ${renderField("Fire District", data.fireDistrict)}
+                    ${renderYesNo("Are there multiple buildings or structures?", data.hasMultipleBuildings)}
 
-                <div class="system-item">
-                    <div class="system-label">WATER HEATER:</div>
-                    <div class="flex-row">
-                        ${renderField("Type", data.waterHeaterType, "40%")}
-                        ${renderField("Last Inspection", data.waterHeaterLastInspection, "30%")}
-                        ${renderField("Records on File", data.waterHeaterRecordsOnFile === true ? 'Yes' : (data.waterHeaterRecordsOnFile === false ? 'No' : '-'), "30%")}
-                    </div>
+                    <div class="section-header" style="margin-top: 30px;">PROPERTY INSURANCE</div>
+                    <hr class="section-divider" />
+                    
+                    ${renderField("Subject of Insurance", data.subjectOfInsurance)}
+                    ${renderField("Limit", data.propertyLimit)}
+                    ${renderField("Coinsurance", data.propertyCoinsurance)}
+                    ${renderField("Valuation", data.propertyValuation)}
+                    ${renderField("Causes of Loss", data.propertyCausesOfLoss)}
+                    ${renderField("Deductible", data.propertyDeductible)}
+                    ${renderField("Deductible Type", data.propertyDeductibleType)}
                 </div>
-            </div>
             </div>
         </div>
     `;
 }
 
 /**
- * Page 4: Systems & Safety
+ * Page 3: Systems & Safety
  */
 function generatePage3(data: ApartmentPacketData): string {
-    return `
+	return `
         <div class="page page2-isc">
             <div class="main-content main-content-page2">
-
-            
-            <div class="section-container">
-                <div class="system-item">
-                    <div class="system-label">BOILER:</div>
-                    <div class="flex-row">
-                        ${renderField("Type", data.boilerType, "40%")}
-                        ${renderField("Last Inspection", data.boilerLastInspection, "30%")}
-                        ${renderField("Records on File", data.boilerRecordsOnFile === true ? 'Yes' : (data.boilerRecordsOnFile === false ? 'No' : '-'), "30%")}
+                <div class="section-container">
+                    <div class="section-header">TYPES OF SYSTEMS</div>
+                    <hr class="section-divider" />
+                    
+                    ${renderField("Heating Type", data.heatingType)}
+                    ${renderField("Plumbing Type", data.plumbingType)}
+                    ${renderField("Roofing Type", data.roofingType)}
+                    
+                    <div class="question-row" style="margin-top: 10px;">
+                        <div class="question-text">Building Wiring:</div>
+                        <div class="yes-no-options">
+                            <span class="option ${data.buildingWiring === 'Copper' ? 'selected' : ''}">Copper</span>
+                            <span class="option ${data.buildingWiring === 'Aluminum' ? 'selected' : ''}">Aluminum</span>
+                            <span class="option ${data.buildingWiring === 'Other' ? 'selected' : ''}">Other</span>
+                        </div>
                     </div>
+                    ${data.buildingWiring === 'Aluminum' ? renderYesNo("Is wiring pigtailed or COALR?", data.aluminumWiringPigtailedOrCOALR) : ''}
                 </div>
 
-                <div class="sub-header-line">Building Wiring</div>
-                <div class="question-row">
-                    <div class="question-text">Wiring Type:</div>
-                    <div class="yes-no-options">
-                        <span class="option ${data.buildingWiring === 'Copper' ? 'selected' : ''}">Copper</span>
-                        <span class="option ${data.buildingWiring === 'Aluminum' ? 'selected' : ''}">Aluminum</span>
-                    </div>
-                </div>
-                ${data.buildingWiring === 'Aluminum' ? renderYesNo("Is wiring pigtailed or COALR?", data.aluminumWiringPigtailedOrCOALR) : ''}
-            </div>
+                <div class="section-container">
+                    <div class="section-header">4. SAFETY, SECURITY & OPERATIONS</div>
+                    <hr class="section-divider" />
 
-            <div class="section-container">
-                <div class="section-header">4. SAFETY, SECURITY & OPERATIONS</div>
-                <hr class="section-divider" />
+                    ${renderYesNo("Sprinklers?", data.hasSprinklers)}
+                    ${data.hasSprinklers === true ? renderField("Percentage Sprinklered", `${data.percentageSprinklered}%`) : ''}
 
-                <div class="sub-header-line">Smoke Alarms</div>
-                <div class="question-row">
-                    <div class="question-text">Smoke Alarms:</div>
-                    <div class="yes-no-options">
-                        <span class="option ${data.smokeAlarms === 'Hardwire' ? 'selected' : ''}">Hardwire</span>
-                        <span class="option ${data.smokeAlarms === 'Battery' ? 'selected' : ''}">Battery</span>
+                    <div class="sub-header-line" style="margin-top: 15px;">Smoke Alarms</div>
+                    <div class="question-row">
+                        <div class="question-text">Smoke Alarms Type:</div>
+                        <div class="yes-no-options">
+                            <span class="option ${data.smokeAlarms === 'Hardwire' ? 'selected' : ''}">Hardwire</span>
+                            <span class="option ${data.smokeAlarms === 'Battery' ? 'selected' : ''}">Battery</span>
+                        </div>
                     </div>
+                    ${data.smokeAlarms === 'Hardwire' ? renderYesNo("Are the alarms tied to a central station?", data.hardwiredCentralStation) : ''}
+                    ${data.smokeAlarms === 'Battery' ? renderYesNo("Is there a written procedure for routine inspection and replacement?", data.batteryRoutineInspection) : ''}
                 </div>
-                ${data.smokeAlarms === 'Hardwire' ? renderYesNo("Are the alarms tied to a central station?", data.hardwiredCentralStation) : ''}
-                ${data.smokeAlarms === 'Battery' ? renderYesNo("Is there a written procedure for routine inspection and replacement?", data.batteryRoutineInspection) : ''}
-                ${renderField("Smoke Alarm Details", data.smokeAlarmsDetails)}
-                
-                <div class="sub-header-line" style="margin-top: 15px;">Fire Safety</div>
-                ${renderField("Other Fire Safety Systems (if any)", data.otherFireSafetySystems)}
-            </div>
             </div>
         </div>
     `;
 }
 
 /**
- * Page 5: Security & Protocols
+ * Page 4: Security & Protocols
  */
 function generatePage4(data: ApartmentPacketData): string {
-    return `
+	return `
         <div class="page page2-isc">
             <div class="main-content main-content-page2">
-
-            
-            <div class="section-container">
-                <div class="question-list">
-                    ${renderYesNo("Is the complex in compliance with all applicable state and local statutes governing safety devices?", data.complianceWithSafetyLaws)}
-                    <div class="divider"></div>
-                    ${renderYesNo("Is the complex demastered?", data.complexDemastered, data.proceduresForMasterKey)}
-                    <div class="divider"></div>
-                    ${renderYesNo("Are keys coded and adequately protected?", data.keysCodedAndProtected)}
-                    <div class="divider"></div>
-                    ${renderYesNo("Are all units re-keyed prior to leasing to new tenants?", data.unitsRekeyed)}
-                    <div class="divider"></div>
-                    ${renderYesNo("Are individual unit doors secured by double locks and peep holes?", data.doorDoubleLocksPeepHoles)}
-                    <div class="divider"></div>
-                    ${renderYesNo("Does the complex have limited access perimeter fencing?", data.perimeterFencing)}
-                    <div class="divider"></div>
-                    ${renderYesNo("Are all areas of the complex covered by security lighting?", data.securityLighting)}
-                    <div class="divider"></div>
-                    ${renderYesNo("Do you contract with a security guard service for onsite security?", data.securityGuardOnsite)}
-                    <div class="divider"></div>
-                    ${renderYesNo("Do you perform police background checks on all employees?", data.policeBackgroundChecks, data.backgroundCheckCriteria)}
-                </div>
-            </div>
-            </div>
-        </div>
-    `;
-}
-
-/**
- * Page 6: Operations & Complaints
- */
-function generatePage5(data: ApartmentPacketData): string {
-    return `
-        <div class="page page2-isc">
-            <div class="main-content main-content-page2">
-
-            
-            <div class="section-container">
-                <div class="question-block">
-                    ${renderYesNo("Do you have written procedures for notifying tenants of any known or suspected criminal activity in the complex or in the vicinity of the complex with record retained for at least two years?", data.proceduresNotifyingTenantsCriminal, data.proceduresNotifyingTenantsCriminalDescription)}
-                    <div class="divider" style="margin: 15px 0;"></div>
-                    ${renderYesNo("Do you have a written procedure for responding to tenant complaints concerning safety-related issues with records retained for at least two years?", data.proceduresTenantSafetyComplaints, data.proceduresTenantSafetyComplaintsDescription)}
-                    <div class="divider" style="margin: 15px 0;"></div>
-                    ${renderYesNo("Do you have a full time maintenance staff?", data.fullTimeMaintenanceStaff)}
-                    ${data.fullTimeMaintenanceStaff === true ? renderYesNo("Do you have written procedures for inspecting and maintaining building systems and for maintaining written records of such work?", data.proceduresInspectingSystems) : ''}
-                </div>
-                
-                <div class="section-header" style="margin-top: 30px;">5. CONTRACTORS, POOLS & ADDITIONS</div>
-                <hr class="section-divider" />
-
-                <div class="question-block">
-                    ${renderYesNo("Do you hire contractors to perform building and/or site maintenance such as systems inspection and repair, snow and ice removal, landscaping, etc.?", data.hireContractorsMaintenance, data.hireContractorsMaintenanceDetails)}
-                    ${data.hireContractorsMaintenance === true ? `
+                <div class="section-container">
+                    <div class="sub-header-line">Burglar Alarm</div>
+                    ${renderYesNo("Burglar Alarm Type:", data.hasBurglarAlarm)}
+                    ${data.hasBurglarAlarm === true ? `
                         <div class="sub-section">
-                            ${renderYesNo("Are contractors required to maintain CGL insurance with a minimum of $1,000,000 limits and to include you as an Additional Insured?", data.contractorsRequiredCGL, data.contractorsRequiredCGLExplanation)}
+                            <div class="question-row">
+                                <div class="question-text">Select Alarm:</div>
+                                <div class="yes-no-options">
+                                    <span class="option ${data.burglarAlarmType === 'Local Alarm (Audible Only)' ? 'selected' : ''}">Local</span>
+                                    <span class="option ${data.burglarAlarmType === 'Central Station' ? 'selected' : ''}">Central Station</span>
+                                </div>
+                            </div>
+                            ${renderField("Installed & Serviced By", data.burglarAlarmInstalledBy)}
                         </div>
                     ` : ''}
-                    <div class="divider" style="margin: 15px 0;"></div>
-                    ${renderYesNo("Do you have written procedures for responding to tenant complaints concerning building, property or systems-related issues with records retained for two years?", data.proceduresTenantComplaintsBuilding, data.proceduresTenantComplaintsBuildingDescription)}
+
+                    <div class="divider" style="margin: 20px 0;"></div>
+
+                    <div class="question-list">
+                        ${renderYesNo("Is the complex in compliance with all applicable state and local statutes governing safety devices?", data.complianceWithSafetyLaws)}
+                        <div class="divider"></div>
+                        ${renderYesNo("Are all units re-keyed prior to leasing to new tenants?", data.unitsRekeyed)}
+                        <div class="divider"></div>
+                        ${renderYesNo("Are individual unit doors secured by double locks and peep holes?", data.doorDoubleLocksPeepHoles)}
+                        <div class="divider"></div>
+                        ${renderYesNo("Does the complex have limited access perimeter fencing?", data.perimeterFencing)}
+                        <div class="divider"></div>
+                        ${renderYesNo("Do you contract with a security guard service for onsite security?", data.securityGuardOnsite)}
+                    </div>
                 </div>
-            </div>
             </div>
         </div>
     `;
 }
 
 /**
- * Page 7: Swimming Pools & Hazards
+ * Page 5: Operations & Complaints
+ */
+function generatePage5(data: ApartmentPacketData): string {
+	return `
+        <div class="page page2-isc">
+            <div class="main-content main-content-page2">
+                <div class="section-container">
+                    <div class="question-block">
+                        ${renderYesNo("Do you have written procedures for notifying tenants of any known or suspected criminal activity in the complex or in the vicinity of the complex with record retained for at least two years?", data.proceduresNotifyingTenantsCriminal)}
+                        <div class="divider" style="margin: 15px 0;"></div>
+                        ${renderYesNo("Do you have a written procedure for responding to tenant complaints concerning safety-related issues with records retained for at least two years?", data.proceduresTenantSafetyComplaints)}
+                        <div class="divider" style="margin: 15px 0;"></div>
+                        ${renderYesNo("Do you have a full time maintenance staff?", data.fullTimeMaintenanceStaff)}
+                        ${data.fullTimeMaintenanceStaff === true ? renderYesNo("Do you have written procedures for inspecting and maintaining building systems and for maintaining written records of such work?", data.proceduresInspectingSystems) : ''}
+                    </div>
+                    
+                    <div class="section-header" style="margin-top: 30px;">5. CONTRACTORS, POOLS & ADDITIONS</div>
+                    <hr class="section-divider" />
+
+                    <div class="question-block">
+                        ${renderYesNo("Do you hire contractors to perform building and/or site maintenance such as systems inspection and repair, snow and ice removal, landscaping, etc.?", data.hireContractorsMaintenance)}
+                        ${data.hireContractorsMaintenance === true ? `
+                            <div class="sub-section">
+                                ${renderField("Details", data.hireContractorsMaintenanceDetails)}
+                                ${renderYesNo("Are contractors required to maintain CGL insurance with a minimum of $1,000,000 limits and to include you as an Additional Insured?", data.contractorsRequiredCGL)}
+                                ${data.contractorsRequiredCGL === false ? renderField("Explanation", data.contractorsRequiredCGLExplanation) : ''}
+                            </div>
+                        ` : ''}
+                        <div class="divider" style="margin: 15px 0;"></div>
+                        ${renderYesNo("Do you have written procedures for responding to tenant complaints concerning building, property or systems-related issues with records retained for two years?", data.proceduresTenantComplaintsBuilding)}
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+/**
+ * Page 6: Swimming Pools & Hazards
  */
 function generatePage6(data: ApartmentPacketData): string {
-    return `
+	return `
         <div class="page page2-isc">
             <div class="main-content main-content-page2">
+                <div class="section-container">
+                    <div class="sub-header-line">Swimming Pools</div>
+                    ${renderYesNo("Are there swimming pools on the premises?", data.hasPools)}
+                    
+                    ${data.hasPools === true ? `
+                        <div class="sub-section" style="margin-top: 10px;">
+                            ${renderField("Number of Pools", data.poolNumber)}
+                            ${renderField("Height of Diving Boards", data.heightOfDivingBoards)}
+                            ${renderField("Length/Height of Slides", data.lengthHeightOfSlides)}
+                            ${renderField("Fence Height", data.fenceHeight)}
+                            
+                            <div class="question-list" style="margin-top: 15px;">
+                                ${renderYesNo("Pool Fenced?", data.poolFenced)}
+                                <div class="divider"></div>
+                                ${renderYesNo("Gates Self-Latching?", data.gatesSelfLatching)}
+                                <div class="divider"></div>
+                                ${renderYesNo("Lifeguard on Duty?", data.lifeguardOnDuty)}
+                                <div class="divider"></div>
+                                ${renderYesNo("Depth Markers Visible from Pool Deck?", data.depthMarkersVisible)}
+                                <div class="divider"></div>
+                                ${renderField("Frequency of Pool Water Inspection and Maintenance", data.poolInspectionFrequency)}
+                                ${renderField("Pool Hours", data.poolHours)}
+                            </div>
+                        </div>
+                    ` : ''}
 
-            
-            <div class="section-container">
-                <div class="sub-header-line">Swimming Pools</div>
-                <div class="field-grid">
-                    ${renderField("Number of Pools", data.poolNumber, "25%")}
-                    ${renderField("Diving Boards Height", data.heightOfDivingBoards, "25%")}
-                    ${renderField("Slides Length/Height", data.lengthHeightOfSlides, "25%")}
-                    ${renderField("Fence Height", data.fenceHeight, "25%")}
+                    <div class="divider" style="margin: 20px 0;"></div>
+                    ${renderYesNo("Is a nursery or day care facility located in the building or complex?", data.nurseryDayCareFacility)}
+                    
+                    <div class="divider" style="margin: 20px 0;"></div>
+                    ${renderYesNo("Does your lease agreement prohibit your tenants from keeping dogs on or around the property?", data.leaseProhibitsTenantsDogs)}
                 </div>
-                <div class="question-list" style="margin-top: 15px;">
-                    <div class="flex-row">
-                        <div style="flex: 1;">${renderYesNo("Pool Fenced?", data.poolFenced)}</div>
-                        <div style="flex: 1;">${renderYesNo("Gates Self-Latching?", data.gatesSelfLatching)}</div>
-                    </div>
-                    <div class="flex-row">
-                        <div style="flex: 1;">${renderYesNo("Lifeguard on Duty?", data.lifeguardOnDuty)}</div>
-                        <div style="flex: 1;">${renderYesNo("Depth Markers Visible?", data.depthMarkersVisible)}</div>
-                    </div>
-                    ${renderField("Frequency of Pool Inspection", data.poolInspectionFrequency)}
-                    ${renderField("Pool Hours", data.poolHours)}
-                </div>
-
-                <div class="divider" style="margin: 20px 0;"></div>
-                ${renderYesNo("Is a nursery or day care facility located in the building or complex?", data.nurseryDayCareFacility)}
-                
-                <div class="divider" style="margin: 20px 0;"></div>
-                ${renderYesNo("Do you have written procedures prohibiting your employees from keeping dogs on or around the property?", data.proceduresProhibitingEmployeesDogs)}
-                ${renderYesNo("Does your lease agreement prohibit your tenants from keeping dogs on or around the property?", data.leaseProhibitsTenantsDogs)}
-                ${(data.leaseProhibitsTenantsDogs === false || data.proceduresProhibitingEmployeesDogs === false) ? renderField("Maximum weight limit allowed for dogs", data.dogWeightLimit) : ''}
-                
-                <div class="divider" style="margin: 20px 0;"></div>
-                ${renderYesNo("Do you directly or indirectly provide medical, food or transportation services to tenants?", data.provideMedicalFoodTransport)}
-            </div>
             </div>
         </div>
     `;
 }
 
 /**
- * Page 8: Final Hazards & Completion
+ * Page 7: Final Hazards & Completion
  */
 function generatePage7(data: ApartmentPacketData): string {
-    return `
+	return `
         <div class="page page2-isc">
             <div class="main-content main-content-page2">
-
-            
-            <div class="section-container">
-                <div class="section-header">ADDITIONAL INFORMATION</div>
-                <hr class="section-divider" />
-                
-                <div class="field-item">
-                    <div class="field-label">Other buildings, facilities or unusual hazards:</div>
-                    <div class="field-value" style="margin-top: 5px;">${data.describeOtherBuildingsHazards || 'None'}</div>
+                <div class="section-container">
+                    <div class="section-header">ADDITIONAL INFORMATION</div>
+                    <hr class="section-divider" />
+                    
+                    <div class="field-item">
+                        <div class="field-label">Other buildings, facilities or unusual hazards:</div>
+                        <div class="field-value" style="margin-top: 5px;">${data.describeOtherBuildingsHazards || 'None'}</div>
+                    </div>
+                    
+                    <div class="divider" style="margin: 20px 0;"></div>
+                    ${renderYesNo("Do you own or control parking facilities?", data.ownControlParkingFacilities)}
+                    ${data.ownControlParkingFacilities === true ? `
+                        <div class="sub-section">
+                            ${renderYesNo("Is access controlled?", data.parkingAccessControlled)}
+                            ${renderField("Parking Description", data.parkingDescription)}
+                        </div>
+                    ` : ''}
+                    
+                    <div class="divider" style="margin: 20px 0;"></div>
+                    ${renderYesNo("Do you have written procedures for regular inspections of your premises to identify potential liability hazards and to assure all necessary corrections and repairs are made and are records of such inspections retained for at least two years?", data.proceduresRegularInspectionsHazards)}
                 </div>
-                
-                <div class="divider" style="margin: 20px 0;"></div>
-                ${renderYesNo("Do you own or control parking facilities?", data.ownControlParkingFacilities, data.parkingDescription)}
-                ${data.ownControlParkingFacilities === true ? renderYesNo("Is parking access controlled?", data.parkingAccessControlled) : ''}
-                
-                <div class="divider" style="margin: 20px 0;"></div>
-                ${renderYesNo("Do you have written procedures for regular inspections of your premises to identify potential liability hazards and to assure all necessary corrections and repairs are made and are records of such inspections retained for at least two years?", data.proceduresRegularInspectionsHazards, data.proceduresRegularInspectionsHazardsDescription)}
-                
-                <div class="divider" style="margin: 20px 0;"></div>
-                ${renderYesNo("Has your insurance agent completed a physical inspection of the property within the last year?", data.insuranceAgentCompletedInspection)}
-            </div>
             </div>
         </div>
     `;
@@ -3790,7 +3805,7 @@ const cssContent = `
 	   PAGE 2 SPECIFIC STYLES - ISC APPLICATION FORMAT
 	   ============================================ */
 	.page2-isc .main-content-page2 {
-		padding: 0.35in 0.45in 0.25in 0.45in;
+		padding: 0.35in 0.20in;
 		font-size: 9.5pt;
 		line-height: 1.25;
 		color: #1f2937;
@@ -3931,7 +3946,7 @@ const cssContent = `
 	}
 
     /* General Layout Helpers */
-    .section-container { margin-top: 0.18in; padding: 0 0.45in; }
+    .section-container { margin-top: 0.18in; }
     .section-header { font-weight: bold; font-size: 11pt; text-transform: uppercase; margin-top: 0; margin-bottom: 6px; color: #000; letter-spacing: 0.5px; }
     .section-divider { border: none; border-top: 2px solid #000; margin: 0 0 15px 0; padding: 0; width: 100%; }
     
@@ -3963,21 +3978,17 @@ const cssContent = `
  * Page: Proposal Cover & Financials
  */
 function generateProposalPage(data: ApartmentPacketData): string {
-    return `
+	return `
         <div class="page page2-isc">
             <div class="main-content main-content-page2">
             <div class="section-container">
                 <div class="section-header">QUOTATION SUMMARY</div>
                 <hr class="section-divider" />
                 
-                <div class="field-grid">
-                    ${renderField("Carrier", data.carrierName, "50%")}
-                    ${renderField("Quote Type", data.quoteType, "50%")}
-                </div>
-                <div class="field-grid">
-                    ${renderField("Coverage Type", data.coverageType, "50%")}
-                    ${renderField("Coverage Dates", data.desiredCoverageDates, "50%")}
-                </div>
+                ${renderField("Carrier", data.carrierName)}
+                ${renderField("Quote Type", data.quoteType)}
+                ${renderField("Coverage Type", data.coverageType)}
+                ${renderField("Coverage Dates", data.desiredCoverageDates)}
             </div>
 
             <div class="section-container">
@@ -4059,7 +4070,7 @@ function generateProposalPage(data: ApartmentPacketData): string {
  * Page: Invoice Statement
  */
 function generateInvoicePage(data: ApartmentPacketData): string {
-    return `
+	return `
         <div class="page page2-isc">
             <div class="main-content main-content-page2">
                 <div class="agency-bar">
@@ -4071,13 +4082,9 @@ function generateInvoicePage(data: ApartmentPacketData): string {
             <div class="section-container">
                 <div class="section-header">BILLING SUMMARY</div>
                 <hr class="section-divider" />
-                <div class="field-grid">
-                    ${renderField("Insured", data.companyName, "60%")}
-                    ${renderField("Submission #", data.submissionNumber, "40%")}
-                </div>
-                <div class="field-grid">
-                    ${renderField("Policy Period", data.desiredCoverageDates, "100%")}
-                </div>
+                ${renderField("Insured", data.companyName)}
+                ${renderField("Submission #", data.submissionNumber)}
+                ${renderField("Policy Period", data.desiredCoverageDates)}
             </div>
 
             <div class="section-container">
@@ -4111,7 +4118,7 @@ function generateInvoicePage(data: ApartmentPacketData): string {
 }
 
 export function generateApartmentPacketHTML(data: ApartmentPacketData): string {
-    return `
+	return `
         <!DOCTYPE html>
         <html>
         <head>
@@ -4132,7 +4139,7 @@ export function generateApartmentPacketHTML(data: ApartmentPacketData): string {
 }
 
 export function generateApartmentProposalHTML(data: ApartmentPacketData): string {
-    return `
+	return `
         <!DOCTYPE html>
         <html>
         <head>
@@ -4147,7 +4154,7 @@ export function generateApartmentProposalHTML(data: ApartmentPacketData): string
 }
 
 export function generateApartmentInvoiceHTML(data: ApartmentPacketData): string {
-    return `
+	return `
         <!DOCTYPE html>
         <html>
         <head>
