@@ -6,7 +6,7 @@ import Submission from "@/models/Submission";
 import Agency from "@/models/Agency";
 import Quote, { IPopulatedQuote } from "@/models/Quote";
 import PDFCache from "@/models/PDFCache";
-import crypto from "crypto";
+import * as crypto from "crypto";
 import { generateProposalHTML } from "@/lib/services/pdf/ProposalPDFHTML";
 import { mapApartmentDataToPacketData } from "@/lib/services/pdf/mappers/apartmentMapper";
 import { generateApartmentProposalHTML } from "@/lib/services/pdf/ApartmentPacketPDF";

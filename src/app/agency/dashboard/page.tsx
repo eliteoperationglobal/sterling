@@ -780,7 +780,13 @@ function AgencyDashboardContent() {
 
                 <tbody className="divide-y divide-[#ECEAE7]">
                   {submissions.map((sub) => (
-                    <tr key={sub._id} className="hover:bg-[#F9F8F7] transition cursor-pointer" onClick={() => router.push(`/agency/submissions/${sub._id}`)}>
+                    <tr
+                      key={sub._id}
+                      className="hover:bg-[#F9F8F7] transition cursor-pointer"
+                      onClick={() => {
+                        router.push(`/agency/submissions/${sub._id}`);
+                      }}
+                    >
                       <td className="px-6 py-4">
                         {sub.status === "SUBMITTED" ? (
                           "New business"

@@ -22,9 +22,9 @@ const Section = ({ title, children }: { title: string; children: React.ReactNode
 )
 
 // ── Label + input row ─────────────────────────────────────────────
-const Row = ({ label, children, required = false }: { label: React.ReactNode; children: React.ReactNode; bold?: boolean; required?: boolean }) => (
+const Row = ({ label, children, bold = false, required = false }: { label: React.ReactNode; children: React.ReactNode; bold?: boolean; required?: boolean }) => (
     <div className="grid grid-cols-[300px_1fr_320px] gap-x-6 items-start">
-        <label className="text-sm font-medium text-gray-900 pt-2 leading-snug flex items-center min-h-[38px]">
+        <label className={`text-sm text-gray-900 pt-2 leading-snug flex items-center min-h-[38px] ${bold ? 'font-bold' : 'font-medium'}`}>
             {label}{required && <span className="text-red-500 ml-0.5">*</span>}
         </label>
         <div></div>
@@ -427,6 +427,9 @@ function ContractorsEquipmentContent() {
                 if (p.physAddress) setPhysAddress(p.physAddress);
                 if (p.physCity) setPhysCity(p.physCity);
                 if (p.physApt) setPhysApt(p.physApt);
+                if (p.physState) setPhysState(p.physState);
+                if (p.physZip) setPhysZip(p.physZip);
+
                 if (p.sameAsMailing !== undefined) setSameAsMailing(p.sameAsMailing);
                 if (p.mailAddress) setMailAddress(p.mailAddress);
                 if (p.mailApt) setMailApt(p.mailApt);
@@ -577,6 +580,10 @@ function ContractorsEquipmentContent() {
     const [physAddress, setPhysAddress] = useState('')
     const [physCity, setPhysCity] = useState('')
     const [physApt, setPhysApt] = useState('')
+    const [physState, setPhysState] = useState('')
+    const [physZip, setPhysZip] = useState('')
+    const [physZipError, setPhysZipError] = useState(false)
+
     const [sameAsMailing, setSameAsMailing] = useState(false)
     const [mailAddress, setMailAddress] = useState('')
     const [mailApt, setMailApt] = useState('')
@@ -625,13 +632,17 @@ function ContractorsEquipmentContent() {
         const fullStateName = STATE_CODE_TO_NAME[suggestion.state] || suggestion.state
 
         if (activeSearchType === 'physical') {
-            setPhysAddress(`${suggestion.street_line} ${suggestion.secondary || ''}, ${suggestion.city}, ${suggestion.state} ${suggestion.zipcode}`.trim())
+            setPhysAddress(`${suggestion.street_line} ${suggestion.secondary || ''}`.trim())
             setPhysCity(suggestion.city)
+            setPhysState(fullStateName)
+            setPhysZip(suggestion.zipcode)
+            setPhysZipError(false)
         } else {
             setMailAddress(`${suggestion.street_line} ${suggestion.secondary || ''}`.trim())
             setMailCity(suggestion.city)
             setMailZip(suggestion.zipcode)
             setMailState(fullStateName)
+            setMailZipError(false)
         }
         setAddressSuggestions([])
         setShowSuggestions(false)
@@ -654,6 +665,11 @@ function ContractorsEquipmentContent() {
         setMailZipError(val.length > 0 && !/^\d{5}(-\d{4})?$/.test(val))
     }
 
+    const handlePhysZip = (val: string) => {
+        setPhysZip(val)
+        setPhysZipError(val.length > 0 && !/^\d{5}(-\d{4})?$/.test(val))
+    }
+
     const removeAI = (i: number) => {
         setInterests(prev => prev.filter((_, idx) => idx !== i))
     }
@@ -666,14 +682,20 @@ function ContractorsEquipmentContent() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
 
-        if (!companyName.trim()) {
-            toast.error("Company name is required")
-            return
+        const validate = () => {
+            if (!agentName) { toast.error("Please select an Agent"); return false; }
+            if (!companyName.trim()) { toast.error("Please enter a Company Name"); return false; }
+            if (!phone.trim()) { toast.error("Please enter a Phone Number"); return false; }
+            if (!email.trim()) { toast.error("Please enter an Email Address"); return false; }
+            if (!physAddress.trim()) { toast.error("Please enter a Physical Address"); return false; }
+            if (!physCity.trim()) { toast.error("Please enter a City"); return false; }
+            return true;
         }
 
-        try {
-            setIsSubmitting(true)
+        if (!validate()) return;
 
+        setIsSubmitting(true)
+        try {
             const payload = {
                 agentName, leadSource, companyName, zip, deductible, losses, yearsInBusiness, effectiveDate, bundle,
                 policyDuration, rentedEquipLimitRental, rentedItems,
@@ -688,11 +710,16 @@ function ContractorsEquipmentContent() {
                 brokerFee, displayBrokerFee, paymentOption,
                 licenseNum, licenseClass, dba, firstName, lastName, yearsExp, grossReceipts, entityType,
                 ssn, dlNum, phone, fax, email, opsDescription, statesOfBusiness,
-                physAddress, physCity, physApt,
+                physAddress, physCity, physApt, physState, physZip,
                 streetAddress: physAddress, // Map for backend validation
                 city: physCity || 'N/A', // Map for backend validation
-                state: statesOfBusiness[0] || 'CA', // Map for backend validation
-                sameAsMailing, mailAddress, mailApt, mailZip, mailCity, mailState
+                state: physState || statesOfBusiness[0] || 'CA', // Map for backend validation
+                sameAsMailing, 
+                mailAddress: sameAsMailing ? physAddress : mailAddress, 
+                mailApt: sameAsMailing ? physApt : mailApt, 
+                mailZip: sameAsMailing ? physZip : mailZip, 
+                mailCity: sameAsMailing ? physCity : mailCity, 
+                mailState: sameAsMailing ? physState : mailState
             }
 
             let response;
@@ -740,7 +767,7 @@ function ContractorsEquipmentContent() {
     return (
         <div className="min-h-screen bg-gray-100 pb-24">
             <div className="py-4 px-6">
-                <button onClick={() => router.back()}
+                <button type="button" onClick={() => router.back()}
                     className="flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-gray-800 transition-colors">
                     <ArrowLeft className="w-4 h-4" /> Back
                 </button>
@@ -1152,13 +1179,13 @@ function ContractorsEquipmentContent() {
                                                         Remove
                                                     </button>
                                                 )}
-                                                <button className="px-6 py-2 bg-[#7A6F64] hover:bg-[#6A5F54] text-white text-sm font-semibold rounded transition-colors">
+                                                <button type="button" className="px-6 py-2 bg-[#7A6F64] hover:bg-[#6A5F54] text-white text-sm font-semibold rounded transition-colors">
                                                     Save
                                                 </button>
                                             </div>
                                         </div>
                                     ))}
-                                    <button onClick={() => setInterests(prev => [...prev, emptyAI()])}
+                                    <button type="button" onClick={() => setInterests(prev => [...prev, emptyAI()])}
                                         className="flex items-center gap-2 text-sm font-semibold text-teal-500 hover:text-teal-700 transition-colors mt-2">
                                         <Plus size={16} className="rounded-full border-2 border-current" />
                                         Add Additional Interest
@@ -1255,11 +1282,11 @@ function ContractorsEquipmentContent() {
                             <Row label="Applicant DL #">
                                 <input type="text" value={dlNum} onChange={e => setDlNum(e.target.value)} placeholder="111-22-1234" className={inp} />
                             </Row>
-                            <Row label="Applicant Phone" bold>
+                            <Row label="Applicant Phone" bold required>
                                 <input type="text" value={phone} onChange={e => setPhone(e.target.value)} placeholder="123-456-7890" className={inp} />
                             </Row>
 
-                            <Row label="Applicant Email" bold>
+                            <Row label="Applicant Email" bold required>
                                 <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="insured@example.com" className={inp} />
                             </Row>
 
@@ -1323,6 +1350,24 @@ function ContractorsEquipmentContent() {
                             <Row label="Apt/Suite">
                                 <input type="text" value={physApt} onChange={e => setPhysApt(e.target.value)}
                                     placeholder="Apt. #24" className={inp} />
+                            </Row>
+                            <Row label="City" bold required>
+                                <input type="text" value={physCity} onChange={e => setPhysCity(e.target.value)} placeholder="Mainville" className={inp} />
+                            </Row>
+                            <Row label="State" bold>
+                                <input type="text" value={physState} onChange={e => setPhysState(e.target.value)} placeholder="California" className={inp} />
+                            </Row>
+                            <Row label="Zip" bold>
+                                <div>
+                                    <input type="text" value={physZip} onChange={e => handlePhysZip(e.target.value)}
+                                        placeholder="90210"
+                                        className={`${inp} ${physZipError ? 'border-red-400 focus:border-red-400' : ''}`} />
+                                    {physZipError && (
+                                        <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+                                            <span>⚠</span> Not a valid zip.
+                                        </p>
+                                    )}
+                                </div>
                             </Row>
                         </Section>
 
@@ -1408,7 +1453,7 @@ function ContractorsEquipmentContent() {
 
                 {/* ═══ Fixed bottom bar ═══════════════════════════════════════════════ */}
                 <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-8 py-4 flex items-center justify-between z-50">
-                    <button onClick={() => router.back()}
+                    <button type="button" onClick={() => router.back()}
                         className="px-6 py-2.5 border border-gray-400 text-gray-700 text-sm font-semibold rounded hover:bg-gray-50 transition-colors">
                         Return to Dashboard
                     </button>

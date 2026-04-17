@@ -8,6 +8,8 @@ import Quote from "@/models/Quote";
 import { generateApplicationPacketHTML, mapFormDataToPacketData, loadCapitalCoLogo } from "@/lib/services/pdf/ApplicationPacketPDF";
 import { mapApartmentDataToPacketData } from "@/lib/services/pdf/mappers/apartmentMapper";
 import { generateApartmentPacketHTML } from "@/lib/services/pdf/ApartmentPacketPDF";
+import { mapContractorsDataToPacketData } from "@/lib/services/pdf/mappers/contractorsMapper";
+import { generateContractorsPacketHTML } from "@/lib/services/pdf/ContractorsEquipmentPacketPDF";
 
 /**
  * GET /api/agency/applications/[id]/pdf
@@ -119,6 +121,17 @@ export async function GET(
         capitalCoLogoSVG
       );
       htmlContent = generateApartmentPacketHTML(apartmentData);
+    } else if (submission.programId === "contractors-equipment" || submission.programName?.toLowerCase().includes("contractors equipment")) {
+      console.log("📄 [PDF Download] Generating Contractors Equipment PDF...");
+      const contractorsData = mapContractorsDataToPacketData(
+        formData,
+        submission._id.toString(),
+        agency,
+        quote?.carrierId?.name || "Capital & Co",
+        submission,
+        capitalCoLogoSVG
+      );
+      htmlContent = generateContractorsPacketHTML(contractorsData);
     } else {
       const packetData = mapFormDataToPacketData(
         formData,

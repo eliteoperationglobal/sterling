@@ -7,6 +7,7 @@ import Agency from "@/models/Agency";
 import Quote from "@/models/Quote";
 import { generateInvoiceHTML, mapFormDataToPacketData, loadCapitalCoLogo } from "@/lib/services/pdf/ApplicationPacketPDF";
 import { mapApartmentDataToPacketData } from "@/lib/services/pdf/mappers/apartmentMapper";
+import { mapContractorsDataToPacketData } from "@/lib/services/pdf/mappers/contractorsMapper";
 import { generateApartmentInvoiceHTML } from "@/lib/services/pdf/ApartmentPacketPDF";
 
 /**

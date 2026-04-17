@@ -6,7 +6,9 @@ import Submission from "@/models/Submission";
 import Agency from "@/models/Agency";
 import { generateApplicationPacketHTML, mapFormDataToPacketData, loadCapitalCoLogo } from "@/lib/services/pdf/ApplicationPacketPDF";
 import { generateApartmentPacketHTML } from "@/lib/services/pdf/ApartmentPacketPDF";
+import { generateContractorsPacketHTML } from "@/lib/services/pdf/ContractorsEquipmentPacketPDF";
 import { mapApartmentDataToPacketData } from "@/lib/services/pdf/mappers/apartmentMapper";
+import { mapContractorsDataToPacketData } from "@/lib/services/pdf/mappers/contractorsMapper";
 import { savePDFToStorage } from "@/lib/services/pdf/storage";
 import { sendEmail } from "@/lib/services/email/EmailService";
 import { logActivity, createActivityLogData } from "@/utils/activityLogger";
@@ -252,6 +254,17 @@ export async function POST(req: NextRequest) {
           capitalCoLogoSVG
         );
         htmlContent = generateApartmentPacketHTML(apartmentData);
+      } else if (programId === "contractors-equipment") {
+        console.log("📄 Generating Contractors Equipment PDF...");
+        const contractorsData = mapContractorsDataToPacketData(
+          submission.payload,
+          submission._id.toString(),
+          agency,
+          "Capital & Co",
+          submission,
+          capitalCoLogoSVG
+        );
+        htmlContent = generateContractorsPacketHTML(contractorsData);
       } else {
         // Map form data to packet data format (no quote yet for new submissions)
         let packetData;
