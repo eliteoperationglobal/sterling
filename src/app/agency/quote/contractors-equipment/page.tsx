@@ -5,8 +5,9 @@ export const dynamic = 'force-dynamic';
 import React, { useState, useRef, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useSession } from 'next-auth/react'
-import { ArrowLeft, Plus } from 'lucide-react'
+import { ArrowLeft, Plus, Info } from 'lucide-react'
 import { toast } from 'sonner'
+import { formatCurrencyInput, parseCurrency, formatCurrency } from '@/lib/utils/currencyFormatter'
 
 // ── Sterling section wrapper ──────────────────────────────────────
 const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
@@ -21,13 +22,32 @@ const Section = ({ title, children }: { title: string; children: React.ReactNode
 )
 
 // ── Label + input row ─────────────────────────────────────────────
-const Row = ({ label, children, required = false }: { label: string; children: React.ReactNode; bold?: boolean; required?: boolean }) => (
+const Row = ({ label, children, required = false }: { label: React.ReactNode; children: React.ReactNode; bold?: boolean; required?: boolean }) => (
     <div className="grid grid-cols-[300px_1fr_320px] gap-x-6 items-start">
-        <label className="text-sm font-medium text-gray-900 pt-2 leading-snug">
+        <label className="text-sm font-medium text-gray-900 pt-2 leading-snug flex items-center min-h-[38px]">
             {label}{required && <span className="text-red-500 ml-0.5">*</span>}
         </label>
         <div></div>
         <div>{children}</div>
+    </div>
+)
+
+const InfoIcon = () => (
+    <div className="w-4 h-4 rounded-full bg-[#7A6F64] flex items-center justify-center text-white shrink-0 ml-1.5 inline-flex">
+        <span className="text-[10px] font-bold">i</span>
+    </div>
+)
+
+const CurrencyInp = ({ value, onChange, placeholder }: { value: string, onChange: (v: string) => void, placeholder?: string }) => (
+    <div className="relative">
+        <span className="absolute left-3 top-2 text-gray-400 text-sm">$</span>
+        <input
+            type="text"
+            value={value.replace('$', '')}
+            onChange={e => onChange('$' + formatCurrencyInput(e.target.value))}
+            placeholder={placeholder}
+            className={`${inp} pl-7`}
+        />
     </div>
 )
 
@@ -108,6 +128,78 @@ const ListIcon = () => (
 type AI = { name: string; contractNumber: string; address: string; aptSuite: string; zip: string; city: string; state: string }
 const emptyAI = (): AI => ({ name: '', contractNumber: '', address: '', aptSuite: '', zip: '', city: '', state: '' })
 
+type EquipmentItem = {
+    type: string;
+    year: string;
+    make: string;
+    model: string;
+    serialNumber: string;
+    valuation: string;
+    description?: string;
+}
+const emptyEquipmentItem = (): EquipmentItem => ({ type: '', year: '', make: '', model: '', serialNumber: '', valuation: '', description: '' })
+
+const VIN_EQUIPMENT_TYPES = [
+    'Boom Lift',
+    'Compact Track Loader',
+    'Forklift',
+    'Mini Excavators',
+    'Mini Loaders',
+    'Skid Steer',
+    'Backhoe',
+    'Loader',
+    'Wood Chippers'
+]
+
+const SERIAL_EQUIPMENT_TYPES = [
+    'Generator',
+    'Jack Hammer',
+    'Lawn Mower',
+    'Sprayer'
+]
+
+const SIMPLE_EQUIPMENT_TYPES = [
+    'Scaffolding (Under $50k)',
+    'Scaffolding (Over $50k)'
+]
+
+const getHeaderLabel = (items: EquipmentItem[]) => {
+    if (items.length === 0) return 'Serial Number'
+    const hasVin = items.some(it => VIN_EQUIPMENT_TYPES.includes(it.type))
+    const hasOther = items.some(it => it.type === 'Other')
+    const hasSerial = items.some(it => SERIAL_EQUIPMENT_TYPES.includes(it.type) || (it.type !== '' && !VIN_EQUIPMENT_TYPES.includes(it.type) && it.type !== 'Other'))
+
+    if (hasOther) return 'Serial Number/VIN/ID'
+    if (hasVin && hasSerial) return 'Serial Number / VIN'
+    if (hasVin) return 'VIN'
+    return 'Serial Number'
+}
+
+const isSimpleType = (type: string) => SIMPLE_EQUIPMENT_TYPES.includes(type)
+
+const EQUIPMENT_TYPE_OPTIONS = [
+    'Boom Lift',
+    'Compact Track Loader',
+    'Forklift',
+    'Generator',
+    'Jack Hammer',
+    'Lawn Mower',
+    'Mini Excavators',
+    'Mini Loaders',
+    'Scaffolding (Under $50k)',
+    'Skid Steer',
+    'Sprayer',
+    'Other'
+]
+
+const HEAVY_EQUIPMENT_TYPE_OPTIONS = [
+    'Backhoe',
+    'Loader',
+    'Scaffolding (Over $50k)',
+    'Wood Chippers',
+    'Other'
+]
+
 // ── All US states ─────────────────────────────────────────────────
 const ALL_STATES = [
     'Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut',
@@ -168,7 +260,7 @@ const StatesMultiSelect = ({ selected, onChange }: { selected: string[]; onChang
             {/* Input bar with tags */}
             <div
                 onClick={() => setOpen(true)}
-                className="min-h-[38px] w-full border border-gray-300 rounded px-2 py-1 flex flex-wrap gap-1 items-center cursor-text focus-within:border-teal-400 bg-white"
+                className="min-h-[38px] w-full border border-gray-300 rounded px-2 py-1 flex flex-wrap gap-1 items-center cursor-text focus-within:border-[#7A6F64] bg-white"
             >
                 {selected.map(s => (
                     <span key={s} className="flex items-center gap-1 bg-gray-100 border border-gray-300 text-gray-700 text-xs rounded px-2 py-0.5">
@@ -342,6 +434,15 @@ function ContractorsEquipmentContent() {
                 if (p.mailCity) setMailCity(p.mailCity);
                 if (p.mailState) setMailState(p.mailState);
 
+                if (p.lightMedItems) setLightMedItems(p.lightMedItems);
+                if (p.heavyItems) setHeavyItems(p.heavyItems);
+
+                // Initialize locked sums for valuations
+                const lmSum = p.lightMedItems ? p.lightMedItems.reduce((sum: number, item: any) => sum + parseCurrency(item.valuation), 0) : 0;
+                const hSum = p.heavyItems ? p.heavyItems.reduce((sum: number, item: any) => sum + parseCurrency(item.valuation), 0) : 0;
+                setLockedLightMedSum(lmSum);
+                setLockedHeavySum(hSum);
+
             } catch (err) {
                 console.error("Failed to fetch submission data:", err);
                 toast.error("Failed to load application data");
@@ -373,6 +474,39 @@ function ContractorsEquipmentContent() {
     const [rentedEquipLimit, setRentedEquipLimit] = useState('$0')
     const [installFloaterLimit, setInstallFloaterLimit] = useState('$0')
     const [officeContentsLimit, setOfficeContentsLimit] = useState('$0')
+
+    // Scheduled Equipment Items
+    const [lightMedItems, setLightMedItems] = useState<EquipmentItem[]>([])
+    const [heavyItems, setHeavyItems] = useState<EquipmentItem[]>([])
+
+    const addLightMedItem = () => setLightMedItems(prev => [...prev, emptyEquipmentItem()])
+    const removeLightMedItem = (i: number) => setLightMedItems(prev => prev.filter((_, idx) => idx !== i))
+    const updateLightMedItem = (i: number, field: keyof EquipmentItem, val: string) =>
+        setLightMedItems(prev => prev.map((item, idx) => idx === i ? { ...item, [field]: val } : item))
+
+    const addHeavyItem = () => setHeavyItems(prev => [...prev, emptyEquipmentItem()])
+    const removeHeavyItem = (i: number) => setHeavyItems(prev => prev.filter((_, idx) => idx !== i))
+    const updateHeavyItem = (i: number, field: keyof EquipmentItem, val: string) =>
+        setHeavyItems(prev => prev.map((item, idx) => idx === i ? { ...item, [field]: val } : item))
+
+    const [lockedLightMedSum, setLockedLightMedSum] = useState(0)
+    const [lockedHeavySum, setLockedHeavySum] = useState(0)
+
+    const lightMedRemaining = parseCurrency(lightMedLimit) - lockedLightMedSum
+    const heavyRemaining = parseCurrency(heavyLimit) - lockedHeavySum
+
+    // Limit Synchronization logic
+    const handleSetLightMedLimit = () => {
+        const totalValuation = lightMedItems.reduce((sum, item) => sum + parseCurrency(item.valuation), 0)
+        setLightMedLimit('$' + formatCurrency(totalValuation, 0))
+        setLockedLightMedSum(totalValuation)
+    }
+
+    const handleSetHeavyLimit = () => {
+        const totalValuation = heavyItems.reduce((sum, item) => sum + parseCurrency(item.valuation), 0)
+        setHeavyLimit('$' + formatCurrency(totalValuation, 0))
+        setLockedHeavySum(totalValuation)
+    }
 
     // Additional Interests
     const [hasLienholder, setHasLienholder] = useState<boolean | null>(false)
@@ -458,9 +592,12 @@ function ContractorsEquipmentContent() {
     const [addressLoading, setAddressLoading] = useState(false)
     const [activeSearchType, setActiveSearchType] = useState<'physical' | 'mailing' | null>(null)
 
-    const handleAddressSearch = async (value: string, type: 'physical' | 'mailing') => {
+    const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+    const handleAddressSearch = (value: string, type: 'physical' | 'mailing') => {
         if (type === 'physical') setPhysAddress(value)
         else setMailAddress(value)
+
+        if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current)
 
         if (value.length < 3) {
             setAddressSuggestions([])
@@ -468,18 +605,20 @@ function ContractorsEquipmentContent() {
             return
         }
 
-        setAddressLoading(true)
-        setActiveSearchType(type)
-        try {
-            const res = await fetch(`/api/address/autocomplete?search=${encodeURIComponent(value)}`)
-            const data = await res.json()
-            setAddressSuggestions(data.suggestions || [])
-            setShowSuggestions(true)
-        } catch (err) {
-            console.error('Address search error:', err)
-        } finally {
-            setAddressLoading(false)
-        }
+        searchTimeoutRef.current = setTimeout(async () => {
+            setAddressLoading(true)
+            setActiveSearchType(type)
+            try {
+                const res = await fetch(`/api/address/autocomplete?search=${encodeURIComponent(value)}`)
+                const data = await res.json()
+                setAddressSuggestions(data.suggestions || [])
+                setShowSuggestions(true)
+            } catch (err) {
+                console.error('Address search error:', err)
+            } finally {
+                setAddressLoading(false)
+            }
+        }, 300)
     }
 
     const handleSelectSuggestion = (suggestion: any) => {
@@ -539,6 +678,7 @@ function ContractorsEquipmentContent() {
                 agentName, leadSource, companyName, zip, deductible, losses, yearsInBusiness, effectiveDate, bundle,
                 policyDuration, rentedEquipLimitRental, rentedItems,
                 miscToolsLimit, lightMedLimit, heavyLimit, rentedEquipLimit, installFloaterLimit, officeContentsLimit,
+                lightMedItems, heavyItems,
                 hasLienholder, lienholderExplain, interests, terrorism,
                 cancelled, cancelledExplain, bankruptcy, bankruptcyExplain, moreThanOneLoss, lossExplain,
                 asphaltCranes, asphaltExplain, tandemLifting, tandemExplain, overWater, waterExplain,
@@ -650,33 +790,315 @@ function ContractorsEquipmentContent() {
                                 <input type="date" value={effectiveDate} onChange={e => setEffectiveDate(e.target.value)} className={inp} />
                             </Row>
 
+                            <Row label={<>Miscellaneous Tools Limit <InfoIcon /></>} bold>
+                                <CurrencyInp value={miscToolsLimit} onChange={setMiscToolsLimit} placeholder="10,000" />
+                            </Row>
+                            <Row label={<>Scheduled - Light/Medium Limit <InfoIcon /></>} bold>
+                                <CurrencyInp value={lightMedLimit} onChange={setLightMedLimit} placeholder="0" />
+                            </Row>
+                            <Row label={<>Scheduled - Heavy Limit <InfoIcon /></>} bold>
+                                <CurrencyInp value={heavyLimit} onChange={setHeavyLimit} placeholder="0" />
+                            </Row>
+                            <Row label="Rented/Leased Equipment Limit" bold>
+                                <CurrencyInp value={rentedEquipLimit} onChange={setRentedEquipLimit} placeholder="0" />
+                            </Row>
+                            <Row label="Installation Floater Limit" bold>
+                                <CurrencyInp value={installFloaterLimit} onChange={setInstallFloaterLimit} placeholder="0" />
+                            </Row>
+                            <Row label={<>Office Contents Limit <InfoIcon /></>} bold>
+                                <CurrencyInp value={officeContentsLimit} onChange={setOfficeContentsLimit} placeholder="0" />
+                            </Row>
+
                         </Section>
-                        <div className="bg-white rounded shadow-md overflow-visible border border-gray-200 mb-5">
-                            <div className="bg-[#7A6F64] text-white px-6 py-3.5 flex items-center justify-between">
-                                <h2 className="text-lg font-semibold">Heavy Scheduled Equipment</h2>
-                                <span className="text-sm font-semibold opacity-90">Remaining Limit: {heavyLimit}.00</span>
-                            </div>
-                            <div className="px-8 pt-6 pb-7">
-                                <div className="flex items-center justify-between">
-                                    <button className="flex items-center gap-2 text-sm font-semibold text-teal-500 hover:text-teal-700 transition-colors mt-2">
-                                        <Plus size={16} className="rounded-full border-2 border-current" />
-                                        Add Heavy Item
+                        {/* ═══ 2. Light/Medium Scheduled Equipment ════════════════════ */}
+                        <div className="bg-white rounded border border-gray-200 mb-5 shadow-sm">
+                            <div className="bg-[#7A6F64] text-white px-6 py-3 flex items-center justify-between rounded-t">
+                                <div className="flex items-center gap-2">
+                                    <h2 className="text-lg font-semibold tracking-tight">Light/Medium Scheduled Equipment</h2>
+                                    <button type="button" className="text-white/80 hover:text-white transition-colors">
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
                                     </button>
-                                    <div className="flex items-center gap-2">
-                                        <button className="flex items-center gap-1.5 px-4 py-1.5 border border-gray-400 text-gray-700 text-sm font-medium rounded hover:bg-gray-50 transition-colors">
-                                            <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </div>
+                                <span className="text-base font-semibold">Remaining Limit: <span className="ml-1">${formatCurrency(lightMedRemaining, 0)}</span></span>
+                            </div>
+                            <div className="px-6 pt-5 pb-6">
+                                <div className="flex items-center justify-between mb-8">
+                                    <button
+                                        type="button"
+                                        onClick={addLightMedItem}
+                                        className="flex items-center gap-2 text-base font-semibold text-[#7A6F64] hover:text-[#6A5F54] transition-colors"
+                                    >
+                                        <div className="w-5 h-5 rounded-full border-2 border-[#7A6F64] flex items-center justify-center">
+                                            <Plus size={14} strokeWidth={3} />
+                                        </div>
+                                        Add Light/Medium Item
+                                    </button>
+                                    <div className="flex items-center gap-3">
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setLightMedItems([])
+                                                setLockedLightMedSum(0)
+                                            }}
+                                            className="flex items-center gap-2 px-6 py-2 border border-gray-300 text-gray-700 text-sm font-semibold rounded hover:bg-gray-50 transition-colors bg-white shadow-sm"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                <path d="M3 6h18m-2 0v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6m3 0V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
                                             </svg>
                                             Clear All
                                         </button>
-                                        <button className="flex items-center gap-1.5 px-4 py-1.5 bg-[#7A6F64] hover:bg-[#6A5F54] text-white text-sm font-semibold rounded transition-colors">
-                                            <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        <button
+                                            type="button"
+                                            onClick={handleSetLightMedLimit}
+                                            className="flex items-center gap-2 px-6 py-2 bg-[#7A6F64] text-white text-sm font-semibold rounded hover:bg-[#6A5F54] transition-colors shadow-sm"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                <rect x="4" y="2" width="16" height="20" rx="2" ry="2" />
+                                                <line x1="8" y1="6" x2="16" y2="6" />
+                                                <line x1="8" y1="10" x2="16" y2="10" />
+                                                <line x1="8" y1="14" x2="16" y2="14" />
+                                                <line x1="8" y1="18" x2="16" y2="18" />
                                             </svg>
                                             Set Limit
                                         </button>
                                     </div>
                                 </div>
+
+                                {lightMedItems.length > 0 && (
+                                    <div className="space-y-1">
+                                        <div className="grid grid-cols-[40px_1fr_80px_180px_180px_1.5fr_130px] gap-4 px-1">
+                                            <div></div>
+                                            <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Equipment Type</label>
+                                            <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Year</label>
+                                            <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Make</label>
+                                            <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Model</label>
+                                            <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">{getHeaderLabel(lightMedItems)}</label>
+                                            <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Valuation</label>
+                                        </div>
+                                        <div className="space-y-2">
+                                            {lightMedItems.map((item, i) => (
+                                                <div key={i} className="space-y-2">
+                                                    <div className="grid grid-cols-[40px_1fr_80px_180px_180px_1.5fr_130px] gap-4 items-center">
+                                                        <button type="button" onClick={() => removeLightMedItem(i)} className="text-gray-400 hover:text-red-500 transition-colors">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                                                                <path fillRule="evenodd" d="M12 2a10 10 0 100 20 10 10 0 000-20zm3 11H9a1 1 0 110-2h6a1 1 0 110 2z" clipRule="evenodd" />
+                                                            </svg>
+                                                        </button>
+                                                        <select
+                                                            value={item.type}
+                                                            onChange={e => updateLightMedItem(i, 'type', e.target.value)}
+                                                            className="w-full border border-gray-300 rounded px-2 py-2 text-sm text-gray-800 focus:outline-none focus:border-[#7A6F64] bg-white"
+                                                        >
+                                                            <option value=""></option>
+                                                            {EQUIPMENT_TYPE_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                                                        </select>
+                                                        {!isSimpleType(item.type) ? (
+                                                            <>
+                                                                <input
+                                                                    type="text"
+                                                                    value={item.year}
+                                                                    onChange={e => updateLightMedItem(i, 'year', e.target.value)}
+                                                                    className="w-full border border-gray-300 rounded px-2 py-2 text-sm text-gray-800 focus:outline-none focus:border-[#7A6F64] bg-white"
+                                                                />
+                                                                <input
+                                                                    type="text"
+                                                                    value={item.make}
+                                                                    onChange={e => updateLightMedItem(i, 'make', e.target.value)}
+                                                                    className="w-full border border-gray-300 rounded px-2 py-2 text-sm text-gray-800 focus:outline-none focus:border-[#7A6F64] bg-white"
+                                                                />
+                                                                <input
+                                                                    type="text"
+                                                                    value={item.model}
+                                                                    onChange={e => updateLightMedItem(i, 'model', e.target.value)}
+                                                                    className="w-full border border-gray-300 rounded px-2 py-2 text-sm text-gray-800 focus:outline-none focus:border-[#7A6F64] bg-white"
+                                                                />
+                                                                <input
+                                                                    type="text"
+                                                                    value={item.serialNumber}
+                                                                    onChange={e => updateLightMedItem(i, 'serialNumber', e.target.value)}
+                                                                    placeholder={item.type === 'Other' ? 'Serial Number/VIN/ID' : VIN_EQUIPMENT_TYPES.includes(item.type) ? 'VIN' : 'Serial #'}
+                                                                    className="w-full border border-gray-300 rounded px-2 py-2 text-sm text-gray-800 focus:outline-none focus:border-[#7A6F64] bg-white"
+                                                                />
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <div /> <div /> <div /> <div />
+                                                            </>
+                                                        )}
+                                                        <CurrencyInp
+                                                            value={item.valuation}
+                                                            onChange={v => updateLightMedItem(i, 'valuation', v)}
+                                                            placeholder="0"
+                                                        />
+                                                    </div>
+                                                    {item.type === 'Other' && (
+                                                        <div className="grid grid-cols-[40px_1fr] gap-4 px-1">
+                                                            <div />
+                                                            <div className="flex flex-col gap-1">
+                                                                <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Other Type</label>
+                                                                <input
+                                                                    type="text"
+                                                                    value={item.description || ''}
+                                                                    onChange={e => updateLightMedItem(i, 'description', e.target.value)}
+                                                                    placeholder="Item Description"
+                                                                    className="w-full border border-gray-300 rounded px-2 py-2 text-sm text-gray-800 focus:outline-none focus:border-[#7A6F64] bg-white"
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* ═══ 3. Heavy Scheduled Equipment ══════════════════════════ */}
+                        <div className="bg-white rounded border border-gray-200 mb-5 shadow-sm">
+                            <div className="bg-[#7A6F64] text-white px-6 py-3 flex items-center justify-between rounded-t">
+                                <div className="flex items-center gap-2">
+                                    <h2 className="text-lg font-semibold tracking-tight">Heavy Scheduled Equipment</h2>
+                                    <button type="button" className="text-white/80 hover:text-white transition-colors">
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                    </button>
+                                </div>
+                                <span className="text-base font-semibold">Remaining Limit: <span className="ml-1">${formatCurrency(heavyRemaining, 0)}</span></span>
+                            </div>
+                            <div className="px-6 pt-5 pb-6">
+                                <div className="flex items-center justify-between mb-8">
+                                    <button
+                                        type="button"
+                                        onClick={addHeavyItem}
+                                        className="flex items-center gap-2 text-base font-semibold text-[#7A6F64] hover:text-[#6A5F54] transition-colors"
+                                    >
+                                        <div className="w-5 h-5 rounded-full border-2 border-[#7A6F64] flex items-center justify-center">
+                                            <Plus size={14} strokeWidth={3} />
+                                        </div>
+                                        Add Heavy Item
+                                    </button>
+                                    <div className="flex items-center gap-3">
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setHeavyItems([])
+                                                setLockedHeavySum(0)
+                                            }}
+                                            className="flex items-center gap-2 px-6 py-2 border border-gray-300 text-gray-700 text-sm font-semibold rounded hover:bg-gray-50 transition-colors bg-white shadow-sm"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                <path d="M3 6h18m-2 0v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6m3 0V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                                            </svg>
+                                            Clear All
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={handleSetHeavyLimit}
+                                            className="flex items-center gap-2 px-6 py-2 bg-[#7A6F64] text-white text-sm font-semibold rounded hover:bg-[#6A5F54] transition-colors shadow-sm"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                <rect x="4" y="2" width="16" height="20" rx="2" ry="2" />
+                                                <line x1="8" y1="6" x2="16" y2="6" />
+                                                <line x1="8" y1="10" x2="16" y2="10" />
+                                                <line x1="8" y1="14" x2="16" y2="14" />
+                                                <line x1="8" y1="18" x2="16" y2="18" />
+                                            </svg>
+                                            Set Limit
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {heavyItems.length > 0 && (
+                                    <div className="space-y-1">
+                                        <div className="grid grid-cols-[40px_1fr_80px_180px_180px_1.5fr_130px] gap-4 px-1">
+                                            <div></div>
+                                            <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Equipment Type</label>
+                                            <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Year</label>
+                                            <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Make</label>
+                                            <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Model</label>
+                                            <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">{getHeaderLabel(heavyItems)}</label>
+                                            <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Valuation</label>
+                                        </div>
+                                        <div className="space-y-2">
+                                            {heavyItems.map((item, i) => (
+                                                <div key={i} className="space-y-2">
+                                                    <div className="grid grid-cols-[40px_1fr_80px_180px_180px_1.5fr_130px] gap-4 items-center">
+                                                        <button type="button" onClick={() => removeHeavyItem(i)} className="text-gray-400 hover:text-red-500 transition-colors">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                                                                <path fillRule="evenodd" d="M12 2a10 10 0 100 20 10 10 0 000-20zm3 11H9a1 1 0 110-2h6a1 1 0 110 2z" clipRule="evenodd" />
+                                                            </svg>
+                                                        </button>
+                                                        <select
+                                                            value={item.type}
+                                                            onChange={e => updateHeavyItem(i, 'type', e.target.value)}
+                                                            className="w-full border border-gray-300 rounded px-2 py-2 text-sm text-gray-800 focus:outline-none focus:border-[#7A6F64] bg-white"
+                                                        >
+                                                            <option value=""></option>
+                                                            {HEAVY_EQUIPMENT_TYPE_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                                                        </select>
+                                                        {!isSimpleType(item.type) ? (
+                                                            <>
+                                                                <input
+                                                                    type="text"
+                                                                    value={item.year}
+                                                                    onChange={e => updateHeavyItem(i, 'year', e.target.value)}
+                                                                    className="w-full border border-gray-300 rounded px-2 py-2 text-sm text-gray-800 focus:outline-none focus:border-[#7A6F64] bg-white"
+                                                                />
+                                                                <input
+                                                                    type="text"
+                                                                    value={item.make}
+                                                                    onChange={e => updateHeavyItem(i, 'make', e.target.value)}
+                                                                    className="w-full border border-gray-300 rounded px-2 py-2 text-sm text-gray-800 focus:outline-none focus:border-[#7A6F64] bg-white"
+                                                                />
+                                                                <input
+                                                                    type="text"
+                                                                    value={item.model}
+                                                                    onChange={e => updateHeavyItem(i, 'model', e.target.value)}
+                                                                    className="w-full border border-gray-300 rounded px-2 py-2 text-sm text-gray-800 focus:outline-none focus:border-[#7A6F64] bg-white"
+                                                                />
+                                                                <input
+                                                                    type="text"
+                                                                    value={item.serialNumber}
+                                                                    onChange={e => updateHeavyItem(i, 'serialNumber', e.target.value)}
+                                                                    placeholder={item.type === 'Other' ? 'Serial Number/VIN/ID' : VIN_EQUIPMENT_TYPES.includes(item.type) ? 'VIN' : 'Serial #'}
+                                                                    className="w-full border border-gray-300 rounded px-2 py-2 text-sm text-gray-800 focus:outline-none focus:border-[#7A6F64] bg-white"
+                                                                />
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <div /> <div /> <div /> <div />
+                                                            </>
+                                                        )}
+                                                        <CurrencyInp
+                                                            value={item.valuation}
+                                                            onChange={v => updateHeavyItem(i, 'valuation', v)}
+                                                            placeholder="0"
+                                                        />
+                                                    </div>
+                                                    {item.type === 'Other' && (
+                                                        <div className="grid grid-cols-[40px_1fr] gap-4 px-1">
+                                                            <div />
+                                                            <div className="flex flex-col gap-1">
+                                                                <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Other Type</label>
+                                                                <input
+                                                                    type="text"
+                                                                    value={item.description || ''}
+                                                                    onChange={e => updateHeavyItem(i, 'description', e.target.value)}
+                                                                    placeholder="Item Description"
+                                                                    className="w-full border border-gray-300 rounded px-2 py-2 text-sm text-gray-800 focus:outline-none focus:border-[#7A6F64] bg-white"
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
                         {/* ═══ 2. Additional Interests ═══════════════════════════════ */}
@@ -862,7 +1284,7 @@ function ContractorsEquipmentContent() {
                             <div className="py-5 border-b border-gray-50">
                                 <div className="flex items-center gap-2 mb-2">
                                     <label className="text-sm font-bold text-gray-700">Address</label>
-                                    <span className="w-5 h-5 rounded-full bg-teal-400 text-white text-xs flex items-center justify-center font-bold cursor-help" title="Enter your physical street address">?</span>
+                                    <span className="w-5 h-5 rounded-full bg-[#7A6F64] text-white text-xs flex items-center justify-center font-bold cursor-help" title="Enter your physical street address">?</span>
                                 </div>
                                 <div className="relative">
                                     <input
