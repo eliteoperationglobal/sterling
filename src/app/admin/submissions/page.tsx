@@ -20,6 +20,7 @@ interface Submission {
   createdAt: string;
   applicationPdfUrl?: string;
   submittedToCarrierAt?: string;
+  bindApprovedAt?: string;
 }
 
 interface PipelineStage {
@@ -383,8 +384,16 @@ export default function AdminSubmissionsPage() {
                         </span>
                       </td>
                       <td className="px-6 py-5">
-                        <div className="font-semibold text-[#2d2a26]">{new Date(sub.createdAt).toLocaleDateString()}</div>
-                        <div className="text-[11px] text-[#6b5e52] mt-0.5">{new Date(sub.createdAt).toLocaleTimeString()}</div>
+                        <div className="font-semibold text-[#2d2a26]">
+                          {sub.status === "BOUND" && sub.bindApprovedAt
+                            ? new Date(sub.bindApprovedAt).toLocaleDateString()
+                            : new Date(sub.createdAt).toLocaleDateString()}
+                        </div>
+                        <div className="text-[11px] text-[#6b5e52] mt-0.5">
+                          {sub.status === "BOUND" && sub.bindApprovedAt
+                            ? new Date(sub.bindApprovedAt).toLocaleTimeString()
+                            : new Date(sub.createdAt).toLocaleTimeString()}
+                        </div>
                       </td>
                       <td className="px-6 py-5 text-center relative">
                         <div className="flex items-center justify-center gap-3">
@@ -410,7 +419,7 @@ export default function AdminSubmissionsPage() {
           </div>
         </div>
       </div>
-      
+
       {/* Delete Confirmation Modal */}
       {deleteModalOpen && submissionToDelete && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-[fadeIn_.2s_ease-out]">

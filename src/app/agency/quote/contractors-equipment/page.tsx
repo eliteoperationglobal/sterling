@@ -33,7 +33,7 @@ const Row = ({ label, children, bold = false, required = false }: { label: React
 )
 
 const InfoIcon = () => (
-    <div className="w-4 h-4 rounded-full bg-[#7A6F64] flex items-center justify-center text-white shrink-0 ml-1.5 inline-flex">
+    <div className="w-4 h-4 rounded-full bg-[#7A6F64] flex items-center justify-center text-white shrink-0 ml-1.5">
         <span className="text-[10px] font-bold">i</span>
     </div>
 )
@@ -714,11 +714,11 @@ function ContractorsEquipmentContent() {
                 streetAddress: physAddress, // Map for backend validation
                 city: physCity || 'N/A', // Map for backend validation
                 state: physState || statesOfBusiness[0] || 'CA', // Map for backend validation
-                sameAsMailing, 
-                mailAddress: sameAsMailing ? physAddress : mailAddress, 
-                mailApt: sameAsMailing ? physApt : mailApt, 
-                mailZip: sameAsMailing ? physZip : mailZip, 
-                mailCity: sameAsMailing ? physCity : mailCity, 
+                sameAsMailing,
+                mailAddress: sameAsMailing ? physAddress : mailAddress,
+                mailApt: sameAsMailing ? physApt : mailApt,
+                mailZip: sameAsMailing ? physZip : mailZip,
+                mailCity: sameAsMailing ? physCity : mailCity,
                 mailState: sameAsMailing ? physState : mailState
             }
 

@@ -15,7 +15,9 @@ import {
     FileIcon,
     Home,
     ArrowLeft,
-    CircleDot
+    CircleDot,
+    Plus,
+    Trash2
 } from "lucide-react";
 
 const YesNoRadio = ({
@@ -190,7 +192,7 @@ function ApartmentBuildingsContent() {
 
         percentageElderly: "",
         hasMultipleBuildings: null as boolean | null,
-        subjectOfInsurance: "",
+        subjectsOfInsurance: [""] as string[],
         propertyLimit: "",
         propertyCoinsurance: "",
         propertyValuation: "",
@@ -398,6 +400,32 @@ function ApartmentBuildingsContent() {
         });
     };
 
+    const addSubjectOfInsurance = () => {
+        setFormData((prev: any) => ({
+            ...prev,
+            subjectsOfInsurance: [...prev.subjectsOfInsurance, ""]
+        }));
+    };
+
+    const removeSubjectOfInsurance = (index: number) => {
+        if (formData.subjectsOfInsurance.length <= 1) return;
+        setFormData((prev: any) => ({
+            ...prev,
+            subjectsOfInsurance: prev.subjectsOfInsurance.filter((_: any, i: number) => i !== index)
+        }));
+    };
+
+    const updateSubjectOfInsurance = (index: number, value: string) => {
+        setFormData((prev: any) => {
+            const newSubjects = [...prev.subjectsOfInsurance];
+            newSubjects[index] = value;
+            return {
+                ...prev,
+                subjectsOfInsurance: newSubjects
+            };
+        });
+    };
+
     useEffect(() => {
         const fetchSubmissionData = async () => {
             if (!submissionId) return;
@@ -407,6 +435,14 @@ function ApartmentBuildingsContent() {
                 if (!res.ok) throw new Error(result.error);
 
                 const payload = result.submission.payload;
+
+                // Migrate old subjectOfInsurance to subjectsOfInsurance array
+                if (payload.subjectOfInsurance && !payload.subjectsOfInsurance) {
+                    payload.subjectsOfInsurance = [payload.subjectOfInsurance];
+                } else if (!payload.subjectsOfInsurance) {
+                    payload.subjectsOfInsurance = [""];
+                }
+
                 setFormData((prev: any) => ({
                     ...prev,
                     ...payload,
@@ -830,7 +866,7 @@ function ApartmentBuildingsContent() {
                                 <label className="flex items-center gap-2"><input type="radio" checked={formData.interestInPropertyRadio === 'Manager'} onChange={() => handleInputChange('interestInPropertyRadio', 'Manager')} className="text-[#9A8B7A] focus:ring-[#9A8B7A]" /> Manager</label>
                             </div>
                         </GridRow>
-                        {formData.interestInPropertyRadio === 'Owner' && (
+                        {formData.interestInPropertyRadio === 'Manager' && (
                             <>
                                 <LongGridRow label="Name of Property Management Firm:">
                                     <input type="text" value={formData.propertyManagementFirmName} onChange={(e) => handleInputChange("propertyManagementFirmName", e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded text-sm focus:ring-[#9A8B7A]" />
@@ -897,18 +933,44 @@ function ApartmentBuildingsContent() {
                         </GridRow>
 
                         {formData.hasMultipleBuildings && (
-                            <GridRow label="Subject of Insurance">
-                                <select
-                                    value={formData.subjectOfInsurance}
-                                    onChange={(e) => handleInputChange("subjectOfInsurance", e.target.value)}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded focus:ring-[#9A8B7A] text-sm"
-                                >
-                                    <option value="" disabled hidden>Select Subject</option>
-                                    <option value="Building">Building</option>
-                                    <option value="Business Personal Property (BPP)">Business Personal Property (BPP)</option>
-                                    <option value="Business Income">Business Income</option>
-                                </select>
-                            </GridRow>
+                            <div className="space-y-4">
+                                {formData.subjectsOfInsurance.map((subject, index) => (
+                                    <GridRow key={index} label={index === 0 ? "Subject of Insurance" : ""}>
+                                        <div className="flex items-center gap-2">
+                                            <select
+                                                value={subject}
+                                                onChange={(e) => updateSubjectOfInsurance(index, e.target.value)}
+                                                className="flex-1 px-4 py-2 border border-gray-300 rounded focus:ring-[#9A8B7A] text-sm"
+                                            >
+                                                <option value="" disabled hidden>Select Subject</option>
+                                                <option value="Building">Building</option>
+                                                <option value="Business Personal Property (BPP)">Business Personal Property (BPP)</option>
+                                                <option value="Business Income">Business Income</option>
+                                            </select>
+                                            {formData.subjectsOfInsurance.length > 1 && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => removeSubjectOfInsurance(index)}
+                                                    className="p-2 text-red-500 hover:bg-red-50 rounded-full transition-colors"
+                                                    title="Remove Subject"
+                                                >
+                                                    <Trash2 size={18} />
+                                                </button>
+                                            )}
+                                        </div>
+                                    </GridRow>
+                                ))}
+                                <GridRow label="">
+                                    <button
+                                        type="button"
+                                        onClick={addSubjectOfInsurance}
+                                        className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-[#9A8B7A] hover:bg-[#8A7B6A] rounded transition-colors w-fit"
+                                    >
+                                        <Plus size={16} />
+                                        Add Subject
+                                    </button>
+                                </GridRow>
+                            </div>
                         )}
 
                         <GridRow label="Limit ($)">

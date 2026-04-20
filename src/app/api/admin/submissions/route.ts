@@ -123,6 +123,7 @@ export async function GET(req: NextRequest) {
       state: sub.state || "N/A",
       applicationPdfUrl: sub.applicationPdfUrl || null,
       submittedToCarrierAt: sub.submittedToCarrierAt || null,
+      bindApprovedAt: sub.bindApprovedAt || null,
     }));
 
     return NextResponse.json({

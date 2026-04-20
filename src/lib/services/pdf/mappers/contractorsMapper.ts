@@ -137,6 +137,28 @@ export interface ContractorsPacketData {
     displayBrokerFee: boolean | null;
     paymentOption: string;
     terrorism: boolean;
+
+    // Financial fields for Proposal & Invoice
+    quoteType?: string;
+    policyType?: string;
+    premium?: string;
+    carrierPolicyFee?: string;
+    sterlingFees?: string;
+    surplusLinesTax?: string;
+    stampingFee?: string;
+    fireMarshalTax?: string;
+    totalCostOfPolicy?: string;
+    
+    totalDeposit?: string;
+    totalToBeSent?: string;
+
+    // Coverage Limits for Proposal
+    occurrenceLimit?: string;
+    aggregateLimit?: string;
+    productsCompletedOpsLimit?: string;
+    personalAdvertisingInjuryLimit?: string;
+    fireLegalLimit?: string;
+    medPayLimit?: string;
 }
 
 /**
@@ -148,7 +170,8 @@ export function mapContractorsDataToPacketData(
     agency: any,
     carrierName: string = "Capital & Co",
     submission: any = {},
-    capitalCoLogoSVG?: string
+    capitalCoLogoSVG?: string,
+    quote?: any
 ): ContractorsPacketData {
     return {
         // Metadata
@@ -160,11 +183,11 @@ export function mapContractorsDataToPacketData(
 
         // Agency Information
         agencyName: agency?.name || "Unknown Agency",
-        agentName: submission?.agentName || "Unknown Agent",
-        agencyAddress: agency?.address || "",
-        agencyCity: agency?.city || "",
-        agencyState: agency?.state || "",
-        agencyZip: agency?.zip || "",
+        agentName: submission?.agentName || agency?.agentName || "Unknown Agent",
+        agencyAddress: typeof agency?.address === 'object' ? agency.address.street : (agency?.address || ""),
+        agencyCity: agency?.city || (typeof agency?.address === 'object' ? agency.address.city : ""),
+        agencyState: agency?.state || (typeof agency?.address === 'object' ? agency.address.state : ""),
+        agencyZip: agency?.zip || (typeof agency?.address === 'object' ? agency.address.zip : ""),
         agencyPhone: agency?.phone || "",
         agencyEmail: agency?.email || "",
 
@@ -267,5 +290,27 @@ export function mapContractorsDataToPacketData(
         displayBrokerFee: p.displayBrokerFee ?? true,
         paymentOption: p.paymentOption || "",
         terrorism: p.terrorism || false,
+
+        // Financials (if quote provided)
+        quoteType: quote?.metadata?.type || "Contractors Equipment",
+        policyType: quote?.metadata?.type || "CONTRACTORS_EQUIPMENT",
+        premium: quote?.costs?.premium ? `$${quote.costs.premium.toLocaleString()}` : "$0.00",
+        carrierPolicyFee: quote?.costs?.carrierPolicyFee ? `$${quote.costs.carrierPolicyFee.toLocaleString()}` : "$0.00",
+        sterlingFees: quote?.costs?.sterlingFees ? `$${quote.costs.sterlingFees.toLocaleString()}` : "$0.00",
+        surplusLinesTax: quote?.costs?.surplusLinesTax ? `$${quote.costs.surplusLinesTax.toLocaleString()}` : "$0.00",
+        stampingFee: quote?.costs?.stampingFee ? `$${quote.costs.stampingFee.toLocaleString()}` : "$0.00",
+        fireMarshalTax: quote?.costs?.fireMarshalTax ? `$${quote.costs.fireMarshalTax.toLocaleString()}` : "$0.00",
+        totalCostOfPolicy: quote?.costs?.totalCostOfPolicy ? `$${quote.costs.totalCostOfPolicy.toLocaleString()}` : "$0.00",
+        totalDeposit: quote?.deposit?.totalDeposit ? `$${quote.deposit.totalDeposit.toLocaleString()}` : "$0.00",
+        totalToBeSent: quote?.payment?.totalToBeSent ? `$${quote.payment.totalToBeSent.toLocaleString()}` : "$0.00",
+
+        // Limits
+        occurrenceLimit: quote?.metadata?.limits?.occurrence ? `$${quote.metadata.limits.occurrence.toLocaleString()}` : undefined,
+        aggregateLimit: quote?.metadata?.limits?.aggregate ? `$${quote.metadata.limits.aggregate.toLocaleString()}` : undefined,
+        productsCompletedOpsLimit: quote?.metadata?.limits?.productsCompletedOps ? `$${quote.metadata.limits.productsCompletedOps.toLocaleString()}` : undefined,
+        personalAdvertisingInjuryLimit: quote?.metadata?.limits?.personalAdvertisingInjury ? `$${quote.metadata.limits.personalAdvertisingInjury.toLocaleString()}` : undefined,
+        fireLegalLimit: quote?.metadata?.limits?.fireLegal ? `$${quote.metadata.limits.fireLegal.toLocaleString()}` : undefined,
+        medPayLimit: quote?.metadata?.limits?.medicalExpense ? `$${quote.metadata.limits.medicalExpense.toLocaleString()}` : undefined,
     };
 }
+
