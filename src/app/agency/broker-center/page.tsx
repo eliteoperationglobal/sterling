@@ -257,8 +257,8 @@ function AgencyDashboardContent() {
         const rows = submissions.map((sub) => [
             sub.submissionNumber, sub.industry, sub.subtype, sub.clientName, sub.clientEmail, sub.clientPhone,
             sub.status, sub.state, sub.fileCount.toString(),
-            new Date(sub.createdAt).toLocaleDateString(),
-            new Date(sub.updatedAt).toLocaleDateString(),
+            new Date(sub.createdAt).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }),
+            new Date(sub.updatedAt).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }),
         ]);
         const csvContent = [headers, ...rows].map((row) => row.map((cell) => `"${cell}"`).join(",")).join("\n");
         const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
@@ -446,7 +446,7 @@ return (
                     <td className="px-6 py-4 text-[#2d2a26] font-medium">{sub.clientName}</td>
                     <td className="px-6 py-4 text-[#6b5e52]">{sub.industry}</td>
                     <td className="px-6 py-4 text-[#6b5e52]">
-                      {new Date(sub.createdAt).toISOString().split("T")[0]}
+                      {new Date(sub.createdAt).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}
                     </td>
                     <td className="px-6 py-4 text-[#6b5e52]">{sub.subtype}</td>
                     <td className="px-6 py-4 text-center text-[#9A8B7A]">ⓘ</td>

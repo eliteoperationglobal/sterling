@@ -311,7 +311,7 @@ export default function AdminDashboard() {
                           </div>
                           {notif.timestamp && (
                             <p className="text-xs text-[#9A8B7A] mt-2">
-                              {new Date(notif.timestamp).toLocaleDateString()} {new Date(notif.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                              {new Date(notif.timestamp).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })} {new Date(notif.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                             </p>
                           )}
                         </button>

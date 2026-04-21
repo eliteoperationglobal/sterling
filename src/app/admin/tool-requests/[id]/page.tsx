@@ -342,7 +342,7 @@ export default function ProcessToolRequestPage() {
                   <div>
                     <p className="text-sm text-gray-500 font-medium mb-1">Submitted On</p>
                     <p className="text-base font-semibold text-gray-900">
-                      {new Date(request.createdAt).toLocaleString()}
+                      {new Date(request.createdAt).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}
                     </p>
                   </div>
                 </div>
@@ -389,7 +389,7 @@ export default function ProcessToolRequestPage() {
                       <div>
                         <p className="text-sm text-gray-500 font-medium mb-1">Effective Date</p>
                         <p className="text-base font-semibold text-gray-900">
-                          {new Date(request.requestData.effectiveDateBOR).toLocaleDateString()}
+                          {new Date(request.requestData.effectiveDateBOR).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}
                         </p>
                       </div>
                     )}
@@ -402,7 +402,7 @@ export default function ProcessToolRequestPage() {
                       <div>
                         <p className="text-sm text-gray-500 font-medium mb-1">Date of Birth</p>
                         <p className="text-base font-semibold text-gray-900">
-                          {new Date(request.requestData.dateOfBirth).toLocaleDateString()}
+                          {new Date(request.requestData.dateOfBirth).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}
                         </p>
                       </div>
                     )}
@@ -530,7 +530,7 @@ export default function ProcessToolRequestPage() {
               <div className="bg-gradient-to-br from-gray-50 to-gray-100/50 border border-gray-200/60 rounded-xl p-4">
                 <p className="text-sm font-bold text-gray-900 mb-2">Processing History</p>
                 <p className="text-xs text-gray-600">
-                  Processed: {new Date(request.processedAt).toLocaleString()}
+                  Processed: {new Date(request.processedAt).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}
                 </p>
                 {request.processedBy && (
                   <p className="text-xs text-gray-600 mt-1">

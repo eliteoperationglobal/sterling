@@ -2,12 +2,18 @@
 
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Bell, AlertCircle, CheckCircle2, MessageSquare } from "lucide-react";
+import { Bell, AlertCircle, CheckCircle2, MessageSquare, ShieldCheck, FileSearch, Zap } from "lucide-react";
 import { toast } from "sonner";
 
 interface Notification {
   id: string;
-  type: "NEW_SUBMISSION" | "NEW_QUOTE" | "NEW_NOTE";
+  type:
+    | "NEW_SUBMISSION"
+    | "NEW_QUOTE"
+    | "NEW_NOTE"
+    | "APPROVAL_REQUESTED"
+    | "BIND_REQUESTED"
+    | "POLICY_BOUND";
   title: string;
   description: string;
   submissionId?: string;
@@ -58,6 +64,12 @@ export default function NotificationWidget() {
         return <CheckCircle2 className="w-4 h-4 text-green-600" />;
       case "NEW_NOTE":
         return <MessageSquare className="w-4 h-4 text-amber-600" />;
+      case "APPROVAL_REQUESTED":
+        return <FileSearch className="w-4 h-4 text-indigo-600" />;
+      case "BIND_REQUESTED":
+        return <ShieldCheck className="w-4 h-4 text-purple-600" />;
+      case "POLICY_BOUND":
+        return <Zap className="w-4 h-4 text-cyan-600" />;
       default:
         return <Bell className="w-4 h-4 text-[#9A8B7A]" />;
     }
@@ -71,6 +83,12 @@ export default function NotificationWidget() {
         return "bg-green-50 border-green-200";
       case "NEW_NOTE":
         return "bg-amber-50 border-amber-200";
+      case "APPROVAL_REQUESTED":
+        return "bg-indigo-50 border-indigo-200";
+      case "BIND_REQUESTED":
+        return "bg-purple-50 border-purple-200";
+      case "POLICY_BOUND":
+        return "bg-cyan-50 border-cyan-200";
       default:
         return "bg-gray-50 border-gray-200";
     }
@@ -172,16 +190,10 @@ export default function NotificationWidget() {
                     {notif.description}
                   </p>
 
-                  {/* Metadata */}
-                  <div className="flex items-center justify-between mt-2 pt-2 border-t border-[#e5ddd5]/30">
-                    <span className="text-xs text-[#9A8B7A] font-medium">
-                      {notif.submissionNumber && (
-                        <>Submission #{notif.submissionNumber}</>
-                      )}
-                    </span>
+                  <div className="flex items-center justify-end mt-2 pt-2 border-t border-[#e5ddd5]/30">
                     <span className="text-xs text-[#9A8B7A]">
                       {notif.timestamp &&
-                        new Date(notif.timestamp).toLocaleDateString()} at{" "}
+                        new Date(notif.timestamp).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })} at{" "}
                       {notif.timestamp &&
                         new Date(notif.timestamp).toLocaleTimeString([], {
                           hour: "2-digit",

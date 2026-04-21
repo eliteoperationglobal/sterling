@@ -102,7 +102,18 @@ function ApplicationDataViewer({ data, type }: { data: any; type: "key" | "addit
     if (value === null || value === undefined) return "N/A";
     if (typeof value === "boolean") return value ? "Yes" : "No";
     if (typeof value === "object") {
-      if (Array.isArray(value)) return value.join(", ");
+      if (Array.isArray(value)) {
+        if (value.length > 0 && typeof value[0] === "object" && value[0] !== null) {
+          return value
+            .map((item: any) => {
+              return Object.entries(item)
+                .map(([k, v]) => `${formatFieldName(k)}: ${formatValue(v)}`)
+                .join(", ");
+            })
+            .join(" | ");
+        }
+        return value.join(", ");
+      }
       return JSON.stringify(value, null, 2);
     }
     return String(value);
@@ -946,8 +957,8 @@ export default function AdminSubmissionDetailsPage() {
               <p className="text-gray-500 mb-1 leading-tight">Effective Date:</p>
               <p className="font-semibold text-gray-900">
                 {currentQuote?.effectiveDate
-                  ? new Date(currentQuote.effectiveDate).toLocaleDateString()
-                  : (submission.effectiveDate ? new Date(submission.effectiveDate).toLocaleDateString() : "TBD")}
+                  ? new Date(currentQuote.effectiveDate).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })
+                  : (submission.effectiveDate ? new Date(submission.effectiveDate).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) : "TBD")}
               </p>
             </div>
             <div>
@@ -1008,7 +1019,7 @@ export default function AdminSubmissionDetailsPage() {
               submission.files.map((file: any, index: number) => (
                 <div key={index} className="px-4 py-3 grid grid-cols-3 items-center text-[14px] border border-t-0 border-gray-200">
                   <span className="font-medium text-gray-900 truncate pr-4">{file.fileName}</span>
-                  <span className="text-gray-500">{file.uploadedAt ? new Date(file.uploadedAt).toLocaleDateString() : new Date().toLocaleDateString()}</span>
+                  <span className="text-gray-500">{file.uploadedAt ? new Date(file.uploadedAt).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) : new Date().toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}</span>
                   <a href={`/api/download?url=${encodeURIComponent(file.fileUrl)}`} download={file.fileName} className="text-[#9A8B7A] hover:text-[#7A6F64] font-medium hover:underline transition-colors">Download</a>
                 </div>
               ))
@@ -1182,7 +1193,7 @@ export default function AdminSubmissionDetailsPage() {
                                   <span className="whitespace-pre-wrap break-words">{note.description}</span>
                                 </div>
                                 <div className="text-[10px] text-gray-400 mt-1.5 px-1 font-medium italic">
-                                  {new Date(note.createdAt).toLocaleString()}
+                                  {new Date(note.createdAt).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}
                                 </div>
                               </div>
                             </div>
@@ -1210,7 +1221,7 @@ export default function AdminSubmissionDetailsPage() {
                     className="px-4 py-3 grid grid-cols-4 text-[14px] text-gray-900 border-b border-gray-100 last:border-0"
                   >
                     <span>{item.program}</span>
-                    <span>{new Date(item.changedAt).toLocaleString()}</span>
+                    <span>{new Date(item.changedAt).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}</span>
                     <span>{item.user}</span>
                     <span>{item.status}</span>
                   </div>

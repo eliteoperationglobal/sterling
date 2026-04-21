@@ -273,7 +273,7 @@ export default function AdminBoundPoliciesPage() {
                           <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                           </svg>
-                          <span className="font-medium">{new Date(policy.bindApprovedAt).toLocaleDateString()}</span>
+                          <span className="font-medium">{new Date(policy.bindApprovedAt).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}</span>
                         </div>
                       </div>
                     </div>
@@ -320,7 +320,7 @@ export default function AdminBoundPoliciesPage() {
                         <div>
                           <p className="text-xs text-gray-500 font-medium mb-1">Payment Date</p>
                           <p className="text-sm font-bold text-green-600">
-                            ✓ {new Date(policy.paymentDate).toLocaleDateString()}
+                            ✓ {new Date(policy.paymentDate).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}
                           </p>
                         </div>
                       )}

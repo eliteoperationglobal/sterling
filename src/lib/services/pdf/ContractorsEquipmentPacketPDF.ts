@@ -3547,14 +3547,19 @@ function generatePage1(data: ContractorsPacketData): string {
                     <hr class="section-divider" />
                     
                     ${renderField("Applicant Name", data.applicantName)}
+                    ${renderField("First Name", data.firstName)}
+                    ${renderField("Last Name", data.lastName)}
+                    ${renderField("Entity Type", data.entityType)}
                     ${renderField("Doing Business As (DBA)", data.dba)}
+                    ${renderField("License Number", data.licenseNum)}
+                    ${renderField("License Classification", data.licenseClass)}
                     ${renderField("Tax ID (FEIN) / SSN", data.ssn)}
                     ${renderField("Applicant Driver License #", data.dlNum)}
-                    ${renderField("Entity Type", data.entityType)}
                     ${renderField("Years in Business", data.yearsInBusiness)}
-                    ${renderField("License Classification", data.licenseClass)}
-                    ${renderField("Total Gross Receipts", data.grossReceipts)}
                     ${renderField("Years of Experience", data.yearsExp)}
+                    ${renderField("Total Gross Receipts", data.grossReceipts)}
+                    ${renderField("Deductible (AOP/Theft)", data.deductible)}
+                    ${renderField("Inland Marine Losses (5yr)", data.losses)}
                     ${renderField("States of Business", data.statesOfBusiness)}
                     ${renderField("Applicant Phone", data.phone)}
                     ${renderField("Applicant Email", data.email)}
@@ -3598,31 +3603,31 @@ function generatePage2(data: ContractorsPacketData): string {
                     <hr class="section-divider" />
                     
                     <div class="sub-header-line">General Eligibility</div>
-                    ${renderYesNo("Has any insurance been cancelled or non-renewed in the last 3 years?", data.cancelled, data.cancelledExplain)}
-                    ${renderYesNo("Has any bankruptcy been filed in the last 7 years?", data.bankruptcy, data.bankruptcyExplain)}
-                    ${renderYesNo("Have you experienced more than one loss in the last 3 years?", data.moreThanOneLoss, data.lossExplain)}
+                    ${renderYesNo("Has insurance for this risk ever been cancelled?", data.cancelled, data.cancelledExplain)}
+                    ${renderYesNo("Have you filed for bankruptcy in the past 5 years?", data.bankruptcy, data.bankruptcyExplain)}
+                    ${renderYesNo("Have you had more than one Inland Marine contractor's equipment loss in the past three years?", data.moreThanOneLoss, data.lossExplain)}
                     
                     <div class="sub-header-line">Operational Hazards</div>
-                    ${renderYesNo("Do you perform any crane or asphalt/paving work?", data.asphaltCranes, data.asphaltExplain)}
-                    ${renderYesNo("Are there any tandem lifting operations involved?", data.tandemLifting, data.tandemExplain)}
-                    ${renderYesNo("Any operations over water or on bridges/elevated structures?", data.overWater, data.waterExplain)}
-                    ${renderYesNo("Do you perform any oilfield or refinery related work?", data.oilfield, data.oilfieldExplain)}
-                    ${renderYesNo("Is any demolition work performed by your business?", data.demolition, data.demolitionExplain)}
+                    ${renderYesNo("Do you own or rent asphalt plants or cranes?", data.asphaltCranes, data.asphaltExplain)}
+                    ${renderYesNo("Do your operations include or require any tandem lifting?", data.tandemLifting, data.tandemExplain)}
+                    ${renderYesNo("Any operations next to or over water?", data.overWater, data.waterExplain)}
+                    ${renderYesNo("Any oilfield support operations?", data.oilfield, data.oilfieldExplain)}
+                    ${renderYesNo("Any demolition and/or blasting work?", data.demolition, data.demolitionExplain)}
                     
                     <div class="sub-header-line">Security & Specialty Ops</div>
-                    ${renderYesNo("Is equipment garaged/parked in a fenced, lighted, or secure area?", data.garaged)}
-                    ${renderYesNo("Do you perform any stump grinder operations?", data.stumpGrinder, data.stumpExplain)}
-                    ${renderYesNo("Do you rent or lease equipment to others?", data.rentToOthers, data.rentExplain)}
+                    ${renderYesNo("Is your equipment garaged at your physical location?", data.garaged)}
+                    ${renderYesNo("Is any of your equipment, scheduled or otherwise, a stump grinder?", data.stumpGrinder, data.stumpExplain)}
+                    ${renderYesNo("Will you rent or lease your equipment to others?", data.rentToOthers, data.rentExplain)}
                 </div>
 
                 <div class="section-container">
                     <div class="section-header">5. SPECIALIZED TRADE SUBCONTRACTING</div>
                     <hr class="section-divider" />
-                    ${renderYesNo("Hazardous waste or asbestos abatement operations?", data.subcontractHazardous, data.hazardousExplain)}
-                    ${renderYesNo("Agricultural or forestry related operations?", data.subcontractAgri, data.agriExplain)}
-                    ${renderYesNo("Bridge, tunnel, or dam construction/repair?", data.subcontractBridges, data.bridgesExplain)}
-                    ${renderYesNo("Drone or aircraft related operations/services?", data.subcontractDrones, data.dronesExplain)}
-                    ${renderYesNo("Trailer or chassis manufacturing, mounting, or repair?", data.subcontractTrailers, data.trailersExplain)}
+                    ${renderYesNo("Will you perform or subcontract any work involving: blasting, wrecking, or demolition; chimney construction or smoke stack lining; foundry operations; fuel tanks; liquefied petrochemical gases or gasoline; oil fields; pipelines; transportation of fuels/explosives/butane/propane?", data.subcontractHazardous, data.hazardousExplain)}
+                    ${renderYesNo("Will you perform or subcontract any work involving: agricultural or farming; iron or steel rolling mill; logging/lumbering/sawmills; quarries and mining; silica, flint, spar grinding; stone cutting or polishing or crushing?", data.subcontractAgri, data.agriExplain)}
+                    ${renderYesNo("Will you perform or subcontract any work involving: bridges; dams/levees; dredging; USL&H Exposures; Jones Act Exposures; marine salvage; marine wrecking; offshore exposures; ocean marine; shoring buildings; public utilities?", data.subcontractBridges, data.bridgesExplain)}
+                    ${renderYesNo("Will you perform or subcontract any work or use equipment involving: drones; manufacturing equipment; homemade or altered equipment?", data.subcontractDrones, data.dronesExplain)}
+                    ${renderYesNo("Will you perform or subcontract any work or use equipment involving: street legal trailers or tagged equipment; equipment permanently affixed to a trailer; street legal bucket trucks?", data.subcontractTrailers, data.trailersExplain)}
                 </div>
 
                 <div class="section-container">
@@ -3734,6 +3739,7 @@ function generatePage3(data: ContractorsPacketData): string {
                     <hr class="section-divider" />
                     ${renderField("Settlement/Payment Option", data.paymentOption)}
                     ${renderField("Broker Fee Amount", data.brokerFee)}
+                    ${renderYesNo("Bundle Coverage Selected?", data.bundle)}
                     ${renderYesNo("Terrorism Coverage Selected?", data.terrorism)}
                 </div>
 

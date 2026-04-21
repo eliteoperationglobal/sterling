@@ -7,7 +7,7 @@ export interface ApartmentPacketData {
     applicationId: string;
     submissionId: string;
     formDate: string;
-    
+
     // Agency Information
     agencyName: string;
     agentName: string;
@@ -84,6 +84,10 @@ export interface ApartmentPacketData {
     distanceToFireHydrant: string;
     distanceToFireStation: string;
     fireDistrict: string;
+    taxCode: string;
+    windClass: string;
+    grade: string;
+    otherOccupancies: string;
     percentageElderly: string;
     hasMultipleBuildings: boolean | null;
 
@@ -95,6 +99,12 @@ export interface ApartmentPacketData {
     propertyCausesOfLoss: string;
     propertyDeductible: string;
     propertyDeductibleType: string;
+    entityType: string;
+    firstName: string;
+    lastName: string;
+    phone: string;
+    email: string;
+    subjectsList: { subject: string, limit: string }[];
 
     // Systems
     heatingType: string;
@@ -112,6 +122,9 @@ export interface ApartmentPacketData {
     smokeAlarms: "Hardwire" | "Battery" | "";
     hardwiredCentralStation: boolean | null;
     batteryRoutineInspection: boolean | null;
+    certificateNumber: string;
+    certificateExpirationDate: string;
+    fireAlarmManufacturer: string;
     complianceWithSafetyLaws: boolean | null;
     unitsRekeyed: boolean | null;
     doorDoubleLocksPeepHoles: boolean | null;
@@ -128,7 +141,7 @@ export interface ApartmentPacketData {
     contractorsRequiredCGL: boolean | null;
     contractorsRequiredCGLExplanation: string;
     proceduresTenantComplaintsBuilding: boolean | null;
-    
+
     // Swimming Pools
     hasPools: boolean | null;
     poolNumber: string;
@@ -141,6 +154,14 @@ export interface ApartmentPacketData {
     depthMarkersVisible: boolean | null;
     poolInspectionFrequency: string;
     poolHours: string;
+
+    // Heating details
+    boilerInsuranceElsewhere: boolean | null;
+    secondaryBoilerInsuranceElsewhere: boolean | null;
+    isPrimaryHeatBoiler: boolean;
+    isPrimaryHeatSolidFuel: boolean;
+    isSecondaryHeatBoiler: boolean;
+    isSecondaryHeatSolidFuel: boolean;
 
     nurseryDayCareFacility: boolean | null;
     leaseProhibitsTenantsDogs: boolean | null;
@@ -169,7 +190,7 @@ export interface ApartmentPacketData {
     fireMarshalTax?: string;
     fireMarshalFlatFee?: string;
     totalCostOfPolicy?: string;
-    
+
     depositPremium?: string;
     depositAssociationDues?: string;
     depositInspectionFee?: string;
@@ -192,6 +213,14 @@ export interface ApartmentPacketData {
     personalAdvertisingInjuryLimit?: string;
     fireLegalLimit?: string;
     medPayLimit?: string;
+
+    // Coverages & Additional Info
+    mineSubsidenceSelected: "Accept" | "Reject" | "None";
+    mineSubsidenceLimit: string;
+    sinkholeSelected: "Accept" | "Reject" | "None";
+    sinkholeLimit: string;
+    isHistoricalLandmark: boolean | null;
+    openSides: string;
 }
 
 export function mapApartmentDataToPacketData(
@@ -268,32 +297,70 @@ export function mapApartmentDataToPacketData(
         yearFirstOwnedOrManaged: formData.yearFirstOwnedOrManaged || "-",
 
         // 3. Property Details
-        yearBuilt: formData.yearBuilt || "-",
-        yearRoofInstalled: formData.yearRoofInstalled || "-",
-        yearWiringInstalled: formData.yearWiringInstalled || "-",
-        yearPlumbingInstalled: formData.yearPlumbingInstalled || "-",
-        yearHeatingInstalled: formData.yearHeatingInstalled || "-",
-        numberOfUnits: formData.numberOfUnits || "-",
-        numberOfStories: formData.numberOfStories || "-",
+        yearBuilt: formData.yearBuilt || "",
+        yearRoofInstalled: formData.yearRoofInstalled || "",
+        yearWiringInstalled: formData.yearWiringInstalled || "",
+        yearPlumbingInstalled: formData.yearPlumbingInstalled || "",
+        yearHeatingInstalled: formData.yearHeatingInstalled || "",
+        numberOfUnits: formData.numberOfUnits || "",
+        numberOfStories: formData.numberOfStories || "",
         hasBasement: formData.hasBasement,
-        totalBuildingArea: formData.totalBuildingArea || "-",
-        protectionClass: formData.protectionClass || "-",
-        constructionType: formData.constructionType || "-",
-        percentageOccupied: formData.percentageOccupied || "-",
-        distanceToFireHydrant: formData.distanceToFireHydrant || "-",
-        distanceToFireStation: formData.distanceToFireStation || "-",
-        fireDistrict: formData.fireDistrict || "-",
-        percentageElderly: formData.percentageElderly || "-",
+        totalBuildingArea: formData.totalBuildingArea || "",
+        protectionClass: formData.protectionClass || "",
+        constructionType: formData.constructionType || "",
+        percentageOccupied: formData.percentageOccupied || "",
+        distanceToFireHydrant: formData.distanceToFireHydrant || "",
+        distanceToFireStation: formData.distanceToFireStation || "",
+        fireDistrict: formData.fireDistrict || "",
+        taxCode: formData.taxCode || "",
+        windClass: (() => {
+            const v = formData.propertyValuation || "";
+            const match = v.match(/\(([^)]+)\)/);
+            return match ? match[1] : v;
+        })(),
+        grade: formData.propertyCoinsurance || "",
+        otherOccupancies: Array.isArray(formData.subjectsOfInsurance)
+            ? formData.subjectsOfInsurance
+                .filter((i: any) => i && i.subject)
+                .map((i: any) => {
+                    const cleanSubject = i.subject.replace(/\s*\([^)]+\)/, "").trim();
+                    return i.limit ? `${cleanSubject} ($${parseInt(i.limit).toLocaleString()})` : cleanSubject;
+                })
+                .join(", ")
+            : (formData.subjectOfInsurance || "").replace(/\s*\([^)]+\)/, "").trim(),
+        percentageElderly: formData.percentageElderly || "",
         hasMultipleBuildings: formData.hasMultipleBuildings,
 
         // Property Insurance Details
         subjectOfInsurance: formData.subjectOfInsurance || "-",
-        propertyLimit: formData.propertyLimit || "-",
+        propertyLimit: Array.isArray(formData.subjectsOfInsurance)
+            ? formData.subjectsOfInsurance
+                .filter((i: any) => i && i.limit)
+                .map((i: any) => `$${parseInt(i.limit).toLocaleString()}`)
+                .join(", ") || "-"
+            : (formData.propertyLimit || "-"),
         propertyCoinsurance: formData.propertyCoinsurance || "-",
         propertyValuation: formData.propertyValuation || "-",
         propertyCausesOfLoss: formData.propertyCausesOfLoss || "-",
         propertyDeductible: formData.propertyDeductible || "-",
-        propertyDeductibleType: formData.propertyDeductibleType || "-",
+        propertyDeductibleType: (() => {
+            const v = formData.propertyDeductibleType || "";
+            const match = v.match(/\(([^)]+)\)/);
+            return match ? match[1] : v;
+        })(),
+        entityType: formData.entityType || "Individual",
+        firstName: formData.firstName || "",
+        lastName: formData.lastName || "",
+        phone: formData.phone || "",
+        email: formData.email || "",
+        subjectsList: Array.isArray(formData.subjectsOfInsurance)
+            ? formData.subjectsOfInsurance
+                .filter((i: any) => i && i.subject)
+                .map((i: any) => ({
+                    subject: i.subject.replace(/\s*\([^)]+\)/, "").trim(),
+                    limit: i.limit ? `$${parseInt(i.limit).toLocaleString()}` : "-"
+                }))
+            : [],
 
         // Systems
         heatingType: formData.heatingType || "-",
@@ -306,11 +373,14 @@ export function mapApartmentDataToPacketData(
         hasSprinklers: formData.hasSprinklers,
         percentageSprinklered: formData.percentageSprinklered || "0",
         hasBurglarAlarm: formData.hasBurglarAlarm,
-        burglarAlarmType: formData.burglarAlarmType || "-",
-        burglarAlarmInstalledBy: formData.burglarAlarmInstalledBy || "-",
+        burglarAlarmType: formData.burglarAlarmType || "",
+        burglarAlarmInstalledBy: formData.burglarAlarmInstalledBy || "",
         smokeAlarms: formData.smokeAlarms || "",
         hardwiredCentralStation: formData.hardwiredCentralStation,
         batteryRoutineInspection: formData.batteryRoutineInspection,
+        certificateNumber: formData.propertyDeductible || "",
+        certificateExpirationDate: formData.certificateExpirationDate || "",
+        fireAlarmManufacturer: formData.fireAlarmManufacturer || "",
         complianceWithSafetyLaws: formData.complianceWithSafetyLaws,
         unitsRekeyed: formData.unitsRekeyed,
         doorDoubleLocksPeepHoles: formData.doorDoubleLocksPeepHoles,
@@ -327,7 +397,7 @@ export function mapApartmentDataToPacketData(
         contractorsRequiredCGL: formData.contractorsRequiredCGL,
         contractorsRequiredCGLExplanation: formData.contractorsRequiredCGLExplanation || "-",
         proceduresTenantComplaintsBuilding: formData.proceduresTenantComplaintsBuilding,
-        
+
         // Swimming Pools
         hasPools: formData.hasPools,
         poolNumber: formData.poolNumber || "-",
@@ -340,6 +410,14 @@ export function mapApartmentDataToPacketData(
         depthMarkersVisible: formData.depthMarkersVisible,
         poolInspectionFrequency: formData.poolInspectionFrequency || "-",
         poolHours: formData.poolHours || "-",
+
+        // Heating Logic
+        boilerInsuranceElsewhere: formData.boilerInsuranceElsewhere,
+        secondaryBoilerInsuranceElsewhere: formData.secondaryBoilerInsuranceElsewhere,
+        isPrimaryHeatBoiler: formData.heatingType === "Boiler",
+        isPrimaryHeatSolidFuel: formData.heatingType === "Solid Fuel",
+        isSecondaryHeatBoiler: formData.secondaryHeatingType === "Boiler",
+        isSecondaryHeatSolidFuel: formData.secondaryHeatingType === "Solid Fuel",
 
         nurseryDayCareFacility: formData.nurseryDayCareFacility,
         leaseProhibitsTenantsDogs: formData.leaseProhibitsTenantsDogs,
@@ -389,5 +467,13 @@ export function mapApartmentDataToPacketData(
         personalAdvertisingInjuryLimit: quote?.metadata?.limits?.personalAdvertisingInjury ? `$${quote.metadata.limits.personalAdvertisingInjury.toLocaleString()}` : undefined,
         fireLegalLimit: quote?.metadata?.limits?.fireLegal ? `$${quote.metadata.limits.fireLegal.toLocaleString()}` : undefined,
         medPayLimit: quote?.metadata?.limits?.medicalExpense ? `$${quote.metadata.limits.medicalExpense.toLocaleString()}` : undefined,
+
+        // New Coverage & Metadata
+        mineSubsidenceSelected: formData.mineSubsidenceSelected || "None",
+        mineSubsidenceLimit: formData.mineSubsidenceLimit || "",
+        sinkholeSelected: formData.sinkholeSelected || "None",
+        sinkholeLimit: formData.sinkholeLimit || "",
+        isHistoricalLandmark: formData.isHistoricalLandmark ?? null,
+        openSides: formData.openSides || "",
     };
 }

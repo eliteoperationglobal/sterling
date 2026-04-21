@@ -125,6 +125,46 @@ function ApartmentBuildingsContent() {
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [addressLoading, setAddressLoading] = useState(false);
     const [activeSearchType, setActiveSearchType] = useState<"mailing" | "property" | null>(null);
+    const [validationErrors, setValidationErrors] = useState<any>({
+        phone: '',
+        fax: ''
+    });
+
+    const formatPhone = (value: string) => {
+        const digitsOnly = value.replace(/\D/g, '');
+        if (digitsOnly.length === 0) return '';
+        if (digitsOnly.length <= 3) {
+            return `(${digitsOnly}`;
+        }
+        if (digitsOnly.length <= 6) {
+            return `(${digitsOnly.slice(0, 3)}) ${digitsOnly.slice(3)}`;
+        }
+        return `(${digitsOnly.slice(0, 3)}) ${digitsOnly.slice(3, 6)}-${digitsOnly.slice(6, 10)}`;
+    };
+
+    const validatePhone = (value: string, field: 'phone' | 'fax') => {
+        const digitsOnly = value.replace(/\D/g, '');
+        if (digitsOnly.length === 0) {
+            setValidationErrors((prev: any) => ({ ...prev, [field]: '' }));
+        } else if (digitsOnly.length < 10) {
+            setValidationErrors((prev: any) => ({ ...prev, [field]: 'Phone number too short.' }));
+        } else {
+            setValidationErrors((prev: any) => ({ ...prev, [field]: '' }));
+        }
+    };
+
+    const validateEmail = (val: string) => {
+        if (!val) {
+            setValidationErrors((prev: any) => ({ ...prev, email: '' }));
+            return;
+        }
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(val)) {
+            setValidationErrors((prev: any) => ({ ...prev, email: 'Invalid email address.' }));
+        } else {
+            setValidationErrors((prev: any) => ({ ...prev, email: '' }));
+        }
+    };
 
     const [formData, setFormData] = useState({
         // Screenshot 1 Fields
@@ -192,7 +232,7 @@ function ApartmentBuildingsContent() {
 
         percentageElderly: "",
         hasMultipleBuildings: null as boolean | null,
-        subjectsOfInsurance: [""] as string[],
+        subjectsOfInsurance: [{ subject: "", limit: "" }] as { subject: string, limit: string }[],
         propertyLimit: "",
         propertyCoinsurance: "",
         propertyValuation: "",
@@ -292,6 +332,16 @@ function ApartmentBuildingsContent() {
 
         // 28
         proceduresRegularInspectionsHazards: true as boolean | null,
+        contractorsLicense: false as boolean | null,
+        licenseNumber: "",
+        licenseClassification: "",
+        dba: "",
+        firstName: "",
+        lastName: "",
+        yearsOfExperienceTrade: "",
+        entityType: "Individual",
+        phone: "",
+        email: "",
 
     });
 
@@ -403,7 +453,7 @@ function ApartmentBuildingsContent() {
     const addSubjectOfInsurance = () => {
         setFormData((prev: any) => ({
             ...prev,
-            subjectsOfInsurance: [...prev.subjectsOfInsurance, ""]
+            subjectsOfInsurance: [...prev.subjectsOfInsurance, { subject: "", limit: "" }]
         }));
     };
 
@@ -415,10 +465,10 @@ function ApartmentBuildingsContent() {
         }));
     };
 
-    const updateSubjectOfInsurance = (index: number, value: string) => {
+    const updateSubjectOfInsurance = (index: number, field: "subject" | "limit", value: string) => {
         setFormData((prev: any) => {
             const newSubjects = [...prev.subjectsOfInsurance];
-            newSubjects[index] = value;
+            newSubjects[index] = { ...newSubjects[index], [field]: value };
             return {
                 ...prev,
                 subjectsOfInsurance: newSubjects
@@ -436,11 +486,18 @@ function ApartmentBuildingsContent() {
 
                 const payload = result.submission.payload;
 
-                // Migrate old subjectOfInsurance to subjectsOfInsurance array
-                if (payload.subjectOfInsurance && !payload.subjectsOfInsurance) {
-                    payload.subjectsOfInsurance = [payload.subjectOfInsurance];
+                // Migrate old subjectOfInsurance and subjectsOfInsurance string array to object array
+                if (payload.subjectsOfInsurance && Array.isArray(payload.subjectsOfInsurance)) {
+                    if (payload.subjectsOfInsurance.length > 0 && typeof payload.subjectsOfInsurance[0] === 'string') {
+                        payload.subjectsOfInsurance = payload.subjectsOfInsurance.map((s: string, i: number) => ({
+                            subject: s,
+                            limit: i === 0 ? (payload.propertyLimit || "") : ""
+                        }));
+                    }
+                } else if (payload.subjectOfInsurance) {
+                    payload.subjectsOfInsurance = [{ subject: payload.subjectOfInsurance, limit: payload.propertyLimit || "" }];
                 } else if (!payload.subjectsOfInsurance) {
-                    payload.subjectsOfInsurance = [""];
+                    payload.subjectsOfInsurance = [{ subject: "", limit: "" }];
                 }
 
                 setFormData((prev: any) => ({
@@ -932,39 +989,54 @@ function ApartmentBuildingsContent() {
                             </div>
                         </GridRow>
 
-                        {formData.hasMultipleBuildings && (
-                            <div className="space-y-4">
-                                {formData.subjectsOfInsurance.map((subject, index) => (
-                                    <GridRow key={index} label={index === 0 ? "Subject of Insurance" : ""}>
-                                        <div className="flex items-center gap-2">
-                                            <select
-                                                value={subject}
-                                                onChange={(e) => updateSubjectOfInsurance(index, e.target.value)}
-                                                className="flex-1 px-4 py-2 border border-gray-300 rounded focus:ring-[#9A8B7A] text-sm"
-                                            >
-                                                <option value="" disabled hidden>Select Subject</option>
-                                                <option value="Building">Building</option>
-                                                <option value="Business Personal Property (BPP)">Business Personal Property (BPP)</option>
-                                                <option value="Business Income">Business Income</option>
-                                            </select>
-                                            {formData.subjectsOfInsurance.length > 1 && (
-                                                <button
-                                                    type="button"
-                                                    onClick={() => removeSubjectOfInsurance(index)}
-                                                    className="p-2 text-red-500 hover:bg-red-50 rounded-full transition-colors"
-                                                    title="Remove Subject"
+                        {formData.hasMultipleBuildings === true && (
+                            <div className="space-y-6 pt-4">
+                                {formData.subjectsOfInsurance.map((item, index) => (
+                                    <div key={index} className="space-y-4 bg-gray-50/30 p-4 rounded-lg border border-gray-100 relative group animate-in fade-in slide-in-from-top-2 duration-300">
+                                        <GridRow label={index === 0 ? "Subject of Insurance" : `Subject of Insurance ${index + 1}`}>
+                                            <div className="flex items-center gap-2">
+                                                <select
+                                                    value={item.subject}
+                                                    onChange={(e) => updateSubjectOfInsurance(index, "subject", e.target.value)}
+                                                    className="flex-1 px-4 py-2 border border-gray-300 rounded focus:ring-[#9A8B7A] text-sm"
                                                 >
-                                                    <Trash2 size={18} />
-                                                </button>
-                                            )}
-                                        </div>
-                                    </GridRow>
+                                                    <option value="" disabled hidden>Select Subject</option>
+                                                    <option value="Building">Building</option>
+                                                    <option value="Business Personal Property (BPP)">Business Personal Property (BPP)</option>
+                                                    <option value="Business Income">Business Income</option>
+                                                </select>
+                                                {formData.subjectsOfInsurance.length > 1 && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => removeSubjectOfInsurance(index)}
+                                                        className="p-2 text-red-500 hover:bg-red-50 rounded-full transition-colors"
+                                                        title="Remove Subject"
+                                                    >
+                                                        <Trash2 size={18} />
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </GridRow>
+                                        <GridRow label="Limit ($)">
+                                            <div className="flex items-center justify-end gap-2">
+                                                <span className="text-gray-500 text-sm">$</span>
+                                                <input
+                                                    type="text"
+                                                    value={item.limit}
+                                                    onChange={(e) => updateSubjectOfInsurance(index, "limit", e.target.value.replace(/\D/g, ''))}
+                                                    className="w-full px-4 py-2 border border-gray-300 rounded text-sm focus:ring-[#9A8B7A]"
+                                                    placeholder="Enter Limit"
+                                                />
+                                            </div>
+                                        </GridRow>
+                                    </div>
                                 ))}
+
                                 <GridRow label="">
                                     <button
                                         type="button"
                                         onClick={addSubjectOfInsurance}
-                                        className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-[#9A8B7A] hover:bg-[#8A7B6A] rounded transition-colors w-fit"
+                                        className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-[#9A8B7A] hover:bg-[#8A7B6A] rounded transition-colors w-fit shadow-sm"
                                     >
                                         <Plus size={16} />
                                         Add Subject
@@ -973,12 +1045,6 @@ function ApartmentBuildingsContent() {
                             </div>
                         )}
 
-                        <GridRow label="Limit ($)">
-                            <div className="flex items-center justify-end gap-2">
-                                <span className="text-gray-500 text-sm">$</span>
-                                <input type="text" value={formData.propertyLimit} onChange={(e) => handleInputChange("propertyLimit", e.target.value.replace(/\D/g, ''))} className="w-full px-4 py-2 border border-gray-300 rounded text-sm focus:ring-[#9A8B7A]" />
-                            </div>
-                        </GridRow>
 
                         <GridRow label="Coinsurance (%)">
                             <select
@@ -1110,6 +1176,79 @@ function ApartmentBuildingsContent() {
                     </>
                 ))}
 
+                {renderSection("Company Information", (
+                    <>
+
+
+                        <GridRow label="First Name">
+                            <input type="text" value={formData.firstName} onChange={(e) => handleInputChange("firstName", e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded focus:ring-[#9A8B7A] text-sm" />
+                        </GridRow>
+
+                        <GridRow label="Last Name">
+                            <input type="text" value={formData.lastName} onChange={(e) => handleInputChange("lastName", e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded focus:ring-[#9A8B7A] text-sm" />
+                        </GridRow>
+
+
+                        <GridRow label="Entity of Company">
+                            <select value={formData.entityType} onChange={(e) => handleInputChange("entityType", e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded focus:ring-[#9A8B7A] text-sm">
+                                <option>Individual</option>
+                                <option>Joint Venture</option>
+                                <option>Partnership</option>
+                                <option>Corporation</option>
+                                <option>LLC</option>
+                                <option>Trust</option>
+                                <option>Other</option>
+                            </select>
+                        </GridRow>
+
+                        <GridRow label="Applicant Phone">
+                            <div className="relative">
+                                <input
+                                    type="tel"
+                                    value={formData.phone}
+                                    onChange={(e) => {
+                                        const value = e.target.value;
+                                        const formatted = formatPhone(value);
+                                        handleInputChange('phone', formatted);
+                                        validatePhone(formatted, 'phone');
+                                    }}
+                                    className={`w-full px-4 py-2 border rounded focus:ring-[#9A8B7A] text-sm ${validationErrors.phone ? 'border-red-300 bg-red-50' : 'border-gray-300'}`}
+                                    placeholder="(123) 456-7890"
+                                    maxLength={14}
+                                />
+                                {validationErrors.phone && (
+                                    <div className="flex items-center gap-1 mt-1">
+                                        <span className="text-red-600 text-xs">⚠</span>
+                                        <span className="text-xs text-red-600">{validationErrors.phone}</span>
+                                    </div>
+                                )}
+                            </div>
+                        </GridRow>
+
+                        <GridRow label="Applicant Email">
+                            <div className="relative">
+                                <input
+                                    type="email"
+                                    value={formData.email}
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+                                        handleInputChange("email", val);
+                                        validateEmail(val);
+                                    }}
+                                    className={`w-full px-4 py-2 border rounded focus:ring-[#9A8B7A] text-sm ${validationErrors.email ? 'border-red-300 bg-red-50' : 'border-gray-300'}`}
+                                    placeholder="insured@example.com"
+                                />
+                                {validationErrors.email && (
+                                    <div className="flex items-center gap-1 mt-1">
+                                        <span className="text-red-600 text-xs">⚠</span>
+                                        <span className="text-xs text-red-600">{validationErrors.email}</span>
+                                    </div>
+                                )}
+                            </div>
+                        </GridRow>
+                    </>
+                ))}
+
                 {renderSection("Safety, Security & Operations", (
                     <>
                         <GridRow label="Sprinklers">
@@ -1216,7 +1355,6 @@ function ApartmentBuildingsContent() {
                         )}
                     </>
                 ))}
-
                 {renderSection("Contractors, Pools & Additions", (
                     <>
                         {/* 20 */}

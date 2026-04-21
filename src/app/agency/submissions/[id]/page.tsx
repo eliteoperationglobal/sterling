@@ -1277,8 +1277,8 @@ function SubmissionDetailsContent() {
               <p className="text-gray-500 mb-1">Create Date:</p>
               <p className="font-semibold text-gray-900">
                 {currentQuote?.createdAt
-                  ? new Date(currentQuote.createdAt).toLocaleString()
-                  : (submission?.createdAt ? new Date(submission.createdAt) : new Date()).toLocaleString()}
+                  ? new Date(currentQuote.createdAt).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })
+                  : (submission?.createdAt ? new Date(submission.createdAt) : new Date()).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}
               </p>
             </div>
 
@@ -1394,7 +1394,7 @@ function SubmissionDetailsContent() {
                     const expStr = currentQuote?.expirationDate || submission.expirationDate;
                     const expDate = expStr ? new Date(expStr) : new Date(new Date(effDate).setFullYear(effDate.getFullYear() + 1));
 
-                    return `${effDate.toLocaleDateString()} - ${expDate.toLocaleDateString()}`;
+                    return `${effDate.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })} - ${expDate.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}`;
                   })()}
                 </span>
               </div>
@@ -1475,7 +1475,7 @@ function SubmissionDetailsContent() {
                   </span>
 
                   <span className="text-gray-500">
-                    {(submission?.updatedAt ? new Date(submission.updatedAt) : new Date()).toLocaleDateString()}
+                    {(submission?.updatedAt ? new Date(submission.updatedAt) : new Date()).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}
                   </span>
 
                   <a
@@ -1685,7 +1685,7 @@ function SubmissionDetailsContent() {
                   className="px-4 py-3 grid grid-cols-4 text-sm border-t"
                 >
                   <span>{item.program}</span>
-                  <span>{new Date(item.changedAt).toLocaleString()}</span>
+                  <span>{new Date(item.changedAt).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}</span>
                   <span>{item.user}</span>
                   <span>{item.status}</span>
                 </div>

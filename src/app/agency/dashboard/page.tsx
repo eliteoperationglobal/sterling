@@ -806,7 +806,7 @@ function AgencyDashboardContent() {
                       <td className="px-6 py-4">{sub.clientName}</td>
                       <td className="px-6 py-4">{sub.industry}</td>
                       <td className="px-6 py-4">
-                        {new Date(sub.createdAt).toLocaleDateString("en-US")}
+                        {new Date(sub.createdAt).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}
                       </td>
 
                       {/* <td className="px-6 py-4 text-center">

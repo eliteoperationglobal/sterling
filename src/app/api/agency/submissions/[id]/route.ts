@@ -242,8 +242,80 @@ export async function PATCH(
     // Replace Entire Payload (Main Form Data)
     // -----------------------------
     if (body.payload) {
+      const oldPayload = submission.payload || {};
       submission.payload = body.payload;
       submission.markModified("payload");
+
+      const XS_ADDED = (!oldPayload.addExcessLiability) && (body.payload.addExcessLiability === true);
+      const XS_REMOVED = (oldPayload.addExcessLiability === true) && (body.payload.addExcessLiability === false);
+
+      // 🗑️ CLEANUP: If Excess Liability is toggled OFF
+      if (body.payload.addExcessLiability === false) {
+        console.log(`[Cleanup] Removing EXCESS_LIABILITY quotes for submission ${params.id}`);
+        await Quote.deleteMany({
+          submissionId: params.id,
+          policyType: "EXCESS_LIABILITY"
+        });
+
+        // Ensure the submission status is consistent
+        const remainingQuotesCount = await Quote.countDocuments({ submissionId: params.id });
+        const currentStatus = submission.status as any;
+        if (remainingQuotesCount === 0 && currentStatus === "QUOTED") {
+          submission.status = "SUBMITTED";
+        }
+      }
+
+      // 🔔 NOTIFICATIONS: If Excess Liability was just ADDED
+      if (XS_ADDED) {
+        console.log(`[Notification] XS ADDED for submission ${params.id}`);
+        // Revert status to SUBMITTED so it shows up in "Quote Requests" list for admins
+        const currentStatus = submission.status as any;
+        if (currentStatus === "QUOTED" || currentStatus === "BOUND") {
+          submission.status = "SUBMITTED";
+        }
+
+        await logActivity(
+          createActivityLogData(
+            "APPROVAL_REQUESTED",
+            "Policy Added: Excess Liability (Quote Required)",
+            {
+              submissionId: submission._id.toString(),
+              user: {
+                id: (session.user as any).id,
+                name: (session.user as any).name || (session.user as any).email,
+                email: (session.user as any).email,
+                role: (session.user as any).role || "agency",
+              },
+              details: {
+                addedPolicy: "EXCESS_LIABILITY",
+                requestId: submission.submissionNumber
+              },
+            }
+          )
+        );
+      }
+
+      // Log removal if it happened
+      if (XS_REMOVED) {
+        await logActivity(
+          createActivityLogData(
+            "SUBMISSION_UPDATED",
+            "Policy Removed: Excess Liability",
+            {
+              submissionId: submission._id.toString(),
+              user: {
+                id: (session.user as any).id,
+                name: (session.user as any).name || (session.user as any).email,
+                email: (session.user as any).email,
+                role: (session.user as any).role || "agency",
+              },
+              details: {
+                removedPolicy: "EXCESS_LIABILITY"
+              },
+            }
+          )
+        );
+      }
 
       // Sync clientContact.name from companyName/applicantName field if present
       const newName = body.payload.companyName || body.payload.applicantName;

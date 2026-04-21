@@ -126,9 +126,11 @@ export default function AdminBindRequestsPage() {
 
       setSubmissions(data.submissions || []);
       setPendingCount(data.submissions?.length || 0);
+      return data.submissions || [];
     } catch (err: any) {
       console.error("Fetch bind requests error:", err);
       setError(err.message || "Failed to load bind requests");
+      return [];
     } finally {
       setLoading(false);
     }
@@ -157,60 +159,63 @@ export default function AdminBindRequestsPage() {
   const confirmApprove = async () => {
     if (!selectedSubmissionId) return;
 
-    const sub = submissions.find(s => s._id === selectedSubmissionId);
-    const pendingQuotes = sub?.quotes?.filter((q: any) => q.status === "BIND_REQUESTED") || [];
+    const pType = activePolicyTab;
+    const data = policyForms[pType];
 
-    // Validation
-    for (const quote of pendingQuotes) {
-      const pType = quote.policyType || "GENERAL_LIABILITY";
-      const data = policyForms[pType];
-      if (!data.effectiveDate || !data.expirationDate || !data.policyNumber) {
-        toast.error(`Please fill in all required fields for ${pType === 'EXCESS_LIABILITY' ? 'Excess Liability' : 'General Liability'}`);
-        setActivePolicyTab(pType as any);
-        return;
-      }
+    // Validation for ONLY the active policy tab
+    if (!data.effectiveDate || !data.expirationDate || !data.policyNumber) {
+      toast.error(`Please fill in all required fields for ${pType === 'EXCESS_LIABILITY' ? 'Excess Liability' : 'General Liability'}`);
+      return;
     }
 
     setApproving(selectedSubmissionId);
 
     try {
-      for (const quote of pendingQuotes) {
-        const pType = quote.policyType || "GENERAL_LIABILITY";
-        const data = policyForms[pType];
+      const formDataToSend = new FormData();
+      formDataToSend.append("submissionId", selectedSubmissionId);
+      formDataToSend.append("policyType", pType);
+      formDataToSend.append("effectiveDate", data.effectiveDate);
+      formDataToSend.append("expirationDate", data.expirationDate);
+      formDataToSend.append("policyNumber", data.policyNumber);
 
-        const formDataToSend = new FormData();
-        formDataToSend.append("submissionId", selectedSubmissionId);
-        formDataToSend.append("policyType", pType);
-        formDataToSend.append("effectiveDate", data.effectiveDate);
-        formDataToSend.append("expirationDate", data.expirationDate);
-        formDataToSend.append("policyNumber", data.policyNumber);
-
-        if (data.binderFile) {
-          formDataToSend.append("binder", data.binderFile);
-        }
-
-        if (data.policyDocsFile) {
-          formDataToSend.append("policyDocs", data.policyDocsFile);
-        }
-
-        const response = await fetch("/api/admin/bind-requests/approve", {
-          method: "POST",
-          body: formDataToSend,
-        });
-
-        const resData = await response.json();
-
-        if (!response.ok) {
-          throw new Error(resData.error || `Failed to approve ${pType}`);
-        }
+      if (data.binderFile) {
+        formDataToSend.append("binder", data.binderFile);
       }
 
-      toast.success("Bind request approved successfully!", {
+      if (data.policyDocsFile) {
+        formDataToSend.append("policyDocs", data.policyDocsFile);
+      }
+
+      const response = await fetch("/api/admin/bind-requests/approve", {
+        method: "POST",
+        body: formDataToSend,
+      });
+
+      const resData = await response.json();
+
+      if (!response.ok) {
+        throw new Error(resData.error || `Failed to approve ${pType}`);
+      }
+
+      toast.success(`${pType === 'EXCESS_LIABILITY' ? 'Excess Liability' : 'General Liability'} approved successfully!`, {
         description: "The policy has been marked as BOUND with policy details",
       });
 
-      setIsApproveModalOpen(false);
-      fetchBindRequests();
+      // Refresh the bind requests list and get fresh data
+      const freshSubmissions = await fetchBindRequests();
+
+      // Check if there are still other pending policies for this same submission
+      const sub = freshSubmissions.find((s: any) => s._id === selectedSubmissionId);
+      const otherPending = sub?.quotes?.filter((q: any) => q.status === "BIND_REQUESTED") || [];
+
+      if (otherPending.length > 0) {
+        // If there are more pending, stay on modal and let admin handle next policy
+        // (already switches tab naturally if they click another tab, or we can auto-switch)
+        setActivePolicyTab(otherPending[0].policyType || "GENERAL_LIABILITY");
+      } else {
+        // Otherwise close the modal
+        setIsApproveModalOpen(false);
+      }
     } catch (err: any) {
       console.error("Approve error:", err);
       toast.error("Failed to approve bind request", {
@@ -404,7 +409,7 @@ export default function AdminBindRequestsPage() {
                           <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                           </svg>
-                          <span className="font-medium">{new Date(submission.bindRequestedAt).toLocaleString()}</span>
+                          <span className="font-medium">{new Date(submission.bindRequestedAt).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}</span>
                         </div>
                       </div>
                     </div>
@@ -430,7 +435,7 @@ export default function AdminBindRequestsPage() {
                       <p className="text-xs text-gray-500 font-medium mb-1">Payment Status</p>
                       <p className={`text-sm font-bold ${submission.paymentStatus === 'PAID' ? 'text-green-600' : 'text-orange-600'}`}>
                         {submission.paymentStatus === 'PAID' ? '✓ Paid' : 'Pending'}
-                        {submission.paymentDate && ` on ${new Date(submission.paymentDate).toLocaleDateString()}`}
+                        {submission.paymentDate && ` on ${new Date(submission.paymentDate).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}`}
                       </p>
                     </div>
                   </div>
@@ -648,9 +653,7 @@ export default function AdminBindRequestsPage() {
                     </>
                   ) : (
                     (() => {
-                      const sub = submissions.find((s) => s._id === selectedSubmissionId);
-                      const requestedCount = sub?.quotes?.filter((q: any) => q.status === "BIND_REQUESTED").length || 0;
-                      return requestedCount > 1 ? "Approve All Pending Policies" : `Approve ${activePolicyTab === 'EXCESS_LIABILITY' ? 'XL' : 'GL'}`;
+                      return `Approve ${activePolicyTab === 'EXCESS_LIABILITY' ? 'Excess Liability' : 'General Liability'}`;
                     })()
                   )}
                 </button>

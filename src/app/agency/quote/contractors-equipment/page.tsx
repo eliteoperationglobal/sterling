@@ -599,6 +599,50 @@ function ContractorsEquipmentContent() {
     const [addressLoading, setAddressLoading] = useState(false)
     const [activeSearchType, setActiveSearchType] = useState<'physical' | 'mailing' | null>(null)
 
+    const [validationErrors, setValidationErrors] = useState<any>({
+        phone: '',
+        email: '',
+        ssn: '',
+        dlNum: ''
+    });
+
+    const formatPhone = (value: string) => {
+        const digitsOnly = value.replace(/\D/g, '');
+        if (digitsOnly.length === 0) return '';
+        if (digitsOnly.length <= 3) {
+            return `(${digitsOnly}`;
+        }
+        if (digitsOnly.length <= 6) {
+            return `(${digitsOnly.slice(0, 3)}) ${digitsOnly.slice(3)}`;
+        }
+        return `(${digitsOnly.slice(0, 3)}) ${digitsOnly.slice(3, 6)}-${digitsOnly.slice(6, 10)}`;
+    };
+
+    const formatSSN = (value: string) => {
+        const digitsOnly = value.replace(/\D/g, '');
+        if (digitsOnly.length === 0) return '';
+        if (digitsOnly.length <= 3) {
+            return digitsOnly;
+        }
+        if (digitsOnly.length <= 5) {
+            return `${digitsOnly.slice(0, 3)}-${digitsOnly.slice(3)}`;
+        }
+        return `${digitsOnly.slice(0, 3)}-${digitsOnly.slice(3, 5)}-${digitsOnly.slice(5, 9)}`;
+    };
+
+    const validateEmail = (val: string) => {
+        if (!val) {
+            setValidationErrors((prev: any) => ({ ...prev, email: '' }));
+            return;
+        }
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(val)) {
+            setValidationErrors((prev: any) => ({ ...prev, email: 'Invalid email address.' }));
+        } else {
+            setValidationErrors((prev: any) => ({ ...prev, email: '' }));
+        }
+    };
+
     const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null)
     const handleAddressSearch = (value: string, type: 'physical' | 'mailing') => {
         if (type === 'physical') setPhysAddress(value)
@@ -1269,6 +1313,17 @@ function ContractorsEquipmentContent() {
                             <Row label="Last Name" bold>
                                 <input type="text" value={lastName} onChange={e => setLastName(e.target.value)} placeholder="Last Name" className={inp} />
                             </Row>
+                            <Row label="Entity of Company" bold>
+                                <select value={entityType} onChange={e => setEntityType(e.target.value)} className={sel}>
+                                    <option value="Individual">Individual</option>
+                                    <option value="Joint Venture">Joint Venture</option>
+                                    <option value="Partnership">Partnership</option>
+                                    <option value="Corporation">Corporation</option>
+                                    <option value="LLC">LLC</option>
+                                    <option value="Trust">Trust</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </Row>
                             <Row label="Years of Experience">
                                 <input type="text" value={yearsExp} onChange={e => setYearsExp(e.target.value)} placeholder="6" className={inp} />
                             </Row>
@@ -1277,17 +1332,64 @@ function ContractorsEquipmentContent() {
                             </Row>
 
                             <Row label="Applicant SSN">
-                                <input type="text" value={ssn} onChange={e => setSsn(e.target.value)} placeholder="111-22-1234" className={inp} />
+                                <div className="relative">
+                                    <input 
+                                        type="text" 
+                                        value={ssn} 
+                                        onChange={e => setSsn(formatSSN(e.target.value))} 
+                                        placeholder="000-00-0000" 
+                                        className={`${inp} ${validationErrors.ssn ? 'border-red-300 bg-red-50' : ''}`}
+                                        maxLength={11}
+                                    />
+                                    {validationErrors.ssn && (
+                                        <div className="flex items-center gap-1 mt-1">
+                                            <span className="text-red-600 text-[10px]">⚠</span>
+                                            <span className="text-[10px] text-red-600 font-medium">{validationErrors.ssn}</span>
+                                        </div>
+                                    )}
+                                </div>
                             </Row>
                             <Row label="Applicant DL #">
                                 <input type="text" value={dlNum} onChange={e => setDlNum(e.target.value)} placeholder="111-22-1234" className={inp} />
                             </Row>
                             <Row label="Applicant Phone" bold required>
-                                <input type="text" value={phone} onChange={e => setPhone(e.target.value)} placeholder="123-456-7890" className={inp} />
+                                <div className="relative">
+                                    <input 
+                                        type="text" 
+                                        value={phone} 
+                                        onChange={e => setPhone(formatPhone(e.target.value))} 
+                                        placeholder="(123) 456-7890" 
+                                        className={`${inp} ${validationErrors.phone ? 'border-red-300 bg-red-50' : ''}`}
+                                        maxLength={14}
+                                    />
+                                    {validationErrors.phone && (
+                                        <div className="flex items-center gap-1 mt-1">
+                                            <span className="text-red-600 text-[10px]">⚠</span>
+                                            <span className="text-[10px] text-red-600 font-medium">{validationErrors.phone}</span>
+                                        </div>
+                                    )}
+                                </div>
                             </Row>
 
                             <Row label="Applicant Email" bold required>
-                                <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="insured@example.com" className={inp} />
+                                <div className="relative">
+                                    <input 
+                                        type="email" 
+                                        value={email} 
+                                        onChange={e => {
+                                            setEmail(e.target.value);
+                                            validateEmail(e.target.value);
+                                        }} 
+                                        placeholder="insured@example.com" 
+                                        className={`${inp} ${validationErrors.email ? 'border-red-300 bg-red-50' : ''}`}
+                                    />
+                                    {validationErrors.email && (
+                                        <div className="flex items-center gap-1 mt-1">
+                                            <span className="text-red-600 text-[10px]">⚠</span>
+                                            <span className="text-[10px] text-red-600 font-medium">{validationErrors.email}</span>
+                                        </div>
+                                    )}
+                                </div>
                             </Row>
 
                             {/* Full-width fields */}

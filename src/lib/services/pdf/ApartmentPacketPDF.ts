@@ -12,15 +12,15 @@ function renderYesNo(label: string, value: boolean | null | undefined, explanati
 	const isNo = value === false;
 
 	return `
-        <div class="question-row">
-            <div class="question-text">${label}</div>
-            <div class="yes-no-options">
-                <span class="option ${isYes ? 'selected' : ''}">Yes</span>
-                <span class="option ${isNo ? 'selected' : ''}">No</span>
-            </div>
-        </div>
-        ${explanation && explanation !== '-' ? `<div class="explanation-text"><strong>Details:</strong> ${explanation}</div>` : ''}
-    `;
+		<div class="question-row">
+			<div class="question-text">${label}</div>
+			<div class="yes-no-options">
+				<span class="option ${isYes ? 'selected' : ''}">Yes</span>
+				<span class="option ${isNo ? 'selected' : ''}">No</span>
+			</div>
+		</div>
+		${explanation && explanation !== '-' ? `<div class="explanation-text"><strong>Details:</strong> ${explanation}</div>` : ''}
+	`;
 }
 
 /**
@@ -28,11 +28,11 @@ function renderYesNo(label: string, value: boolean | null | undefined, explanati
  */
 function renderField(label: string, value: string | number | undefined, width: string = '100%'): string {
 	return `
-        <div class="field-item" style="width: ${width};">
-            <span class="field-label">${label}:</span>
-            <span class="field-value">${value || '-'}</span>
-        </div>
-    `;
+		<div class="field-item" style="width: ${width};">
+			<span class="field-label">${label}:</span>
+			<span class="field-value">${value || '-'}</span>
+		</div>
+	`;
 }
 
 /**
@@ -40,11 +40,11 @@ function renderField(label: string, value: string | number | undefined, width: s
  */
 function renderSignatureRow(label: string, value: string, width: string = '100%', className: string = ''): string {
 	return `
-        <div class="signature-row ${className}">
-            <span class="signature-label">${label}</span>
-            <span class="signature-underline">${value || '&nbsp;'}</span>
-        </div>
-    `;
+		<div class="signature-row ${className}">
+			<span class="signature-label">${label}</span>
+			<span class="signature-underline">${value || '&nbsp;'}</span>
+		</div>
+	`;
 }
 
 /**
@@ -3343,157 +3343,162 @@ function generatePage1(data: ApartmentPacketData): string {
 	const logoSize = email === "patrick@patrickariasinsurance.com" ? "60%" : "100%";
 
 	return `
-        <div class="page page2-isc">
-            <div class="main-content main-content-page2">
-                <!-- Top Agency + Logo -->
-                <div class="header-top-page2">
-                    <div class="agency-info-page2-left">
-                        <div class="agency-name-page2">${data.agencyName}</div>
-                        <div>${data.agentName}</div>
-                        <div>${data.agencyAddress}</div>
-                        <div>${data.agencyCity}, ${data.agencyState} ${data.agencyZip}</div>
-                        <div>${data.agencyPhone}</div>
-                        <div>Email: ${data.agencyEmail?.toLowerCase() || ""}</div>
-                    </div>
+		<div class="page page2-isc">
+			<div class="main-content main-content-page2">
+				<!-- Top Agency + Logo -->
+				<div class="header-top-page2">
+					<div class="agency-info-page2-left">
+						<div class="agency-name-page2">${data.agencyName}</div>
+						<div>${data.agentName}</div>
+						<div>${data.agencyAddress}</div>
+						<div>${data.agencyCity}, ${data.agencyState} ${data.agencyZip}</div>
+						<div>${data.agencyPhone}</div>
+						<div>Email: ${data.agencyEmail?.toLowerCase() || ""}</div>
+					</div>
 
-                    <div class="logo-icon-page2-hands">
-                        ${generateCapitalCoLogoHTML(selectedLogo, logoSize)}
-                    </div>
-                </div>
+					<div class="logo-icon-page2-hands">
+						${generateCapitalCoLogoHTML(selectedLogo, logoSize)}
+					</div>
+				</div>
 
-                <!-- Application ID -->
-                <div class="application-id-large-page2">
-                    General Liability Application ID: ${data.submissionNumber || data.applicationId || "Pending"}
-                </div>
+				<!-- Application ID -->
+				<div class="application-id-large-page2">
+					General Liability Application ID: ${data.submissionNumber || data.applicationId || "Pending"}
+				</div>
 
-                <!-- 3 Column Layout -->
-                <div class="app-id-quote-parallel-page2">
-                    <!-- Date -->
-                    <div>
-                        <div class="section-title-page2">Date</div>
-                        <div class="date-section-page2">${data.formDate || new Date().toLocaleDateString()}</div>
-                    </div>
+				<!-- 3 Column Layout -->
+				<div class="app-id-quote-parallel-page2">
+					<!-- Date -->
+					<div>
+						<div class="section-title-page2">Date</div>
+						<div class="date-section-page2">${data.formDate || new Date().toLocaleDateString()}</div>
+					</div>
 
-                    <!-- Insured Information -->
-                    <div>
-                        <div class="section-title-page2">Insured Information</div>
-                        <div class="insured-detail-page2"><strong>${data.applicantName || ""}</strong></div>
-                        <div class="insured-detail-page2">${data.applicantAddress || ""}</div>
-                        <div class="insured-detail-page2">
-                            ${data.applicantCity || ""}, ${data.applicantState || ""} ${data.applicantZip || ""}
-                        </div>
-                        <div class="insured-detail-page2">${data.applicantPhone || ""}</div>
-                        <div class="insured-detail-page2">Email: ${data.applicantEmail?.toLowerCase() || ""}</div>
-                    </div>
+					<!-- Insured Information -->
+					<div>
+						<div class="section-title-page2">Insured Information</div>
+						<div class="insured-detail-page2"><strong>${data.applicantName || ""}</strong></div>
+						<div class="insured-detail-page2">${data.applicantAddress || ""}</div>
+						<div class="insured-detail-page2">
+							${data.applicantCity || ""}, ${data.applicantState || ""} ${data.applicantZip || ""}
+						</div>
+						<div class="insured-detail-page2">${data.applicantPhone || ""}</div>
+						<div class="insured-detail-page2">Email: ${data.applicantEmail?.toLowerCase() || ""}</div>
+					</div>
 
-                    <!-- Quote Information -->
-                    <div>
-                        <div class="section-title-page2">Quote Information</div>
-                        <div class="quote-detail-page2">PROPERTY</div>
-                        <div class="quote-detail-page2">${data.carrierName || "-"}</div>
-                        <div class="quote-detail-page2">${data.coverageType || "General Liability"}</div>
-                        <div class="quote-detail-page2">
-                            Desired Coverage Dates: ${data.desiredCoverageDates || "-"}
-                        </div>
-                    </div>
-                </div>
+					<!-- Quote Information -->
+					<div>
+						<div class="section-title-page2">Quote Information</div>
+						<div class="quote-detail-page2">PROPERTY</div>
+						<div class="quote-detail-page2">${data.carrierName || "-"}</div>
+						<div class="quote-detail-page2">${data.coverageType || "General Liability"}</div>
+						<div class="quote-detail-page2">
+							Desired Coverage Dates: ${data.desiredCoverageDates || "-"}
+						</div>
+					</div>
+				</div>
 
-                <div class="section-container" style="margin-top: 0.3in;">
-                    <div class="section-header">1. APARTMENT APPLICATION</div>
-                    <hr class="section-divider" />
-                    
-                    ${renderField("Applicant Name", data.applicantName)}
-                    ${renderField("DBA", data.dba)}
-                    ${renderField("Agent Name", data.agentName)}
-                    ${renderField("Applicant Mailing Address", data.applicantMailingAddress || "-")}
-                    ${renderField("Property Name and Address", data.propertyNameAndAddress || "-")}
-                    ${renderField("Proposed Effective Date From", data.proposedEffectiveDateFrom)}
-                    ${renderField("Proposed Effective Date To", data.proposedEffectiveDateTo)}
-                    
-                    <div class="question-block">
-                        ${renderYesNo("Bankruptcy – Within the last 5 years, were there any pending or planned bankruptcies, or judgements for unpaid taxes against you, or your majority partner?", data.bankruptcyPending)}
-                    </div>
+				<div class="section-container" style="margin-top: 0.3in;">
+					<div class="section-header">1. APARTMENT APPLICATION</div>
+					<hr class="section-divider" />
+					
+					${renderField("Applicant Name", data.applicantName)}
+					${renderField("First Name", data.firstName)}
+					${renderField("Last Name", data.lastName)}
+					${renderField("Entity of Company", data.entityType)}
+					${renderField("DBA", data.dba)}
+					${renderField("Applicant Phone", data.phone)}
+					${renderField("Applicant Email", data.email)}
+					${renderField("Agent Name", data.agentName)}
+					${renderField("Applicant Mailing Address", data.applicantMailingAddress || "-")}
+					${renderField("Property Name and Address", data.propertyNameAndAddress || "-")}
+					${renderField("Proposed Effective Date From", data.proposedEffectiveDateFrom)}
+					${renderField("Proposed Effective Date To", data.proposedEffectiveDateTo)}
+					
+					<div class="question-block">
+						${renderYesNo("Within the last 5 years, were there any pending or planned bankruptcies, or judgements for unpaid taxes against you, or your majority partner?", data.bankruptcyPending)}
+					</div>
 
-                    <div style="margin-top: 15px;">
-                        ${renderField("Building Type", data.buildingType)}
-                    </div>
+					<div style="margin-top: 15px;">
+						${renderField("Building Type", data.buildingType)}
+					</div>
 
-                    ${data.buildingType === 'Mixed-Use' ? `
-                        <div class="sub-section" style="margin-top: 10px; padding-left: 15px; border-left: 2px solid #eee;">
-                            <div style="font-weight: bold; font-size: 11px; margin-bottom: 5px; color: #7A6F64;">MIXED-USE DETAILS</div>
-                            ${renderField("% Residential & Commercial", `${data.mixedUseResidentialPct}% / ${data.mixedUseCommercialPct}%`)}
-                            ${renderField("Types of Commercial Tenants", data.mixedUseCommercialTenants)}
-                            ${renderYesNo("Any Cooking Exposure?", data.mixedUseCookingExposure)}
-                            ${renderYesNo("Separate Entrances?", data.mixedUseSeparateEntrances)}
-                            ${renderYesNo("Separate Utilities?", data.mixedUseSeparateUtilities)}
-                        </div>
-                    ` : ''}
+					${data.buildingType === 'Mixed-Use' ? `
+						<div class="sub-section" style="margin-top: 10px; padding-left: 15px; border-left: 2px solid #eee;">
+							<div style="font-weight: bold; font-size: 11px; margin-bottom: 5px; color: #7A6F64;">MIXED-USE DETAILS</div>
+							${renderField("% Residential & Commercial", `${data.mixedUseResidentialPct}% / ${data.mixedUseCommercialPct}%`)}
+							${renderField("Types of Commercial Tenants", data.mixedUseCommercialTenants)}
+							${renderYesNo("Any Cooking Exposure?", data.mixedUseCookingExposure)}
+							${renderYesNo("Separate Entrances?", data.mixedUseSeparateEntrances)}
+							${renderYesNo("Separate Utilities?", data.mixedUseSeparateUtilities)}
+						</div>
+					` : ''}
 
-                    ${data.buildingType === 'Office' ? `
-                        <div class="sub-section" style="margin-top: 10px; padding-left: 15px; border-left: 2px solid #eee;">
-                            <div style="font-weight: bold; font-size: 11px; margin-bottom: 5px; color: #7A6F64;">OFFICE DETAILS</div>
-                            ${renderField("Occupancy Type", data.officeOccupancyType)}
-                            ${renderField("Type of Tenants", data.officeTenantTypes)}
-                            ${renderYesNo("Any Medical Offices?", data.officeMedicalOffices)}
-                            ${renderYesNo("High Foot Traffic?", data.officeHighFootTraffic)}
-                        </div>
-                    ` : ''}
+					${data.buildingType === 'Office' ? `
+						<div class="sub-section" style="margin-top: 10px; padding-left: 15px; border-left: 2px solid #eee;">
+							<div style="font-weight: bold; font-size: 11px; margin-bottom: 5px; color: #7A6F64;">OFFICE DETAILS</div>
+							${renderField("Occupancy Type", data.officeOccupancyType)}
+							${renderField("Type of Tenants", data.officeTenantTypes)}
+							${renderYesNo("Any Medical Offices?", data.officeMedicalOffices)}
+							${renderYesNo("High Foot Traffic?", data.officeHighFootTraffic)}
+						</div>
+					` : ''}
 
-                    ${data.buildingType === 'Retail' ? `
-                        <div class="sub-section" style="margin-top: 10px; padding-left: 15px; border-left: 2px solid #eee;">
-                            <div style="font-weight: bold; font-size: 11px; margin-bottom: 5px; color: #7A6F64;">RETAIL DETAILS</div>
-                            ${renderField("Type of Retail", data.retailType)}
-                            ${renderYesNo("Any Cooking?", data.retailCooking)}
-                            ${renderField("Hours of Operation", data.retailHours)}
-                        </div>
-                    ` : ''}
+					${data.buildingType === 'Retail' ? `
+						<div class="sub-section" style="margin-top: 10px; padding-left: 15px; border-left: 2px solid #eee;">
+							<div style="font-weight: bold; font-size: 11px; margin-bottom: 5px; color: #7A6F64;">RETAIL DETAILS</div>
+							${renderField("Type of Retail", data.retailType)}
+							${renderYesNo("Any Cooking?", data.retailCooking)}
+							${renderField("Hours of Operation", data.retailHours)}
+						</div>
+					` : ''}
 
-                    ${data.buildingType === 'Warehouse' ? `
-                        <div class="sub-section" style="margin-top: 10px; padding-left: 15px; border-left: 2px solid #eee;">
-                            <div style="font-weight: bold; font-size: 11px; margin-bottom: 5px; color: #7A6F64;">WAREHOUSE DETAILS</div>
-                            ${renderField("What is Stored?", data.warehouseStoredItems)}
-                            ${renderField("Storage Height", data.warehouseStorageHeight)}
-                            ${renderYesNo("Any Hazardous Materials?", data.warehouseHazardousMaterials)}
-                            ${renderField("Occupancy Type", data.warehouseOccupancyType)}
-                            ${renderField("Usage Type", data.warehouseUsageType)}
-                        </div>
-                    ` : ''}
+					${data.buildingType === 'Warehouse' ? `
+						<div class="sub-section" style="margin-top: 10px; padding-left: 15px; border-left: 2px solid #eee;">
+							<div style="font-weight: bold; font-size: 11px; margin-bottom: 5px; color: #7A6F64;">WAREHOUSE DETAILS</div>
+							${renderField("What is Stored?", data.warehouseStoredItems)}
+							${renderField("Storage Height", data.warehouseStorageHeight)}
+							${renderYesNo("Any Hazardous Materials?", data.warehouseHazardousMaterials)}
+							${renderField("Occupancy Type", data.warehouseOccupancyType)}
+							${renderField("Usage Type", data.warehouseUsageType)}
+						</div>
+					` : ''}
 
-                    ${data.buildingType === 'Manufacturing' ? `
-                        <div class="sub-section" style="margin-top: 10px; padding-left: 15px; border-left: 2px solid #eee;">
-                            <div style="font-weight: bold; font-size: 11px; margin-bottom: 5px; color: #7A6F64;">MANUFACTURING DETAILS</div>
-                            ${renderField("Ops Description", data.mfgOpsDescription)}
-                            ${renderField("Products Manufactured", data.mfgProductTypes)}
-                            ${renderYesNo("Any Heavy Machinery?", data.mfgHeavyMachinery)}
-                            ${renderYesNo("Any Flammable Materials?", data.mfgFlammableMaterials)}
-                            ${renderField("% Mfg & Storage", `${data.mfgMfgPct}% / ${data.mfgStoragePct}%`)}
-                        </div>
-                    ` : ''}
-                </div>
+					${data.buildingType === 'Manufacturing' ? `
+						<div class="sub-section" style="margin-top: 10px; padding-left: 15px; border-left: 2px solid #eee;">
+							<div style="font-weight: bold; font-size: 11px; margin-bottom: 5px; color: #7A6F64;">MANUFACTURING DETAILS</div>
+							${renderField("Ops Description", data.mfgOpsDescription)}
+							${renderField("Products Manufactured", data.mfgProductTypes)}
+							${renderYesNo("Any Heavy Machinery?", data.mfgHeavyMachinery)}
+							${renderYesNo("Any Flammable Materials?", data.mfgFlammableMaterials)}
+							${renderField("% Mfg & Storage", `${data.mfgMfgPct}% / ${data.mfgStoragePct}%`)}
+						</div>
+					` : ''}
+				</div>
 
-                <div class="section-container">
-                    <div class="section-header">2. PROPERTIES & SYSTEMS</div>
-                    <hr class="section-divider" />
+				<div class="section-container">
+					<div class="section-header">2. PROPERTIES & SYSTEMS</div>
+					<hr class="section-divider" />
 
-                    <div class="question-row">
-                        <div class="question-text">Interest in Property:</div>
-                        <div class="yes-no-options">
-                            <span class="option ${data.interestInPropertyRadio === 'Owner' ? 'selected' : ''}">Owner</span>
-                            <span class="option ${data.interestInPropertyRadio === 'Manager' ? 'selected' : ''}">Manager</span>
-                        </div>
-                    </div>
-                    
-                    ${data.interestInPropertyRadio === 'Owner' ? `
-                        <div class="sub-section">
-                            ${renderField("Name of Property Management Firm", data.propertyManagementFirmName)}
-                            ${renderYesNo("Is the Property Management Firm required to maintain Commercial General Liability Insurance with minimum $1,000,000 limits and to include you as an Additional Insured?", data.isManagementFirmInsured)}
-                        </div>
-                    ` : ''}
-                    ${renderField("Year you first owned or managed the property", data.yearFirstOwnedOrManaged)}
-                </div>
-            </div>
-        </div>
-    `;
+					<div class="question-row">
+						<div class="question-text">Interest in Property:</div>
+						<div class="yes-no-options">
+							<span class="option ${data.interestInPropertyRadio === 'Owner' ? 'selected' : ''}">Owner</span>
+							<span class="option ${data.interestInPropertyRadio === 'Manager' ? 'selected' : ''}">Manager</span>
+						</div>
+					</div>
+					
+					${data.interestInPropertyRadio === 'Owner' ? `
+						<div class="sub-section">
+							${renderField("Name of Property Management Firm", data.propertyManagementFirmName)}
+							${renderYesNo("Is the Property Management Firm required to maintain Commercial General Liability Insurance with minimum $1,000,000 limits and to include you as an Additional Insured?", data.isManagementFirmInsured)}
+						</div>
+					` : ''}
+					${renderField("Year you first owned or managed the property", data.yearFirstOwnedOrManaged)}
+				</div>
+			</div>
+		</div>
+	`;
 }
 
 /**
@@ -3504,68 +3509,76 @@ function generatePage1(data: ApartmentPacketData): string {
  */
 function generatePage2Optimized(data: ApartmentPacketData): string {
 	return `
-        <div class="page page2-isc">
-            <div class="main-content main-content-page2">
-                <div class="section-container">
-                    <div class="section-header">3. PROPERTY DETAILS</div>
-                    <hr class="section-divider" />
+		<div class="page page2-isc">
+			<div class="main-content main-content-page2">
+				<div class="section-container">
+					<div class="section-header">3. PROPERTY DETAILS</div>
+					<hr class="section-divider" />
 
-                    ${renderField("Year Built", data.yearBuilt)}
-                    ${renderField("Year of Roof Installation", data.yearRoofInstalled)}
-                    ${renderField("Year of Wiring Installation", data.yearWiringInstalled)}
-                    ${renderField("Year of Plumbing Installation", data.yearPlumbingInstalled)}
-                    ${renderField("Year of Heating Installation", data.yearHeatingInstalled)}
-                    
-                    ${renderField("Number of Units", data.numberOfUnits)}
-                    ${renderField("Number of Stories", data.numberOfStories)}
-                    
-                    ${renderYesNo("Basement?", data.hasBasement)}
-                    ${renderField("Total Building Area", `${data.totalBuildingArea} Sq Ft`)}
+					${renderField("Year Built", data.yearBuilt)}
+					${renderField("Year of Roof Installation", data.yearRoofInstalled)}
+					${renderField("Year of Wiring Installation", data.yearWiringInstalled)}
+					${renderField("Year of Plumbing Installation", data.yearPlumbingInstalled)}
+					${renderField("Year of Heating Installation", data.yearHeatingInstalled)}
+					
+					${renderField("Number of Units", data.numberOfUnits)}
+					${renderField("Number of Stories", data.numberOfStories)}
+					
+					${renderYesNo("Basement?", data.hasBasement)}
+					${renderField("Total Building Area", `${data.totalBuildingArea} Sq Ft`)}
 
-                    ${renderField("Construction Type", data.constructionType)}
-                    ${renderField("Protection Class", data.protectionClass)}
+					${renderField("Construction Type", data.constructionType)}
+					${renderField("Protection Class", data.protectionClass)}
 
-                    ${renderField("% Occupied", `${data.percentageOccupied}%`)}
-                    ${renderField("% Elderly", `${data.percentageElderly}%`)}
+					${renderField("% Occupied", `${data.percentageOccupied}%`)}
+					${renderField("% Elderly", `${data.percentageElderly}%`)}
 
-                    ${renderField("Distance to Fire Hydrant", data.distanceToFireHydrant)}
-                    ${renderField("Distance to Fire Station", data.distanceToFireStation)}
-                    ${renderField("Fire District", data.fireDistrict)}
-                    ${renderYesNo("Are there multiple buildings or structures?", data.hasMultipleBuildings)}
+					${renderField("Distance to Fire Hydrant", data.distanceToFireHydrant)}
+					${renderField("Distance to Fire Station", data.distanceToFireStation)}
+					${renderField("Fire District", data.fireDistrict)}
+					${renderYesNo("Are there multiple buildings or structures?", data.hasMultipleBuildings)}
 
-                    <div class="divider"></div>
-                    <div class="section-header">PROPERTY INSURANCE</div>
-                    
-                    ${renderField("Subject of Insurance", data.subjectOfInsurance)}
-                    ${renderField("Limit", data.propertyLimit)}
-                    ${renderField("Coinsurance", data.propertyCoinsurance)}
-                    ${renderField("Valuation", data.propertyValuation)}
-                    ${renderField("Causes of Loss", data.propertyCausesOfLoss)}
-                    ${renderField("Deductible", data.propertyDeductible)}
-                    ${renderField("Deductible Type", data.propertyDeductibleType)}
-                </div>
+					<div class="divider"></div>
+					<div class="section-header">PROPERTY INSURANCE</div>
+					
+					${data.subjectsList && data.subjectsList.length > 0 
+						? data.subjectsList.map(item => `
+							${renderField("Subject of Insurance", item.subject)}
+							${renderField("Limit ($)", item.limit)}
+						`).join('')
+						: `
+							${renderField("Subject of Insurance", data.subjectOfInsurance)}
+							${renderField("Limit ($)", data.propertyLimit)}
+						`
+					}
+					${renderField("Coinsurance", data.propertyCoinsurance)}
+					${renderField("Valuation", data.propertyValuation)}
+					${renderField("Causes of Loss", data.propertyCausesOfLoss)}
+					${renderField("Deductible", data.propertyDeductible)}
+					${renderField("Deductible Type", data.propertyDeductibleType)}
+				</div>
 
-                <div class="section-container">
-                    <div class="section-header">TYPES OF SYSTEMS</div>
-                    <hr class="section-divider" />
-                    
-                    ${renderField("Heating Type", data.heatingType)}
-                    ${renderField("Plumbing Type", data.plumbingType)}
-                    ${renderField("Roofing Type", data.roofingType)}
-                    
-                    <div class="question-row">
-                        <div class="question-text">Building Wiring:</div>
-                        <div class="yes-no-options">
-                            <span class="option ${data.buildingWiring === 'Copper' ? 'selected' : ''}">Copper</span>
-                            <span class="option ${data.buildingWiring === 'Aluminum' ? 'selected' : ''}">Aluminum</span>
-                            <span class="option ${data.buildingWiring === 'Other' ? 'selected' : ''}">Other</span>
-                        </div>
-                    </div>
-                    ${data.buildingWiring === 'Aluminum' ? renderYesNo("Is wiring pigtailed or COALR?", data.aluminumWiringPigtailedOrCOALR) : ''}
-                </div>
-            </div>
-        </div>
-    `;
+				<div class="section-container">
+					<div class="section-header">TYPES OF SYSTEMS</div>
+					<hr class="section-divider" />
+					
+					${renderField("Heating Type", data.heatingType)}
+					${renderField("Plumbing Type", data.plumbingType)}
+					${renderField("Roofing Type", data.roofingType)}
+					
+					<div class="question-row">
+						<div class="question-text">Building Wiring:</div>
+						<div class="yes-no-options">
+							<span class="option ${data.buildingWiring === 'Copper' ? 'selected' : ''}">Copper</span>
+							<span class="option ${data.buildingWiring === 'Aluminum' ? 'selected' : ''}">Aluminum</span>
+							<span class="option ${data.buildingWiring === 'Other' ? 'selected' : ''}">Other</span>
+						</div>
+					</div>
+					${data.buildingWiring === 'Aluminum' ? renderYesNo("Is wiring pigtailed or COALR?", data.aluminumWiringPigtailedOrCOALR) : ''}
+				</div>
+			</div>
+		</div>
+	`;
 }
 
 /**
@@ -3573,81 +3586,81 @@ function generatePage2Optimized(data: ApartmentPacketData): string {
  */
 function generatePage3Optimized(data: ApartmentPacketData): string {
 	return `
-        <div class="page page2-isc">
-            <div class="main-content main-content-page2">
-                <div class="section-container">
-                    <div class="section-header">4. SAFETY, SECURITY & OPERATIONS</div>
-                    <hr class="section-divider" />
+		<div class="page page2-isc">
+			<div class="main-content main-content-page2">
+				<div class="section-container">
+					<div class="section-header">4. SAFETY, SECURITY & OPERATIONS</div>
+					<hr class="section-divider" />
 
-                    ${renderYesNo("Sprinklers?", data.hasSprinklers)}
-                    ${data.hasSprinklers === true ? renderField("Percentage Sprinklered", `${data.percentageSprinklered}%`) : ''}
+					${renderYesNo("Does the building have a fire sprinkler system?", data.hasSprinklers)}
+					${data.hasSprinklers === true ? renderField("Percentage Sprinklered", `${data.percentageSprinklered}%`) : ''}
 
-                    <div class="sub-header-line">Smoke Alarms</div>
-                    <div class="question-row">
-                        <div class="question-text">Smoke Alarms Type:</div>
-                        <div class="yes-no-options">
-                            <span class="option ${data.smokeAlarms === 'Hardwire' ? 'selected' : ''}">Hardwire</span>
-                            <span class="option ${data.smokeAlarms === 'Battery' ? 'selected' : ''}">Battery</span>
-                        </div>
-                    </div>
-                    ${data.smokeAlarms === 'Hardwire' ? renderYesNo("Are the alarms tied to a central station?", data.hardwiredCentralStation) : ''}
-                    ${data.smokeAlarms === 'Battery' ? renderYesNo("Is there a written procedure for routine inspection and replacement?", data.batteryRoutineInspection) : ''}
-                </div>
+					<div class="sub-header-line">Smoke Alarms</div>
+					<div class="question-row">
+						<div class="question-text">Smoke Alarms Type:</div>
+						<div class="yes-no-options">
+							<span class="option ${data.smokeAlarms === 'Hardwire' ? 'selected' : ''}">Hardwire</span>
+							<span class="option ${data.smokeAlarms === 'Battery' ? 'selected' : ''}">Battery</span>
+						</div>
+					</div>
+					${data.smokeAlarms === 'Hardwire' ? renderYesNo("Are the alarms tied to a central station and monitored by a third party?", data.hardwiredCentralStation) : ''}
+					${data.smokeAlarms === 'Battery' ? renderYesNo("Is there a written procedure for routine inspection and replacement of the batteries by the owner or management with record retained for at least two years?", data.batteryRoutineInspection) : ''}
+				</div>
 
-                <div class="section-container">
-                    <div class="sub-header-line">Burglar Alarm</div>
-                    ${renderYesNo("Burglar Alarm Type:", data.hasBurglarAlarm)}
-                    ${data.hasBurglarAlarm === true ? `
-                        <div class="sub-section">
-                            <div class="question-row">
-                                <div class="question-text">Select Alarm:</div>
-                                <div class="yes-no-options">
-                                    <span class="option ${data.burglarAlarmType === 'Local Alarm (Audible Only)' ? 'selected' : ''}">Local</span>
-                                    <span class="option ${data.burglarAlarmType === 'Central Station' ? 'selected' : ''}">Central Station</span>
-                                </div>
-                            </div>
-                            ${renderField("Installed & Serviced By", data.burglarAlarmInstalledBy)}
-                        </div>
-                    ` : ''}
+				<div class="section-container">
+					<div class="sub-header-line">Burglar Alarm</div>
+					${renderYesNo("Burglar Alarm Type:", data.hasBurglarAlarm)}
+					${data.hasBurglarAlarm === true ? `
+						<div class="sub-section">
+							<div class="question-row">
+								<div class="question-text">Select Alarm:</div>
+								<div class="yes-no-options">
+									<span class="option ${data.burglarAlarmType === 'Local Alarm (Audible Only)' ? 'selected' : ''}">Local</span>
+									<span class="option ${data.burglarAlarmType === 'Central Station' ? 'selected' : ''}">Central Station</span>
+								</div>
+							</div>
+							${renderField("Installed & Serviced By", data.burglarAlarmInstalledBy)}
+						</div>
+					` : ''}
 
-                   <div class="divider"></div>
+				   <div class="divider"></div>
 
-                    <div class="question-list">
-                        ${renderYesNo("Is the complex in compliance with all applicable state and local statutes governing safety devices?", data.complianceWithSafetyLaws)}
-                        ${renderYesNo("Are all units re-keyed prior to leasing to new tenants?", data.unitsRekeyed)}
-                        ${renderYesNo("Are individual unit doors secured by double locks and peep holes?", data.doorDoubleLocksPeepHoles)}
-                        ${renderYesNo("Does the complex have limited access perimeter fencing?", data.perimeterFencing)}
-                        ${renderYesNo("Do you contract with a security guard service for onsite security?", data.securityGuardOnsite)}
-                    </div>
-                </div>
+					<div class="question-list">
+						${renderYesNo("Is the complex in compliance with all applicable state and local statutes governing safety devices?", data.complianceWithSafetyLaws)}
+						${renderYesNo("Are all units re-keyed prior to leasing to new tenants?", data.unitsRekeyed)}
+						${renderYesNo("Are individual unit doors secured by double locks and peep holes?", data.doorDoubleLocksPeepHoles)}
+						${renderYesNo("Does the complex have limited access perimeter fencing?", data.perimeterFencing)}
+						${renderYesNo("Do you contract with a security guard service for onsite security?", data.securityGuardOnsite)}
+					</div>
+				</div>
 
-                <div class="section-container">
-                    <div class="question-block">
-                        ${renderYesNo("Do you have written procedures for notifying tenants of any known or suspected criminal activity in the complex or in the vicinity of the complex with record retained for at least two years?", data.proceduresNotifyingTenantsCriminal)}
-                        ${renderYesNo("Do you have a written procedure for responding to tenant complaints concerning safety-related issues with records retained for at least two years?", data.proceduresTenantSafetyComplaints)}
-                        ${renderYesNo("Do you have a full time maintenance staff?", data.fullTimeMaintenanceStaff)}
-                        ${data.fullTimeMaintenanceStaff === true ? renderYesNo("Do you have written procedures for inspecting and maintaining building systems and for maintaining written records of such work?", data.proceduresInspectingSystems) : ''}
-                    </div>
-                </div>
+				<div class="section-container">
+					<div class="question-block">
+						${renderYesNo("Do you have written procedures for notifying tenants of any known or suspected criminal activity in the complex or in the vicinity of the complex with record retained for at least two years?", data.proceduresNotifyingTenantsCriminal)}
+						${renderYesNo("Do you have a written procedure for responding to tenant complaints concerning safety-related issues with records retained for at least two years?", data.proceduresTenantSafetyComplaints)}
+						${renderYesNo("Do you have a full time maintenance staff?", data.fullTimeMaintenanceStaff)}
+						${data.fullTimeMaintenanceStaff === true ? renderYesNo("Do you have written procedures for inspecting and maintaining building systems and for maintaining written records of such work?", data.proceduresInspectingSystems) : ''}
+					</div>
+				</div>
 
-                <div class="section-container">
-                    <div class="section-header">5. MAINTENANCE & CONTRACTORS</div>
-                    <hr class="section-divider" />
-                    <div class="question-block">
-                        ${renderYesNo("Do you hire contractors to perform building and/or site maintenance such as systems inspection and repair, snow and ice removal, landscaping, etc.?", data.hireContractorsMaintenance)}
-                        ${data.hireContractorsMaintenance === true ? `
-                            <div class="sub-section">
-                                ${renderField("Details", data.hireContractorsMaintenanceDetails)}
-                                ${renderYesNo("Are contractors required to maintain CGL insurance with a minimum of $1,000,000 limits and to include you as an Additional Insured?", data.contractorsRequiredCGL)}
-                                ${data.contractorsRequiredCGL === false ? renderField("Explanation", data.contractorsRequiredCGLExplanation) : ''}
-                            </div>
-                        ` : ''}
-                        ${renderYesNo("Do you have written procedures for responding to tenant complaints concerning building, property or systems-related issues with records retained for two years?", data.proceduresTenantComplaintsBuilding)}
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
+				<div class="section-container">
+					<div class="section-header">5. MAINTENANCE & CONTRACTORS</div>
+					<hr class="section-divider" />
+					<div class="question-block">
+						${renderYesNo("Do you hire contractors to perform building and/or site maintenance such as systems inspection and repair, snow and ice removal, landscaping, etc.?", data.hireContractorsMaintenance)}
+						${data.hireContractorsMaintenance === true ? `
+							<div class="sub-section">
+								${renderField("Details", data.hireContractorsMaintenanceDetails)}
+								${renderYesNo("Are contractors required to maintain CGL insurance with a minimum of $1,000,000 limits and to include you as an Additional Insured?", data.contractorsRequiredCGL)}
+								${data.contractorsRequiredCGL === false ? renderField("Explanation", data.contractorsRequiredCGLExplanation) : ''}
+							</div>
+						` : ''}
+						${renderYesNo("Do you have written procedures for responding to tenant complaints concerning building, property or systems-related issues with records retained for two years?", data.proceduresTenantComplaintsBuilding)}
+					</div>
+				</div>
+			</div>
+		</div>
+	`;
 }
 
 /**
@@ -3655,94 +3668,94 @@ function generatePage3Optimized(data: ApartmentPacketData): string {
  */
 function generatePage4Optimized(data: ApartmentPacketData): string {
 	return `
-        <div class="page page2-isc">
-            <div class="main-content main-content-page2">
-                <div class="section-container">
-                    <div class="section-header">6. POOLS, ADDITIONS & HAZARDS</div>
-                    <hr class="section-divider" />
+		<div class="page page2-isc">
+			<div class="main-content main-content-page2">
+				<div class="section-container">
+					<div class="section-header">6. POOLS, ADDITIONS & HAZARDS</div>
+					<hr class="section-divider" />
 
-                    <div class="sub-header-line">Swimming Pools</div>
-                    ${renderYesNo("Are there swimming pools on the premises?", data.hasPools)}
-                    
-                    ${data.hasPools === true ? `
-                        <div class="sub-section">
-                            ${renderField("Number of Pools", data.poolNumber)}
-                            ${renderField("Height of Diving Boards", data.heightOfDivingBoards)}
-                            ${renderField("Length/Height of Slides", data.lengthHeightOfSlides)}
-                            ${renderField("Fence Height", data.fenceHeight)}
-                            
-                            <div class="question-list">
-                                ${renderYesNo("Pool Fenced?", data.poolFenced)}
-                                ${renderYesNo("Gates Self-Latching?", data.gatesSelfLatching)}
-                                ${renderYesNo("Lifeguard on Duty?", data.lifeguardOnDuty)}
-                                ${renderYesNo("Depth Markers Visible from Pool Deck?", data.depthMarkersVisible)}
-                                ${renderField("Frequency of Pool Water Inspection and Maintenance", data.poolInspectionFrequency)}
-                                ${renderField("Pool Hours", data.poolHours)}
-                            </div>
-                        </div>
-                    ` : ''}
-                    
-                    <div class="divider"></div>
-                    
-                    ${renderYesNo("Is a nursery or day care facility located in the building or complex?", data.nurseryDayCareFacility)}
-                    ${renderYesNo("Does your lease agreement prohibit your tenants from keeping dogs on or around the property?", data.leaseProhibitsTenantsDogs)}
-                </div>
+					<div class="sub-header-line">Swimming Pools</div>
+					${renderYesNo("Are there swimming pools on the premises?", data.hasPools)}
+					
+					${data.hasPools === true ? `
+						<div class="sub-section">
+							${renderField("Number of Pools", data.poolNumber)}
+							${renderField("Height of Diving Boards", data.heightOfDivingBoards)}
+							${renderField("Length/Height of Slides", data.lengthHeightOfSlides)}
+							${renderField("Fence Height", data.fenceHeight)}
+							
+							<div class="question-list">
+								${renderYesNo("Pool Fenced?", data.poolFenced)}
+								${renderYesNo("Gates Self-Latching?", data.gatesSelfLatching)}
+								${renderYesNo("Lifeguard on Duty?", data.lifeguardOnDuty)}
+								${renderYesNo("Depth Markers Visible from Pool Deck?", data.depthMarkersVisible)}
+								${renderField("Frequency of Pool Water Inspection and Maintenance", data.poolInspectionFrequency)}
+								${renderField("Pool Hours", data.poolHours)}
+							</div>
+						</div>
+					` : ''}
+					
+					<div class="divider"></div>
+					
+					${renderYesNo("Is a nursery or day care facility located in the building or complex?", data.nurseryDayCareFacility)}
+					${renderYesNo("Does your lease agreement prohibit your tenants from keeping dogs on or around the property?", data.leaseProhibitsTenantsDogs)}
+				</div>
 
-                <div class="section-container">
-                    <div class="section-header">7. ADDITIONAL INFORMATION</div>
-                    <hr class="section-divider" />
-                    
-                    ${renderField("Other buildings, facilities or unusual hazards:", data.describeOtherBuildingsHazards || 'None')}
-                    ${renderYesNo("Do you own or control parking facilities?", data.ownControlParkingFacilities)}
-                    ${data.ownControlParkingFacilities === true ? `
-                        <div class="sub-section">
-                            ${renderYesNo("Is access controlled?", data.parkingAccessControlled)}
-                            ${renderField("Parking Description", data.parkingDescription)}
-                        </div>
-                    ` : ''}
-                    ${renderYesNo("Do you have written procedures for regular inspections of your premises to identify potential liability hazards and to assure all necessary corrections and repairs are made and are records of such inspections retained for at least two years?", data.proceduresRegularInspectionsHazards)}
-                </div>
+				<div class="section-container">
+					<div class="section-header">7. ADDITIONAL INFORMATION</div>
+					<hr class="section-divider" />
+					
+					${renderField("Other buildings, facilities or unusual hazards:", data.describeOtherBuildingsHazards || 'None')}
+					${renderYesNo("Do you own or control parking facilities?", data.ownControlParkingFacilities)}
+					${data.ownControlParkingFacilities === true ? `
+						<div class="sub-section">
+							${renderYesNo("Is access controlled?", data.parkingAccessControlled)}
+							${renderField("Parking Description", data.parkingDescription)}
+						</div>
+					` : ''}
+					${renderYesNo("Do you have written procedures for regular inspections of your premises to identify potential liability hazards and to assure all necessary corrections and repairs are made and are records of such inspections retained for at least two years?", data.proceduresRegularInspectionsHazards)}
+				</div>
 
-                <div style="flex-grow: 1;"></div>
+				<div style="flex-grow: 1;"></div>
 
-                <div class="section-container" style="margin-top: 25px;">
-                    <div class="signature-grid-row signature-grid-row-large">
-                        <div class="signature-col">
-                            ${renderSignatureRow("Insured Name:", data.applicantName)}
-                        </div>
-                        <div class="signature-col">
-                            ${renderSignatureRow("Signature:", "")}
-                        </div>
-                    </div>
-                    <div class="signature-grid-row">
-                        <div class="signature-col">
-                            ${renderSignatureRow("Title:", "")}
-                        </div>
-                        <div class="signature-col">
-                            ${renderSignatureRow("Date:", data.formDate)}
-                        </div>
-                    </div>
-                </div>
+				<div class="section-container" style="margin-top: 25px;">
+					<div class="signature-grid-row signature-grid-row-large">
+						<div class="signature-col">
+							${renderSignatureRow("Insured Name:", data.applicantName)}
+						</div>
+						<div class="signature-col">
+							${renderSignatureRow("Signature:", "")}
+						</div>
+					</div>
+					<div class="signature-grid-row">
+						<div class="signature-col">
+							${renderSignatureRow("Title:", "")}
+						</div>
+						<div class="signature-col">
+							${renderSignatureRow("Date:", data.formDate)}
+						</div>
+					</div>
+				</div>
 
-                <div class="section-container" style="margin-top: 20px;">
-                    <div class="signature-grid-row signature-grid-row-large">
-                        <div class="signature-col">
-                            ${renderSignatureRow("Agent Name:", data.agentName)}
-                        </div>
-                        <div class="signature-col">
-                            ${renderSignatureRow("Signature:", "")}
-                        </div>
-                    </div>
-                    <div class="signature-grid-row">
-                        <div class="signature-col">
-                            ${renderSignatureRow("Date:", data.formDate)}
-                        </div>
-                        <div class="signature-col"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
+				<div class="section-container" style="margin-top: 20px;">
+					<div class="signature-grid-row signature-grid-row-large">
+						<div class="signature-col">
+							${renderSignatureRow("Agent Name:", data.agentName)}
+						</div>
+						<div class="signature-col">
+							${renderSignatureRow("Signature:", "")}
+						</div>
+					</div>
+					<div class="signature-grid-row">
+						<div class="signature-col">
+							${renderSignatureRow("Date:", data.formDate)}
+						</div>
+						<div class="signature-col"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+	`;
 }
 
 /**
@@ -3751,7 +3764,7 @@ function generatePage4Optimized(data: ApartmentPacketData): string {
 
 function generatePage51(data: ApartmentPacketData): string {
 	return `
-        <div class="page page2-isc">
+		<div class="page page2-isc">
 		<div id="page_0" class="acod_ acod_02">
 			<div class="acod_03">
 				<img src="data:image/png;base64,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AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=" alt="" class="acod_04" />
@@ -3763,7 +3776,7 @@ function generatePage51(data: ApartmentPacketData): string {
 					<div class="acod_01" style="left:43.445em;top:3.6999em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0136em;">DATE (MM/DD/YYYY) &nbsp;</span></div>
 					<div class="acod_01" style="left:18.93em;top:3.8338em;"><span class="acod_12 acod_08 acod_09" style="word-spacing:0.01em;">PROPERTY SECTION &nbsp;</span></div>
 					<div class="acod_01" style="left:25.8em;top:5.6165em;"><span class="acod_10 acod_08 acod_09">CARRIER &nbsp;</span></div>
-					<div class="acod_01" style="left:44.2077em;top:4.6278em;"><span class="acod_07 acod_08 acod_09">${data.formDate || ""} &nbsp;</span></div>
+					<div class="acod_01" style="left:44.2077em;top:4.6278em;"><span class="acod_07 acod_08 acod_09">01/01/2006 &nbsp;</span></div>
 					<div class="acod_01" style="left:45.3em;top:5.7149em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0594em;">NAIC CODE &nbsp;</span></div>
 					<div class="acod_01" style="left:1.8em;top:5.7149em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0372em;">AGENCY NAME &nbsp;</span></div>
 					<div class="acod_01" style="left:1.9167em;top:6.6278em;"><span class="acod_07 acod_08 acod_09">${data.agencyName} &nbsp;</span></div>
@@ -3784,29 +3797,32 @@ function generatePage51(data: ApartmentPacketData): string {
 					<div class="acod_01" style="left:17.7em;top:13.7149em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0102em;">STREET ADDRESS: &nbsp;</span></div>
 					<div class="acod_01" style="left:15.8563em;top:13.6278em;"><span class="acod_07 acod_08 acod_09">1</span></div>
 					<div class="acod_01" style="left:15.8563em;top:14.6278em;"><span class="acod_07 acod_08 acod_09">2</span></div>
-					<div class="acod_01" style="left:22.5833em;top:13.6278em;"><span class="acod_07 acod_08 acod_09" style="word-spacing:0em;">${data.applicantAddress || ""} &nbsp;</span></div>
+					<div class="acod_01" style="left:22.5833em;top:13.6278em;"><span class="acod_07 acod_08 acod_09" style="word-spacing:0em;">453 1/2 31st St , Manhattan Beach, CA 90266 &nbsp;</span></div>
 					<div class="acod_01" style="left:17.7em;top:14.7149em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0677em;">BLDG DESCRIPTION: &nbsp;</span></div>
 					<div class="acod_01" style="left:19.9492em;top:15.5049em;"><span class="acod_11 acod_08 acod_09">VALU- &nbsp;</span></div>
 					<div class="acod_01" style="left:17.55em;top:15.8749em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0645em;">COINS % &nbsp;</span></div>
 					<div class="acod_01" style="left:19.9358em;top:15.9649em;"><span class="acod_11 acod_08 acod_09">ATION &nbsp;</span></div>
 					<div class="acod_01" style="left:1.8em;top:14.6013em;"><span class="acod_13 acod_08 acod_09" style="word-spacing:0.0297em;">PREMISES INFORMATION &nbsp;</span></div>
 					<div class="acod_01" style="left:3.385em;top:15.6799em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0449em;">SUBJECT OF INSURANCE &nbsp;</span></div>
-					<div class="acod_01" style="left:23.1667em;top:14.6278em;"><span class="acod_07 acod_08 acod_09" style="word-spacing:0em;">${data.applicantAddress || ""} &nbsp;</span></div>
+					<div class="acod_01" style="left:23.1667em;top:14.6278em;"><span class="acod_07 acod_08 acod_09" style="word-spacing:0em;">453 1/2 31st St , Manhattan Beach, CA 90266 &nbsp;</span></div>
 					<div class="acod_01" style="left:34.1308em;top:15.5049em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:1.6055em;">DED BLKT &nbsp;</span></div>
 					<div class="acod_01" style="left:36.6133em;top:15.9649em;"><span class="acod_11 acod_08 acod_09">#</span></div>
 					<div class="acod_01" style="left:27.19em;top:15.5449em;z-index:1208;"><span class="acod_11 acod_08 acod_09">INFLATION &nbsp;</span></div>
 					<div class="acod_01" style="left:27.33em;top:15.9649em;z-index:1214;"><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0746em;">GUARD % &nbsp;</span></div>
 					<div class="acod_01" style="left:13.3217em;top:15.7149em;"><span class="acod_11 acod_08 acod_09">AMOUNT &nbsp;</span></div>
-					<div class="acod_01" style="left:11.75em;top:16.6278em;"><span class="acod_07 acod_08 acod_09">${data.propertyLimit || ""} &nbsp;</span></div>
+					<div class="acod_01" style="left:11.75em;top:16.6278em;"><span class="acod_07 acod_08 acod_09">${data.taxCode || ''} &nbsp;</span></div>
 					<div class="acod_01" style="left:22.13em;top:15.7149em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0051em;">CAUSES OF LOSS &nbsp;</span></div>
+					<div class="acod_01" style="left:22.13em;top:16.5832em;"><span class="acod_07 acod_08 acod_09">${data.propertyCausesOfLoss || ''} &nbsp;</span></div>
 					<div class="acod_01" style="left:31.1308em;top:15.7149em;"><span class="acod_11 acod_08 acod_09">DED &nbsp;</span></div>
 					<div class="acod_01" style="left:39.125em;top:15.7549em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0234em;">FORMS AND CONDITIONS TO APPLY &nbsp;</span></div>
 					<div class="acod_01" style="left:34.0075em;top:15.9949em;"><span class="acod_11 acod_08 acod_09">TYPE &nbsp;</span></div>
-					<div class="acod_01" style="left:1.9167em;top:16.5832em;"><span class="acod_07 acod_08 acod_09">home &nbsp;</span></div>
-					<div class="acod_01" style="left:19.967em;top:16.5832em;"><span class="acod_07 acod_08 acod_09" style="word-spacing:0.5471em;">3232 ad &nbsp;</span></div>
-					<div class="acod_01" style="left:17.75em;top:16.6278em;"><span class="acod_07 acod_08 acod_09">23 &nbsp;</span></div>
-					<div class="acod_01" style="left:30.4167em;top:16.6278em;"><span class="acod_07 acod_08 acod_09">ada &nbsp;</span></div>
-					<div class="acod_01" style="left:34.4813em;top:16.6278em;"><span class="acod_07 acod_08 acod_09">1</span></div>
+					<div class="acod_01" style="left:34.0075em;top:16.5832em;"><span class="acod_07 acod_08 acod_09">${data.propertyDeductibleType || ''} &nbsp;</span></div>
+					<div class="acod_01" style="left:1.9167em;top:16.5832em;"><span class="acod_07 acod_08 acod_09">${data.otherOccupancies || 'd'} &nbsp;</span></div>
+					<div class="acod_01" style="left:13.3217em;top:16.5832em;"><span class="acod_07 acod_08 acod_09">${data.propertyLimit || ''} &nbsp;</span></div>
+					<div class="acod_01" style="left:19.967em;top:16.5832em;"><span class="acod_07 acod_08 acod_09" style="word-spacing:0.5471em;">${data.windClass || 'c'} &nbsp;</span></div>
+					<div class="acod_01" style="left:17.75em;top:16.6278em;"><span class="acod_07 acod_08 acod_09">${data.grade || 'b'} &nbsp;</span></div>
+					<div class="acod_01" style="left:30.4167em;top:16.6278em;"><span class="acod_07 acod_08 acod_09">${data.certificateNumber || 'a'} &nbsp;</span></div>
+					<div class="acod_01" style="left:34.4813em;top:16.6278em;"><span class="acod_07 acod_08 acod_09"></span></div>
 					<div class="acod_01" style="left:1.8em;top:26.7149em;"><span class="acod_11 acod_08 acod_09">ADDITIONA</span><span class="acod_11 acod_08 acod_14">L</span><span class="acod_11 acod_08 acod_09">I</span><span class="acod_11 acod_08 acod_09">NFORMATION &nbsp;</span></div>
 					<div class="acod_01" style="left:11.1em;top:26.7149em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0146em;">BUSINESS INCOME / EXTRA EXPENSE - Attach ACORD 810 &nbsp;</span></div>
 					<div class="acod_01" style="left:29.7em;top:26.7149em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0344em;">VALUE REPORTING INFORMATION - Attach ACORD 811 &nbsp;</span></div>
@@ -3828,58 +3844,58 @@ function generatePage51(data: ApartmentPacketData): string {
 					<div class="acod_01" style="left:27.3em;top:31.657em;"><span class="acod_17 acod_08 acod_09">$</span></div>
 					<div class="acod_01" style="left:39.3em;top:30.7124em;"><span class="acod_16 acod_08 acod_09" style="word-spacing:0.0416em;">POWER OUTAGE &nbsp;</span></div>
 					<div class="acod_01" style="left:1.8em;top:32.7124em;"><span class="acod_15 acod_08 acod_09" style="word-spacing:-0.008em;">SINKHOLE COVERAGE (Required in Florida) &nbsp;</span></div>
-					<div class="acod_01" style="left:23.1em;top:32.7124em;"><span class="acod_15 acod_08 acod_09" style="word-spacing:-0.05em;">ACCEPT COVERAGE &nbsp;</span></div>
-					<div class="acod_01" style="left:23.1em;top:33.7124em;"><span class="acod_15 acod_08 acod_09" style="word-spacing:-0.05em;">ACCEPT COVERAGE &nbsp;</span></div>
-					<div class="acod_01" style="left:30.9em;top:32.7124em;"><span class="acod_15 acod_08 acod_09" style="word-spacing:-0.025em;">REJECT COVERAGE &nbsp;</span></div>
-					<div class="acod_01" style="left:30.9em;top:33.7124em;"><span class="acod_15 acod_08 acod_09" style="word-spacing:-0.025em;">REJECT COVERAGE &nbsp;</span></div>
-					<div class="acod_01" style="left:37.5em;top:32.7124em;"><span class="acod_15 acod_08 acod_09" style="word-spacing:0.2778em;">LIMIT: $ &nbsp;</span></div>
-					<div class="acod_01" style="left:37.5em;top:33.7124em;"><span class="acod_15 acod_08 acod_09" style="word-spacing:0.2778em;">LIMIT: $ &nbsp;</span></div>
-					<div class="acod_01" style="left:37.5em;top:34.7149em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0091em;"># OF OPEN SIDES ON STRUCTURE: &nbsp;</span></div>
+					<div class="acod_01" style="left:23.1em;top:32.7124em;"><span class="acod_15 acod_08 acod_09" style="word-spacing:-0.05em;">[${data.sinkholeSelected === 'Accept' ? 'X' : ' '}] ACCEPT COVERAGE &nbsp;</span></div>
+					<div class="acod_01" style="left:23.1em;top:33.7124em;"><span class="acod_15 acod_08 acod_09" style="word-spacing:-0.05em;">[${data.mineSubsidenceSelected === 'Accept' ? 'X' : ' '}] ACCEPT COVERAGE &nbsp;</span></div>
+					<div class="acod_01" style="left:30.9em;top:32.7124em;"><span class="acod_15 acod_08 acod_09" style="word-spacing:-0.025em;">[${data.sinkholeSelected === 'Reject' ? 'X' : ' '}] REJECT COVERAGE &nbsp;</span></div>
+					<div class="acod_01" style="left:30.9em;top:33.7124em;"><span class="acod_15 acod_08 acod_09" style="word-spacing:-0.025em;">[${data.mineSubsidenceSelected === 'Reject' ? 'X' : ' '}] REJECT COVERAGE &nbsp;</span></div>
+					<div class="acod_01" style="left:37.5em;top:32.7124em;"><span class="acod_15 acod_08 acod_09" style="word-spacing:0.2778em;">LIMIT: $ ${data.sinkholeLimit ?? ''} &nbsp;</span></div>
+					<div class="acod_01" style="left:37.5em;top:33.7124em;"><span class="acod_15 acod_08 acod_09" style="word-spacing:0.2778em;">LIMIT: $ ${data.mineSubsidenceLimit ?? ''} &nbsp;</span></div>
+					<div class="acod_01" style="left:37.5em;top:34.7149em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0091em;"># OF OPEN SIDES ON STRUCTURE: ${data.openSides ?? ''} &nbsp;</span></div>
 					<div class="acod_01" style="left:1.8em;top:33.7124em;"><span class="acod_15 acod_08 acod_09" style="word-spacing:-0.0176em;">MINE SUBSIDENCE COVERAGE (Required in IL, IN, KY and WV) &nbsp;</span></div>
-					<div class="acod_01" style="left:3em;top:34.7124em;"><span class="acod_16 acod_08 acod_09" style="word-spacing:-0.0186em;">PROPERTY HAS BEEN DESIGNATED AN HISTORICAL LANDMARK &nbsp;</span></div>
+					<div class="acod_01" style="left:3em;top:34.7124em;"><span class="acod_16 acod_08 acod_09" style="word-spacing:-0.0186em;">[${data.isHistoricalLandmark === true ? 'X' : ' '}] YES [${data.isHistoricalLandmark === false ? 'X' : ' '}] NO PROPERTY HAS BEEN DESIGNATED AN HISTORICAL LANDMARK &nbsp;</span></div>
 					<div class="acod_01" style="left:13.495em;top:38.0349em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0458em;">DISTANCE TO &nbsp;</span></div>
 					<div class="acod_01" style="left:12.5983em;top:38.5049em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:1.1111em;">HYDRANT FIRE</span><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0203em;">&nbsp;</span><span class="acod_11 acod_08 acod_09">STAT &nbsp;</span></div>
 					<div class="acod_01" style="left:1.8em;top:38.1649em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0645em;">CONSTRUCTION TYPE &nbsp;</span></div>
 					<div class="acod_01" style="left:31.925em;top:38.1649em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0153em;">PROT CL</span><span class="acod_11 acod_08 acod_09" style="word-spacing:1.0331em;">&nbsp;</span><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0187em;"># STORIES</span><span class="acod_11 acod_08 acod_09" style="word-spacing:0.5779em;">&nbsp;</span><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0051em;"># BASM'TS</span><span class="acod_11 acod_08 acod_09" style="word-spacing:1.1956em;">&nbsp;</span><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.034em;">YR BUILT</span><span class="acod_11 acod_08 acod_09" style="word-spacing:1.3991em;">&nbsp;</span><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0356em;">TOTAL AREA &nbsp;</span></div>
-					<div class="acod_01" style="left:35.3887em;top:39.1278em;"><span class="acod_07 acod_08 acod_09" style="word-spacing:2.1657em;">Hub Abcd</span><span class="acod_07 acod_08 acod_09" style="word-spacing:2.7759em;">&nbsp;</span><span class="acod_07 acod_08 acod_09" style="word-spacing:2.1659em;">43 4545 &nbsp;</span></div>
+					<div class="acod_01" style="left:34.3887em;top:39.1278em;"><span class="acod_07 acod_08 acod_09" style="word-spacing:1.5em;">${data.protectionClass ?? ''} &nbsp; ${data.numberOfStories ?? ''} &nbsp; ${data.hasBasement === null ? '' : data.hasBasement ? '1' : '0'} &nbsp; ${data.yearBuilt ?? ''} &nbsp; ${data.totalBuildingArea ?? ''} &nbsp;</span></div>
 					<div class="acod_01" style="left:30em;top:40.1649em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0848em;">OTHER OCCUPANCIES &nbsp;</span></div>
 					<div class="acod_01" style="left:20.905em;top:38.2149em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0677em;">FIRE DISTRICT &nbsp;</span></div>
 					<div class="acod_01" style="left:27.405em;top:38.2149em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0509em;">CODE NUMBER &nbsp;</span></div>
-					<div class="acod_01" style="left:1.9167em;top:39.1278em;"><span class="acod_07 acod_08 acod_09">Averean &nbsp;</span></div>
+					<div class="acod_01" style="left:1.9167em;top:39.1278em;"><span class="acod_07 acod_08 acod_09">${data.constructionType || ''} &nbsp;</span></div>
 					<div class="acod_01" style="left:1.8em;top:40.2149em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0848em;">BUILDING IMPROVEMENTS &nbsp;</span></div>
-					<div class="acod_01" style="left:13.4713em;top:39.1278em;"><span class="acod_07 acod_08 acod_09" style="word-spacing:2.1787em;">325 512 &nbsp;</span></div>
-					<div class="acod_01" style="left:22.0513em;top:39.1278em;"><span class="acod_07 acod_08 acod_09">Fire &nbsp;</span></div>
+					<div class="acod_01" style="left:13.4713em;top:39.1278em;"><span class="acod_07 acod_08 acod_09" style="word-spacing:2.1787em;">${data.distanceToFireHydrant || ''} ${data.distanceToFireStation || ''} &nbsp;</span></div>
+					<div class="acod_01" style="left:22.0513em;top:39.1278em;"><span class="acod_07 acod_08 acod_09">${data.fireDistrict || ''} &nbsp;</span></div>
 					<div class="acod_01" style="left:20.335em;top:40.1649em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.022em;">TAX CODE</span><span class="acod_11 acod_08 acod_09" style="word-spacing:1.4207em;">&nbsp;</span><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0035em;">ROOF TYPE &nbsp;</span></div>
 					<div class="acod_01" style="left:14.87em;top:39.3774em;"><span class="acod_16 acod_08 acod_09">FT &nbsp;</span></div>
 					<div class="acod_01" style="left:17.62em;top:39.3774em;"><span class="acod_16 acod_08 acod_09">MI &nbsp;</span></div>
 					<div class="acod_01" style="left:16.535em;top:40.0349em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0407em;">BLDG CODE &nbsp;</span></div>
 					<div class="acod_01" style="left:17.1125em;top:40.5049em;"><span class="acod_11 acod_08 acod_09">GRADE &nbsp;</span></div>
-					<div class="acod_01" style="left:23.75em;top:41.1278em;"><span class="acod_07 acod_08 acod_09">Advance &nbsp;</span></div>
-					<div class="acod_01" style="left:3em;top:41.3774em;"><span class="acod_16 acod_08 acod_09" style="word-spacing:0.055em;">WIRING, YR: &nbsp;</span></div>
-					<div class="acod_01" style="left:10.07em;top:41.3774em;"><span class="acod_16 acod_08 acod_09" style="word-spacing:-0.0266em;">PLUMBING, YR: &nbsp;</span></div>
+					<div class="acod_01" style="left:23.75em;top:41.1278em;"><span class="acod_07 acod_08 acod_09">${data.roofingType || ''} &nbsp;</span></div>
+					<div class="acod_01" style="left:3em;top:41.3774em;"><span class="acod_16 acod_08 acod_09" style="word-spacing:0.055em;">WIRING, YR: ${data.yearWiringInstalled || ''} &nbsp;</span></div>
+					<div class="acod_01" style="left:10.07em;top:41.3774em;"><span class="acod_16 acod_08 acod_09" style="word-spacing:-0.0266em;">PLUMBING, YR: ${data.yearPlumbingInstalled || ''} &nbsp;</span></div>
 					<div class="acod_01" style="left:31.2em;top:42.0074em;"><span class="acod_16 acod_08 acod_09" style="word-spacing:0.0112em;">HEATING SOURCE INCL WOODBURNING &nbsp;</span></div>
 					<div class="acod_01" style="left:31.2em;top:42.5074em;"><span class="acod_16 acod_08 acod_09" style="word-spacing:-0.0094em;">STOVE OR FIREPLACE INSERT &nbsp;</span></div>
 					<div class="acod_01" style="left:30em;top:43.2124em;"><span class="acod_16 acod_08 acod_09">MANUFACTURER: &nbsp;</span></div>
 					<div class="acod_01" style="left:42.3em;top:42.0074em;"><span class="acod_16 acod_08 acod_09">DATE &nbsp;</span></div>
 					<div class="acod_01" style="left:42.3em;top:42.5074em;"><span class="acod_16 acod_08 acod_09">INSTALLED: &nbsp;</span></div>
 					<div class="acod_01" style="left:16.5em;top:42.1649em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0289em;">WIND CLASS &nbsp;</span></div>
-					<div class="acod_01" style="left:3em;top:42.3774em;"><span class="acod_16 acod_08 acod_09" style="word-spacing:0.0084em;">ROOFING, YR: &nbsp;</span></div>
-					<div class="acod_01" style="left:10.07em;top:42.3774em;"><span class="acod_16 acod_08 acod_09" style="word-spacing:-0.0084em;">HEATING, YR: &nbsp;</span></div>
+					<div class="acod_01" style="left:3em;top:42.3774em;"><span class="acod_16 acod_08 acod_09" style="word-spacing:0.0084em;">ROOFING, YR: ${data.yearRoofInstalled || ''} &nbsp;</span></div>
+					<div class="acod_01" style="left:10.07em;top:42.3774em;"><span class="acod_16 acod_08 acod_09" style="word-spacing:-0.0084em;">HEATING, YR: ${data.yearHeatingInstalled || ''} &nbsp;</span></div>
 					<div class="acod_01" style="left:11.7em;top:43.4174em;"><span class="acod_16 acod_08 acod_09">YR: &nbsp;</span></div>
-					<div class="acod_01" style="left:22.5em;top:42.3874em;"><span class="acod_16 acod_08 acod_09" style="word-spacing:-0.04em;">SEMI- RESISTIVE &nbsp;</span></div>
-					<div class="acod_01" style="left:3em;top:43.3774em;"><span class="acod_16 acod_08 acod_09">OTHER: &nbsp;</span></div>
-					<div class="acod_01" style="left:17.7em;top:43.3774em;"><span class="acod_16 acod_08 acod_09">RESISTIVE &nbsp;</span></div>
+					<div class="acod_01" style="left:22.5em;top:42.3874em;"><span class="acod_16 acod_08 acod_09" style="word-spacing:-0.04em;">${data.constructionType === 'Joisted Masonry' ? 'X' : ''} SEMI- RESISTIVE &nbsp;</span></div>
+					<div class="acod_01" style="left:3em;top:43.3774em;"><span class="acod_16 acod_08 acod_09">OTHER: ${['Frame', 'Non-Combustible', 'Masonry Non-Combustible'].includes(data.constructionType) ? data.constructionType : ''} &nbsp;</span></div>
+					<div class="acod_01" style="left:17.7em;top:43.3774em;"><span class="acod_16 acod_08 acod_09">${data.constructionType === 'Fire Resistive' ? 'X' : ''} RESISTIVE &nbsp;</span></div>
 					<div class="acod_01" style="left:1.8em;top:44.2149em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0458em;">PRIMARY HEAT &nbsp;</span></div>
 					<div class="acod_01" style="left:25.8em;top:44.2149em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0559em;">SECONDARY HEAT &nbsp;</span></div>
-					<div class="acod_01" style="left:3em;top:45.2124em;"><span class="acod_16 acod_08 acod_09">BOILER &nbsp;</span></div>
-					<div class="acod_01" style="left:8.1em;top:45.2124em;"><span class="acod_16 acod_08 acod_09" style="word-spacing:0.0034em;">SOLID FUEL &nbsp;</span></div>
-					<div class="acod_01" style="left:27em;top:45.2124em;"><span class="acod_16 acod_08 acod_09">BOILER &nbsp;</span></div>
-					<div class="acod_01" style="left:32.1em;top:45.2124em;"><span class="acod_16 acod_08 acod_09" style="word-spacing:0.0034em;">SOLID FUEL &nbsp;</span></div>
+					<div class="acod_01" style="left:3em;top:45.2124em;"><span class="acod_16 acod_08 acod_09">${data.isPrimaryHeatBoiler ? 'X' : ''} BOILER &nbsp;</span></div>
+					<div class="acod_01" style="left:8.1em;top:45.2124em;"><span class="acod_16 acod_08 acod_09" style="word-spacing:0.0034em;">${data.isPrimaryHeatSolidFuel ? 'X' : ''} SOLID FUEL &nbsp;</span></div>
+					<div class="acod_01" style="left:27em;top:45.2124em;"><span class="acod_16 acod_08 acod_09">${data.isSecondaryHeatBoiler ? 'X' : ''} BOILER &nbsp;</span></div>
+					<div class="acod_01" style="left:32.1em;top:45.2124em;"><span class="acod_16 acod_08 acod_09" style="word-spacing:0.0034em;">${data.isSecondaryHeatSolidFuel ? 'X' : ''} SOLID FUEL &nbsp;</span></div>
 					<div class="acod_01" style="left:3em;top:46.2124em;"><span class="acod_16 acod_08 acod_09" style="word-spacing:-0.0026em;">IF BOILER, IS INSURANCE PLACED ELSEWHERE? &nbsp;</span></div>
-					<div class="acod_01" style="left:16.8em;top:46.2124em;"><span class="acod_16 acod_08 acod_09" style="word-spacing:-0.0016em;">Y / N &nbsp;</span></div>
+					<div class="acod_01" style="left:16.8em;top:46.2124em;"><span class="acod_16 acod_08 acod_09" style="word-spacing:-0.0016em;">${data.boilerInsuranceElsewhere === true ? 'Y' : data.boilerInsuranceElsewhere === false ? 'N' : ''} &nbsp;</span></div>
 					<div class="acod_01" style="left:13.8em;top:47.1649em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.014em;">LEFT EXPOSURE &amp; DISTANCE &nbsp;</span></div>
 					<div class="acod_01" style="left:27em;top:46.2124em;"><span class="acod_16 acod_08 acod_09" style="word-spacing:-0.0026em;">IF BOILER, IS INSURANCE PLACED ELSEWHERE? &nbsp;</span></div>
-					<div class="acod_01" style="left:40.8em;top:46.2124em;"><span class="acod_16 acod_08 acod_09" style="word-spacing:-0.0016em;">Y / N &nbsp;</span></div>
+					<div class="acod_01" style="left:40.8em;top:46.2124em;"><span class="acod_16 acod_08 acod_09" style="word-spacing:-0.0016em;">${data.secondaryBoilerInsuranceElsewhere === true ? 'Y' : data.secondaryBoilerInsuranceElsewhere === false ? 'N' : ''} &nbsp;</span></div>
 					<div class="acod_01" style="left:1.8em;top:47.1649em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0283em;">RIGHT EXPOSURE &amp; DISTANCE &nbsp;</span></div>
 					<div class="acod_01" style="left:1.8em;top:49.2149em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0305em;">BURGLAR ALARM TYPE &nbsp;</span></div>
 					<div class="acod_01" style="left:37.8em;top:47.1649em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0242em;">REAR EXPOSURE &amp; DISTANCE &nbsp;</span></div>
@@ -3890,21 +3906,21 @@ function generatePage51(data: ApartmentPacketData): string {
 					<div class="acod_01" style="left:47.4em;top:49.5074em;"><span class="acod_16 acod_08 acod_09">GONG &nbsp;</span></div>
 					<div class="acod_01" style="left:18.3em;top:49.2149em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.061em;">CERTIFICATE # &nbsp;</span></div>
 					<div class="acod_01" style="left:36.595em;top:49.2149em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0626em;">EXPIRATION DATE &nbsp;</span></div>
-					<div class="acod_01" style="left:1.9167em;top:50.1278em;"><span class="acod_07 acod_08 acod_09">Normal &nbsp;</span></div>
+					<div class="acod_01" style="left:1.9167em;top:50.1278em;"><span class="acod_07 acod_08 acod_09">${data.burglarAlarmType || ''} &nbsp;</span></div>
 					<div class="acod_01" style="left:1.8em;top:51.2149em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0311em;">BURGLAR ALARM INSTALLED AND SERVICED BY &nbsp;</span></div>
 					<div class="acod_01" style="left:42.9em;top:50.4174em;"><span class="acod_16 acod_08 acod_09" style="word-spacing:0.04em;">WITH KEYS &nbsp;</span></div>
 					<div class="acod_01" style="left:25.8em;top:51.2149em;"><span class="acod_11 acod_08 acod_09">EXTENT &nbsp;</span></div>
 					<div class="acod_01" style="left:32.7em;top:51.2149em;"><span class="acod_11 acod_08 acod_09">GRADE &nbsp;</span></div>
 					<div class="acod_01" style="left:36.6em;top:51.2149em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0153em;"># GUARDS / WATCHMEN &nbsp;</span></div>
 					<div class="acod_01" style="left:44.4em;top:51.2124em;"><span class="acod_16 acod_08 acod_09" style="word-spacing:-0.01em;">CLOCK HOURLY &nbsp;</span></div>
-					<div class="acod_01" style="left:1.9167em;top:52.1278em;"><span class="acod_07 acod_08 acod_09">Dann &nbsp;</span></div>
+					<div class="acod_01" style="left:1.9167em;top:52.1278em;"><span class="acod_07 acod_08 acod_09">${data.burglarAlarmInstalledBy || ''} &nbsp;</span></div>
 					<div class="acod_01" style="left:1.8em;top:53.1049em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0173em;">PREMISES FIRE PROTECTION (Sprinklers, Standpipes, CO2 / Chemical Systems) &nbsp;</span></div>
-					<div class="acod_01" style="left:36.6667em;top:52.1278em;"><span class="acod_07 acod_08 acod_09">9414 &nbsp;</span></div>
-					<div class="acod_01" style="left:24em;top:53.1649em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0525em;">% SPRNK</span><span class="acod_11 acod_08 acod_09" style="word-spacing:1.2084em;">&nbsp;</span><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0559em;">FIRE ALARM MANUFACTURER &nbsp;</span></div>
+					<div class="acod_01" style="left:36.6667em;top:52.1278em;"><span class="acod_07 acod_08 acod_09">${data.certificateExpirationDate || ''} &nbsp;</span></div>
+					<div class="acod_01" style="left:24em;top:53.1649em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0525em;">% SPRNK</span><span class="acod_11 acod_08 acod_09" style="word-spacing:1.2084em;">&nbsp;</span><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0559em;">FIRE ALARM MANUFACTURER: ${data.fireAlarmManufacturer || ''} &nbsp;</span></div>
 					<div class="acod_01" style="left:44.4em;top:53.2124em;"><span class="acod_16 acod_08 acod_09" style="word-spacing:0em;">CENTRAL STATION &nbsp;</span></div>
 					<div class="acod_01" style="left:44.4em;top:54.2124em;"><span class="acod_16 acod_08 acod_09" style="word-spacing:0.005em;">LOCAL GONG &nbsp;</span></div>
-					<div class="acod_01" style="left:1.9167em;top:54.1278em;"><span class="acod_07 acod_08 acod_09">complite &nbsp;</span></div>
-					<div class="acod_01" style="left:24.8377em;top:54.1278em;"><span class="acod_07 acod_08 acod_09">23 &nbsp;</span></div>
+					<div class="acod_01" style="left:1.9167em;top:54.1278em;"><span class="acod_07 acod_08 acod_09">${data.hasSprinklers ? 'X' : ''} &nbsp;</span></div>
+					<div class="acod_01" style="left:24.8377em;top:54.1278em;"><span class="acod_07 acod_08 acod_09">${data.percentageSprinklered ?? ''} &nbsp;</span></div>
 					<div class="acod_01" style="left:1.8em;top:55.1863em;"><span class="acod_13 acod_08 acod_09" style="word-spacing:0.0261em;">ADDITIONAL INTEREST &nbsp;</span></div>
 					<div class="acod_01" style="left:1.8em;top:56.2149em;"><span class="acod_11 acod_08 acod_09">INTEREST &nbsp;</span></div>
 					<div class="acod_01" style="left:11.7em;top:55.1963em;"><span class="acod_13 acod_08 acod_09" style="word-spacing:-0.0086em;">ACORD 45 attached for additional names &nbsp;</span></div>
@@ -3928,13 +3944,13 @@ function generatePage51(data: ApartmentPacketData): string {
 				</div>
 			</div>
 		</div>
-        </div>
-    `;
+		</div>
+	`;
 }
 
 function generatePage52(data: ApartmentPacketData): string {
 	return `
-        <div class="page page2-isc">
+		<div class="page page2-isc">
 		<div id="page_1" class="acod_ acod_02">
 			<div class="acod_03">
 				<img src="data:image/png;base64,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AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==" alt="" class="acod_18" />
@@ -4072,13 +4088,13 @@ function generatePage52(data: ApartmentPacketData): string {
 				</div>
 			</div>
 		</div>
-        </div>
-    `;
+		</div>
+	`;
 }
 
 function generatePage53(data: ApartmentPacketData): string {
 	return `
-        <div class="page page2-isc">
+		<div class="page page2-isc">
 		<div id="page_2" class="acod_ acod_02">
 			<div class="acod_03">
 				<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAzAAAAQgCAYAAAA5ebkOAAAACXBIWXMAAA7DAAAOwwHHb6hkAAAhpUlEQVR4nO3cQYqdaRmG4bML1+SedE1uwLHbyEBFJ9Iggt2k7bYOlZ6dDx/E+Ned/7rgm5+nqFTdLwl5PAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAODD+sPb++R5nnfRe/4MAgCYOWA8z7vyOWAAAAAAAAAAAAAAAAAAAAAAAACAkL+/ve8f1/9Xbp7neZ7neZ7nff33bP/nDZD1w9v7/Lj+C+l5nud5nud53td/z/Z/3gBZf/zyAACAb1++//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv/zAwAAgFm+//MDAACAWb7/8wMAAIBZvv9/eHuf394nz/M8z/M8z/O++fds/+cNkOWA8TzP8zzP87z7vPwBk/8rJAAAYJbv//wAAABglu///AAAAGCW7//8AAAA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AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==" alt="" class="acod_18" />
@@ -4131,7 +4147,7 @@ function generatePage53(data: ApartmentPacketData): string {
 					<div class="acod_01" style="left:41.4em;top:59.4649em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0051em;">(Required in Florida) &nbsp;</span></div>
 					<div class="acod_01" style="left:1.8em;top:59.2149em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0848em;">PRODUCER'S SIGNATURE &nbsp;</span></div>
 					<div class="acod_01" style="left:21.6em;top:59.2449em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0216em;">PRODUCER'S NAME (Please Print) &nbsp;</span></div>
-					<div class="acod_01" style="left:21.6667em;top:60.1278em;"><span class="acod_07 acod_08 acod_09">Kapil &nbsp;</span></div>
+					<div class="acod_01" style="left:21.6667em;top:60.1278em;"><span class="acod_07 acod_08 acod_09">${data.agentName || ''} &nbsp;</span></div>
 					<div class="acod_01" style="left:1.8em;top:61.1049em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.083em;">APPLICANT'S SIGNATURE &nbsp;</span></div>
 					<div class="acod_01" style="left:35.4em;top:61.1049em;"><span class="acod_11 acod_08 acod_09">DATE &nbsp;</span></div>
 					<div class="acod_01" style="left:41.44em;top:61.1049em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0653em;">NATIONAL PRODUCER NUMBER &nbsp;</span></div>
@@ -4140,8 +4156,8 @@ function generatePage53(data: ApartmentPacketData): string {
 				</div>
 			</div>
 		</div>
-        </div>
-    `;
+		</div>
+	`;
 }
 
 
@@ -4498,42 +4514,42 @@ const cssContent = `
 }
 }
 
-    /* General Layout Helpers */
-    .section-container { margin-top: 0.1in; }
-    .section-header { font-weight: bold; font-size: 11pt; text-transform: uppercase; margin-top: 0; margin-bottom: 3px; color: #000; letter-spacing: 0.4px; }
-    .section-divider { border: none; border-top: 1.5px solid #000; margin: 0 0 6px 0; padding: 0; width: 100%; }
-    
-    .flex-row { display: flex; width: 100%; margin-bottom: 6px; }
-    .field-grid { display: flex; width: 100%; margin-bottom: 6px; }
-    
-    .field-item { margin-bottom: 4px; display: flex; align-items: baseline; }
-    .field-label { font-weight: 600; color: #444; margin-right: 10px; font-size: 10pt; min-width: 2.8in; width: 2.8in; flex-shrink: 0; white-space: normal; line-height: 1.2; }
-    .field-value { font-weight: bold; color: #000; font-size: 10.5pt; flex: 1; overflow-wrap: break-word; }
-    
-    .question-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; padding: 2px 0; }
-    .question-text { flex: 1; font-weight: 500; font-size: 10pt; color: #111; padding-right: 20px; line-height: 1.4; }
-    .yes-no-options { display: flex; gap: 12px; font-size: 10.5pt; min-width: 75px; justify-content: flex-end; padding-top: 2px; }
-    .option { color: #aaa; }
-    .option.selected { color: #000; font-weight: bold; text-decoration: underline; }
-    .explanation-text { font-size: 9.5pt; color: #374151; margin-top: 2px; margin-bottom: 6px; padding-left: 12px; border-left: 2px solid #e5e7eb; line-height: 1.4; }
-    
-    .divider { border-top: 0.5px solid #e5e7eb; margin: 6px 0; }
-    .footer { position: absolute; bottom: 0.4in; left: 0.6in; right: 0.6in; border-top: 1px solid #eee; padding-top: 5px; font-size: 8.5pt; color: #999; text-align: center; }
-    
-    .sub-header-line { font-size: 9pt; font-weight: bold; text-transform: uppercase; border-bottom: 1px solid #f3f4f6; margin-bottom: 6px; padding-bottom: 2px; margin-top: 8px; color: #6B7280; letter-spacing: 0.3px; }
-    .question-block { width: 100%; }
-    .sub-section { margin-left: 0.20in; border-left: 1.5px dashed #e5e7eb; padding-left: 0.15in; margin-top: 6px; margin-bottom: 8px; }
-    .sub-section .field-label { min-width: calc(2.8in - 0.35in) !important; width: calc(2.8in - 0.35in) !important; }
-    .sub-section .question-text { font-size: 9.5pt; color: #4B5563; }
-    .agency-bar { background: #f8fafc; padding: 12px; border-radius: 4px; margin-bottom: 12px; font-size: 10pt; line-height: 1.5; color: #1e293b; border-left: 4px solid var(--primary-color); }
-    
-    .signature-row { display: flex; align-items: baseline; width: 100%; height: 1.5em; }
-    .signature-label { font-weight: 600; font-size: 10.5pt; color: #444; min-width: 110px; flex-shrink: 0; }
-    .signature-underline { border-bottom: 1.5px solid #000; flex: 1; min-width: 100px; padding: 0 5px; font-weight: bold; font-size: 11pt; text-align: center; height: 1.3em; line-height: 1.3em; }
-    
-    .signature-grid-row { display: flex; gap: 40px; width: 100%; margin-top: 8px; margin-bottom: 20px; }
-    .signature-grid-row-large { margin-top: 35px !important; margin-bottom: 40px !important; }
-    .signature-col { flex: 1; min-width: 0; }
+	/* General Layout Helpers */
+	.section-container { margin-top: 0.1in; }
+	.section-header { font-weight: bold; font-size: 11pt; text-transform: uppercase; margin-top: 0; margin-bottom: 3px; color: #000; letter-spacing: 0.4px; }
+	.section-divider { border: none; border-top: 1.5px solid #000; margin: 0 0 6px 0; padding: 0; width: 100%; }
+	
+	.flex-row { display: flex; width: 100%; margin-bottom: 6px; }
+	.field-grid { display: flex; width: 100%; margin-bottom: 6px; }
+	
+	.field-item { margin-bottom: 4px; display: flex; align-items: baseline; }
+	.field-label { font-weight: 600; color: #444; margin-right: 10px; font-size: 10pt; min-width: 2.8in; width: 2.8in; flex-shrink: 0; white-space: normal; line-height: 1.2; }
+	.field-value { font-weight: bold; color: #000; font-size: 10.5pt; flex: 1; overflow-wrap: break-word; }
+	
+	.question-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; padding: 2px 0; }
+	.question-text { flex: 1; font-weight: 500; font-size: 10pt; color: #111; padding-right: 20px; line-height: 1.4; }
+	.yes-no-options { display: flex; gap: 12px; font-size: 10.5pt; min-width: 75px; justify-content: flex-end; padding-top: 2px; }
+	.option { color: #aaa; }
+	.option.selected { color: #000; font-weight: bold; text-decoration: underline; }
+	.explanation-text { font-size: 9.5pt; color: #374151; margin-top: 2px; margin-bottom: 6px; padding-left: 12px; border-left: 2px solid #e5e7eb; line-height: 1.4; }
+	
+	.divider { border-top: 0.5px solid #e5e7eb; margin: 6px 0; }
+	.footer { position: absolute; bottom: 0.4in; left: 0.6in; right: 0.6in; border-top: 1px solid #eee; padding-top: 5px; font-size: 8.5pt; color: #999; text-align: center; }
+	
+	.sub-header-line { font-size: 9pt; font-weight: bold; text-transform: uppercase; border-bottom: 1px solid #f3f4f6; margin-bottom: 6px; padding-bottom: 2px; margin-top: 8px; color: #6B7280; letter-spacing: 0.3px; }
+	.question-block { width: 100%; }
+	.sub-section { margin-left: 0.20in; border-left: 1.5px dashed #e5e7eb; padding-left: 0.15in; margin-top: 6px; margin-bottom: 8px; }
+	.sub-section .field-label { min-width: calc(2.8in - 0.35in) !important; width: calc(2.8in - 0.35in) !important; }
+	.sub-section .question-text { font-size: 9.5pt; color: #4B5563; }
+	.agency-bar { background: #f8fafc; padding: 12px; border-radius: 4px; margin-bottom: 12px; font-size: 10pt; line-height: 1.5; color: #1e293b; border-left: 4px solid var(--primary-color); }
+	
+	.signature-row { display: flex; align-items: baseline; width: 100%; height: 1.5em; }
+	.signature-label { font-weight: 600; font-size: 10.5pt; color: #444; min-width: 110px; flex-shrink: 0; }
+	.signature-underline { border-bottom: 1.5px solid #000; flex: 1; min-width: 100px; padding: 0 5px; font-weight: bold; font-size: 11pt; text-align: center; height: 1.3em; line-height: 1.3em; }
+	
+	.signature-grid-row { display: flex; gap: 40px; width: 100%; margin-top: 8px; margin-bottom: 20px; }
+	.signature-grid-row-large { margin-top: 35px !important; margin-bottom: 40px !important; }
+	.signature-col { flex: 1; min-width: 0; }
 `;
 
 
@@ -4542,91 +4558,91 @@ const cssContent = `
  */
 function generateProposalPage(data: ApartmentPacketData): string {
 	return `
-        <div class="page page2-isc">
-            <div class="main-content main-content-page2">
-            <div class="section-container">
-                <div class="section-header">QUOTATION SUMMARY</div>
-                <hr class="section-divider" />
-                
-                ${renderField("Carrier", data.carrierName)}
-                ${renderField("Quote Type", data.quoteType)}
-                ${renderField("Coverage Type", data.coverageType)}
-                ${renderField("Coverage Dates", data.desiredCoverageDates)}
-            </div>
+		<div class="page page2-isc">
+			<div class="main-content main-content-page2">
+			<div class="section-container">
+				<div class="section-header">QUOTATION SUMMARY</div>
+				<hr class="section-divider" />
+				
+				${renderField("Carrier", data.carrierName)}
+				${renderField("Quote Type", data.quoteType)}
+				${renderField("Coverage Type", data.coverageType)}
+				${renderField("Coverage Dates", data.desiredCoverageDates)}
+			</div>
 
-            <div class="section-container">
-                <div class="section-header">LIMITS OF LIABILITY</div>
-                <hr class="section-divider" />
-                <div class="question-list">
-                    <div class="question-row">
-                        <div class="question-text">Each Occurrence Limit</div>
-                        <div class="field-value">${data.occurrenceLimit || "$1,000,000"}</div>
-                    </div>
-                    <div class="question-row">
-                        <div class="question-text">General Aggregate Limit</div>
-                        <div class="field-value">${data.aggregateLimit || "$2,000,000"}</div>
-                    </div>
-                    <div class="question-row">
-                        <div class="question-text">Products/Completed Operations Aggregate</div>
-                        <div class="field-value">${data.productsCompletedOpsLimit || "$2,000,000"}</div>
-                    </div>
-                    <div class="question-row">
-                        <div class="question-text">Personal & Advertising Injury</div>
-                        <div class="field-value">${data.personalAdvertisingInjuryLimit || "$1,000,000"}</div>
-                    </div>
-                    <div class="question-row">
-                        <div class="question-text">Damage to Premises Rented to You (Fire Legal)</div>
-                        <div class="field-value">${data.fireLegalLimit || "$100,000"}</div>
-                    </div>
-                    <div class="question-row">
-                        <div class="question-text">Medical Expense Limit</div>
-                        <div class="field-value">${data.medPayLimit || "$5,000"}</div>
-                    </div>
-                </div>
-            </div>
+			<div class="section-container">
+				<div class="section-header">LIMITS OF LIABILITY</div>
+				<hr class="section-divider" />
+				<div class="question-list">
+					<div class="question-row">
+						<div class="question-text">Each Occurrence Limit</div>
+						<div class="field-value">${data.occurrenceLimit || "$1,000,000"}</div>
+					</div>
+					<div class="question-row">
+						<div class="question-text">General Aggregate Limit</div>
+						<div class="field-value">${data.aggregateLimit || "$2,000,000"}</div>
+					</div>
+					<div class="question-row">
+						<div class="question-text">Products/Completed Operations Aggregate</div>
+						<div class="field-value">${data.productsCompletedOpsLimit || "$2,000,000"}</div>
+					</div>
+					<div class="question-row">
+						<div class="question-text">Personal & Advertising Injury</div>
+						<div class="field-value">${data.personalAdvertisingInjuryLimit || "$1,000,000"}</div>
+					</div>
+					<div class="question-row">
+						<div class="question-text">Damage to Premises Rented to You (Fire Legal)</div>
+						<div class="field-value">${data.fireLegalLimit || "$100,000"}</div>
+					</div>
+					<div class="question-row">
+						<div class="question-text">Medical Expense Limit</div>
+						<div class="field-value">${data.medPayLimit || "$5,000"}</div>
+					</div>
+				</div>
+			</div>
 
-            <div class="section-container">
-                <div class="section-header">PREMIUM & FEES BREAKDOWN</div>
-                <hr class="section-divider" />
-                <div class="question-list">
-                    <div class="question-row">
-                        <div class="question-text">Base Premium</div>
-                        <div class="field-value">${data.premium}</div>
-                    </div>
-                    <div class="question-row">
-                        <div class="question-text">Wholesale Fee</div>
-                        <div class="field-value">${data.carrierPolicyFee}</div>
-                    </div>
-                    <div class="question-row">
-                        <div class="question-text">Broker Fee</div>
-                        <div class="field-value">${data.sterlingFees}</div>
-                    </div>
-                    <div class="question-row">
-                        <div class="question-text">Surplus Lines Tax</div>
-                        <div class="field-value">${data.surplusLinesTax}</div>
-                    </div>
-                    <div class="question-row">
-                        <div class="question-text">Stamping Fee</div>
-                        <div class="field-value">${data.stampingFee}</div>
-                    </div>
-                    ${data.fireMarshalTax && data.fireMarshalTax !== "$0.00" ? `
-                        <div class="question-row">
-                            <div class="question-text">Fire Marshal Tax</div>
-                            <div class="field-value">${data.fireMarshalTax}</div>
-                        </div>
-                    ` : ''}
-                    <div class="divider"></div>
-                    <div class="question-row" style="font-size: 12pt;">
-                        <div class="question-text" style="font-weight: bold;">TOTAL COST</div>
-                        <div class="field-value" style="font-weight: bold;">${data.totalCostOfPolicy}</div>
-                    </div>
-                </div>
-            </div>
+			<div class="section-container">
+				<div class="section-header">PREMIUM & FEES BREAKDOWN</div>
+				<hr class="section-divider" />
+				<div class="question-list">
+					<div class="question-row">
+						<div class="question-text">Base Premium</div>
+						<div class="field-value">${data.premium}</div>
+					</div>
+					<div class="question-row">
+						<div class="question-text">Wholesale Fee</div>
+						<div class="field-value">${data.carrierPolicyFee}</div>
+					</div>
+					<div class="question-row">
+						<div class="question-text">Broker Fee</div>
+						<div class="field-value">${data.sterlingFees}</div>
+					</div>
+					<div class="question-row">
+						<div class="question-text">Surplus Lines Tax</div>
+						<div class="field-value">${data.surplusLinesTax}</div>
+					</div>
+					<div class="question-row">
+						<div class="question-text">Stamping Fee</div>
+						<div class="field-value">${data.stampingFee}</div>
+					</div>
+					${data.fireMarshalTax && data.fireMarshalTax !== "$0.00" ? `
+						<div class="question-row">
+							<div class="question-text">Fire Marshal Tax</div>
+							<div class="field-value">${data.fireMarshalTax}</div>
+						</div>
+					` : ''}
+					<div class="divider"></div>
+					<div class="question-row" style="font-size: 12pt;">
+						<div class="question-text" style="font-weight: bold;">TOTAL COST</div>
+						<div class="field-value" style="font-weight: bold;">${data.totalCostOfPolicy}</div>
+					</div>
+				</div>
+			</div>
 
-            <div class="footer">Proposal Page</div>
-            </div>
-        </div>
-    `;
+			<div class="footer">Proposal Page</div>
+			</div>
+		</div>
+	`;
 }
 
 /**
@@ -4634,101 +4650,101 @@ function generateProposalPage(data: ApartmentPacketData): string {
  */
 function generateInvoicePage(data: ApartmentPacketData): string {
 	return `
-        <div class="page page2-isc">
-            <div class="main-content main-content-page2">
-                <div class="agency-bar">
-                <div><strong>REMIT PAYMENT TO:</strong></div>
-                <div>${data.agencyName}</div>
-                <div>${data.agencyAddress}, ${data.agencyCity}, ${data.agencyState} ${data.agencyZip}</div>
-            </div>
+		<div class="page page2-isc">
+			<div class="main-content main-content-page2">
+				<div class="agency-bar">
+				<div><strong>REMIT PAYMENT TO:</strong></div>
+				<div>${data.agencyName}</div>
+				<div>${data.agencyAddress}, ${data.agencyCity}, ${data.agencyState} ${data.agencyZip}</div>
+			</div>
 
-            <div class="section-container">
-                <div class="section-header">BILLING SUMMARY</div>
-                <hr class="section-divider" />
-                ${renderField("Insured", data.companyName)}
-                ${renderField("Submission #", data.submissionNumber)}
-                ${renderField("Policy Period", data.desiredCoverageDates)}
-            </div>
+			<div class="section-container">
+				<div class="section-header">BILLING SUMMARY</div>
+				<hr class="section-divider" />
+				${renderField("Insured", data.companyName)}
+				${renderField("Submission #", data.submissionNumber)}
+				${renderField("Policy Period", data.desiredCoverageDates)}
+			</div>
 
-            <div class="section-container">
-                <div class="section-header">AMOUNT DUE</div>
-                <hr class="section-divider" />
-                <div class="question-list">
-                    <div class="question-row">
-                        <div class="question-text">Total Policy Premium & Taxes</div>
-                        <div class="field-value">${data.totalCostOfPolicy}</div>
-                    </div>
-                    <div class="question-row">
-                        <div class="question-text">Minimum Deposit Required</div>
-                        <div class="field-value">${data.totalDeposit}</div>
-                    </div>
-                    <div class="divider"></div>
-                    <div class="question-row" style="font-size: 12pt;">
-                        <div class="question-text" style="font-weight: bold;">TOTAL AMOUNT PAYABLE</div>
-                        <div class="field-value" style="font-weight: bold;">${data.totalToBeSent}</div>
-                    </div>
-                </div>
-                
-                <div style="margin-top: 40px; font-size: 9pt; color: #666; line-height: 1.5;">
-                    <p><strong>Notice:</strong> Please make checks payable to <strong>${data.agencyName}</strong>. Standard processing time for binding is 24-48 hours after receipt of all signed documents and payment.</p>
-                </div>
-            </div>
+			<div class="section-container">
+				<div class="section-header">AMOUNT DUE</div>
+				<hr class="section-divider" />
+				<div class="question-list">
+					<div class="question-row">
+						<div class="question-text">Total Policy Premium & Taxes</div>
+						<div class="field-value">${data.totalCostOfPolicy}</div>
+					</div>
+					<div class="question-row">
+						<div class="question-text">Minimum Deposit Required</div>
+						<div class="field-value">${data.totalDeposit}</div>
+					</div>
+					<div class="divider"></div>
+					<div class="question-row" style="font-size: 12pt;">
+						<div class="question-text" style="font-weight: bold;">TOTAL AMOUNT PAYABLE</div>
+						<div class="field-value" style="font-weight: bold;">${data.totalToBeSent}</div>
+					</div>
+				</div>
+				
+				<div style="margin-top: 40px; font-size: 9pt; color: #666; line-height: 1.5;">
+					<p><strong>Notice:</strong> Please make checks payable to <strong>${data.agencyName}</strong>. Standard processing time for binding is 24-48 hours after receipt of all signed documents and payment.</p>
+				</div>
+			</div>
 
-            <div class="footer">Invoice Statement</div>
-            </div>
-        </div>
-    `;
+			<div class="footer">Invoice Statement</div>
+			</div>
+		</div>
+	`;
 }
 
 export function generateApartmentPacketHTML(data: ApartmentPacketData): string {
 	return `
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="UTF-8">
-            <style>${cssContent}</style>
-        </head>
-        <body>
-            ${generatePage1(data)}
-            ${generatePage2Optimized(data)}
-            ${generatePage3Optimized(data)}
-            ${generatePage4Optimized(data)}
+		<!DOCTYPE html>
+		<html>
+		<head>
+			<meta charset="UTF-8">
+			<style>${cssContent}</style>
+		</head>
+		<body>
+			${generatePage1(data)}
+			${generatePage2Optimized(data)}
+			${generatePage3Optimized(data)}
+			${generatePage4Optimized(data)}
 			${generatePage51(data)}
 			${generatePage52(data)}
 			${generatePage53(data)}
-        </body>
-        </html>
-    `;
+		</body>
+		</html>
+	`;
 }
 
 export function generateApartmentProposalHTML(data: ApartmentPacketData): string {
 	return `
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="UTF-8">
-            <style>${cssContent}</style>
-        </head>
-        <body>
-            ${generateProposalPage(data)}
-        </body>
-        </html>
-    `;
+		<!DOCTYPE html>
+		<html>
+		<head>
+			<meta charset="UTF-8">
+			<style>${cssContent}</style>
+		</head>
+		<body>
+			${generateProposalPage(data)}
+		</body>
+		</html>
+	`;
 }
 
 export function generateApartmentInvoiceHTML(data: ApartmentPacketData): string {
 	return `
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="UTF-8">
-            <style>${cssContent}</style>
-        </head>
-        <body>
-            ${generateInvoicePage(data)}
-        </body>
-        </html>
-    `;
+		<!DOCTYPE html>
+		<html>
+		<head>
+			<meta charset="UTF-8">
+			<style>${cssContent}</style>
+		</head>
+		<body>
+			${generateInvoicePage(data)}
+		</body>
+		</html>
+	`;
 }
 
 

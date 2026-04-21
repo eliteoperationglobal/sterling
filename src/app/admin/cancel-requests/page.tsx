@@ -85,7 +85,7 @@ export default function CancelRequestsPage() {
                 </td>
 
                 <td className="p-4 text-gray-500">
-                  {new Date(r.createdAt).toLocaleString()}
+                  {new Date(r.createdAt).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}
                 </td>
 
                 <td className="p-4">
