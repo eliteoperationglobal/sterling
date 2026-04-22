@@ -99,7 +99,7 @@ function ProfilePageContent() {
 
     return (
         <div className="flex-1 overflow-y-auto bg-[#F3F0ED]">
-            <div className="max-w-7xl mx-auto px-8 py-10">
+            <div className="max-w-7xl mx-auto px-4 md:px-8 py-6 md:py-10">
 
                 {/* HEADER */}
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
@@ -111,13 +111,15 @@ function ProfilePageContent() {
                         <h1 className="text-4xl font-black text-[#2D2D2D] tracking-tight">Agency Profile</h1>
                     </div>
 
-                    <button
-                        onClick={() => signOut()}
-                        className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-white border border-red-100 text-red-500 font-bold hover:bg-red-50 hover:border-red-200 transition-all shadow-sm active:scale-95 text-sm"
-                    >
-                        <LogOut className="w-4 h-4" />
-                        Sign Out
-                    </button>
+                    <div className="self-start md:self-auto">
+                        <button
+                            onClick={() => signOut()}
+                            className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-white border border-red-100 text-red-500 font-bold hover:bg-red-50 hover:border-red-200 transition-all shadow-sm active:scale-95 text-sm"
+                        >
+                            <LogOut className="w-4 h-4" />
+                            Sign Out
+                        </button>
+                    </div>
                 </div>
 
                 {/* SECTION 2: STATS *

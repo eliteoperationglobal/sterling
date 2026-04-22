@@ -5,8 +5,9 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useEffect, useState, useRef } from "react";
 import { signOut } from "next-auth/react";
-import { Bell } from "lucide-react";
+import { Bell, Menu } from "lucide-react";
 import NotificationWidget from "@/components/NotificationWidget";
+import MobileNav from "@/components/layout/MobileNav";
 
 interface DashboardStats {
   totalSubmissions: number;
@@ -33,6 +34,7 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [profileOpen, setProfileOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [notifLoading, setNotifLoading] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
@@ -189,11 +191,18 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-[#f5f1eb]">
+      <MobileNav isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} />
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-xl border-b border-[#e5ddd5] sticky top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
-            <div className="flex items-center gap-10">
+            <div className="flex items-center gap-4 md:gap-10">
+              <button 
+                onClick={() => setIsMobileMenuOpen(true)}
+                className="lg:hidden p-2 -ml-2 rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                <Menu className="w-6 h-6 text-[#9A8B7A]" />
+              </button>
 
               <div className="flex items-center gap-2 mb-1">
                 <h1

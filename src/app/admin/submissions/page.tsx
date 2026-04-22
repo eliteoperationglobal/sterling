@@ -4,7 +4,8 @@ import { useState, useEffect, Suspense } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Clock, Bell, CheckCircle, CircleSmall, XCircle, Info, LogOut, Layout, ChevronRight, Trash2 } from "lucide-react";
+import { Clock, Bell, CheckCircle, CircleSmall, XCircle, Info, LogOut, Layout, ChevronRight, Trash2, Menu } from "lucide-react";
+import MobileNav from "@/components/layout/MobileNav";
 interface Submission {
   _id: string;
   submissionId: string;
@@ -39,6 +40,7 @@ export default function AdminSubmissionsPage() {
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [profileOpen, setProfileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [submissionToDelete, setSubmissionToDelete] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -191,10 +193,17 @@ export default function AdminSubmissionsPage() {
 
   return (
     <div className="min-h-screen bg-[#f5f1eb] flex flex-col">
+      <MobileNav isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} />
       {/* HEADER */}
-      <div className="px-10 pt-8 pb-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4 mb-6">
+      <div className="px-4 md:px-10 pt-4 md:pt-8 pb-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-0">
+          <div className="flex items-center gap-4 mb-2 md:mb-6">
+            <button 
+              onClick={() => setIsMobileMenuOpen(true)}
+              className="lg:hidden p-2 -ml-2 rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              <Menu className="w-6 h-6 text-[#9A8B7A]" />
+            </button>
             <h1
               onClick={() => router.push("/admin/dashboard")}
               className="px-6 py-2.5 rounded-2xl bg-[#9A8B7A] text-white shadow-md hover:shadow-lg hover:scale-[1.04] active:scale-[0.98] transition-all duration-200 text-[34px] font-semibold inline-block cursor-pointer"
@@ -203,10 +212,10 @@ export default function AdminSubmissionsPage() {
             </h1>
           </div>
 
-          <div className="flex items-center gap-5 relative">
+          <div className="flex items-center gap-2 md:gap-5 relative">
             <button
               onClick={() => router.push("/admin/dashboard")}
-              className="px-6 py-2.5 rounded-2xl text-sm font-semibold bg-[#9A8B7A] text-white shadow-md hover:shadow-lg hover:scale-[1.04] active:scale-[0.98] transition-all duration-200"
+              className="px-4 md:px-6 py-2 md:py-2.5 rounded-xl md:rounded-2xl text-xs md:text-sm font-semibold bg-[#9A8B7A] text-white shadow-md hover:shadow-lg hover:scale-[1.04] active:scale-[0.98] transition-all duration-200"
             >
               Dashboard
             </button>
@@ -244,21 +253,21 @@ export default function AdminSubmissionsPage() {
       </div>
 
       {/* Main Content */}
-      <div className="mx-10 bg-white rounded-2xl shadow-lg flex overflow-hidden flex-1 mb-8">
+      <div className="mx-4 md:mx-10 bg-white rounded-2xl shadow-lg flex flex-col lg:flex-row overflow-hidden flex-1 mb-8">
 
         {/* LEFT PIPELINE SIDEBAR */}
-        <div className="w-[270px] bg-[#fdfaf7] border-r border-[#e5ddd5] p-6 space-y-3 overflow-y-auto">
+        <div className="w-full lg:w-[270px] bg-[#fdfaf7] border-b lg:border-b-0 lg:border-r border-[#e5ddd5] p-4 md:p-6 flex flex-row lg:flex-col gap-2 lg:gap-0 lg:space-y-3 overflow-x-auto lg:overflow-visible shrink-0 scrollbar-hide">
           {pipelineStages.map((stage) => {
             const isActive = statusFilter === stage.id;
             const isAll = stage.id === "ALL";
 
             return (
-              <div key={stage.id}>
+              <div key={stage.id} className="flex-shrink-0 flex items-center lg:block">
                 <button
                   onClick={() => setStatusFilter(stage.id)}
                   className={`
-                    w-full flex justify-between items-center px-4 py-3 rounded-xl text-sm
-                    transition-all duration-200
+                    w-auto lg:w-full flex justify-between items-center px-4 py-3 rounded-xl text-sm
+                    transition-all duration-200 whitespace-nowrap gap-4 lg:gap-0
                     ${!isActive ? "hover:bg-[#f5f1eb] text-[#6b5e52]" : "bg-white shadow-sm font-semibold text-[#9A8B7A] ring-1 ring-gray-200"}
                   `}
                 >
@@ -279,7 +288,12 @@ export default function AdminSubmissionsPage() {
                     {getStageCount(stage.id)}
                   </span>
                 </button>
-                {isAll && <div className="my-4 border-t border-[#e5ddd5]" />}
+                {isAll && (
+                  <>
+                    <div className="hidden lg:block my-4 border-t border-[#e5ddd5]" />
+                    <div className="block lg:hidden mx-2 h-8 border-l border-[#e5ddd5]" />
+                  </>
+                )}
               </div>
             );
           })}
@@ -289,7 +303,7 @@ export default function AdminSubmissionsPage() {
         <div className="flex-1 flex flex-col min-h-0">
 
           {/* TOP BAR / FILTERS */}
-          <div className="p-6 border-b border-[#e5ddd5] flex items-center justify-between gap-4">
+          <div className="p-4 md:p-6 border-b border-[#e5ddd5] flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 md:gap-4 shrink-0">
             <div className="flex items-center gap-4 flex-1">
               <div className="relative flex-1 max-w-md">
                 <input
@@ -305,13 +319,13 @@ export default function AdminSubmissionsPage() {
               </div>
             </div>
 
-            <div className="text-sm text-gray-500 font-medium whitespace-nowrap">
+            <div className="mt-2 md:mt-0 md:ml-auto text-sm text-gray-500 font-medium whitespace-nowrap">
               {filteredSubmissions.length} of {allSubmissions.length} Applications
             </div>
           </div>
 
           {/* TABLE */}
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-auto">
             {error ? (
               <div className="p-10 text-center">
                 <div className="bg-red-50 text-red-700 p-4 rounded-xl border border-red-100 inline-block">
@@ -327,16 +341,16 @@ export default function AdminSubmissionsPage() {
                 <p className="text-gray-500">Try adjusting your filters or search query.</p>
               </div>
             ) : (
-              <table className="w-full text-sm">
+              <table className="w-full text-sm min-w-[800px]">
                 <thead className="bg-[#fdfaf7] text-[#6b5e52] uppercase text-[11px] font-bold tracking-wider sticky top-0 z-10 border-b border-[#e5ddd5]">
                   <tr>
-                    <th className="px-6 py-4 text-left">Agency</th>
-                    <th className="px-6 py-4 text-left">App ID</th>
-                    <th className="px-6 py-4 text-left">Client</th>
-                    <th className="px-6 py-4 text-left">Program</th>
-                    <th className="px-6 py-4 text-left">Status</th>
-                    <th className="px-6 py-4 text-left">Submitted</th>
-                    <th className="px-6 py-4 text-center">Actions</th>
+                    <th className="px-4 lg:px-6 py-4 text-left">Agency</th>
+                    <th className="px-4 lg:px-6 py-4 text-left">App ID</th>
+                    <th className="px-4 lg:px-6 py-4 text-left">Client</th>
+                    <th className="px-4 lg:px-6 py-4 text-left">Program</th>
+                    <th className="px-4 lg:px-6 py-4 text-left">Status</th>
+                    <th className="px-4 lg:px-6 py-4 text-left">Submitted</th>
+                    <th className="px-4 lg:px-6 py-4 text-center">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#e5ddd5]">

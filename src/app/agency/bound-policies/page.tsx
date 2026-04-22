@@ -142,7 +142,7 @@ export default function AgencyBoundPoliciesPage() {
       <main className="flex-1 ml-[70px] overflow-auto">
         {/* Header */}
         <div className="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-40">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-0">
             <div className="flex items-center gap-4">
               <Link href="/agency/dashboard" className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                 <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -154,12 +154,14 @@ export default function AgencyBoundPoliciesPage() {
                 <p className="text-sm text-gray-600">View and manage your bound insurance policies</p>
               </div>
             </div>
-            <button
-              onClick={() => signOut({ callbackUrl: "/signin" })}
-              className="text-sm text-gray-600 hover:text-gray-900 font-medium"
-            >
-              Sign Out
-            </button>
+            <div className="self-start md:self-auto">
+              <button
+                onClick={() => signOut({ callbackUrl: "/signin" })}
+                className="text-sm text-gray-600 hover:text-gray-900 font-medium"
+              >
+                Sign Out
+              </button>
+            </div>
           </div>
         </div>
 
@@ -197,7 +199,7 @@ export default function AgencyBoundPoliciesPage() {
                   className="bg-white rounded-lg border border-gray-200 hover:shadow-lg hover:border-cyan-200 transition-all duration-300 p-6"
                 >
                 {/* Header */}
-                <div className="flex items-start justify-between mb-4">
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 sm:gap-0 mb-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
                       <h3 className="text-xl font-bold text-gray-900">
@@ -212,7 +214,7 @@ export default function AgencyBoundPoliciesPage() {
                     </p>
                   </div>
                   {policy.bindApprovedAt && (
-                    <div className="text-right">
+                    <div className="text-left sm:text-right">
                       <p className="text-xs text-gray-500">Bound on</p>
                       <p className="text-sm font-medium text-gray-900">
                         {new Date(policy.bindApprovedAt).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}
@@ -320,7 +322,7 @@ export default function AgencyBoundPoliciesPage() {
                 )}
 
                 {/* Actions */}
-                <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-0 pt-4 border-t border-gray-200">
                   <div className="flex items-center gap-3">
                     <span className="text-xs text-gray-500">
                       Client: {policy.clientContact.email}

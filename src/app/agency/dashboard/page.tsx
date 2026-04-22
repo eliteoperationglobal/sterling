@@ -459,16 +459,16 @@ function AgencyDashboardContent() {
       <div className="flex-1 flex flex-col">
 
         {/* PAGE HEADER */}
-        <div className="px-10 pt-8 pb-4">
-          <div className="flex items-center justify-between">
+        <div className="px-4 md:px-10 pt-4 md:pt-8 pb-4">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-0">
 
-            <div className="flex items-center gap-4 mb-6">
+            <div className="flex items-center gap-4 mb-2 md:mb-6">
 
               {/* <h1 className="text-[34px] font-semibold text-[#2D2D2D] text-2xl font-semibold">
                 Sterling Insurance Services
               </h1> */}
               <h1
-                className="px-6 py-2.5 rounded-2xl bg-[#9A8B7A] text-white shadow-md hover:shadow-lg hover:scale-[1.04] active:scale-[0.98] transition-all duration-200 text-[34px] font-semibold inline-block cursor-pointer"
+                className="px-6 md:px-6 py-2.5 md:py-2.5 rounded-2xl bg-[#9A8B7A] text-white shadow-md hover:shadow-lg hover:scale-[1.04] active:scale-[0.98] transition-all duration-200 text-[34px] md:text-[34px] font-semibold inline-block cursor-pointer"
               >
                 Sterling Insurance Services
               </h1>
@@ -477,12 +477,12 @@ function AgencyDashboardContent() {
 
 
             {/* ===== RIGHT HEADER ACTIONS (CLEAN) ===== */}
-            <div className="flex items-center gap-5 relative">
+            <div className="flex items-center gap-2 md:gap-5 relative">
 
               {/* ⭐ MARKETPLACE BUTTON */}
               <button
                 onClick={() => router.push("/agency/marketplace")}
-                className="px-6 py-2.5 rounded-2xl text-sm font-semibold bg-[#9A8B7A] text-white shadow-md hover:shadow-lg hover:scale-[1.04] active:scale-[0.98] transition-all duration-200"
+                className="px-4 md:px-6 py-2 md:py-2.5 rounded-xl md:rounded-2xl text-xs md:text-sm font-semibold bg-[#9A8B7A] text-white shadow-md hover:shadow-lg hover:scale-[1.04] active:scale-[0.98] transition-all duration-200"
               >
                 Marketplace
               </button>
@@ -620,10 +620,10 @@ function AgencyDashboardContent() {
         )} */}
 
         {/* MAIN CARD CONTAINER */}
-        <div className="mx-10 bg-white rounded-2xl shadow-lg flex overflow-hidden h-[calc(100vh-260px)]">
+        <div className="mx-4 md:mx-10 bg-white rounded-2xl shadow-lg flex flex-col lg:flex-row overflow-hidden h-auto lg:h-[calc(100vh-260px)]">
 
           {/* LEFT PIPELINE */}
-          <div className="w-[270px] bg-[#F9F8F7] border-r border-[#E5E2DF] p-6 space-y-3">
+          <div className="w-full lg:w-[270px] bg-[#F9F8F7] border-b lg:border-b-0 lg:border-r border-[#E5E2DF] p-4 md:p-6 flex flex-row lg:flex-col gap-2 lg:gap-0 lg:space-y-3 overflow-x-auto lg:overflow-visible shrink-0" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
 
             {pipelineStages.map((stage) => {
               const isAll = stage.id === "ALL";
@@ -635,12 +635,12 @@ function AgencyDashboardContent() {
               const iscansel = stage.id === "CANCELLED";
 
               return (
-                <div key={stage.id}>
+                <div key={stage.id} className="flex-shrink-0 flex items-center lg:block">
                   <button
                     onClick={() => setSelectedStage(stage.id)}
                     className={`
-          w-full flex justify-between items-center px-4 py-3 rounded-xl text-sm
-          transition-all duration-200
+          w-auto lg:w-full flex justify-between items-center px-4 py-3 rounded-xl text-sm
+          transition-all duration-200 whitespace-nowrap gap-4 lg:gap-0
 
           ${!isActive ? "hover:bg-[#F6F3F0]" : "font-semibold"}
 
@@ -704,7 +704,10 @@ function AgencyDashboardContent() {
                   </button>
 
                   {isAll && (
-                    <div className="my-4 border-t border-[#E5E2DF]" />
+                    <>
+                      <div className="hidden lg:block my-4 border-t border-[#E5E2DF]" />
+                      <div className="block lg:hidden mx-2 h-8 border-l border-[#E5E2DF]" />
+                    </>
                   )}
                 </div>
               );
@@ -715,20 +718,20 @@ function AgencyDashboardContent() {
           <div className="flex-1 flex flex-col min-h-0">
 
             {/* FILTER BAR */}
-            <div className="p-6 border-b border-[#ECEAE7] flex items-center gap-4">
+            <div className="p-4 md:p-6 border-b border-[#ECEAE7] flex flex-col md:flex-row items-stretch md:items-center gap-3 md:gap-4 shrink-0">
 
               <input
                 type="text"
                 placeholder="Search"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="px-4 py-2 w-[300px] border border-[#E0DDD9] rounded-xl text-sm bg-[#F9F8F7]"
+                className="px-4 py-2 w-full md:w-[300px] border border-[#E0DDD9] rounded-xl text-sm bg-[#F9F8F7]"
               />
 
               <select
                 value={filterType}
                 onChange={(e) => setFilterType(e.target.value)}
-                className="px-4 py-2 border border-[#E0DDD9] rounded-xl text-sm bg-[#F9F8F7]"
+                className="px-4 py-2 border border-[#E0DDD9] rounded-xl text-sm bg-[#F9F8F7] w-full md:w-auto"
               >
                 <option value="ALL">All Types</option>
                 <option value="SUBMITTED">New Business</option>
@@ -738,7 +741,7 @@ function AgencyDashboardContent() {
               <select
                 value={filterProgram}
                 onChange={(e) => setFilterProgram(e.target.value)}
-                className="px-4 py-2 border border-[#E0DDD9] rounded-xl text-sm bg-[#F9F8F7]"
+                className="px-4 py-2 border border-[#E0DDD9] rounded-xl text-sm bg-[#F9F8F7] w-full md:w-auto"
               >
                 <option value="ALL">All Programs</option>
                 {Array.from(new Set(allSubmissions.map(s => s.industry))).map(ind => (
@@ -749,7 +752,7 @@ function AgencyDashboardContent() {
               <select
                 value={filterAgent}
                 onChange={(e) => setFilterAgent(e.target.value)}
-                className="px-4 py-2 border border-[#E0DDD9] rounded-xl text-sm bg-[#F9F8F7]"
+                className="px-4 py-2 border border-[#E0DDD9] rounded-xl text-sm bg-[#F9F8F7] w-full md:w-auto"
               >
                 <option value="ALL">All Agents</option>
                 {agentOptions.map(name => (
@@ -757,22 +760,22 @@ function AgencyDashboardContent() {
                 ))}
               </select>
 
-              <div className="ml-auto text-sm text-gray-600">
+              <div className="mt-2 md:mt-0 md:ml-auto text-sm text-gray-600 font-medium">
                 {submissions.length} of {allSubmissions.length}
               </div>
             </div>
 
             {/* TABLE */}
-            <div className="flex-1 overflow-y-auto border-t border-b border-[#ECEAE7] rounded-b-2xl">
+            <div className="flex-1 overflow-auto border-t border-b border-[#ECEAE7] rounded-b-2xl">
 
-              <table className="w-full text-sm">
+              <table className="w-full text-sm min-w-[800px]">
                 <thead className="bg-[#F9F8F7] text-[#6B6B6B] uppercase text-xs sticky top-0 z-10">
                   <tr>
-                    <th className="px-6 py-4 text-left">Type</th>
-                    <th className="px-6 py-4 text-left">App ID</th>
-                    <th className="px-6 py-4 text-left">Applicant Company</th>
-                    <th className="px-6 py-4 text-left">Program</th>
-                    <th className="px-6 py-4 text-left">Effective Date</th>
+                    <th className="px-4 lg:px-6 py-4 text-left">Type</th>
+                    <th className="px-4 lg:px-6 py-4 text-left">App ID</th>
+                    <th className="px-4 lg:px-6 py-4 text-left">Applicant Company</th>
+                    <th className="px-4 lg:px-6 py-4 text-left">Program</th>
+                    <th className="px-4 lg:px-6 py-4 text-left whitespace-nowrap">Effective Date</th>
                     {/* <th className="px-6 py-4 text-center">Richmond</th>
                     <th className="px-6 py-4 text-center">Kinsale</th> */}
                   </tr>

@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
 import { signOut } from "next-auth/react";
+import { Menu } from "lucide-react";
+import MobileNav from "@/components/layout/MobileNav";
 
 interface BindRequestSubmission {
   _id: string;
@@ -34,6 +36,7 @@ export default function AdminBindRequestsPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [submissions, setSubmissions] = useState<BindRequestSubmission[]>([]);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [approving, setApproving] = useState<string | null>(null);
@@ -242,11 +245,19 @@ export default function AdminBindRequestsPage() {
 
   return (
     <div className="min-h-screen bg-[#f5f1eb]">
+      <MobileNav isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} />
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-xl border-b border-[#e5ddd5] sticky top-0 z-50 shadow-sm">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-10">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between py-4 lg:py-0 lg:h-16 gap-4 lg:gap-0">
+            <div className="flex items-center justify-between w-full lg:w-auto">
+              <div className="flex items-center gap-4 md:gap-10">
+                <button 
+                  onClick={() => setIsMobileMenuOpen(true)}
+                  className="lg:hidden p-2 -ml-2 rounded-lg hover:bg-gray-100 transition-colors"
+                >
+                  <Menu className="w-6 h-6 text-[#9A8B7A]" />
+                </button>
               <Link href="/admin/dashboard" className="flex items-center gap-4 group">
                 <div className="relative">
                   <div className="absolute inset-0 bg-gradient-to-br from-rose-500 via-pink-500 to-orange-500 rounded-2xl blur-md opacity-50 group-hover:opacity-75 animate-pulse transition-all duration-500"></div>
@@ -301,8 +312,9 @@ export default function AdminBindRequestsPage() {
                 </Link>
               </nav>
             </div>
+            </div>
 
-            <div className="flex items-center gap-3">
+            <div className="hidden lg:flex items-center gap-3">
               <div className="hidden sm:flex flex-col items-end">
                 <p className="text-sm font-semibold text-gray-900">{(session?.user as any)?.name || "Admin"}</p>
                 <p className="text-xs text-gray-500 font-medium">{(session?.user as any)?.email}</p>
@@ -324,9 +336,9 @@ export default function AdminBindRequestsPage() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-4 md:py-8">
         {/* Page Title with Pending Banner */}
-        <div className="mb-8">
+        <div className="mb-6 md:mb-8">
           <div className="flex items-center gap-3 mb-2">
             <div className="w-10 h-10 bg-[#9A8B7A] rounded-xl flex items-center justify-center shadow-lg shadow-gray-200/30">
               <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -389,8 +401,8 @@ export default function AdminBindRequestsPage() {
                 key={submission._id}
                 className="group bg-white/80 backdrop-blur-xl rounded-2xl shadow-sm border border-[#e5ddd5] hover:shadow-xl hover:border-[#9A8B7A] transition-all duration-300 overflow-hidden"
               >
-                <div className="p-6">
-                  <div className="flex items-start justify-between mb-4">
+                <div className="p-4 md:p-6">
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 sm:gap-0 mb-4">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
                         <h3 className="text-xl font-bold text-gray-900">{submission.clientContact.name}</h3>
@@ -416,7 +428,7 @@ export default function AdminBindRequestsPage() {
                   </div>
 
                   {/* Details Grid */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-gradient-to-br from-gray-50 to-gray-100/50 rounded-xl border border-gray-200/60 mb-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-4 bg-gradient-to-br from-gray-50 to-gray-100/50 rounded-xl border border-gray-200/60 mb-4">
                     <div>
                       <p className="text-xs text-gray-500 font-medium mb-1">Client Email</p>
                       <p className="text-sm font-bold text-gray-900">{submission.clientContact.email}</p>
@@ -441,7 +453,7 @@ export default function AdminBindRequestsPage() {
                   </div>
 
                   {/* Actions */}
-                  <div className="flex items-center justify-end gap-3">
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3">
                     <Link
                       href={`/admin/submissions/${submission._id}`}
                       className="px-4 py-2 text-sm font-semibold text-gray-700 bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 flex items-center gap-2"

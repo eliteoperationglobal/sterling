@@ -144,16 +144,16 @@ export default function MarketplacePage() {
       <main className="flex-1 overflow-auto">
         {/* Header */}
         {/* DASHBOARD STYLE HEADER */}
-        <div className="px-10 pt-8 pb-4">
-          <div className="flex items-center justify-between">
+        <div className="px-4 md:px-10 pt-4 md:pt-8 pb-4">
+          <div className="max-w-[1400px] mx-auto flex flex-col md:flex-row items-center justify-between gap-4 md:gap-0">
 
             {/* LEFT TITLE */}
             <h1
               className="
-                px-6 py-2.5 rounded-2xl bg-[#9A8B7A] text-white
+                px-4 md:px-6 py-2 md:py-2.5 rounded-2xl bg-[#9A8B7A] text-white
                 shadow-md hover:shadow-lg hover:scale-[1.04]
                 active:scale-[0.98] transition-all duration-200
-                text-[34px] font-semibold inline-block cursor-pointer
+                text-[34px] md:text-[34px] font-semibold inline-block cursor-pointer
               "
             >
               Sterling Insurance Services
@@ -221,13 +221,13 @@ export default function MarketplacePage() {
         </div>
 
         {/* Content */}
-        <div className="flex justify-start p-10">
+        <div className="flex flex-col md:flex-row flex-wrap justify-start p-4 md:p-10 gap-4 md:gap-10">
 
           {/* BIG CONSTRUCTION BUTTON */}
           <button
             onClick={() => router.push("/agency/quote/advantage-contractor")}
             className="
-              w-[320px] 
+              w-full md:w-[320px] 
               h-[120px] 
               rounded-2xl 
               bg-[#9A8B7A] 
@@ -243,7 +243,6 @@ export default function MarketplacePage() {
               active:scale-[0.98]
               transition-all
               duration-200
-              mr-10
             "
           >
             Construction
@@ -251,7 +250,7 @@ export default function MarketplacePage() {
           <button
             onClick={() => router.push("/agency/quote/apartment-buildings")}
             className="
-              w-[320px] 
+              w-full md:w-[320px] 
               h-[120px] 
               rounded-2xl 
               bg-[#9A8B7A] 
@@ -267,14 +266,13 @@ export default function MarketplacePage() {
               active:scale-[0.98]
               transition-all
               duration-200
-              mr-10
             "
           >
             Commercial Property
           </button>
           <button
             className="
-              w-[320px] 
+              w-full md:w-[320px] 
               h-[120px] 
               rounded-2xl 
               bg-[#9A8B7A] 
@@ -290,15 +288,14 @@ export default function MarketplacePage() {
               active:scale-[0.98]
               transition-all
               duration-200
-              mr-10
             "
           >
             Hospitals
           </button>
-          <Link href="/agency/quote/contractors-equipment">
+          <Link href="/agency/quote/contractors-equipment" className="w-full md:w-auto">
           <button
             className="
-              w-[320px] 
+              w-full md:w-[320px] 
               h-[120px] 
               rounded-2xl 
               bg-[#9A8B7A] 
@@ -314,7 +311,6 @@ export default function MarketplacePage() {
               active:scale-[0.98]
               transition-all
               duration-200
-              mr-10
             "
           >
             Contractors Equipment

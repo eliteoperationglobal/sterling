@@ -38,7 +38,7 @@ export default function ChangePassword() {
     };
 
     return (
-        <div className="bg-white rounded-2xl shadow-sm border border-[#ECEAE7] p-8">
+        <div className="bg-white rounded-2xl shadow-sm border border-[#ECEAE7] p-4 md:p-8">
             <div className="flex items-center gap-4 mb-8">
                 <div className="w-12 h-12 rounded-xl bg-[#F3F0ED] flex items-center justify-center">
                     <Lock className="w-6 h-6 text-[#9A8B7A]" />

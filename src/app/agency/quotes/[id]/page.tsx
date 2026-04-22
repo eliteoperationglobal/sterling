@@ -665,7 +665,7 @@ export default function QuoteDetailsPage() {
       <main className="flex-1 ml-[70px] overflow-auto">
         {/* Header */}
         <div className="bg-white border-b border-[#e5ddd5] px-6 py-4 sticky top-0 z-40">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-0">
             <div className="flex items-center gap-4">
               <Link href="/agency/quotes" className="p-2 hover:bg-[#fcfaf7] rounded-lg transition-colors">
                 <svg className="w-5 h-5 text-[#6b5e52]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -679,7 +679,7 @@ export default function QuoteDetailsPage() {
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 self-start md:self-auto">
               <span className={`px-3 py-1.5 rounded-lg text-xs font-semibold ${
                 quote.status === "APPROVED" ? "bg-green-50 text-green-700 border border-green-200" :
                 quote.status === "BIND_REQUESTED" ? "bg-amber-50 text-amber-700 border border-amber-200" :

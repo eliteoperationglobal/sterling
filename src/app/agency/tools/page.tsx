@@ -128,7 +128,7 @@ export default function AgencyToolsPage() {
       <main className="flex-1 ml-[70px] overflow-auto">
         {/* Header */}
         <div className="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-40">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-0">
             <div className="flex items-center gap-4">
               <Link href="/agency/dashboard" className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                 <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -140,12 +140,14 @@ export default function AgencyToolsPage() {
                 <p className="text-sm text-gray-600">Access specialized tools for managing your insurance business</p>
               </div>
             </div>
-            <button
-              onClick={() => signOut({ callbackUrl: "/signin" })}
-              className="text-sm text-gray-600 hover:text-gray-900 font-medium"
-            >
-              Sign Out
-            </button>
+            <div className="self-start md:self-auto">
+              <button
+                onClick={() => signOut({ callbackUrl: "/signin" })}
+                className="text-sm text-gray-600 hover:text-gray-900 font-medium"
+              >
+                Sign Out
+              </button>
+            </div>
           </div>
         </div>
 

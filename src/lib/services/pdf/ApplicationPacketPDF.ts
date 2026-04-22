@@ -5158,7 +5158,7 @@ function generateAcord125Page2(data: ApplicationPacketData): string {
 					<div class="pdf44_01" style="left:28.794em;top:31.9006em;"><span class="pdf44_15 pdf44_08 pdf44_09">SERVICE &nbsp;</span></div>
 					<div class="pdf44_01" style="left:28.794em;top:32.8966em;"><span class="pdf44_15 pdf44_08 pdf44_09">WHOLESALE &nbsp;</span></div>
 					<div class="pdf44_01" style="left:2.994em;top:32.8966em;"><span class="pdf44_15 pdf44_08 pdf44_09">CONDOMINIUMS &nbsp;</span></div>
-					<div class="pdf44_01" style="left:1.794em;top:33.7146em;"><span class="pdf44_10 pdf44_11 pdf44_09" style="word-spacing:0.0002em;">DESCRIPTION OF PRIMARY OPERATIONS <br> ${data.classCode} &nbsp;</span></div>
+					<div class="pdf44_01" style="left:1.794em;top:33.7146em;width:47em;white-space:normal;"><span class="pdf44_10 pdf44_11 pdf44_09" style="word-spacing:0.0002em;">DESCRIPTION OF PRIMARY OPERATIONS <br> ${data.classCode} &nbsp;</span></div>
 					<div class="pdf44_01" style="left:19.794em;top:42.7146em;"><span class="pdf44_10 pdf44_11 pdf44_09" style="word-spacing:0.0001em;">INSTALLATION, SERVICE OR REPAIR WORK &nbsp;</span></div>
 					<div class="pdf44_01" style="left:26.166em;top:43.7116em;"><span class="pdf44_18 pdf44_08 pdf44_09">%</span></div>
 					<div class="pdf44_01" style="left:33.8939em;top:42.7145em;"><span class="pdf44_10 pdf44_11 pdf44_09" style="word-spacing:0.0001em;">OFF PREMISES INSTALLATION, SERVICE OR REPAIR WORK &nbsp;</span></div>

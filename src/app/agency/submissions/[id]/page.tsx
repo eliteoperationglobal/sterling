@@ -638,7 +638,7 @@ function SubmissionDetailsContent() {
   if (error || !data) {
     return (
       <div className="flex flex-col min-h-full">
-        <aside className="w-[70px] bg-[#2d2a26] flex flex-col items-center pt-6 pb-8 fixed h-full z-50 border-r border-[#e5ddd5]">
+        <aside className="hidden md:flex w-[70px] bg-[#2d2a26] flex-col items-center pt-6 pb-8 fixed h-full z-50 border-r border-[#e5ddd5]">
           <Link href="/agency/dashboard" className="mb-8 group flex flex-col items-center">
             <div className="relative mb-3">
               <div className="absolute inset-0 bg-gradient-to-br from-[#9A8B7A] to-[#8a6f4d] rounded-xl blur-md opacity-40 group-hover:opacity-60 transition-all"></div>
@@ -672,7 +672,7 @@ function SubmissionDetailsContent() {
             </div>
           </Link>
         </aside>
-        <main className="flex-1 ml-[70px] p-8">
+        <main className="flex-1 ml-0 md:ml-[70px] p-4 md:p-8">
           <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
             <h1 className="text-2xl font-bold text-[#2d2a26] mb-4">Error</h1>
             <p className="text-red-600 mb-6">{error || "Submission not found"}</p>
@@ -836,21 +836,21 @@ function SubmissionDetailsContent() {
       <main className="flex-1 ml-[6px] bg-[#fcfaf7] overflow-x-hidden">
         {/* Header */}
         {/* ISC STYLE HEADER – NO BORDER */}
-        <div className="bg-white px-6 pt-5 pb-4">
-          <div className="flex items-start justify-between">
+        <div className="bg-white px-4 md:px-6 pt-5 pb-4">
+          <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 md:gap-0">
 
             {/* LEFT SIDE */}
-            <div className="bg-white px-8 py-3">
+            <div className="bg-white px-0 md:px-8 py-0 md:py-3">
               {/* <Link href="/agency/dashboard" className="mt-1">
                 <ArrowLeft className="w-5 h-5 text-gray-500 hover:text-black" />
               </Link> */}
 
               <div>
                 {/* Title */}
-                <h1 className="flex items-center gap-3 text-[24px] font-semibold text-gray-900 leading-tight">
-                  <div>
+                <h1 className="flex items-center gap-3 text-xl md:text-[24px] font-semibold text-gray-900 leading-tight">
+                  <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3">
                     {(submission?.payload?.companyName || submission?.clientContact?.name || "???")}
-                    <span className="inline-flex items-center rounded-md bg-gray-100 px-3 py-[4px] text-[13px] font-medium text-gray-700 ">
+                    <span className="inline-flex items-center rounded-md bg-gray-100 px-3 py-[4px] text-[13px] font-medium text-gray-700 w-fit">
                       {(submission?.status || "").replace(/_/g, " ")}
                     </span>
                   </div>
@@ -901,7 +901,7 @@ function SubmissionDetailsContent() {
             </div>
 
             {/* RIGHT SIDE */}
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 px-0 md:px-8 mt-2 md:mt-0">
               {/* APP ID */}
               <span className="text-[14px] text-gray-500 ml-2">
                 App ID {submission.submissionNumber || (submission?._id || "").slice(-6)}
@@ -929,8 +929,8 @@ function SubmissionDetailsContent() {
           </div>
         )}
 
-        <div className="bg-white px-6 h-[64px] border-t border-gray-100">
-          <div className="flex items-center justify-between w-full h-full">
+        <div className="bg-white px-4 md:px-6 py-4 md:h-[64px] md:py-0 border-t border-gray-100">
+          <div className="flex flex-col md:flex-row md:items-center justify-between w-full h-full gap-4 md:gap-0">
             {/* LEFT */}
             <div className="flex items-center gap-4">
               <h2 className="text-[16px] font-semibold text-gray-900">App Info</h2>
@@ -940,7 +940,7 @@ function SubmissionDetailsContent() {
             </div>
 
             {/* RIGHT BUTTONS */}
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2 md:gap-3">
 
               {/* ================= SUBMITTED (IN PROGRESS) ================= */}
               {isSubmitted && (
@@ -1261,8 +1261,8 @@ function SubmissionDetailsContent() {
         </div>
         {/* KEY INFO GRID – ISC STYLE */}
         {/* ISC STYLE – KEY INFO STRIP */}
-        <div className="bg-white px-6 py-5 border-t border-gray-100">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-y-6 gap-x-14 text-[14px]">
+        <div className="bg-white px-4 md:px-6 py-5 border-t border-gray-100">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-y-6 gap-x-14 text-[14px]">
 
             {/* Total Cost */}
             <div>
@@ -1322,7 +1322,7 @@ function SubmissionDetailsContent() {
 
         {/* Policy Selector (Critical Requirement) */}
         {availablePolicies.length > 1 && (
-          <div className="bg-white px-8 py-4 border-t border-gray-100 flex items-center gap-4">
+          <div className="bg-white px-4 md:px-8 py-4 border-t border-gray-100 flex flex-col md:flex-row items-start md:items-center gap-4">
             <span className="text-sm font-bold text-gray-500 uppercase tracking-wider">Select Policy View:</span>
             <div className="flex gap-2">
               {availablePolicies.map(type => (
@@ -1341,7 +1341,7 @@ function SubmissionDetailsContent() {
           </div>
         )}
         {/* ISC STYLE – STANDARD GL A-RATED SECTION */}
-        <div className="bg-white px-8 py-6 border-t border-gray-200">
+        <div className="bg-white px-4 md:px-8 py-6 border-t border-gray-200">
 
           {/* SECTION TITLE */}
           <div className="mb-6 flex items-center justify-between">
@@ -1354,7 +1354,7 @@ function SubmissionDetailsContent() {
           </div>
 
           {/* CONTENT GRID */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-24 gap-y-6 text-[14px]">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 lg:gap-x-24 gap-y-6 text-[14px]">
 
             {/* LEFT */}
             <div className="space-y-4">
@@ -1422,7 +1422,7 @@ function SubmissionDetailsContent() {
         </div>
 
         {/* ISC STYLE – UPLOAD DOCUMENTS */}
-        <div className="bg-white px-8 py-6 grid grid-cols-1 lg:grid-cols-3 gap-10 border-b border-gray-200">
+        <div className="bg-white px-4 md:px-8 py-6 grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-10 border-b border-gray-200">
 
           {/* LEFT – UPLOADED DOCUMENTS */}
           <div className="lg:col-span-2">
@@ -1541,9 +1541,9 @@ function SubmissionDetailsContent() {
           </div>
         </div>
         {/* ================= NOTES – ISC STYLE ================= */}
-        <div className="bg-white px-8 py-6 border-t border-gray-200">
+        <div className="bg-white px-4 md:px-8 py-6 border-t border-gray-200">
           {/* Tabs */}
-          <div className="flex items-center gap-10 text-[14px] mb-6 border-b">
+          <div className="flex items-center gap-6 md:gap-10 text-[14px] mb-6 border-b overflow-x-auto whitespace-nowrap" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
             {["Notes", "Status History", "Contact Information", "Rating Information"].map(
               (tab) => (
                 <button
@@ -1560,7 +1560,7 @@ function SubmissionDetailsContent() {
             )}
           </div>
           {activeTab === "Notes" && (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-10">
               {/* LEFT – ADD NOTE */}
               <div className="lg:col-span-2">
                 <h3 className="text-[15px] font-semibold text-gray-900 mb-4">
@@ -1671,8 +1671,8 @@ function SubmissionDetailsContent() {
             </div>
           )}
           {activeTab === "Status History" && (
-            <div className="border rounded-md overflow-hidden">
-              <div className="bg-gray-100 px-4 py-2 grid grid-cols-4 text-sm font-medium text-gray-600">
+            <div className="border rounded-md overflow-x-auto">
+              <div className="bg-gray-100 px-4 py-2 grid grid-cols-4 min-w-[600px] text-sm font-medium text-gray-600">
                 <span>Program</span>
                 <span>Changed</span>
                 <span>User</span>
@@ -1682,7 +1682,7 @@ function SubmissionDetailsContent() {
               {statusHistory.map((item) => (
                 <div
                   key={item._id}
-                  className="px-4 py-3 grid grid-cols-4 text-sm border-t"
+                  className="px-4 py-3 grid grid-cols-4 min-w-[600px] text-sm border-t"
                 >
                   <span>{item.program}</span>
                   <span>{new Date(item.changedAt).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}</span>

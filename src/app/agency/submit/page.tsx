@@ -92,7 +92,7 @@ export default function SubmitPage() {
   return (
     <div className="min-h-screen bg-[#f5f1eb] flex">
       {/* Sidebar - Matching Dashboard */}
-      <aside className="w-[70px] bg-[#3A3C3F] flex flex-col items-center pt-6 pb-8 fixed h-full z-50 border-r border-gray-700">
+      <aside className="hidden md:flex w-[70px] bg-[#3A3C3F] flex-col items-center pt-6 pb-8 fixed h-full z-50 border-r border-gray-700">
         <Link href="/agency/dashboard" className="mb-8 group flex flex-col items-center">
           <div className="relative mb-3">
             <div className="absolute inset-0 bg-gradient-to-br from-[#9A8B7A] to-[#0097A7] rounded-xl blur-md opacity-40 group-hover:opacity-60 transition-all"></div>
@@ -136,9 +136,9 @@ export default function SubmitPage() {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 ml-[70px] overflow-auto">
+      <main className="flex-1 ml-0 md:ml-[70px] overflow-auto">
         {/* Header */}
-        <div className="bg-white border-b border-[#e5ddd5] px-6 py-4 sticky top-0 z-40">
+        <div className="bg-white border-b border-[#e5ddd5] px-3 md:px-6 py-4 sticky top-0 z-40">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Link href="/agency/dashboard" className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
@@ -161,7 +161,7 @@ export default function SubmitPage() {
         </div>
 
         {/* Content */}
-        <div className="p-6 max-w-5xl mx-auto">
+        <div className="p-3 md:p-6 max-w-5xl mx-auto">
 
           {/* Hero Section */}
           <div className="mb-8">
@@ -171,7 +171,7 @@ export default function SubmitPage() {
               </svg>
               <span className="text-sm font-semibold text-[#9A8B7A]">New Submission</span>
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
               Create Insurance Application
             </h1>
             <p className="text-gray-600">
@@ -182,8 +182,8 @@ export default function SubmitPage() {
           {/* Main Form Card */}
           <div className="bg-white rounded-lg border border-[#e5ddd5] overflow-hidden">
             {/* Progress Steps */}
-            <div className="bg-[#fdfaf7] px-6 py-4 border-b border-[#e5ddd5]">
-              <div className="flex items-center justify-between max-w-2xl mx-auto">
+            <div className="bg-[#fdfaf7] px-3 md:px-6 py-4 border-b border-[#e5ddd5] overflow-x-auto">
+              <div className="flex items-center justify-between min-w-[300px] max-w-2xl mx-auto">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-[#9A8B7A] rounded-full flex items-center justify-center text-white font-bold shadow-lg">
                     1
@@ -207,7 +207,7 @@ export default function SubmitPage() {
             </div>
 
             {/* Form Content */}
-            <div className="p-6 lg:p-8">
+            <div className="p-4 md:p-6 lg:p-8">
               {/* CA Operations Toggle */}
               <div className="mb-8 p-5 bg-[#fdfaf7] rounded-xl border border-[#e5ddd5]">
                 <label className="flex items-start gap-4 cursor-pointer">
@@ -224,9 +224,9 @@ export default function SubmitPage() {
                       <svg className="w-5 h-5 text-[#9A8B7A]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                       </svg>
-                      <span className="text-base font-bold text-[#2d2a26]">California Operations</span>
+                      <span className="text-sm md:text-base font-bold text-[#2d2a26]">California Operations</span>
                     </div>
-                    <p className="text-sm text-[#6b5e52]">
+                    <p className="text-xs md:text-sm text-[#6b5e52]">
                       Enable this option if you're submitting for California-specific operations. This will prioritize CA-compliant form templates.
                     </p>
                   </div>
@@ -340,19 +340,19 @@ export default function SubmitPage() {
           </div>
 
           {/* Help Card */}
-          <div className="mt-6 bg-white rounded-lg border border-[#e5ddd5] p-6">
+          <div className="mt-6 bg-white rounded-lg border border-[#e5ddd5] p-4 md:p-6">
             <div className="flex items-start gap-4">
-              <div className="flex-shrink-0 w-12 h-12 bg-[#9A8B7A] rounded-lg flex items-center justify-center">
-                <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div className="flex-shrink-0 w-10 h-10 md:w-12 md:h-12 bg-[#9A8B7A] rounded-lg flex items-center justify-center">
+                <svg className="w-5 h-5 md:w-6 md:h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
                 </svg>
               </div>
               <div className="flex-1">
-                <h3 className="text-lg font-bold text-gray-900 mb-2">Need Assistance?</h3>
-                <p className="text-gray-700 mb-4">
+                <h3 className="text-base md:text-lg font-bold text-gray-900 mb-2">Need Assistance?</h3>
+                <p className="text-sm md:text-base text-gray-700 mb-4">
                   If you're unsure which industry or coverage type to select, our support team is here to help. Contact your Sterling Wholesale Insurance representative for personalized guidance.
                 </p>
-                <div className="flex items-center gap-4">
+                <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
                   <Link
                     href="/help"
                     className="inline-flex items-center gap-2 text-sm font-semibold text-[#9A8B7A] hover:text-[#8a6f4d] transition-colors"

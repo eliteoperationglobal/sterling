@@ -295,8 +295,8 @@ return (
     <div className="flex-1 flex flex-col">
 
       {/* PAGE HEADER */}
-      <div className="px-10 pt-8 pb-4">
-        <div className="flex items-center justify-between">
+      <div className="px-4 md:px-10 pt-4 md:pt-8 pb-4">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 md:gap-0">
           <h1 className="text-[34px] font-semibold text-[#2d2a26]">
             Sales Pipeline
           </h1>
@@ -329,7 +329,7 @@ return (
 
       {/* NOTIFICATION BAR */}
       {newQuotes.length > 0 && (
-        <div className="mx-10 mb-6 bg-[#9A8B7A] text-white rounded-xl shadow-sm px-6 py-4 flex items-center justify-between">
+        <div className="mx-4 md:mx-10 mb-6 bg-[#9A8B7A] text-white rounded-xl shadow-sm px-6 py-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-0">
           <div>
             <p className="font-semibold text-lg">
               🔔 {newQuotes.length} New Quotes Ready!
@@ -349,16 +349,16 @@ return (
       )}
 
       {/* MAIN CARD CONTAINER */}
-      <div className="mx-10 bg-white rounded-2xl shadow-lg flex overflow-hidden">
+      <div className="mx-4 md:mx-10 mb-8 bg-white rounded-2xl shadow-lg flex flex-col md:flex-row overflow-hidden">
 
         {/* LEFT PIPELINE */}
-        <div className="w-[270px] bg-[#F9F8F7] border-r border-[#E5E2DF] p-6 space-y-3">
+        <div className="w-full md:w-[270px] bg-[#F9F8F7] border-b md:border-b-0 md:border-r border-[#E5E2DF] p-4 md:p-6 flex md:flex-col gap-2 overflow-x-auto md:overflow-visible">
 
           {pipelineStages.map((stage) => (
             <button
               key={stage.id}
               onClick={() => setSelectedStage(stage.id)}
-              className={`w-full flex justify-between items-center px-4 py-3 rounded-xl text-sm transition ${
+              className={`flex-shrink-0 md:w-full flex justify-between items-center px-4 py-3 rounded-xl text-sm transition gap-3 ${
                 selectedStage === stage.id
                   ? "bg-white shadow-sm font-semibold text-[#9A8B7A]"
                   : "hover:bg-white text-[#6b5e52]"
@@ -377,14 +377,14 @@ return (
         <div className="flex-1 flex flex-col">
 
           {/* FILTER BAR */}
-          <div className="p-6 border-b border-[#ECEAE7] flex items-center gap-4">
+          <div className="p-4 md:p-6 border-b border-[#ECEAE7] flex flex-col sm:flex-row flex-wrap items-center gap-4">
 
             <input
               type="text"
               placeholder="Search"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="px-4 py-2 w-[300px] border border-[#E0DDD9] rounded-xl text-sm bg-[#F9F8F7]"
+              className="px-4 py-2 w-full sm:w-[300px] border border-[#E0DDD9] rounded-xl text-sm bg-[#F9F8F7]"
             />
 
             <select
@@ -414,9 +414,9 @@ return (
           </div>
 
           {/* TABLE */}
-          <div className="overflow-y-auto">
+          <div className="overflow-x-auto">
 
-            <table className="w-full text-sm">
+            <table className="w-full min-w-[800px] text-sm">
               <thead className="bg-[#fcfaf7] text-[#6b5e52] uppercase text-xs font-bold">
                 <tr>
                   <th className="px-6 py-4 text-left">Type</th>

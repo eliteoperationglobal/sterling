@@ -3,12 +3,14 @@
 import { useRouter, usePathname } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 import { useSession, signOut } from "next-auth/react";
-import { Home, Search, ArrowLeft, Bell } from "lucide-react";
+import { Home, Search, ArrowLeft, Bell, Menu } from "lucide-react";
+import MobileNav from "./MobileNav";
 
 export default function Topbar() {
   const { data: session } = useSession();
   const [open, setOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const notifRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
@@ -164,9 +166,16 @@ export default function Topbar() {
 
   return (
     <header className="h-20 bg-white border-b border-[#e5ddd5] flex items-center justify-between px-4 md:px-8 shadow-sm">
-
+      <MobileNav isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} />
       {/* ================= LEFT ================= */}
       <div className="flex items-center gap-3 w-full max-w-[650px]">
+        {/* ⭐ HAMBURGER MENU (MOBILE ONLY) */}
+        <button
+          onClick={() => setIsMobileMenuOpen(true)}
+          className="lg:hidden p-2 rounded-lg hover:bg-[#f5f1eb] transition-colors"
+        >
+          <Menu className="w-6 h-6 text-[#9A8B7A]" />
+        </button>
 
         {/* ⭐ BACK BUTTON */}
         <button

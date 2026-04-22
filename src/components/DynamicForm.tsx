@@ -26,7 +26,7 @@ export default function DynamicForm({
 
   if (!fields || !Array.isArray(fields) || fields.length === 0) {
     return (
-      <div className="p-6 bg-gradient-to-br from-red-50 to-rose-50 border-2 border-red-200 rounded-2xl flex items-start gap-3">
+      <div className="p-4 md:p-6 bg-gradient-to-br from-red-50 to-rose-50 border-2 border-red-200 rounded-2xl flex items-start gap-3">
         <svg className="w-6 h-6 text-red-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
@@ -250,7 +250,7 @@ export default function DynamicForm({
 
               {/* Boolean Checkbox */}
               {field.type === "boolean" && (
-                <div className="p-4 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl border-2 border-indigo-100 group hover:border-indigo-200 transition-all">
+                <div className="p-3 md:p-4 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl border-2 border-indigo-100 group hover:border-indigo-200 transition-all">
                   <label className="flex items-start gap-3 cursor-pointer">
                     <input
                       type="checkbox"
@@ -290,7 +290,7 @@ export default function DynamicForm({
                     />
                     <label
                       htmlFor={`file-${field.key}`}
-                      className={`flex items-center justify-center gap-3 w-full px-6 py-4 border-2 border-dashed ${
+                      className={`flex items-center justify-center gap-3 w-full px-4 md:px-6 py-4 border-2 border-dashed ${
                         error ? "border-red-300 bg-red-50" : "border-gray-300 bg-gray-50 hover:bg-gray-100"
                       } rounded-xl cursor-pointer transition-all group`}
                     >
@@ -358,7 +358,7 @@ export default function DynamicForm({
           <button
             type="submit"
             disabled={isLoading}
-            className="group relative w-full sm:flex-1 px-10 py-5 bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 bg-size-200 bg-pos-0 hover:bg-pos-100 text-white rounded-2xl font-bold text-lg focus:outline-none focus:ring-4 focus:ring-indigo-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-500 shadow-2xl shadow-indigo-600/40 hover:shadow-indigo-600/60 disabled:shadow-none hover:scale-[1.02] active:scale-[0.98] overflow-hidden"
+            className="group relative w-full sm:flex-1 px-4 md:px-10 py-4 md:py-5 bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 bg-size-200 bg-pos-0 hover:bg-pos-100 text-white rounded-2xl font-bold text-base md:text-lg focus:outline-none focus:ring-4 focus:ring-indigo-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-500 shadow-2xl shadow-indigo-600/40 hover:shadow-indigo-600/60 disabled:shadow-none hover:scale-[1.02] active:scale-[0.98] overflow-hidden"
           >
             {/* Shimmer Effect */}
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000"></div>

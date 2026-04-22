@@ -25,7 +25,9 @@ import {
   Layers,
   Calendar,
   ExternalLink,
+  Menu
 } from "lucide-react";
+import MobileNav from "@/components/layout/MobileNav";
 
 import DashboardLayout from "@/components/layout/DashboardLayout";
 
@@ -249,6 +251,7 @@ export default function AdminSubmissionDetailsPage() {
   const [noteFilters, setNoteFilters] = useState<string[]>(["Underwriter"]);
   const [checkedDocs, setCheckedDocs] = useState<Record<string, boolean>>({});
   const [uploading, setUploading] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [ratingData, setRatingData] = useState<any>(null);
   const [selectedCarrierId, setSelectedCarrierId] = useState<string | null>(null);
@@ -645,10 +648,17 @@ export default function AdminSubmissionDetailsPage() {
 
   return (
     <div className="min-h-screen bg-[#f5f1eb]">
+      <MobileNav isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} />
       <header className="bg-white/80 backdrop-blur-xl border-b border-[#e5ddd5] sticky top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
-            <div className="flex items-center gap-10">
+            <div className="flex items-center gap-4 md:gap-10">
+              <button 
+                onClick={() => setIsMobileMenuOpen(true)}
+                className="lg:hidden p-2 -ml-2 rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                <Menu className="w-6 h-6 text-[#9A8B7A]" />
+              </button>
               <Link href="/admin/dashboard" className="flex items-center gap-4 group">
                 <div className="relative">
                   <div className="absolute inset-0 bg-gradient-to-br from-rose-500 via-pink-500 to-orange-500 rounded-2xl blur-md opacity-50 group-hover:opacity-75 animate-pulse transition-all duration-500"></div>

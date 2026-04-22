@@ -12,10 +12,10 @@ import { formatCurrencyInput, parseCurrency, formatCurrency } from '@/lib/utils/
 // ── Sterling section wrapper ──────────────────────────────────────
 const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
     <div className="bg-white rounded shadow-md overflow-visible border border-gray-200 mb-5">
-        <div className="bg-[#7A6F64] text-white px-6 py-3.5">
-            <h2 className="text-lg font-semibold">{title}</h2>
+        <div className="bg-[#7A6F64] text-white px-4 md:px-6 py-3.5">
+            <h2 className="text-base md:text-lg font-semibold">{title}</h2>
         </div>
-        <div className="px-8 pt-6 pb-7">
+        <div className="px-4 md:px-8 pt-6 pb-7">
             <div className="space-y-6">{children}</div>
         </div>
     </div>
@@ -23,11 +23,11 @@ const Section = ({ title, children }: { title: string; children: React.ReactNode
 
 // ── Label + input row ─────────────────────────────────────────────
 const Row = ({ label, children, bold = false, required = false }: { label: React.ReactNode; children: React.ReactNode; bold?: boolean; required?: boolean }) => (
-    <div className="grid grid-cols-[300px_1fr_320px] gap-x-6 items-start">
-        <label className={`text-sm text-gray-900 pt-2 leading-snug flex items-center min-h-[38px] ${bold ? 'font-bold' : 'font-medium'}`}>
+    <div className="grid grid-cols-1 md:grid-cols-[300px_1fr_320px] gap-4 md:gap-x-6 items-start">
+        <label className={`text-sm text-gray-900 md:pt-2 leading-snug flex items-center min-h-[38px] ${bold ? 'font-bold' : 'font-medium'}`}>
             {label}{required && <span className="text-red-500 ml-0.5">*</span>}
         </label>
-        <div></div>
+        <div className="hidden md:block"></div>
         <div>{children}</div>
     </div>
 )

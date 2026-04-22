@@ -326,7 +326,7 @@ export default function AgencyQuotesPage() {
       <main className="flex-1 ml-[70px] overflow-auto">
         {/* Header */}
         <div className="bg-white border-b border-[#e5ddd5] px-6 py-4 sticky top-0 z-40">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-0">
             <div className="flex items-center gap-4">
               <Link href="/agency/dashboard" className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                 <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -338,7 +338,7 @@ export default function AgencyQuotesPage() {
                 <p className="text-sm text-gray-600">View and manage quotes for your submissions</p>
               </div>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 self-start md:self-auto">
               {/* Filter Dropdown */}
               <select
                 value={filterStatus}
@@ -455,7 +455,7 @@ export default function AgencyQuotesPage() {
                   <div key={quote._id} className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-lg hover:border-cyan-200 transition-all duration-300">
                     {quote.status === "APPROVED" && (
                       <div className="mb-4 p-4 bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-200 rounded-xl">
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-0">
                           <div className="flex-1">
                             <p className="text-blue-800 font-bold mb-2">
                               ✓ Quote Approved - Ready for Workflow
@@ -487,7 +487,7 @@ export default function AgencyQuotesPage() {
                           </div>
                           <Link
                             href={`/agency/quotes/${quote._id}`}
-                            className="ml-4 px-4 py-2.5 bg-[#9A8B7A] text-white rounded-lg hover:bg-[#8a6f4d] font-semibold transition-colors whitespace-nowrap"
+                            className="sm:ml-4 px-4 py-2.5 bg-[#9A8B7A] text-white rounded-lg hover:bg-[#8a6f4d] font-semibold transition-colors whitespace-nowrap text-center"
                           >
                             Manage Workflow →
                           </Link>
@@ -496,7 +496,7 @@ export default function AgencyQuotesPage() {
                     )}
                     {quote.status === "BOUND" && (
                       <div className="mb-4 p-4 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl">
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-0">
                           <div className="flex-1">
                             <p className="text-green-800 font-bold mb-2">
                               ✓ Policy Bound Successfully
@@ -507,14 +507,14 @@ export default function AgencyQuotesPage() {
                           </div>
                           <Link
                             href={`/agency/quotes/${quote._id}`}
-                            className="ml-4 px-4 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold transition-colors whitespace-nowrap"
+                            className="sm:ml-4 px-4 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold transition-colors whitespace-nowrap text-center"
                           >
                             View Policy →
                           </Link>
                         </div>
                       </div>
                     )}
-                    <div className="flex items-start justify-between mb-4">
+                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 sm:gap-0 mb-4">
                       <div>
                         <h3 className="text-xl font-bold text-gray-900 mb-1">
                           {quote.clientName}
@@ -523,13 +523,15 @@ export default function AgencyQuotesPage() {
                           Carrier: {quote.carrierName}
                         </p>
                       </div>
-                      <span
-                        className={`inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold ${getStatusBadgeColor(
-                          quote.status
-                        )}`}
-                      >
-                        {quote.status}
-                      </span>
+                      <div className="self-start sm:self-auto">
+                        <span
+                          className={`inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold ${getStatusBadgeColor(
+                            quote.status
+                          )}`}
+                        >
+                          {quote.status}
+                        </span>
+                      </div>
                     </div>
 
                     {/* Quote Breakdown */}
@@ -690,8 +692,8 @@ export default function AgencyQuotesPage() {
                       </div>
                     )}
 
-                    <div className="pt-4 border-t border-[#e5ddd5] flex items-center justify-between">
-                      <div className="flex items-center gap-4">
+                    <div className="pt-4 border-t border-[#e5ddd5] flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-0">
+                      <div className="flex flex-wrap items-center gap-4">
                         <Link
                           href={`/agency/submissions/${quote.submissionId}`}
                           className="text-sm text-[#9A8B7A] hover:text-[#8a6f4d] font-semibold"

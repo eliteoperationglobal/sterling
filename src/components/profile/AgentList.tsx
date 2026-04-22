@@ -60,7 +60,7 @@ export default function AgentList({ agents, isAdmin, onAgentAdded }: AgentListPr
 
     return (
         <div className="bg-white rounded-2xl shadow-sm border border-[#ECEAE7] overflow-hidden">
-            <div className="px-8 py-6 border-b border-[#ECEAE7] flex items-center justify-between bg-[#F9F8F7]">
+            <div className="px-4 md:px-8 py-4 md:py-6 border-b border-[#ECEAE7] flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-0 bg-[#F9F8F7]">
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center border border-[#ECEAE7] shadow-sm">
                         <UserIcon className="w-5 h-5 text-[#9A8B7A]" />

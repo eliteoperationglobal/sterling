@@ -16,7 +16,7 @@ interface AgencyInfoProps {
 
 export default function AgencyInfo({ agency }: AgencyInfoProps) {
     return (
-        <div className="bg-white rounded-2xl shadow-sm p-8 border border-[#ECEAE7]">
+        <div className="bg-white rounded-2xl shadow-sm p-4 md:p-8 border border-[#ECEAE7]">
             <div className="flex items-center gap-4 mb-8">
                 <div className="w-12 h-12 rounded-xl bg-[#F3F0ED] flex items-center justify-center">
                     <Building2 className="w-6 h-6 text-[#9A8B7A]" />

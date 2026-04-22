@@ -65,6 +65,25 @@ const YesNoRadio = ({
   </div>
 );
 
+const GridRow = ({ label, children, required = false, itemsCenter = false }: any) => (
+  <div className={`grid grid-cols-1 md:grid-cols-[200px_1fr_320px] gap-4 md:gap-x-6 ${itemsCenter ? 'items-center' : 'items-start'}`}>
+    <label className={`text-sm font-medium text-gray-900 ${itemsCenter ? '' : 'md:pt-2'} leading-snug`}>
+      {label} {required && <span className="text-red-500">*</span>}
+    </label>
+    <div className="hidden md:block"></div>
+    <div>{children}</div>
+  </div>
+);
+
+const LongGridRow = ({ label, children, required = false }: any) => (
+  <div className="grid grid-cols-1 md:grid-cols-[1fr_320px] gap-4 md:gap-x-6 items-start">
+    <label className="text-sm font-medium text-gray-900 md:pt-2 leading-snug">
+      {label} {required && <span className="text-red-500">*</span>}
+    </label>
+    <div>{children}</div>
+  </div>
+);
+
 const initialFormData = {
   agentName: "",
   companyName: "",
@@ -1311,90 +1330,76 @@ export default function QuoteFormPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Top Bar */}
-      <div className="bg-[#2F3338] text-white px-6 py-3 flex items-center justify-between">
+      <div className="bg-[#2F3338] text-white px-4 md:px-6 py-3 flex flex-wrap items-center justify-between gap-2">
         <Link href="/agency/marketplace" className="flex items-center gap-2 text-gray-300 hover:text-white">
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
-          Close Rater
+          <span className="text-sm md:text-base">Close Rater</span>
         </Link>
-        <button type="button" onClick={() => setFormData(initialFormData)} className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded text-sm">
+        <button type="button" onClick={() => setFormData(initialFormData)} className="px-3 md:px-4 py-1.5 md:py-2 bg-gray-700 hover:bg-gray-600 rounded text-xs md:text-sm">
           Clear
         </button>
       </div>
 
       {/* Fixed Logo & Header Section */}
       <div className="sticky top-0 z-40 bg-gray-50 border-b border-gray-200 shadow-sm">
-        <div className="max-w-[950px] mx-auto px-8 h-16">
+        <div className="max-w-[950px] mx-auto px-4 md:px-8 h-16">
           <div className="relative h-full">
             {/* Centered Logo with Premium Internal Spinner - Positioned at absolute bottom */}
-            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2">
+            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 scale-75 md:scale-100">
               <div className="relative">
-
-                {/* Rectangle Logo Container */}
-
-
-
+                {/* Logo content remains same */}
               </div>
             </div>
-            {/* Program Name - Absolute positioned at bottom right like ISC */}
-            {/* <div className="absolute bottom-0 right-0">
-              <h1 className="text-xl font-bold text-gray-800">Advantage</h1>
-            </div> */}
           </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="max-w-[950px] mx-auto px-8 py-8 mt-12">
+      <div className="max-w-[950px] mx-auto px-4 md:px-8 py-6 md:py-8 mt-8 md:mt-12">
 
-        <form onSubmit={handleSubmit} className="space-y-10">
+        <form onSubmit={handleSubmit} className="space-y-8 md:space-y-10">
           <fieldset disabled={isViewMode} className={isViewMode ? "opacity-90 pointer-events-none" : ""}>
 
             {/* Indication Information */}
             <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200">
-              <div className="bg-[#7A6F64] text-white px-6 py-3.5">
-                <h2 className="text-lg font-semibold">Application Information</h2>
+              <div className="bg-[#7A6F64] text-white px-4 md:px-6 py-3.5">
+                <h2 className="text-base md:text-lg font-semibold">Application Information</h2>
               </div>
-              <div className="px-8 pt-6 pb-7">
+              <div className="px-4 md:px-8 pt-6 pb-7">
 
 
                 <div className="space-y-6 mt-1">
 
 
                   {/*  Agent */}
-                  <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-start">
-                    <label className="text-sm font-medium text-gray-900 pt-2">
-                      Agent <span className="text-red-500">*</span>
-                    </label>
-                    <div></div>
-                    <div>
-                      {agentOptions.length > 0 ? (
-                        <select
-                          value={formData.agentName}
-                          onChange={(e) => handleInputChange("agentName", e.target.value)}
-                          required
-                          className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] focus:border-[#9A8B7A] text-sm"
-                        >
-                          <option value="" disabled hidden>Select Agent</option>
-                          {agentOptions.map(agent => (
-                            <option key={agent} value={agent}>
-                              {agent}
-                            </option>
-                          ))}
-                        </select>
-                      ) : (
-                        <input
-                          type="text"
-                          value={formData.agentName}
-                          onChange={(e) => handleInputChange("agentName", e.target.value)}
-                          placeholder="Your Agent Name"
-                          required
-                          className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] focus:border-[#9A8B7A] text-sm"
-                        />
-                      )}
-                    </div>
-                  </div>
+                  <GridRow label="Agent" required>
+                    {agentOptions.length > 0 ? (
+                      <select
+                        value={formData.agentName}
+                        onChange={(e) => handleInputChange("agentName", e.target.value)}
+                        required
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] focus:border-[#9A8B7A] text-sm"
+                      >
+                        <option value="" disabled hidden>Select Agent</option>
+                        {agentOptions.map(agent => (
+                          <option key={agent} value={agent}>
+                            {agent}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <input
+                        type="text"
+                        value={formData.agentName}
+                        onChange={(e) => handleInputChange("agentName", e.target.value)}
+                        placeholder="Your Agent Name"
+                        required
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] focus:border-[#9A8B7A] text-sm"
+                      />
+                    )}
+                  </GridRow>
 
 
                   {/* <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-start">
@@ -1433,11 +1438,7 @@ export default function QuoteFormPage() {
                   </div> */}
 
 
-                  <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
-                    <label className="text-sm font-medium text-gray-900">
-                      Company Name <span className="text-red-500">*</span>
-                    </label>
-                    <div></div>
+                  <GridRow label="Company Name" required itemsCenter>
                     <input
                       type="text"
                       value={formData.companyName}
@@ -1445,12 +1446,10 @@ export default function QuoteFormPage() {
                       className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] focus:border-[#9A8B7A] text-sm"
                       required
                     />
-                  </div>
+                  </GridRow>
 
 
-                  <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
-                    <label className="text-sm font-medium text-gray-900">Estimated Total Gross Receipts</label>
-                    <div></div>
+                  <GridRow label="Estimated Total Gross Receipts" itemsCenter>
                     <div className="relative">
                       <span className="absolute left-3 top-2.5 text-gray-500">$</span>
                       <input
@@ -1467,136 +1466,114 @@ export default function QuoteFormPage() {
                         className="w-full pl-8 pr-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] focus:border-[#9A8B7A] text-sm"
                       />
                     </div>
-                  </div>
+                  </GridRow>
 
-                  <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-start">
-                    <label className="text-sm font-medium text-gray-900">
-                      Estimated Subcontracting Costs
-                    </label>
-                    <div></div>
-                    <div>
-                      <div className="relative">
-                        <span className="absolute left-3 top-2.5 text-gray-500">$</span>
-                        <input
-                          type="text"
-                          value={
-                            formData.estimatedSubcontractingCosts
-                              ? formatCurrencyInput(formData.estimatedSubcontractingCosts)
-                              : ""
+                  <GridRow label="Estimated Subcontracting Costs">
+                    <div className="relative">
+                      <span className="absolute left-3 top-2.5 text-gray-500">$</span>
+                      <input
+                        type="text"
+                        value={
+                          formData.estimatedSubcontractingCosts
+                            ? formatCurrencyInput(formData.estimatedSubcontractingCosts)
+                            : ""
+                        }
+                        onChange={(e) => {
+                          const formatted = formatCurrencyInput(e.target.value);
+                          handleInputChange("estimatedSubcontractingCosts", formatted);
+
+                          // 🔥 AUTO-SET SUBCONTRACTORS = YES
+                          const parsed = parseCurrency(formatted);
+                          if (parsed > 0 && !formData.useSubcontractors) {
+                            handleUseSubcontractorsChange(true);
                           }
-                          onChange={(e) => {
-                            const formatted = formatCurrencyInput(e.target.value);
-                            handleInputChange("estimatedSubcontractingCosts", formatted);
-
-                            // 🔥 AUTO-SET SUBCONTRACTORS = YES
-                            const parsed = parseCurrency(formatted);
-                            if (parsed > 0 && !formData.useSubcontractors) {
-                              handleUseSubcontractorsChange(true);
-                            }
-                          }}
-                          onBlur={(e) => {
-                            const parsed = parseCurrency(e.target.value);
-                            handleInputChange(
-                              "estimatedSubcontractingCosts",
-                              parsed >= 0 ? parsed.toString() : ""
-                            );
-                          }}
-                          className={`w-full pl-8 pr-4 py-2.5 border rounded text-sm focus:ring-1 ${subcontractingError ||
-                            combinedCostError ||
-                            subcontractingZeroError
-                            ? "border-red-500 focus:ring-red-400"
-                            : "border-gray-300 focus:ring-[#9A8B7A] focus:border-[#9A8B7A]"
-                            }`}
-                        />
-                      </div>
-
-                      {(subcontractingError ||
-                        combinedCostError ||
-                        subcontractingZeroError) && (
-                          <p className="mt-1 text-xs text-red-600">
-                            {subcontractingError
-                              ? "Subcontracting costs cannot exceed total gross receipts."
-                              : subcontractingZeroError
-                                ? "Subcontracting costs must be greater than $0 when subcontractors are used."
-                                : "Subcontracting + material costs must be less than total gross receipts."}
-                          </p>
-                        )}
+                        }}
+                        onBlur={(e) => {
+                          const parsed = parseCurrency(e.target.value);
+                          handleInputChange(
+                            "estimatedSubcontractingCosts",
+                            parsed > 0 ? parsed.toString() : ""
+                          );
+                        }}
+                        className={`w-full pl-8 pr-4 py-2.5 border rounded text-sm focus:ring-1 ${subcontractingError ||
+                          combinedCostError ||
+                          subcontractingZeroError
+                          ? "border-red-500 focus:ring-red-400"
+                          : "border-gray-300 focus:ring-[#9A8B7A] focus:border-[#9A8B7A]"
+                          }`}
+                      />
                     </div>
-                  </div>
 
-                  {/* <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-start">
-                    <label className="text-sm font-medium text-gray-900">
-                      Estimated Material Costs
-                    </label>
-                    <div></div>
-                    <div>
-                      <div className="relative">
-                        <span className="absolute left-3 top-2.5 text-gray-500">$</span>
-                        <input
-                          type="text"
-                          value={
-                            formData.estimatedMaterialCosts
-                              ? formatCurrencyInput(formData.estimatedMaterialCosts)
-                              : ""
-                          }
-                          onChange={(e) => {
-                            const formatted = formatCurrencyInput(e.target.value);
-                            handleInputChange("estimatedMaterialCosts", formatted);
-                          }}
-                          onBlur={(e) => {
-                            const parsed = parseCurrency(e.target.value);
-                            handleInputChange(
-                              "estimatedMaterialCosts",
-                              parsed > 0 ? parsed.toString() : ""
-                            );
-                          }}
-                          className={`w-full pl-8 pr-4 py-2.5 border rounded text-sm focus:ring-1 ${materialCostError || combinedCostError
-                            ? "border-red-500 focus:ring-red-400"
-                            : "border-gray-300 focus:ring-[#9A8B7A] focus:border-[#9A8B7A]"
-                            }`}
-                        />
-                      </div>
-
-                      {(materialCostError || combinedCostError) && (
+                    {(subcontractingError ||
+                      combinedCostError ||
+                      subcontractingZeroError) && (
                         <p className="mt-1 text-xs text-red-600">
-                          {materialCostError
-                            ? "Material costs cannot exceed total gross receipts."
-                            : "Subcontracting + material costs must be less than total gross receipts."}
+                          {subcontractingError
+                            ? "Subcontracting costs cannot exceed total gross receipts."
+                            : subcontractingZeroError
+                              ? "Subcontracting costs must be greater than $0 when subcontractors are used."
+                              : "Subcontracting + material costs must be less than total gross receipts."}
                         </p>
                       )}
-                    </div>
-                  </div> */}
+                  </GridRow>
 
-
-                  <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-start">
-                    <label className="text-sm font-medium text-gray-900 pt-2">
-                      # of Field Employees
-                    </label>
-                    <div></div>
-                    <div>
-                      <select
-                        value={formData.fieldEmployees}
-                        onChange={(e) =>
-                          handleInputChange("fieldEmployees", e.target.value)
+                  <GridRow label="Estimated Material Costs">
+                    <div className="relative">
+                      <span className="absolute left-3 top-2.5 text-gray-500">$</span>
+                      <input
+                        type="text"
+                        value={
+                          formData.estimatedMaterialCosts
+                            ? formatCurrencyInput(formData.estimatedMaterialCosts)
+                            : ""
                         }
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] focus:border-[#9A8B7A] text-sm"
-                      >
-                        {Array.from({ length: 21 }, (_, i) => (
-                          <option key={i} value={i}>
-                            {i >= 19 ? "19+" : i}
-                          </option>
-                        ))}
-                      </select>
+                        onChange={(e) => {
+                          const formatted = formatCurrencyInput(e.target.value);
+                          handleInputChange("estimatedMaterialCosts", formatted);
+                        }}
+                        onBlur={(e) => {
+                          const parsed = parseCurrency(e.target.value);
+                          handleInputChange(
+                            "estimatedMaterialCosts",
+                            parsed > 0 ? parsed.toString() : ""
+                          );
+                        }}
+                        className={`w-full pl-8 pr-4 py-2.5 border rounded text-sm focus:ring-1 ${materialCostError || combinedCostError
+                          ? "border-red-500 focus:ring-red-400"
+                          : "border-gray-300 focus:ring-[#9A8B7A] focus:border-[#9A8B7A]"
+                          }`}
+                      />
                     </div>
-                  </div>
+
+                    {(materialCostError || combinedCostError) && (
+                      <p className="mt-1 text-xs text-red-600">
+                        {materialCostError
+                          ? "Material costs cannot exceed total gross receipts."
+                          : "Subcontracting + material costs must be less than total gross receipts."}
+                      </p>
+                    )}
+                  </GridRow>
+
+
+                  <GridRow label="# of Field Employees">
+                    <select
+                      value={formData.fieldEmployees}
+                      onChange={(e) =>
+                        handleInputChange("fieldEmployees", e.target.value)
+                      }
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] focus:border-[#9A8B7A] text-sm"
+                    >
+                      {Array.from({ length: 21 }, (_, i) => (
+                        <option key={i} value={i}>
+                          {i >= 19 ? "19+" : i}
+                        </option>
+                      ))}
+                    </select>
+                  </GridRow>
 
 
                   {Number(formData.fieldEmployees) > 0 && (
-                    <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
-                      <label className="text-sm font-medium text-gray-900">
-                        Estimated Total Payroll
-                      </label>
-                      <div></div>
+                    <GridRow label="Total Payroll" itemsCenter>
                       <div className="relative">
                         <span className="absolute left-3 top-2.5 text-gray-500">$</span>
                         <input
@@ -1621,14 +1598,11 @@ export default function QuoteFormPage() {
                           placeholder="Enter payroll amount"
                         />
                       </div>
-                    </div>
-
+                    </GridRow>
                   )}
 
 
-                  <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
-                    <label className="text-sm font-medium text-gray-900">Years in Business</label>
-                    <div></div>
+                  <GridRow label="Years in Business" itemsCenter>
                     <input
                       type="number"
                       value={formData.yearsInBusiness}
@@ -1636,7 +1610,7 @@ export default function QuoteFormPage() {
                       onChange={(e) => handleInputChange('yearsInBusiness', e.target.value)}
                       className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] focus:border-[#9A8B7A] text-sm"
                     />
-                  </div>
+                  </GridRow>
 
                   {/* <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
                   <label className="text-sm font-medium text-gray-900">Years of experience in the Trades for which you are applying for insurance</label>
@@ -2023,12 +1997,12 @@ export default function QuoteFormPage() {
             {/* Endorsements */}
 
             <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200">
-              <div className="bg-[#7A6F64] text-white px-6 py-3.5">
-                <h2 className="text-lg font-semibold">Endorsements</h2>
+              <div className="bg-[#7A6F64] text-white px-4 md:px-6 py-3.5">
+                <h2 className="text-base md:text-lg font-semibold">Endorsements</h2>
               </div>
 
 
-              <div className="space-y-3 px-8 pt-6 pb-7">
+              <div className="space-y-3 px-4 md:px-8 pt-6 pb-7">
 
                 <EndorsementCheckbox
                   label="Blanket Additional Insured"
@@ -2084,13 +2058,13 @@ export default function QuoteFormPage() {
 
             {/* Payment Options */}
             <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200">
-              <div className="bg-[#7A6F64] text-white px-6 py-3.5">
-                <h2 className="text-lg font-semibold">Payment Options</h2>
+              <div className="bg-[#7A6F64] text-white px-4 md:px-6 py-3.5">
+                <h2 className="text-base md:text-lg font-semibold">Payment Options</h2>
               </div>
-              <div className="px-8 pt-6 pb-7">
+              <div className="px-4 md:px-8 pt-6 pb-7">
 
                 <div className="space-y-6 mt-1">
-                  <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
+                  <div className="grid grid-cols-1 md:grid-cols-[200px_1fr_320px] gap-4 md:gap-x-6 items-center">
                     <label className="text-sm font-medium text-gray-900">Broker Fee</label>
                     <div></div>
                     <div className="relative">
@@ -2112,7 +2086,7 @@ export default function QuoteFormPage() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
+                  <div className="grid grid-cols-1 md:grid-cols-[200px_1fr_320px] gap-4 md:gap-x-6 items-center">
                     <label className="text-sm font-medium text-gray-900">Display Broker Fee Line on Retail Proposal?</label>
                     <div></div>
                     <div className="flex items-center gap-6">
@@ -2167,15 +2141,13 @@ export default function QuoteFormPage() {
 
             {/* Company Information */}
             <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200">
-              <div className="bg-[#7A6F64] text-white px-6 py-3.5">
-                <h2 className="text-lg font-semibold">Company Information</h2>
+              <div className="bg-[#7A6F64] text-white px-4 md:px-6 py-3.5">
+                <h2 className="text-base md:text-lg font-semibold">Company Information</h2>
               </div>
-              <div className="px-8 pt-6 pb-7">
+              <div className="px-4 md:px-8 pt-6 pb-7">
 
                 <div className="space-y-6 mt-1">
-                  <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
-                    <label className="text-sm font-medium text-gray-900">Do you hold a contractors license?</label>
-                    <div></div>
+                  <GridRow label="Do you hold a contractors license?" itemsCenter>
                     <div className="flex items-center gap-6">
                       <label className="flex items-center gap-2 cursor-pointer">
                         <input
@@ -2196,36 +2168,30 @@ export default function QuoteFormPage() {
                         <span className="text-sm text-gray-700">No</span>
                       </label>
                     </div>
-                  </div>
+                  </GridRow>
 
                   {formData.contractorsLicense && (
                     <>
-                      <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
-                        <label className="text-sm font-medium text-gray-900">License #</label>
-                        <div></div>
+                      <GridRow label="License #" itemsCenter>
                         <input
                           type="text"
                           value={formData.licenseNumber}
                           onChange={(e) => handleInputChange('licenseNumber', e.target.value)}
                           className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] text-sm"
                         />
-                      </div>
-                      <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
-                        <label className="text-sm font-medium text-gray-900">License Classification</label>
-                        <div></div>
+                      </GridRow>
+                      <GridRow label="License Classification" itemsCenter>
                         <input
                           type="text"
                           value={formData.licenseClassification}
                           onChange={(e) => handleInputChange('licenseClassification', e.target.value)}
                           className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] text-sm"
                         />
-                      </div>
+                      </GridRow>
                     </>
                   )}
 
-                  <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
-                    <label className="text-sm font-medium text-gray-900">DBA</label>
-                    <div></div>
+                  <GridRow label="DBA" itemsCenter>
                     <input
                       type="text"
                       value={formData.dba}
@@ -2233,33 +2199,27 @@ export default function QuoteFormPage() {
                       className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] text-sm"
                       placeholder="Doing Business As"
                     />
-                  </div>
+                  </GridRow>
 
-                  <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
-                    <label className="text-sm font-medium text-gray-900">First Name</label>
-                    <div></div>
+                  <GridRow label="First Name" itemsCenter>
                     <input
                       type="text"
                       value={formData.firstName}
                       onChange={(e) => handleInputChange('firstName', e.target.value)}
                       className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] text-sm"
                     />
-                  </div>
+                  </GridRow>
 
-                  <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
-                    <label className="text-sm font-medium text-gray-900">Last Name</label>
-                    <div></div>
+                  <GridRow label="Last Name" itemsCenter>
                     <input
                       type="text"
                       value={formData.lastName}
                       onChange={(e) => handleInputChange('lastName', e.target.value)}
                       className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] text-sm"
                     />
-                  </div>
+                  </GridRow>
 
-                  <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
-                    <label className="text-sm font-medium text-gray-900">Years of experience in the Trades for which you are applying for insurance</label>
-                    <div></div>
+                  <GridRow label="Years of experience in the Trades" itemsCenter>
                     <input
                       type="number"
                       value={formData.yearsOfExperienceTrade}
@@ -2267,11 +2227,9 @@ export default function QuoteFormPage() {
                       onChange={(e) => handleInputChange('yearsOfExperienceTrade', e.target.value)}
                       className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] focus:border-[#9A8B7A] text-sm"
                     />
-                  </div>
+                  </GridRow>
 
-                  <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
-                    <label className="text-sm font-medium text-gray-900">Entity of Company</label>
-                    <div></div>
+                  <GridRow label="Entity of Company" itemsCenter>
                     <select
                       value={formData.entityType}
                       onChange={(e) => handleInputChange('entityType', e.target.value)}
@@ -2283,7 +2241,7 @@ export default function QuoteFormPage() {
                       <option>LLC</option>
                       <option>Other</option>
                     </select>
-                  </div>
+                  </GridRow>
 
 
                   {/* <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-start">
@@ -2316,21 +2274,9 @@ export default function QuoteFormPage() {
                       maxLength={11}
                     />
 
-                    {validationErrors.ssn && (
-                      <div className="flex items-center gap-1 mt-1">
-                        <span className="text-red-600">⚠</span>
-                        <span className="text-sm text-red-600">
-                          {validationErrors.ssn}
-                        </span>
-                      </div>
                     )}
-                  </div>
-                </div> */}
-
-
-                  <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-start">
-                    <label className="text-sm font-medium text-gray-900 pt-2">Applicant Phone</label>
-                    <div></div>
+                  </div> */}
+                  <GridRow label="Applicant Phone" itemsCenter>
                     <div>
                       <input
                         type="tel"
@@ -2353,11 +2299,9 @@ export default function QuoteFormPage() {
                         </div>
                       )}
                     </div>
-                  </div>
+                  </GridRow>
 
-                  <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
-                    <label className="text-sm font-medium text-gray-900">Applicant Email</label>
-                    <div></div>
+                  <GridRow label="Applicant Email" itemsCenter>
                     <input
                       type="email"
                       value={formData.email}
@@ -2365,8 +2309,7 @@ export default function QuoteFormPage() {
                       className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] text-sm"
                       placeholder="insured@example.com"
                     />
-                  </div>
-
+                  </GridRow>
 
                 </div>
               </div>
@@ -2374,33 +2317,17 @@ export default function QuoteFormPage() {
 
             {/* Applicant Physical Location */}
             <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200">
-              <div className="bg-[#7A6F64] text-white px-6 py-3.5">
-                <h2 className="text-lg font-semibold">Applicant Physical Location</h2>
+              <div className="bg-[#7A6F64] text-white px-4 md:px-6 py-3.5">
+                <h2 className="text-base md:text-lg font-semibold">Applicant Physical Location</h2>
               </div>
-              <div className="px-8 pt-6 pb-7">
+              <div className="px-4 md:px-8 pt-6 pb-7">
 
                 {/* ROW 1 */}
-                <div className="grid grid-cols-2 gap-6 mb-7">
-
-                  {/* Address */}
-                  {/* <div>
-                    <label className="block text-sm font-medium text-gray-900 mb-3">
-                      Address
-                    </label>
-                    <input
-                      ref={addressInputRef}
-                      type="text"
-                      value={formData.streetAddress}
-                      onChange={(e) => handleInputChange('streetAddress', e.target.value)}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] text-sm"
-                      placeholder="Start typing address..."
-                      autoComplete="off"
-                    />
-                  </div> */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 md:mb-7">
 
                   {/* Address */}
                   <div className="relative">
-                    <label className="block text-sm font-medium text-gray-900 mb-3">
+                    <label className="block text-sm font-medium text-gray-900 mb-2 md:mb-3">
                       Address
                     </label>
                     <input
@@ -2442,7 +2369,7 @@ export default function QuoteFormPage() {
 
                   {/* Apt/Suite */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-900 mb-3">Apt/Suite</label>
+                    <label className="block text-sm font-medium text-gray-900 mb-2 md:mb-3">Apt/Suite</label>
                     <input
                       type="text"
                       value={formData.aptSuite}
@@ -2455,11 +2382,11 @@ export default function QuoteFormPage() {
                 </div>
 
                 {/* ROW 2 */}
-                <div className="grid grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
                   {/* City */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-900 mb-3">City</label>
+                    <label className="block text-sm font-medium text-gray-900 mb-2 md:mb-3">City</label>
                     <input
                       type="text"
                       value={formData.city}
@@ -2470,7 +2397,7 @@ export default function QuoteFormPage() {
 
                   {/* Zip */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-900 mb-3">Zip</label>
+                    <label className="block text-sm font-medium text-gray-900 mb-2 md:mb-3">Zip</label>
                     <input
                       type="text"
                       value={formData.zip}
@@ -2482,7 +2409,7 @@ export default function QuoteFormPage() {
 
                   {/* State */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-900 mb-3">State</label>
+                    <label className="block text-sm font-medium text-gray-900 mb-2 md:mb-3">State</label>
                     <select
                       value={formData.state}
                       onChange={(e) => handleInputChange("state", e.target.value)}
@@ -2516,7 +2443,7 @@ export default function QuoteFormPage() {
                   <div className="px-8 pt-6 pb-7 space-y-6">
 
                     {/* Header */}
-                    <div className="grid grid-cols-[200px_1fr_200px_200px] gap-x-6 text-sm font-semibold text-gray-900">
+                    <div className="hidden md:grid grid-cols-[100px_1fr_200px_200px] gap-x-6 text-sm font-semibold text-gray-900">
                       <div></div>
                       <div></div>
                       <div>Date of Loss</div>
@@ -2527,53 +2454,66 @@ export default function QuoteFormPage() {
                     {formData.generalLiabilityLosses.map((loss, index) => (
                       <div
                         key={index}
-                        className="grid grid-cols-[100px_1fr_200px_200px] gap-x-6 items-center"
+                        className="grid grid-cols-1 md:grid-cols-[100px_1fr_200px_200px] gap-4 md:gap-x-6 items-start md:items-center p-4 md:p-0 border md:border-0 border-gray-100 rounded-lg"
                       >
                         {/* Delete */}
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const updated = [...formData.generalLiabilityLosses];
-                            updated.splice(index, 1);
+                        <div className="flex justify-between items-center md:block">
+                          <span className="md:hidden text-xs font-semibold text-gray-500 uppercase tracking-wider">Action</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const updated = [...formData.generalLiabilityLosses];
+                              updated.splice(index, 1);
 
-                            handleInputChange("generalLiabilityLosses", updated);
+                              handleInputChange("generalLiabilityLosses", updated);
 
-                            // If no losses left, reset dropdown to 0
-                            if (updated.length === 0) {
-                              handleInputChange("lossesLast5Years", "0");
-                            }
-                          }}
-                          className="text-red-500 text-lg"
-                        >
-                          🗑
-                        </button>
+                              // If no losses left, reset dropdown to 0
+                              if (updated.length === 0) {
+                                handleInputChange("lossesLast5Years", "0");
+                              }
+                            }}
+                            className="text-red-500 text-lg"
+                          >
+                            🗑
+                          </button>
+                        </div>
 
-                        <div className="text-sm text-gray-900">
+                        <div className="text-sm text-gray-900 md:hidden font-medium">
+                          General Liability Loss #{index + 1}
+                        </div>
+
+                        <div className="hidden md:block text-sm text-gray-900">
                           General Liability Loss
                         </div>
 
-                        <input
-                          type="date"
-                          value={loss.dateOfLoss}
-                          onChange={(e) => {
-                            const updated = [...formData.generalLiabilityLosses];
-                            updated[index].dateOfLoss = e.target.value;
-                            handleInputChange("generalLiabilityLosses", updated);
-                          }}
-                          className="px-3 py-2 border border-gray-300 rounded text-sm"
-                        />
+                        <div>
+                          <span className="md:hidden text-xs font-semibold text-gray-500 block mb-1 uppercase tracking-wider">Date of Loss</span>
+                          <input
+                            type="date"
+                            value={loss.dateOfLoss}
+                            onChange={(e) => {
+                              const updated = [...formData.generalLiabilityLosses];
+                              updated[index].dateOfLoss = e.target.value;
+                              handleInputChange("generalLiabilityLosses", updated);
+                            }}
+                            className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
+                          />
+                        </div>
 
-                        <input
-                          type="text"
-                          placeholder="$0"
-                          value={loss.amountOfLoss}
-                          onChange={(e) => {
-                            const updated = [...formData.generalLiabilityLosses];
-                            updated[index].amountOfLoss = e.target.value;
-                            handleInputChange("generalLiabilityLosses", updated);
-                          }}
-                          className="px-3 py-2 border border-gray-300 rounded text-sm"
-                        />
+                        <div>
+                          <span className="md:hidden text-xs font-semibold text-gray-500 block mb-1 uppercase tracking-wider">Amount of Loss</span>
+                          <input
+                            type="text"
+                            placeholder="$0"
+                            value={loss.amountOfLoss}
+                            onChange={(e) => {
+                              const updated = [...formData.generalLiabilityLosses];
+                              updated[index].amountOfLoss = e.target.value;
+                              handleInputChange("generalLiabilityLosses", updated);
+                            }}
+                            className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
+                          />
+                        </div>
                       </div>
                     ))}
 
@@ -2601,20 +2541,20 @@ export default function QuoteFormPage() {
 
             {/* Type of Work Performed */}
             <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200">
-              <div className="bg-[#7A6F64] text-white px-6 py-3.5">
-                <h2 className="text-lg font-semibold">Type of Work Performed</h2>
+              <div className="bg-[#7A6F64] text-white px-4 md:px-6 py-3.5">
+                <h2 className="text-base md:text-lg font-semibold">Type of Work Performed</h2>
               </div>
-              <div className="px-8 pt-6 pb-7">
+              <div className="px-4 md:px-8 pt-6 pb-7">
 
                 <div className="space-y-7 mt-1">
 
                   {/* % New Construction */}
-                  <div className="grid grid-cols-[1fr_120px] items-center gap-x-6">
+                  <div className="grid grid-cols-1 md:grid-cols-[1fr_120px] items-start md:items-center gap-2 md:gap-x-6">
                     <label className="text-sm font-medium text-gray-900">
                       Percentage of work performed on New Construction Projects
                     </label>
 
-                    <div className="flex justify-end">
+                    <div className="flex justify-start md:justify-end">
                       <div className="flex items-center gap-2">
                         <input
                           type="text"
@@ -2631,7 +2571,7 @@ export default function QuoteFormPage() {
                               (100 - num).toString()
                             );
                           }}
-                          className="w-[90px] px-3 py-2 border border-gray-300 rounded text-sm text-right focus:ring-1 focus:ring-[#9A8B7A]"
+                          className="w-full md:w-[90px] px-3 py-2 border border-gray-300 rounded text-sm text-left md:text-right focus:ring-1 focus:ring-[#9A8B7A]"
                         />
                         <span className="text-sm text-gray-600">%</span>
                       </div>
@@ -3853,32 +3793,35 @@ export default function QuoteFormPage() {
                 {/* Submit Button */}
                 {/* Submit / Update Button */}
                 {!isViewMode && (
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="px-8 py-3 bg-[#A79A87] text-black rounded-md font-semibold hover:bg-[#8F8371]  active:bg-[#7A6F60]  transition-all duration-200     disabled:opacity-50 flex items-center gap-2"     >
-                    {isSubmitting ? (
-                      <>
-                        <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
-                        {isEditMode ? "Updating..." : "Submitting..."}
-                      </>
-                    ) : (
-                      <>
-                        {isEditMode ? (
-                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                              d="M11 5h2m-1-1v2m-6 4h12M5 12h14M5 16h14M5 20h14" />
-                          </svg>
-                        ) : (
-                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                        )}
-                        {isEditMode ? "Update Application" : "Submit Application"}
-                      </>
-                    )}
-                  </button>
+                  <div className="flex justify-center md:justify-start pt-6">
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="w-full md:w-auto px-8 py-4 md:py-3 bg-[#A79A87] text-black rounded-md font-semibold hover:bg-[#8F8371] active:bg-[#7A6F60] transition-all duration-200 disabled:opacity-50 flex items-center justify-center gap-2 text-lg md:text-base"
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
+                          {isEditMode ? "Updating..." : "Submitting..."}
+                        </>
+                      ) : (
+                        <>
+                          {isEditMode ? (
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                d="M11 5h2m-1-1v2m-6 4h12M5 12h14M5 16h14M5 20h14" />
+                            </svg>
+                          ) : (
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                          )}
+                          {isEditMode ? "Update Application" : "Submit Application"}
+                        </>
+                      )}
+                    </button>
+                  </div>
                 )}
               </div>
             </div>
@@ -3888,21 +3831,21 @@ export default function QuoteFormPage() {
         {/* Quote Result */}
         {calculatedPremium && quoteId && (
           <div id="quote-result" className="mt-8 bg-white rounded-lg shadow-lg overflow-hidden">
-            <div className="bg-[#7A6F64] text-white px-6 py-3.5">
-              <h2 className="text-lg font-semibold">Quote Summary</h2>
+            <div className="bg-[#7A6F64] text-white px-4 md:px-6 py-3.5">
+              <h2 className="text-base md:text-lg font-semibold">Quote Summary</h2>
             </div>
-            <div className="px-8 pt-6 pb-7">
+            <div className="px-4 md:px-8 pt-6 pb-7">
 
-              <div className="bg-gradient-to-br from-[#9A8B7A] to-[#0097A7] rounded-2xl p-8 text-center text-white shadow-2xl mb-6">
-                <p className="text-lg font-semibold mb-2 opacity-90">As Low As</p>
-                <p className="text-6xl font-bold mb-2">${calculatedPremium.toLocaleString()}</p>
-                <p className="text-sm opacity-75">per year</p>
+              <div className="bg-gradient-to-br from-[#9A8B7A] to-[#0097A7] rounded-2xl p-6 md:p-8 text-center text-white shadow-2xl mb-6">
+                <p className="text-base md:text-lg font-semibold mb-2 opacity-90">As Low As</p>
+                <p className="text-4xl md:text-6xl font-bold mb-2">${calculatedPremium.toLocaleString()}</p>
+                <p className="text-xs md:text-sm opacity-75">per year</p>
               </div>
 
-              <div className="flex gap-4">
+              <div className="flex flex-col md:flex-row gap-4">
                 <button
                   onClick={handleDownloadPDF}
-                  className="flex-1 py-4 border-2 border-[#9A8B7A] text-[#9A8B7A] rounded font-semibold hover:bg-[#9A8B7A]/5 flex items-center justify-center gap-2"
+                  className="w-full md:flex-1 py-4 border-2 border-[#9A8B7A] text-[#9A8B7A] rounded font-semibold hover:bg-[#9A8B7A]/5 flex items-center justify-center gap-2"
                 >
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -3911,7 +3854,7 @@ export default function QuoteFormPage() {
                 </button>
                 <button
                   onClick={handleEmailQuote}
-                  className="flex-1 py-4 bg-gradient-to-r from-[#9A8B7A] to-[#0097A7] text-white rounded font-semibold hover:shadow-lg flex items-center justify-center gap-2"
+                  className="w-full md:flex-1 py-4 bg-gradient-to-r from-[#9A8B7A] to-[#0097A7] text-white rounded font-semibold hover:shadow-lg flex items-center justify-center gap-2"
                 >
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -3925,10 +3868,10 @@ export default function QuoteFormPage() {
       </div>
 
       {/* Completion Percentage Indicator - Fixed Bottom Right */}
-      <div className="fixed bottom-8 right-8 z-50">
+      <div className="fixed bottom-4 right-4 md:bottom-8 md:right-8 z-50">
         <div className="relative">
           {/* Circular Progress */}
-          <svg className="w-20 h-20 transform -rotate-90">
+          <svg className="w-16 h-16 md:w-20 md:h-20 transform -rotate-90">
             <circle
               cx="40"
               cy="40"
@@ -3965,6 +3908,6 @@ export default function QuoteFormPage() {
           </div>
         </div>
       </div>
-    </div >
+    </div>
   );
 }

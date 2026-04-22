@@ -376,7 +376,7 @@ function SubmitFormContent() {
     <div className="min-h-screen bg-[#f5f1eb]">
       {/* Premium Header */}
       <header className="bg-white/80 backdrop-blur-xl border-b border-gray-200/60 sticky top-0 z-50 shadow-sm">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <Link href="/agency/dashboard" className="flex items-center gap-3 group">
               <div className="relative">
@@ -401,7 +401,7 @@ function SubmitFormContent() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-6xl mx-auto px-6 lg:px-8 py-12">
+      <main className="max-w-6xl mx-auto px-4 md:px-6 lg:px-8 py-6 md:py-12">
         {/* Breadcrumb */}
         <div className="mb-8">
           <Link href="/agency/submit" className="inline-flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors group">
@@ -413,8 +413,8 @@ function SubmitFormContent() {
         </div>
 
         {/* Progress Steps */}
-        <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl border border-indigo-100 px-8 py-6 mb-10">
-          <div className="flex items-center justify-between max-w-2xl mx-auto">
+        <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl border border-indigo-100 px-4 md:px-8 py-4 md:py-6 mb-10">
+          <div className="flex flex-col sm:flex-row items-center justify-between max-w-2xl mx-auto gap-4 sm:gap-0">
             <div className="flex items-center gap-3 opacity-50">
               <div className="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center text-white font-bold shadow-lg">
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -426,7 +426,7 @@ function SubmitFormContent() {
                 <p className="text-xs text-gray-600">{template?.industry} - {template?.subtype}</p>
               </div>
             </div>
-            <div className="flex-1 h-px bg-gray-300 mx-4"></div>
+            <div className="hidden sm:block flex-1 h-px bg-gray-300 mx-4"></div>
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-gradient-to-br from-indigo-600 to-indigo-700 rounded-full flex items-center justify-center text-white font-bold shadow-lg animate-pulse-subtle">
                 2
@@ -447,11 +447,11 @@ function SubmitFormContent() {
                 Edit Mode
               </span>
             )}
-            <h1 className="text-4xl font-bold text-gray-900 tracking-tight">
+            <h1 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tight">
               {isEditMode ? "Edit Application" : template?.title || "Application Form"}
             </h1>
           </div>
-          {template?.description && <p className="text-lg text-gray-600">{template.description}</p>}
+          {template?.description && <p className="text-base md:text-lg text-gray-600">{template.description}</p>}
           {isEditMode && existingSubmission && (
             <p className="text-sm text-gray-500 mt-2">
               Submission ID: {existingSubmission.submissionId || existingSubmission._id.slice(-8)}
@@ -460,7 +460,7 @@ function SubmitFormContent() {
         </div>
 
         {/* Client Contact Information */}
-        <div className="bg-white rounded-2xl border-2 border-gray-200 shadow-lg p-8 mb-8">
+        <div className="bg-white rounded-2xl border-2 border-gray-200 shadow-lg p-4 md:p-8 mb-8">
           <div className="flex items-center gap-3 mb-6 pb-6 border-b border-gray-200">
             <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-cyan-600 rounded-xl flex items-center justify-center shadow-lg">
               <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -598,7 +598,7 @@ function SubmitFormContent() {
 
         {/* CCPA Consent */}
         {isCAOperations && (
-          <div className="mb-8 p-6 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-2xl border-2 border-blue-200 relative overflow-hidden">
+          <div className="mb-8 p-4 md:p-6 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-2xl border-2 border-blue-200 relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-blue-200/30 to-transparent rounded-full -mr-16 -mt-16"></div>
             <label className="relative flex items-start gap-4 cursor-pointer">
               <input type="checkbox" checked={ccpaConsent} onChange={(e) => setCcpaConsent(e.target.checked)} required={isCAOperations} className="w-6 h-6 text-indigo-600 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:ring-offset-0 transition cursor-pointer mt-1" />
@@ -620,7 +620,7 @@ function SubmitFormContent() {
 
         {/* Dynamic Form */}
         {template && template.fields && (
-          <div className="bg-white rounded-2xl border-2 border-gray-200 shadow-lg p-8 mb-8">
+          <div className="bg-white rounded-2xl border-2 border-gray-200 shadow-lg p-4 md:p-8 mb-8">
             <div className="flex items-center gap-3 mb-6 pb-6 border-b border-gray-200">
               <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
                 <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
