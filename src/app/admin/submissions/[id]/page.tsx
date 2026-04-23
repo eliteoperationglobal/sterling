@@ -16,6 +16,9 @@ import {
   UserPlus,
   Copy,
   Share2,
+  Upload,
+  File as FileIcon,
+  X as CloseIcon,
   MessageSquare,
   Send,
   Clock,
@@ -251,6 +254,7 @@ export default function AdminSubmissionDetailsPage() {
   const [noteFilters, setNoteFilters] = useState<string[]>(["Underwriter"]);
   const [checkedDocs, setCheckedDocs] = useState<Record<string, boolean>>({});
   const [uploading, setUploading] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [ratingData, setRatingData] = useState<any>(null);
@@ -1011,13 +1015,59 @@ export default function AdminSubmissionDetailsPage() {
           {/* LEFT – UPLOADED DOCUMENTS */}
           <div className="lg:col-span-2">
             <h3 className="text-[15px] font-semibold text-gray-900 mb-4">Uploaded Documents</h3>
-            <label className="border border-dashed border-gray-300 rounded-md p-6 flex items-center justify-between mb-6 cursor-pointer">
-              <p className="text-[14px] text-gray-500">Drag and drop your files here to start uploading or</p>
-              <input type="file" hidden onChange={(e) => { if (e.target.files?.[0]) { handleFileUpload(e.target.files[0]); } }} />
-              <span className="ml-4 px-5 py-2 bg-[#9A8B7A] hover:bg-[#7A6F64] text-white text-[14px] font-medium rounded-md transition-colors">
-                {uploading ? "Uploading..." : "Browse"}
-              </span>
-            </label>
+            {/* Upload Box */}
+            <div
+              onDragOver={(e) => {
+                e.preventDefault();
+                setIsDragging(true);
+              }}
+              onDragLeave={() => setIsDragging(false)}
+              onDrop={(e) => {
+                e.preventDefault();
+                setIsDragging(false);
+                const file = e.dataTransfer.files?.[0];
+                if (file) {
+                  handleFileUpload(file);
+                }
+              }}
+              className={`relative group cursor-pointer transition-all duration-300 ${isDragging 
+                ? "border-[#9A8B7A] bg-[#9A8B7A]/5" 
+                : "border-gray-200 hover:border-[#9A8B7A] bg-gray-50 hover:bg-white"
+              } border-2 border-dashed rounded-xl p-8 text-center mb-6`}
+              onClick={() => document.getElementById('admin-file-upload')?.click()}
+            >
+              <input
+                id="admin-file-upload"
+                type="file"
+                className="hidden"
+                onChange={(e) => {
+                  if (e.target.files?.[0]) {
+                    handleFileUpload(e.target.files[0]);
+                  }
+                }}
+              />
+              <div className="flex flex-col items-center gap-3">
+                <div className={`w-14 h-14 rounded-full flex items-center justify-center transition-all duration-300 ${isDragging ? "bg-[#9A8B7A] text-white scale-110 shadow-lg" : "bg-white text-[#9A8B7A] shadow-sm group-hover:shadow-md"}`}>
+                  <Upload className={`w-7 h-7 ${isDragging ? "animate-bounce" : "group-hover:scale-110 transition-transform"}`} />
+                </div>
+                <div>
+                  <p className="text-[15px] font-bold text-gray-900">
+                    {uploading ? "Uploading document..." : "Click or drag files here to upload"}
+                  </p>
+                  <p className="text-[13px] text-gray-500 font-medium mt-1">
+                    Support for PDF, DOC, ZIP up to 10MB
+                  </p>
+                </div>
+              </div>
+              {uploading && (
+                <div className="absolute inset-0 bg-white/60 backdrop-blur-[1px] flex items-center justify-center rounded-xl z-10">
+                  <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-lg border border-gray-100">
+                    <div className="w-4 h-4 border-2 border-[#9A8B7A]/30 border-t-[#9A8B7A] rounded-full animate-spin" />
+                    <span className="text-xs font-bold text-[#9A8B7A]">Uploading...</span>
+                  </div>
+                </div>
+              )}
+            </div>
             <div className="bg-gray-100 px-4 py-2 grid grid-cols-3 text-[13px] font-medium text-gray-600">
               <span>Filename</span>
               <span>Uploaded On</span>

@@ -1331,7 +1331,10 @@ export default function QuoteFormPage() {
     <div className="min-h-screen bg-gray-50">
       {/* Top Bar */}
       <div className="bg-[#2F3338] text-white px-4 md:px-6 py-3 flex flex-wrap items-center justify-between gap-2">
-        <Link href="/agency/marketplace" className="flex items-center gap-2 text-gray-300 hover:text-white">
+        <Link 
+          href={submissionId ? `/agency/submissions/${submissionId}` : "/agency/marketplace"} 
+          className="flex items-center gap-2 text-gray-300 hover:text-white"
+        >
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
@@ -3758,22 +3761,22 @@ export default function QuoteFormPage() {
 
 
 
-            {/* Submit Button */}
-            <div className="flex justify-between items-center pt-6">
+            {/* Bottom Buttons */}
+            <div className="flex flex-col md:flex-row justify-between items-center gap-4 pt-10">
               <Link
                 href="/agency/dashboard"
                 className="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded font-semibold hover:bg-gray-50"
               >
                 Return to Dashboard
               </Link>
-              <div className="flex items-center gap-3">
+              
+              <div className="flex flex-col md:flex-row items-center gap-3">
                 {/* Download PDF Button */}
                 <button
                   type="button"
                   onClick={handleDownloadApplicationPDF}
                   disabled={isSubmitting || isDownloadingPDF}
                   className="px-6 py-3 bg-white border-2 border-gray-300 text-gray-700 rounded font-semibold hover:bg-gray-50 disabled:opacity-50 flex items-center gap-2 shadow-sm hover:shadow-md transition-shadow"
-                  title="Download Application PDF"
                 >
                   {isDownloadingPDF ? (
                     <>
@@ -3790,38 +3793,27 @@ export default function QuoteFormPage() {
                   )}
                 </button>
 
-                {/* Submit Button */}
                 {/* Submit / Update Button */}
                 {!isViewMode && (
-                  <div className="flex justify-center md:justify-start pt-6">
-                    <button
-                      type="submit"
-                      disabled={isSubmitting}
-                      className="w-full md:w-auto px-8 py-4 md:py-3 bg-[#A79A87] text-black rounded-md font-semibold hover:bg-[#8F8371] active:bg-[#7A6F60] transition-all duration-200 disabled:opacity-50 flex items-center justify-center gap-2 text-lg md:text-base"
-                    >
-                      {isSubmitting ? (
-                        <>
-                          <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
-                          {isEditMode ? "Updating..." : "Submitting..."}
-                        </>
-                      ) : (
-                        <>
-                          {isEditMode ? (
-                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                                d="M11 5h2m-1-1v2m-6 4h12M5 12h14M5 16h14M5 20h14" />
-                            </svg>
-                          ) : (
-                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                          )}
-                          {isEditMode ? "Update Application" : "Submit Application"}
-                        </>
-                      )}
-                    </button>
-                  </div>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="w-full md:w-auto px-8 py-4 md:py-3 bg-[#A79A87] text-black rounded-md font-semibold hover:bg-[#8F8371] active:bg-[#7A6F60] transition-all duration-200 disabled:opacity-50 flex items-center justify-center gap-2 text-lg md:text-base"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
+                        {isEditMode ? "Updating..." : "Submitting..."}
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        {isEditMode ? "Update Application" : "Submit Application"}
+                      </>
+                    )}
+                  </button>
                 )}
               </div>
             </div>

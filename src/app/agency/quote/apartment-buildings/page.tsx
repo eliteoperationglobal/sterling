@@ -232,7 +232,7 @@ function ApartmentBuildingsContent() {
 
         percentageElderly: "",
         hasMultipleBuildings: null as boolean | null,
-        subjectsOfInsurance: [{ subject: "", limit: "" }] as { subject: string, limit: string }[],
+        subjectsOfInsurance: [{ subject: "", limit: "" }] as { subject: string, limit: string, coinsurance?: string, valuation?: string, causesOfLoss?: string, deductible?: string, deductibleType?: string }[],
         propertyLimit: "",
         propertyCoinsurance: "",
         propertyValuation: "",
@@ -465,7 +465,7 @@ function ApartmentBuildingsContent() {
         }));
     };
 
-    const updateSubjectOfInsurance = (index: number, field: "subject" | "limit", value: string) => {
+    const updateSubjectOfInsurance = (index: number, field: "subject" | "limit" | "coinsurance" | "valuation" | "causesOfLoss" | "deductible" | "deductibleType", value: string) => {
         setFormData((prev: any) => {
             const newSubjects = [...prev.subjectsOfInsurance];
             newSubjects[index] = { ...newSubjects[index], [field]: value };
@@ -1124,63 +1124,127 @@ function ApartmentBuildingsContent() {
                 ))}
                 {renderSection("Coverage Details", (
                     <>
-                        <GridRow label="Coinsurance (%)">
-                            <select
-                                value={formData.propertyCoinsurance}
-                                onChange={(e) => handleInputChange("propertyCoinsurance", e.target.value)}
-                                className="w-full px-4 py-2 border border-gray-300 rounded focus:ring-[#9A8B7A] text-sm"
-                            >
-                                <option value="" disabled hidden>Select Coinsurance</option>
-                                <option value="80%">80%</option>
-                                <option value="90%">90%</option>
-                                <option value="100%">100%</option>
-                            </select>
-                        </GridRow>
 
-                        <GridRow label="Valuation">
-                            <select
-                                value={formData.propertyValuation}
-                                onChange={(e) => handleInputChange("propertyValuation", e.target.value)}
-                                className="w-full px-4 py-2 border border-gray-300 rounded focus:ring-[#9A8B7A] text-sm"
-                            >
-                                <option value="" disabled hidden>Select Valuation</option>
-                                <option value="Replacement Cost (RC)">Replacement Cost (RC)</option>
-                                <option value="Actual Cash Value (ACV)">Actual Cash Value (ACV)</option>
-                            </select>
-                        </GridRow>
-
-                        <GridRow label="Causes of Loss">
-                            <select
-                                value={formData.propertyCausesOfLoss}
-                                onChange={(e) => handleInputChange("propertyCausesOfLoss", e.target.value)}
-                                className="w-full px-4 py-2 border border-gray-300 rounded focus:ring-[#9A8B7A] text-sm"
-                            >
-                                <option value="" disabled hidden>Select Causes of Loss</option>
-                                <option value="Basic">Basic</option>
-                                <option value="Broad">Broad</option>
-                                <option value="Special (All Risk)">Special (All Risk)</option>
-                            </select>
-                        </GridRow>
-
-                        <GridRow label="Deductible ($)">
-                            <div className="flex items-center justify-end gap-2">
-                                <span className="text-gray-500 text-sm">$</span>
-                                <input type="text" value={formData.propertyDeductible} onChange={(e) => handleInputChange("propertyDeductible", e.target.value.replace(/\D/g, ''))} className="w-full px-4 py-2 border border-gray-300 rounded text-sm focus:ring-[#9A8B7A]" />
+                        <GridRow label="Are there multiple buildings or structures?">
+                            <div className="pt-2">
+                                <YesNoRadio value={formData.hasMultipleBuildings} onChange={(v) => handleInputChange("hasMultipleBuildings", v)} />
                             </div>
                         </GridRow>
 
-                        <GridRow label="Deductible Type">
-                            <select
-                                value={formData.propertyDeductibleType}
-                                onChange={(e) => handleInputChange("propertyDeductibleType", e.target.value)}
-                                className="w-full px-4 py-2 border border-gray-300 rounded focus:ring-[#9A8B7A] text-sm"
-                            >
-                                <option value="" disabled hidden>Select Deductible Type</option>
-                                <option value="Per Occurrence">Per Occurrence</option>
-                                <option value="Per Claim">Per Claim</option>
-                                <option value="All Other Perils (AOP)">All Other Perils (AOP)</option>
-                            </select>
-                        </GridRow>
+                        {formData.hasMultipleBuildings === true && (
+                            <div className="space-y-6 pt-4">
+                                {formData.subjectsOfInsurance.map((item, index) => (
+                                    <div key={index} className="space-y-4 bg-gray-50/30 p-4 rounded-lg border border-gray-200 relative group animate-in fade-in slide-in-from-top-2 duration-300">
+                                        <GridRow label={index === 0 ? "Subject of Insurance" : `Subject of Insurance ${index + 1}`}>
+                                            <div className="flex items-center gap-2">
+                                                <select
+                                                    value={item.subject}
+                                                    onChange={(e) => updateSubjectOfInsurance(index, "subject", e.target.value)}
+                                                    className="flex-1 px-4 py-2 border border-gray-300 rounded focus:ring-[#9A8B7A] text-sm"
+                                                >
+                                                    <option value="" disabled hidden>Select Subject</option>
+                                                    <option value="Building">Building</option>
+                                                    <option value="Business Personal Property (BPP)">Business Personal Property (BPP)</option>
+                                                    <option value="Business Income">Business Income</option>
+                                                </select>
+                                                {formData.subjectsOfInsurance.length > 1 && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => removeSubjectOfInsurance(index)}
+                                                        className="p-2 text-red-500 hover:bg-red-50 rounded-full transition-colors"
+                                                        title="Remove Subject"
+                                                    >
+                                                        <Trash2 size={18} />
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </GridRow>
+                                        <GridRow label="Limit ($)">
+                                            <div className="flex items-center justify-end gap-2">
+                                                <span className="text-gray-500 text-sm">$</span>
+                                                <input
+                                                    type="text"
+                                                    value={item.limit}
+                                                    onChange={(e) => updateSubjectOfInsurance(index, "limit", e.target.value.replace(/\D/g, ''))}
+                                                    className="w-full px-4 py-2 border border-gray-300 rounded text-sm focus:ring-[#9A8B7A]"
+                                                    placeholder="Enter Limit"
+                                                />
+                                            </div>
+                                        </GridRow>
+
+                                        <GridRow label="Coinsurance (%)">
+                                            <select
+                                                value={item.coinsurance || formData.propertyCoinsurance || ""}
+                                                onChange={(e) => updateSubjectOfInsurance(index, "coinsurance", e.target.value)}
+                                                className="w-full px-4 py-2 border border-gray-300 rounded focus:ring-[#9A8B7A] text-sm"
+                                            >
+                                                <option value="" disabled hidden>Select Coinsurance</option>
+                                                <option value="80%">80%</option>
+                                                <option value="90%">90%</option>
+                                                <option value="100%">100%</option>
+                                            </select>
+                                        </GridRow>
+
+                                        <GridRow label="Valuation">
+                                            <select
+                                                value={item.valuation || formData.propertyValuation || ""}
+                                                onChange={(e) => updateSubjectOfInsurance(index, "valuation", e.target.value)}
+                                                className="w-full px-4 py-2 border border-gray-300 rounded focus:ring-[#9A8B7A] text-sm"
+                                            >
+                                                <option value="" disabled hidden>Select Valuation</option>
+                                                <option value="Replacement Cost (RC)">Replacement Cost (RC)</option>
+                                                <option value="Actual Cash Value (ACV)">Actual Cash Value (ACV)</option>
+                                            </select>
+                                        </GridRow>
+
+                                        <GridRow label="Causes of Loss">
+                                            <select
+                                                value={item.causesOfLoss || formData.propertyCausesOfLoss || ""}
+                                                onChange={(e) => updateSubjectOfInsurance(index, "causesOfLoss", e.target.value)}
+                                                className="w-full px-4 py-2 border border-gray-300 rounded focus:ring-[#9A8B7A] text-sm"
+                                            >
+                                                <option value="" disabled hidden>Select Causes of Loss</option>
+                                                <option value="Basic">Basic</option>
+                                                <option value="Broad">Broad</option>
+                                                <option value="Special (All Risk)">Special (All Risk)</option>
+                                            </select>
+                                        </GridRow>
+
+                                        <GridRow label="Deductible ($)">
+                                            <div className="flex items-center justify-end gap-2">
+                                                <span className="text-gray-500 text-sm">$</span>
+                                                <input type="text" value={item.deductible || formData.propertyDeductible || ""} onChange={(e) => updateSubjectOfInsurance(index, "deductible", e.target.value.replace(/\D/g, ''))} className="w-full px-4 py-2 border border-gray-300 rounded text-sm focus:ring-[#9A8B7A]" />
+                                            </div>
+                                        </GridRow>
+
+                                        <GridRow label="Deductible Type">
+                                            <select
+                                                value={item.deductibleType || formData.propertyDeductibleType || ""}
+                                                onChange={(e) => updateSubjectOfInsurance(index, "deductibleType", e.target.value)}
+                                                className="w-full px-4 py-2 border border-gray-300 rounded focus:ring-[#9A8B7A] text-sm"
+                                            >
+                                                <option value="" disabled hidden>Select Deductible Type</option>
+                                                <option value="Per Occurrence">Per Occurrence</option>
+                                                <option value="Per Claim">Per Claim</option>
+                                                <option value="All Other Perils (AOP)">All Other Perils (AOP)</option>
+                                            </select>
+                                        </GridRow>
+                                    </div>
+                                ))}
+
+                                <GridRow label="">
+                                    <button
+                                        type="button"
+                                        onClick={addSubjectOfInsurance}
+                                        className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-[#9A8B7A] hover:bg-[#8A7B6A] rounded transition-colors w-fit shadow-sm"
+                                    >
+                                        <Plus size={16} />
+                                        Add Subject
+                                    </button>
+                                </GridRow>
+                            </div>
+                        )}
+
 
                     </>
                 ))}
@@ -1375,72 +1439,7 @@ function ApartmentBuildingsContent() {
                         </LongGridRow>
                     </>
                 ))}
-                {renderSection("Property Details", (
-                    <>
-                        <GridRow label="Are there multiple buildings or structures?">
-                            <div className="pt-2">
-                                <YesNoRadio value={formData.hasMultipleBuildings} onChange={(v) => handleInputChange("hasMultipleBuildings", v)} />
-                            </div>
-                        </GridRow>
 
-                        {formData.hasMultipleBuildings === true && (
-                            <div className="space-y-6 pt-4">
-                                {formData.subjectsOfInsurance.map((item, index) => (
-                                    <div key={index} className="space-y-4 bg-gray-50/30 p-4 rounded-lg border border-gray-100 relative group animate-in fade-in slide-in-from-top-2 duration-300">
-                                        <GridRow label={index === 0 ? "Subject of Insurance" : `Subject of Insurance ${index + 1}`}>
-                                            <div className="flex items-center gap-2">
-                                                <select
-                                                    value={item.subject}
-                                                    onChange={(e) => updateSubjectOfInsurance(index, "subject", e.target.value)}
-                                                    className="flex-1 px-4 py-2 border border-gray-300 rounded focus:ring-[#9A8B7A] text-sm"
-                                                >
-                                                    <option value="" disabled hidden>Select Subject</option>
-                                                    <option value="Building">Building</option>
-                                                    <option value="Business Personal Property (BPP)">Business Personal Property (BPP)</option>
-                                                    <option value="Business Income">Business Income</option>
-                                                </select>
-                                                {formData.subjectsOfInsurance.length > 1 && (
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => removeSubjectOfInsurance(index)}
-                                                        className="p-2 text-red-500 hover:bg-red-50 rounded-full transition-colors"
-                                                        title="Remove Subject"
-                                                    >
-                                                        <Trash2 size={18} />
-                                                    </button>
-                                                )}
-                                            </div>
-                                        </GridRow>
-                                        <GridRow label="Limit ($)">
-                                            <div className="flex items-center justify-end gap-2">
-                                                <span className="text-gray-500 text-sm">$</span>
-                                                <input
-                                                    type="text"
-                                                    value={item.limit}
-                                                    onChange={(e) => updateSubjectOfInsurance(index, "limit", e.target.value.replace(/\D/g, ''))}
-                                                    className="w-full px-4 py-2 border border-gray-300 rounded text-sm focus:ring-[#9A8B7A]"
-                                                    placeholder="Enter Limit"
-                                                />
-                                            </div>
-                                        </GridRow>
-                                    </div>
-                                ))}
-
-                                <GridRow label="">
-                                    <button
-                                        type="button"
-                                        onClick={addSubjectOfInsurance}
-                                        className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-[#9A8B7A] hover:bg-[#8A7B6A] rounded transition-colors w-fit shadow-sm"
-                                    >
-                                        <Plus size={16} />
-                                        Add Subject
-                                    </button>
-                                </GridRow>
-                            </div>
-                        )}
-
-                    </>
-                ))}
 
                 {/* Continue Actions */}
                 <div className="flex justify-end pt-4">

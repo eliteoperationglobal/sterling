@@ -12,6 +12,9 @@ import {
   UserPlus,
   Copy,
   Share2,
+  Upload,
+  File as FileIcon,
+  X as CloseIcon,
 } from "lucide-react";
 
 import { useState, useEffect, Suspense, useRef, useMemo } from "react";
@@ -183,6 +186,7 @@ function SubmissionDetailsContent() {
   const [availablePolicies, setAvailablePolicies] = useState<string[]>(["GENERAL_LIABILITY"]);
   const [checkedDocs, setCheckedDocs] = useState<Record<string, boolean>>({});
   const [uploading, setUploading] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
 
   const [selectedQuote, setSelectedQuote] = useState<any>(null);
   const [ratingLoading, setRatingLoading] = useState(false);
@@ -223,26 +227,44 @@ function SubmissionDetailsContent() {
   }, [carrierGroups, selectedCarrierId, data?.quotes]);
 
   const currentRoundTotal = useMemo(() => {
-    if (!carrierGroups.length) return 0;
+    if (!data?.quotes?.length) return 0;
+
+    // IF BOUND: Show the sum of ALL policies that are actually bound (across all carriers)
+    if (data?.submission?.status === "BOUND") {
+      return data.quotes
+        .filter((q: any) => q.status === "BOUND")
+        .reduce((sum: number, q: any) => sum + (q.finalAmountUSD || 0), 0);
+    }
+
+    // OTHERWISE (Comparison Mode): Show total for the currently selected carrier
     const group = carrierGroups.find(g => g.carrierId === selectedCarrierId) || carrierGroups[0];
     if (!group) return 0;
     return group.quotes.reduce((sum: number, q: any) => sum + (q.finalAmountUSD || 0), 0);
-  }, [carrierGroups, selectedCarrierId]);
+  }, [data, carrierGroups, selectedCarrierId]);
 
   const currentQuote: SubmissionDetails["quotes"][0] | null = useMemo(() => {
-    if (!carrierGroups.length) return null;
+    if (!data?.quotes?.length) return null;
 
+    // IF BOUND: Find the ACTUAL bound quote for this policy type across ALL carriers
+    if (data?.submission?.status === "BOUND") {
+      const boundQuoteForType = data.quotes.find((q: any) =>
+        q.status === "BOUND" &&
+        (q.policyType === currentPolicyType || (!q.policyType && currentPolicyType === "GENERAL_LIABILITY"))
+      );
+      if (boundQuoteForType) return boundQuoteForType;
+    }
+
+    // OTHERWISE (Comparison Mode): Isolate lookup to selected carrier group only
     const group = carrierGroups.find(g => g.carrierId === selectedCarrierId) || carrierGroups[0];
     if (!group) return null;
 
-    // Isolate lookup to selected group only
     const policyQuote = group.quotes.find((q: any) =>
       q.policyType === currentPolicyType ||
       (!q.policyType && currentPolicyType === "GENERAL_LIABILITY")
     );
 
     return policyQuote || null;
-  }, [carrierGroups, selectedCarrierId, currentPolicyType]);
+  }, [data, carrierGroups, selectedCarrierId, currentPolicyType]);
 
   useEffect(() => {
     if (fetchResult?.activityLogs) {
@@ -251,25 +273,33 @@ function SubmissionDetailsContent() {
   }, [fetchResult?.activityLogs]);
 
   useEffect(() => {
-    if (data?.quotes && carrierGroups.length > 0) {
-      const activeGroupId = selectedCarrierId || carrierGroups[0].carrierId;
-      const group = carrierGroups.find(g => g.carrierId === activeGroupId);
-      
-      if (group) {
-        let types = Array.from(new Set(group.quotes.map((q: any) => q.policyType || "GENERAL_LIABILITY")));
-        
-        // Fix the "jumping buttons" issue by ensuring a consistent order
-        types.sort((a, b) => (a === "GENERAL_LIABILITY" ? -1 : 1));
-        
-        setAvailablePolicies(types as string[]);
-        
-        // Auto-switch if current policy type is not in the new carrier's available list
-        if (types.length > 0 && !types.includes(currentPolicyType)) {
-          setCurrentPolicyType(types[0] as any);
-        }
-      }
+    // Derive available policies from BOTH existing quotes AND the form payload
+    const avails = new Set<string>(["GENERAL_LIABILITY"]);
+
+    // Add policies that have actual quotes in the DB (from ANY carrier)
+    if (data?.quotes?.length) {
+      data.quotes.forEach((q: any) => {
+        avails.add(q.policyType || "GENERAL_LIABILITY");
+      });
     }
-  }, [data, selectedCarrierId, carrierGroups]);
+
+    // Also add XS if the application requested it (even before quote is entered)
+    if (data?.submission?.payload?.addExcessLiability) {
+      avails.add("EXCESS_LIABILITY");
+    }
+
+    const types = Array.from(avails);
+    // Fix the "jumping buttons" issue by ensuring a consistent order
+    types.sort((a, b) => (a === "GENERAL_LIABILITY" ? -1 : 1));
+
+    setAvailablePolicies(types as string[]);
+
+    // Optional: Auto-switch if current policy type is not in the global available list
+    // (though with global policies, it should almost always be in there)
+    if (types.length > 0 && !types.includes(currentPolicyType)) {
+      setCurrentPolicyType(types[0] as any);
+    }
+  }, [data]);
 
   const fetchSubmission = () => mutate();
 
@@ -544,24 +574,6 @@ function SubmissionDetailsContent() {
 
 
 
-  useEffect(() => {
-    // Derive available policies from BOTH existing quotes AND the form payload
-    const avails = new Set<string>(["GENERAL_LIABILITY"]);
-
-    // Add policies that have actual quotes in the DB
-    if (data?.quotes?.length) {
-      data.quotes.forEach((q: any) => {
-        avails.add(q.policyType || "GENERAL_LIABILITY");
-      });
-    }
-
-    // Also add XS if the application requested it (even before quote is entered)
-    if (data?.submission?.payload?.addExcessLiability) {
-      avails.add("EXCESS_LIABILITY");
-    }
-
-    setAvailablePolicies(Array.from(avails));
-  }, [data]);
 
 
 
@@ -1432,25 +1444,58 @@ function SubmissionDetailsContent() {
             </h3>
 
             {/* Upload Box */}
-            <label className="border border-dashed border-gray-300 rounded-md p-6 flex items-center justify-between mb-6 cursor-pointer">
-              <p className="text-[14px] text-gray-500">
-                Drag and drop your files here to start uploading or
-              </p>
-
+            <div
+              onDragOver={(e) => {
+                e.preventDefault();
+                setIsDragging(true);
+              }}
+              onDragLeave={() => setIsDragging(false)}
+              onDrop={(e) => {
+                e.preventDefault();
+                setIsDragging(false);
+                const file = e.dataTransfer.files?.[0];
+                if (file) {
+                  handleFileUpload(file);
+                }
+              }}
+              className={`relative group cursor-pointer transition-all duration-300 ${isDragging 
+                ? "border-[#9A8B7A] bg-[#9A8B7A]/5" 
+                : "border-[#e5ddd5] hover:border-[#9A8B7A] bg-gray-50 hover:bg-white"
+              } border-2 border-dashed rounded-xl p-8 text-center mb-6`}
+              onClick={() => document.getElementById('agency-file-upload')?.click()}
+            >
               <input
+                id="agency-file-upload"
                 type="file"
-                hidden
+                className="hidden"
                 onChange={(e) => {
                   if (e.target.files?.[0]) {
                     handleFileUpload(e.target.files[0]);
                   }
                 }}
               />
-
-              <span className="ml-4 px-5 py-2 bg-[#9A8B7A] hover:bg-[#7A6F64] text-white text-[14px] font-medium rounded-md transition-colors">
-                {uploading ? "Uploading..." : "Browse"}
-              </span>
-            </label>
+              <div className="flex flex-col items-center gap-3">
+                <div className={`w-14 h-14 rounded-full flex items-center justify-center transition-all duration-300 ${isDragging ? "bg-[#9A8B7A] text-white scale-110 shadow-lg" : "bg-white text-[#9A8B7A] shadow-sm group-hover:shadow-md"}`}>
+                  <Upload className={`w-7 h-7 ${isDragging ? "animate-bounce" : "group-hover:scale-110 transition-transform"}`} />
+                </div>
+                <div>
+                  <p className="text-[15px] font-bold text-gray-900">
+                    {uploading ? "Uploading document..." : "Click or drag files here to upload"}
+                  </p>
+                  <p className="text-[13px] text-gray-500 font-medium mt-1">
+                    Support for PDF, DOC, ZIP up to 10MB
+                  </p>
+                </div>
+              </div>
+              {uploading && (
+                <div className="absolute inset-0 bg-white/60 backdrop-blur-[1px] flex items-center justify-center rounded-xl z-10">
+                  <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-lg border border-gray-100">
+                    <div className="w-4 h-4 border-2 border-[#9A8B7A]/30 border-t-[#9A8B7A] rounded-full animate-spin" />
+                    <span className="text-xs font-bold text-[#9A8B7A]">Uploading...</span>
+                  </div>
+                </div>
+              )}
+            </div>
 
             {/* TABLE HEADER */}
             <div className="bg-gray-100 px-4 py-2 grid grid-cols-3 text-[13px] font-medium text-gray-600">

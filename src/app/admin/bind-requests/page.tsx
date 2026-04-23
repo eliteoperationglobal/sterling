@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
 import { signOut } from "next-auth/react";
-import { Menu } from "lucide-react";
+import { Menu, Upload, File as FileIcon, X as CloseIcon } from "lucide-react";
 import MobileNav from "@/components/layout/MobileNav";
 
 interface BindRequestSubmission {
@@ -41,6 +41,8 @@ export default function AdminBindRequestsPage() {
   const [error, setError] = useState("");
   const [approving, setApproving] = useState<string | null>(null);
   const [pendingCount, setPendingCount] = useState(0);
+  const [isDraggingBinder, setIsDraggingBinder] = useState(false);
+  const [isDraggingDocs, setIsDraggingDocs] = useState(false);
 
   // Modal State
   type PolicyFormData = {
@@ -499,8 +501,8 @@ export default function AdminBindRequestsPage() {
             onClick={() => !approving && setIsApproveModalOpen(false)}
           />
 
-          <div className="relative bg-white rounded-2xl shadow-2xl border border-gray-200 w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
-            <div className="p-6">
+          <div className="relative bg-white rounded-2xl shadow-2xl border border-gray-200 w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="p-6 overflow-y-auto custom-scrollbar">
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-10 h-10 bg-[#9A8B7A] rounded-xl flex items-center justify-center shadow-lg shadow-gray-200/20">
                   <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -579,11 +581,11 @@ export default function AdminBindRequestsPage() {
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1.5">Binder</label>
                   {policyForms[activePolicyTab]?.binderFile ? (
-                    <div className="flex items-center justify-between px-4 py-3 bg-green-50 border border-green-200 rounded-xl">
+                    <div className="flex items-center justify-between px-4 py-3 bg-green-50 border border-green-200 rounded-xl group/file">
                       <div className="flex items-center gap-2 overflow-hidden">
-                        <svg className="w-5 h-5 text-green-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
+                        <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                          <FileIcon className="w-4 h-4 text-green-600" />
+                        </div>
                         <span className="text-sm font-semibold text-green-800 truncate">
                           {policyForms[activePolicyTab].binderFile!.name}
                         </span>
@@ -591,33 +593,67 @@ export default function AdminBindRequestsPage() {
                       <button
                         type="button"
                         onClick={() => setPolicyForms(prev => ({ ...prev, [activePolicyTab]: { ...prev[activePolicyTab], binderFile: null } }))}
-                        className="text-xs font-bold text-red-500 hover:text-red-700 px-2 py-1 bg-red-50 hover:bg-red-100 rounded-md transition-colors"
+                        className="p-1.5 text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
+                        title="Remove file"
                       >
-                        Remove
+                        <CloseIcon className="w-4 h-4" />
                       </button>
                     </div>
                   ) : (
-                    <input
-                      key={`binder-${activePolicyTab}`}
-                      type="file"
-                      accept=".pdf,.doc,.docx"
-                      onChange={(e) => setPolicyForms(prev => ({
-                        ...prev,
-                        [activePolicyTab]: { ...prev[activePolicyTab], binderFile: e.target.files?.[0] || null }
-                      }))}
-                      className="w-full px-4 py-2 bg-gray-50 border border-[#e5ddd5] rounded-xl text-gray-600 focus:ring-2 focus:ring-[#9A8B7A]/20 focus:border-[#9A8B7A] transition-all outline-none file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-[#9A8B7A] file:text-white hover:file:bg-[#8a6f4d] file:cursor-pointer cursor-pointer"
-                    />
+                    <div
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        setIsDraggingBinder(true);
+                      }}
+                      onDragLeave={() => setIsDraggingBinder(false)}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        setIsDraggingBinder(false);
+                        const file = e.dataTransfer.files?.[0];
+                        if (file) {
+                          setPolicyForms(prev => ({
+                            ...prev,
+                            [activePolicyTab]: { ...prev[activePolicyTab], binderFile: file }
+                          }));
+                        }
+                      }}
+                      className={`relative group cursor-pointer transition-all duration-300 ${isDraggingBinder 
+                        ? "border-[#9A8B7A] bg-[#9A8B7A]/5" 
+                        : "border-[#e5ddd5] hover:border-[#9A8B7A] bg-gray-50 hover:bg-white"
+                      } border-2 border-dashed rounded-xl p-6 text-center`}
+                      onClick={() => document.getElementById(`binder-input-${activePolicyTab}`)?.click()}
+                    >
+                      <input
+                        id={`binder-input-${activePolicyTab}`}
+                        type="file"
+                        accept=".pdf,.doc,.docx"
+                        onChange={(e) => setPolicyForms(prev => ({
+                          ...prev,
+                          [activePolicyTab]: { ...prev[activePolicyTab], binderFile: e.target.files?.[0] || null }
+                        }))}
+                        className="hidden"
+                      />
+                      <div className="flex flex-col items-center gap-2">
+                        <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${isDraggingBinder ? "bg-[#9A8B7A] text-white" : "bg-white text-[#9A8B7A] shadow-sm"}`}>
+                          <Upload className={`w-6 h-6 ${isDraggingBinder ? "animate-bounce" : "group-hover:scale-110 transition-transform"}`} />
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-gray-900">Click or drag binder here</p>
+                          <p className="text-xs text-gray-500 font-medium mt-1">PDF, DOC up to 10MB</p>
+                        </div>
+                      </div>
+                    </div>
                   )}
                 </div>
 
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1.5">Policy Docs</label>
                   {policyForms[activePolicyTab]?.policyDocsFile ? (
-                    <div className="flex items-center justify-between px-4 py-3 bg-green-50 border border-green-200 rounded-xl">
+                    <div className="flex items-center justify-between px-4 py-3 bg-green-50 border border-green-200 rounded-xl group/file">
                       <div className="flex items-center gap-2 overflow-hidden">
-                        <svg className="w-5 h-5 text-green-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
+                        <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                          <FileIcon className="w-4 h-4 text-green-600" />
+                        </div>
                         <span className="text-sm font-semibold text-green-800 truncate">
                           {policyForms[activePolicyTab].policyDocsFile!.name}
                         </span>
@@ -625,22 +661,56 @@ export default function AdminBindRequestsPage() {
                       <button
                         type="button"
                         onClick={() => setPolicyForms(prev => ({ ...prev, [activePolicyTab]: { ...prev[activePolicyTab], policyDocsFile: null } }))}
-                        className="text-xs font-bold text-red-500 hover:text-red-700 px-2 py-1 bg-red-50 hover:bg-red-100 rounded-md transition-colors"
+                        className="p-1.5 text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
+                        title="Remove file"
                       >
-                        Remove
+                        <CloseIcon className="w-4 h-4" />
                       </button>
                     </div>
                   ) : (
-                    <input
-                      key={`policy-docs-${activePolicyTab}`}
-                      type="file"
-                      accept=".pdf,.doc,.docx,.zip"
-                      onChange={(e) => setPolicyForms(prev => ({
-                        ...prev,
-                        [activePolicyTab]: { ...prev[activePolicyTab], policyDocsFile: e.target.files?.[0] || null }
-                      }))}
-                      className="w-full px-4 py-2 bg-gray-50 border border-[#e5ddd5] rounded-xl text-gray-600 focus:ring-2 focus:ring-[#9A8B7A]/20 focus:border-[#9A8B7A] transition-all outline-none file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-[#9A8B7A] file:text-white hover:file:bg-[#8a6f4d] file:cursor-pointer cursor-pointer"
-                    />
+                    <div
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        setIsDraggingDocs(true);
+                      }}
+                      onDragLeave={() => setIsDraggingDocs(false)}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        setIsDraggingDocs(false);
+                        const file = e.dataTransfer.files?.[0];
+                        if (file) {
+                          setPolicyForms(prev => ({
+                            ...prev,
+                            [activePolicyTab]: { ...prev[activePolicyTab], policyDocsFile: file }
+                          }));
+                        }
+                      }}
+                      className={`relative group cursor-pointer transition-all duration-300 ${isDraggingDocs 
+                        ? "border-[#9A8B7A] bg-[#9A8B7A]/5" 
+                        : "border-[#e5ddd5] hover:border-[#9A8B7A] bg-gray-50 hover:bg-white"
+                      } border-2 border-dashed rounded-xl p-6 text-center`}
+                      onClick={() => document.getElementById(`docs-input-${activePolicyTab}`)?.click()}
+                    >
+                      <input
+                        id={`docs-input-${activePolicyTab}`}
+                        type="file"
+                        accept=".pdf,.doc,.docx,.zip"
+                        onChange={(e) => setPolicyForms(prev => ({
+                          ...prev,
+                          [activePolicyTab]: { ...prev[activePolicyTab], policyDocsFile: e.target.files?.[0] || null }
+                        }))}
+                        className="hidden"
+                      />
+                      <div className="flex flex-col items-center gap-2">
+                        <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${isDraggingDocs ? "bg-[#9A8B7A] text-white" : "bg-white text-[#9A8B7A] shadow-sm"}`}>
+                          <Upload className={`w-6 h-6 ${isDraggingDocs ? "animate-bounce" : "group-hover:scale-110 transition-transform"}`} />
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-gray-900">Click or drag policy docs here</p>
+                          <p className="text-xs text-gray-500 font-medium mt-1">PDF, DOC, ZIP up to 20MB</p>
+                        </div>
+                      </div>
+                    </div>
                   )}
                 </div>
               </div>

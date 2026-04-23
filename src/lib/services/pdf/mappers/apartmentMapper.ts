@@ -104,7 +104,7 @@ export interface ApartmentPacketData {
     lastName: string;
     phone: string;
     email: string;
-    subjectsList: { subject: string, limit: string }[];
+    subjectsList: { subject: string, limit: string, coinsurance?: string, valuation?: string, causesOfLoss?: string, deductible?: string, deductibleType?: string }[];
 
     // Systems
     heatingType: string;
@@ -358,7 +358,12 @@ export function mapApartmentDataToPacketData(
                 .filter((i: any) => i && i.subject)
                 .map((i: any) => ({
                     subject: i.subject.replace(/\s*\([^)]+\)/, "").trim(),
-                    limit: i.limit ? `$${parseInt(i.limit).toLocaleString()}` : "-"
+                    limit: i.limit ? `$${parseInt(i.limit).toLocaleString()}` : "-",
+                    coinsurance: i.coinsurance || formData.propertyCoinsurance || "",
+                    valuation: (i.valuation || formData.propertyValuation) === "Actual Cash Value (ACV)" ? "ACV" : ((i.valuation || formData.propertyValuation) === "Replacement Cost (RC)" ? "RC" : ""),
+                    causesOfLoss: i.causesOfLoss || formData.propertyCausesOfLoss || "",
+                    deductible: i.deductible || formData.propertyDeductible || "",
+                    deductibleType: i.deductibleType || formData.propertyDeductibleType || ""
                 }))
             : [],
 

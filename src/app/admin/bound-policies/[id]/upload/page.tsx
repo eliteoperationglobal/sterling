@@ -6,6 +6,8 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { signOut } from "next-auth/react";
+import { Upload, File as FileIcon, X as CloseIcon, Menu } from "lucide-react";
+import MobileNav from "@/components/layout/MobileNav";
 
 interface Quote {
   _id: string;
@@ -44,6 +46,12 @@ export default function UploadFinalDocumentsPage() {
   const [submission, setSubmission] = useState<Submission | null>(null);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Dragging states
+  const [isDraggingBinder, setIsDraggingBinder] = useState(false);
+  const [isDraggingPolicy, setIsDraggingPolicy] = useState(false);
+  const [isDraggingCertificate, setIsDraggingCertificate] = useState(false);
 
   // State to hold staged files mapped by Quote ID so switching tabs retains memory
   const [stagedFiles, setStagedFiles] = useState<Record<string, { binder: File | null; policy: File | null }>>({});
@@ -244,11 +252,19 @@ export default function UploadFinalDocumentsPage() {
 
   return (
     <div className="min-h-screen bg-[#f5f1eb]">
+      <MobileNav isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} />
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-xl border-b border-gray-200/60 sticky top-0 z-50 shadow-sm">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-10">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between py-4 lg:py-0 lg:h-16 gap-4 lg:gap-0">
+            <div className="flex items-center justify-between w-full lg:w-auto">
+              <div className="flex items-center gap-4 md:gap-10">
+                <button 
+                  onClick={() => setIsMobileMenuOpen(true)}
+                  className="lg:hidden p-2 -ml-2 rounded-lg hover:bg-gray-100 transition-colors"
+                >
+                  <Menu className="w-6 h-6 text-[#9A8B7A]" />
+                </button>
               <Link href="/admin/dashboard" className="flex items-center gap-4 group">
                 <div className="relative">
                   <div className="absolute inset-0 bg-gradient-to-br from-rose-500 via-pink-500 to-orange-500 rounded-2xl blur-md opacity-50 group-hover:opacity-75 animate-pulse transition-all duration-500"></div>
@@ -276,6 +292,7 @@ export default function UploadFinalDocumentsPage() {
                   <p className="text-xs text-gray-500 font-semibold -mt-0.5 tracking-wide">Control Center</p>
                 </div>
               </Link>
+              </div>
             </div>
 
             <div className="flex items-center gap-3">
@@ -366,11 +383,11 @@ export default function UploadFinalDocumentsPage() {
               </div>
 
               {stagedFiles[globalSelectedQuoteId]?.binder ? (
-                <div className="flex items-center justify-between px-4 py-3 bg-green-50 border border-green-200 rounded-xl">
+                <div className="flex items-center justify-between px-4 py-3 bg-green-50 border border-green-200 rounded-xl group/file">
                   <div className="flex items-center gap-2 overflow-hidden">
-                    <svg className="w-5 h-5 text-green-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
+                    <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <FileIcon className="w-4 h-4 text-green-600" />
+                    </div>
                     <span className="text-sm font-semibold text-green-800 truncate">
                       {stagedFiles[globalSelectedQuoteId].binder.name}
                     </span>
@@ -381,49 +398,79 @@ export default function UploadFinalDocumentsPage() {
                       ...prev,
                       [globalSelectedQuoteId]: { ...prev[globalSelectedQuoteId], binder: null }
                     }))}
-                    className="text-xs font-bold text-red-500 hover:text-red-700 px-2 py-1 bg-red-50 hover:bg-red-100 rounded-md transition-colors"
+                    className="p-1.5 text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
+                    title="Remove file"
                   >
-                    Remove
+                    <CloseIcon className="w-4 h-4" />
                   </button>
                 </div>
-              ) : selectedQuote?.binderUrl ? (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between px-4 py-3 bg-blue-50 border border-blue-200 rounded-xl">
-                    <div className="flex items-center gap-2 overflow-hidden">
-                      <svg className="w-5 h-5 text-blue-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
-                      <span className="text-sm font-semibold text-blue-800 truncate">
-                        Active Document Found
-                      </span>
-                    </div>
-                    <a
-                      href={`/api/download?view=true&url=${encodeURIComponent(selectedQuote.binderUrl)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs font-bold text-blue-600 hover:text-blue-800 px-3 py-1 bg-white hover:bg-blue-100 border border-blue-200 rounded-md transition-colors shadow-sm"
-                    >
-                      View
-                    </a>
-                  </div>
-                  <div className="flex items-center gap-3 w-full">
-                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Replace File (Optional)</span>
-                    <div className="h-px bg-gray-200 flex-1"></div>
-                  </div>
-                  <input
-                    type="file"
-                    accept=".pdf"
-                    onChange={(e) => handleFileChange(e, 'binder')}
-                    className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-500 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none file:mr-4 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-bold file:bg-gray-200 file:text-gray-700 hover:file:bg-gray-300 file:cursor-pointer cursor-pointer"
-                  />
-                </div>
               ) : (
-                <input
-                  type="file"
-                  accept=".pdf"
-                  onChange={(e) => handleFileChange(e, 'binder')}
-                  className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-600 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 file:cursor-pointer cursor-pointer"
-                />
+                <div className="space-y-3">
+                  {selectedQuote?.binderUrl && (
+                    <div className="flex items-center justify-between px-4 py-3 bg-blue-50 border border-blue-200 rounded-xl">
+                      <div className="flex items-center gap-2 overflow-hidden">
+                        <FileIcon className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                        <span className="text-sm font-semibold text-blue-800 truncate">
+                          Active Document Found
+                        </span>
+                      </div>
+                      <a
+                        href={`/api/download?view=true&url=${encodeURIComponent(selectedQuote.binderUrl)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs font-bold text-blue-600 hover:text-blue-800 px-3 py-1 bg-white hover:bg-blue-100 border border-blue-200 rounded-md transition-colors shadow-sm"
+                      >
+                        View
+                      </a>
+                    </div>
+                  )}
+                  
+                  {selectedQuote?.binderUrl && (
+                    <div className="flex items-center gap-3 w-full">
+                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Replace File (Optional)</span>
+                      <div className="h-px bg-gray-200 flex-1"></div>
+                    </div>
+                  )}
+
+                  <div
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      setIsDraggingBinder(true);
+                    }}
+                    onDragLeave={() => setIsDraggingBinder(false)}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      setIsDraggingBinder(false);
+                      const file = e.dataTransfer.files?.[0];
+                      if (file) {
+                        const mockEvent = { target: { files: [file] } } as any;
+                        handleFileChange(mockEvent, 'binder');
+                      }
+                    }}
+                    className={`relative group cursor-pointer transition-all duration-300 ${isDraggingBinder 
+                      ? "border-[#9A8B7A] bg-[#9A8B7A]/5" 
+                      : "border-[#e5ddd5] hover:border-[#9A8B7A] bg-gray-50 hover:bg-white"
+                    } border-2 border-dashed rounded-xl p-6 text-center`}
+                    onClick={() => document.getElementById(`binder-input-${globalSelectedQuoteId}`)?.click()}
+                  >
+                    <input
+                      id={`binder-input-${globalSelectedQuoteId}`}
+                      type="file"
+                      accept=".pdf"
+                      onChange={(e) => handleFileChange(e, 'binder')}
+                      className="hidden"
+                    />
+                    <div className="flex flex-col items-center gap-2">
+                      <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${isDraggingBinder ? "bg-[#9A8B7A] text-white" : "bg-white text-[#9A8B7A] shadow-sm"}`}>
+                        <Upload className={`w-6 h-6 ${isDraggingBinder ? "animate-bounce" : "group-hover:scale-110 transition-transform"}`} />
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-gray-900">Click or drag binder here</p>
+                        <p className="text-xs text-gray-500 font-medium mt-1">PDF up to 10MB</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               )}
             </div>
 
@@ -441,11 +488,11 @@ export default function UploadFinalDocumentsPage() {
               </div>
 
               {stagedFiles[globalSelectedQuoteId]?.policy ? (
-                <div className="flex items-center justify-between px-4 py-3 bg-green-50 border border-green-200 rounded-xl">
+                <div className="flex items-center justify-between px-4 py-3 bg-green-50 border border-green-200 rounded-xl group/file">
                   <div className="flex items-center gap-2 overflow-hidden">
-                    <svg className="w-5 h-5 text-green-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
+                    <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <FileIcon className="w-4 h-4 text-green-600" />
+                    </div>
                     <span className="text-sm font-semibold text-green-800 truncate">
                       {stagedFiles[globalSelectedQuoteId].policy.name}
                     </span>
@@ -456,49 +503,79 @@ export default function UploadFinalDocumentsPage() {
                       ...prev,
                       [globalSelectedQuoteId]: { ...prev[globalSelectedQuoteId], policy: null }
                     }))}
-                    className="text-xs font-bold text-red-500 hover:text-red-700 px-2 py-1 bg-red-50 hover:bg-red-100 rounded-md transition-colors"
+                    className="p-1.5 text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
+                    title="Remove file"
                   >
-                    Remove
+                    <CloseIcon className="w-4 h-4" />
                   </button>
                 </div>
-              ) : selectedQuote?.policyDocsUrl ? (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between px-4 py-3 bg-blue-50 border border-blue-200 rounded-xl">
-                    <div className="flex items-center gap-2 overflow-hidden">
-                      <svg className="w-5 h-5 text-blue-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
-                      <span className="text-sm font-semibold text-blue-800 truncate">
-                        Active Document Found
-                      </span>
-                    </div>
-                    <a
-                      href={`/api/download?view=true&url=${encodeURIComponent(selectedQuote.policyDocsUrl)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs font-bold text-blue-600 hover:text-blue-800 px-3 py-1 bg-white hover:bg-blue-100 border border-blue-200 rounded-md transition-colors shadow-sm"
-                    >
-                      View
-                    </a>
-                  </div>
-                  <div className="flex items-center gap-3 w-full">
-                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Replace File (Optional)</span>
-                    <div className="h-px bg-gray-200 flex-1"></div>
-                  </div>
-                  <input
-                    type="file"
-                    accept=".pdf"
-                    onChange={(e) => handleFileChange(e, 'policy')}
-                    className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-500 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none file:mr-4 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-bold file:bg-gray-200 file:text-gray-700 hover:file:bg-gray-300 file:cursor-pointer cursor-pointer"
-                  />
-                </div>
               ) : (
-                <input
-                  type="file"
-                  accept=".pdf"
-                  onChange={(e) => handleFileChange(e, 'policy')}
-                  className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-600 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 file:cursor-pointer cursor-pointer"
-                />
+                <div className="space-y-3">
+                  {selectedQuote?.policyDocsUrl && (
+                    <div className="flex items-center justify-between px-4 py-3 bg-blue-50 border border-blue-200 rounded-xl">
+                      <div className="flex items-center gap-2 overflow-hidden">
+                        <FileIcon className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                        <span className="text-sm font-semibold text-blue-800 truncate">
+                          Active Document Found
+                        </span>
+                      </div>
+                      <a
+                        href={`/api/download?view=true&url=${encodeURIComponent(selectedQuote.policyDocsUrl)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs font-bold text-blue-600 hover:text-blue-800 px-3 py-1 bg-white hover:bg-blue-100 border border-blue-200 rounded-md transition-colors shadow-sm"
+                      >
+                        View
+                      </a>
+                    </div>
+                  )}
+
+                  {selectedQuote?.policyDocsUrl && (
+                    <div className="flex items-center gap-3 w-full">
+                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Replace File (Optional)</span>
+                      <div className="h-px bg-gray-200 flex-1"></div>
+                    </div>
+                  )}
+
+                  <div
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      setIsDraggingPolicy(true);
+                    }}
+                    onDragLeave={() => setIsDraggingPolicy(false)}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      setIsDraggingPolicy(false);
+                      const file = e.dataTransfer.files?.[0];
+                      if (file) {
+                        const mockEvent = { target: { files: [file] } } as any;
+                        handleFileChange(mockEvent, 'policy');
+                      }
+                    }}
+                    className={`relative group cursor-pointer transition-all duration-300 ${isDraggingPolicy 
+                      ? "border-[#9A8B7A] bg-[#9A8B7A]/5" 
+                      : "border-[#e5ddd5] hover:border-[#9A8B7A] bg-gray-50 hover:bg-white"
+                    } border-2 border-dashed rounded-xl p-6 text-center`}
+                    onClick={() => document.getElementById(`policy-input-${globalSelectedQuoteId}`)?.click()}
+                  >
+                    <input
+                      id={`policy-input-${globalSelectedQuoteId}`}
+                      type="file"
+                      accept=".pdf"
+                      onChange={(e) => handleFileChange(e, 'policy')}
+                      className="hidden"
+                    />
+                    <div className="flex flex-col items-center gap-2">
+                      <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${isDraggingPolicy ? "bg-[#9A8B7A] text-white" : "bg-white text-[#9A8B7A] shadow-sm"}`}>
+                        <Upload className={`w-6 h-6 ${isDraggingPolicy ? "animate-bounce" : "group-hover:scale-110 transition-transform"}`} />
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-gray-900">Click or drag policy here</p>
+                        <p className="text-xs text-gray-500 font-medium mt-1">PDF up to 10MB</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               )}
             </div>
 
@@ -516,11 +593,11 @@ export default function UploadFinalDocumentsPage() {
               </div>
 
               {certificateFile ? (
-                <div className="flex items-center justify-between px-4 py-3 bg-green-50 border border-green-200 rounded-xl">
+                <div className="flex items-center justify-between px-4 py-3 bg-green-50 border border-green-200 rounded-xl group/file">
                   <div className="flex items-center gap-2 overflow-hidden">
-                    <svg className="w-5 h-5 text-green-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
+                    <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <FileIcon className="w-4 h-4 text-green-600" />
+                    </div>
                     <span className="text-sm font-semibold text-green-800 truncate">
                       {certificateFile.name}
                     </span>
@@ -528,49 +605,79 @@ export default function UploadFinalDocumentsPage() {
                   <button
                     type="button"
                     onClick={() => setCertificateFile(null)}
-                    className="text-xs font-bold text-red-500 hover:text-red-700 px-2 py-1 bg-red-50 hover:bg-red-100 rounded-md transition-colors"
+                    className="p-1.5 text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
+                    title="Remove file"
                   >
-                    Remove
+                    <CloseIcon className="w-4 h-4" />
                   </button>
                 </div>
-              ) : submission.finalPolicyDocuments?.certificateOfInsuranceUrl ? (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between px-4 py-3 bg-blue-50 border border-blue-200 rounded-xl">
-                    <div className="flex items-center gap-2 overflow-hidden">
-                      <svg className="w-5 h-5 text-blue-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
-                      <span className="text-sm font-semibold text-blue-800 truncate">
-                        Active Document Found
-                      </span>
-                    </div>
-                    <a
-                      href={`/api/download?view=true&url=${encodeURIComponent(submission.finalPolicyDocuments.certificateOfInsuranceUrl)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs font-bold text-blue-600 hover:text-blue-800 px-3 py-1 bg-white hover:bg-blue-100 border border-blue-200 rounded-md transition-colors shadow-sm"
-                    >
-                      View
-                    </a>
-                  </div>
-                  <div className="flex items-center gap-3 w-full">
-                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Replace File (Optional)</span>
-                    <div className="h-px bg-gray-200 flex-1"></div>
-                  </div>
-                  <input
-                    type="file"
-                    accept=".pdf"
-                    onChange={(e) => handleFileChange(e, 'certificate')}
-                    className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-500 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none file:mr-4 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-bold file:bg-gray-200 file:text-gray-700 hover:file:bg-gray-300 file:cursor-pointer cursor-pointer"
-                  />
-                </div>
               ) : (
-                <input
-                  type="file"
-                  accept=".pdf"
-                  onChange={(e) => handleFileChange(e, 'certificate')}
-                  className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-600 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 file:cursor-pointer cursor-pointer"
-                />
+                <div className="space-y-3">
+                  {submission.finalPolicyDocuments?.certificateOfInsuranceUrl && (
+                    <div className="flex items-center justify-between px-4 py-3 bg-blue-50 border border-blue-200 rounded-xl">
+                      <div className="flex items-center gap-2 overflow-hidden">
+                        <FileIcon className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                        <span className="text-sm font-semibold text-blue-800 truncate">
+                          Active Document Found
+                        </span>
+                      </div>
+                      <a
+                        href={`/api/download?view=true&url=${encodeURIComponent(submission.finalPolicyDocuments.certificateOfInsuranceUrl)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs font-bold text-blue-600 hover:text-blue-800 px-3 py-1 bg-white hover:bg-blue-100 border border-blue-200 rounded-md transition-colors shadow-sm"
+                      >
+                        View
+                      </a>
+                    </div>
+                  )}
+
+                  {submission.finalPolicyDocuments?.certificateOfInsuranceUrl && (
+                    <div className="flex items-center gap-3 w-full">
+                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Replace File (Optional)</span>
+                      <div className="h-px bg-gray-200 flex-1"></div>
+                    </div>
+                  )}
+
+                  <div
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      setIsDraggingCertificate(true);
+                    }}
+                    onDragLeave={() => setIsDraggingCertificate(false)}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      setIsDraggingCertificate(false);
+                      const file = e.dataTransfer.files?.[0];
+                      if (file) {
+                        const mockEvent = { target: { files: [file] } } as any;
+                        handleFileChange(mockEvent, 'certificate');
+                      }
+                    }}
+                    className={`relative group cursor-pointer transition-all duration-300 ${isDraggingCertificate 
+                      ? "border-[#9A8B7A] bg-[#9A8B7A]/5" 
+                      : "border-[#e5ddd5] hover:border-[#9A8B7A] bg-gray-50 hover:bg-white"
+                    } border-2 border-dashed rounded-xl p-6 text-center`}
+                    onClick={() => document.getElementById('certificate-input')?.click()}
+                  >
+                    <input
+                      id="certificate-input"
+                      type="file"
+                      accept=".pdf"
+                      onChange={(e) => handleFileChange(e, 'certificate')}
+                      className="hidden"
+                    />
+                    <div className="flex flex-col items-center gap-2">
+                      <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${isDraggingCertificate ? "bg-[#9A8B7A] text-white" : "bg-white text-[#9A8B7A] shadow-sm"}`}>
+                        <Upload className={`w-6 h-6 ${isDraggingCertificate ? "animate-bounce" : "group-hover:scale-110 transition-transform"}`} />
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-gray-900">Click or drag certificate here</p>
+                        <p className="text-xs text-gray-500 font-medium mt-1">PDF up to 10MB</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               )}
             </div>
 

@@ -3541,16 +3541,16 @@ function generatePage2Optimized(data: ApartmentPacketData): string {
 					<div class="divider"></div>
 					<div class="section-header">PROPERTY INSURANCE</div>
 					
-					${data.subjectsList && data.subjectsList.length > 0 
-						? data.subjectsList.map(item => `
+					${data.subjectsList && data.subjectsList.length > 0
+			? data.subjectsList.map(item => `
 							${renderField("Subject of Insurance", item.subject)}
 							${renderField("Limit ($)", item.limit)}
 						`).join('')
-						: `
+			: `
 							${renderField("Subject of Insurance", data.subjectOfInsurance)}
 							${renderField("Limit ($)", data.propertyLimit)}
 						`
-					}
+		}
 					${renderField("Coinsurance", data.propertyCoinsurance)}
 					${renderField("Valuation", data.propertyValuation)}
 					${renderField("Causes of Loss", data.propertyCausesOfLoss)}
@@ -3812,16 +3812,31 @@ function generatePage51(data: ApartmentPacketData): string {
 					<div class="acod_01" style="left:13.3217em;top:15.7149em;"><span class="acod_11 acod_08 acod_09">AMOUNT &nbsp;</span></div>
 					<div class="acod_01" style="left:11.75em;top:16.6278em;"><span class="acod_07 acod_08 acod_09">${data.taxCode || ''} &nbsp;</span></div>
 					<div class="acod_01" style="left:22.13em;top:15.7149em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0051em;">CAUSES OF LOSS &nbsp;</span></div>
-					<div class="acod_01" style="left:22.13em;top:16.5832em;"><span class="acod_07 acod_08 acod_09">${data.propertyCausesOfLoss || ''} &nbsp;</span></div>
 					<div class="acod_01" style="left:31.1308em;top:15.7149em;"><span class="acod_11 acod_08 acod_09">DED &nbsp;</span></div>
 					<div class="acod_01" style="left:39.125em;top:15.7549em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0234em;">FORMS AND CONDITIONS TO APPLY &nbsp;</span></div>
 					<div class="acod_01" style="left:34.0075em;top:15.9949em;"><span class="acod_11 acod_08 acod_09">TYPE &nbsp;</span></div>
-					<div class="acod_01" style="left:34.0075em;top:16.5832em;"><span class="acod_07 acod_08 acod_09">${data.propertyDeductibleType || ''} &nbsp;</span></div>
-					<div class="acod_01" style="left:1.9167em;top:16.5832em;"><span class="acod_07 acod_08 acod_09">${data.otherOccupancies || 'd'} &nbsp;</span></div>
+					${data.subjectsList && data.subjectsList.length > 0
+			? data.subjectsList.map((item, index) => {
+				const yPos = 16.5832 + (index * 1.99);
+				return `
+					<div class="acod_01" style="left:1.9167em;top:${yPos}em;"><span class="acod_07 acod_08 acod_09">${item.subject || ''} &nbsp;</span></div>
+					<div class="acod_01" style="left:13.3217em;top:${yPos}em;"><span class="acod_07 acod_08 acod_09">${item.limit || ''} &nbsp;</span></div>
+					<div class="acod_01" style="left:22.13em;top:${yPos}em;"><span class="acod_07 acod_08 acod_09">${item.causesOfLoss || ''} &nbsp;</span></div>
+					<div class="acod_01" style="left:34.0075em;top:${yPos}em;"><span class="acod_07 acod_08 acod_09">${item.deductibleType === 'All Other Perils (AOP)' ? 'AOP' : item.deductibleType === 'Per Claim' ? 'PC' : item.deductibleType === 'Per Occurrence' ? 'PO' : item.deductibleType || ''} &nbsp;</span></div>
+					<div class="acod_01" style="left:19.967em;top:${yPos}em;"><span class="acod_07 acod_08 acod_09" style="word-spacing:0.5471em;">${item.valuation || ''} &nbsp;</span></div>
+					<div class="acod_01" style="left:17.75em;top:${yPos}em;"><span class="acod_07 acod_08 acod_09">${item.coinsurance || ''} &nbsp;</span></div>
+					<div class="acod_01" style="left:30.4167em;top:${yPos}em;"><span class="acod_07 acod_08 acod_09">${item.deductible || ''} &nbsp;</span></div>
+				`;
+			}).join('')
+			: `
+					<div class="acod_01" style="left:1.9167em;top:16.5832em;"><span class="acod_07 acod_08 acod_09">${data.otherOccupancies || ''} &nbsp;</span></div>
 					<div class="acod_01" style="left:13.3217em;top:16.5832em;"><span class="acod_07 acod_08 acod_09">${data.propertyLimit || ''} &nbsp;</span></div>
-					<div class="acod_01" style="left:19.967em;top:16.5832em;"><span class="acod_07 acod_08 acod_09" style="word-spacing:0.5471em;">${data.windClass || 'c'} &nbsp;</span></div>
-					<div class="acod_01" style="left:17.75em;top:16.6278em;"><span class="acod_07 acod_08 acod_09">${data.grade || 'b'} &nbsp;</span></div>
-					<div class="acod_01" style="left:30.4167em;top:16.6278em;"><span class="acod_07 acod_08 acod_09">${data.certificateNumber || 'a'} &nbsp;</span></div>
+					<div class="acod_01" style="left:22.13em;top:16.5832em;"><span class="acod_07 acod_08 acod_09">${data.propertyCausesOfLoss || ''} &nbsp;</span></div>
+					<div class="acod_01" style="left:34.0075em;top:16.5832em;"><span class="acod_07 acod_08 acod_09">${data.propertyDeductibleType === 'All Other Perils (AOP)' ? 'AOP' : data.propertyDeductibleType === 'Per Claim' ? 'PC' : data.propertyDeductibleType === 'Per Occurrence' ? 'PO' : data.propertyDeductibleType || ''} &nbsp;</span></div>
+					<div class="acod_01" style="left:19.967em;top:16.5832em;"><span class="acod_07 acod_08 acod_09" style="word-spacing:0.5471em;">${data.windClass || ''} &nbsp;</span></div>
+					<div class="acod_01" style="left:17.75em;top:16.6278em;"><span class="acod_07 acod_08 acod_09">${data.grade || ''} &nbsp;</span></div>
+					<div class="acod_01" style="left:30.4167em;top:16.6278em;"><span class="acod_07 acod_08 acod_09">${data.certificateNumber || ''} &nbsp;</span></div>
+					`}
 					<div class="acod_01" style="left:34.4813em;top:16.6278em;"><span class="acod_07 acod_08 acod_09"></span></div>
 					<div class="acod_01" style="left:1.8em;top:26.7149em;"><span class="acod_11 acod_08 acod_09">ADDITIONA</span><span class="acod_11 acod_08 acod_14">L</span><span class="acod_11 acod_08 acod_09">I</span><span class="acod_11 acod_08 acod_09">NFORMATION &nbsp;</span></div>
 					<div class="acod_01" style="left:11.1em;top:26.7149em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0146em;">BUSINESS INCOME / EXTRA EXPENSE - Attach ACORD 810 &nbsp;</span></div>
@@ -3857,7 +3872,11 @@ function generatePage51(data: ApartmentPacketData): string {
 					<div class="acod_01" style="left:12.5983em;top:38.5049em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:1.1111em;">HYDRANT FIRE</span><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0203em;">&nbsp;</span><span class="acod_11 acod_08 acod_09">STAT &nbsp;</span></div>
 					<div class="acod_01" style="left:1.8em;top:38.1649em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0645em;">CONSTRUCTION TYPE &nbsp;</span></div>
 					<div class="acod_01" style="left:31.925em;top:38.1649em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0153em;">PROT CL</span><span class="acod_11 acod_08 acod_09" style="word-spacing:1.0331em;">&nbsp;</span><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0187em;"># STORIES</span><span class="acod_11 acod_08 acod_09" style="word-spacing:0.5779em;">&nbsp;</span><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0051em;"># BASM'TS</span><span class="acod_11 acod_08 acod_09" style="word-spacing:1.1956em;">&nbsp;</span><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.034em;">YR BUILT</span><span class="acod_11 acod_08 acod_09" style="word-spacing:1.3991em;">&nbsp;</span><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0356em;">TOTAL AREA &nbsp;</span></div>
-					<div class="acod_01" style="left:34.3887em;top:39.1278em;"><span class="acod_07 acod_08 acod_09" style="word-spacing:1.5em;">${data.protectionClass ?? ''} &nbsp; ${data.numberOfStories ?? ''} &nbsp; ${data.hasBasement === null ? '' : data.hasBasement ? '1' : '0'} &nbsp; ${data.yearBuilt ?? ''} &nbsp; ${data.totalBuildingArea ?? ''} &nbsp;</span></div>
+					<div class="acod_01" style="left:32.5em;top:39.1278em;"><span class="acod_07 acod_08 acod_09">${data.protectionClass ?? ''} &nbsp;</span></div>
+					<div class="acod_01" style="left:36.1em;top:39.1278em;"><span class="acod_07 acod_08 acod_09">${data.numberOfStories ?? ''} &nbsp;</span></div>
+					<div class="acod_01" style="left:38.4em;top:39.1278em;"><span class="acod_07 acod_08 acod_09">${data.hasBasement === null ? '' : data.hasBasement ? 'Yes' : 'No'} &nbsp;</span></div>
+					<div class="acod_01" style="left:41.8em;top:39.1278em;"><span class="acod_07 acod_08 acod_09">${data.yearBuilt ?? ''} &nbsp;</span></div>
+					<div class="acod_01" style="left:45.8em;top:39.1278em;"><span class="acod_07 acod_08 acod_09">${data.totalBuildingArea ?? ''} &nbsp;</span></div>
 					<div class="acod_01" style="left:30em;top:40.1649em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0848em;">OTHER OCCUPANCIES &nbsp;</span></div>
 					<div class="acod_01" style="left:20.905em;top:38.2149em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0677em;">FIRE DISTRICT &nbsp;</span></div>
 					<div class="acod_01" style="left:27.405em;top:38.2149em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0509em;">CODE NUMBER &nbsp;</span></div>
@@ -3872,19 +3891,22 @@ function generatePage51(data: ApartmentPacketData): string {
 					<div class="acod_01" style="left:17.1125em;top:40.5049em;"><span class="acod_11 acod_08 acod_09">GRADE &nbsp;</span></div>
 					<div class="acod_01" style="left:23.75em;top:41.1278em;"><span class="acod_07 acod_08 acod_09">${data.roofingType || ''} &nbsp;</span></div>
 					<div class="acod_01" style="left:3em;top:41.3774em;"><span class="acod_16 acod_08 acod_09" style="word-spacing:0.055em;">WIRING, YR: ${data.yearWiringInstalled || ''} &nbsp;</span></div>
+					<div class="acod_01" style="left:1.9em;top:41em;"><span class="acod_16 acod_08 acod_09" style="word-spacing:0.055em; font-size:16px; font-weight:bold;"> X &nbsp;</span></div>			
 					<div class="acod_01" style="left:10.07em;top:41.3774em;"><span class="acod_16 acod_08 acod_09" style="word-spacing:-0.0266em;">PLUMBING, YR: ${data.yearPlumbingInstalled || ''} &nbsp;</span></div>
+					<div class="acod_01" style="left:8.9em;top:41em;"><span class="acod_16 acod_08 acod_09" style="word-spacing:0.055em; font-size:16px; font-weight:bold;"> X &nbsp;</span></div>
 					<div class="acod_01" style="left:31.2em;top:42.0074em;"><span class="acod_16 acod_08 acod_09" style="word-spacing:0.0112em;">HEATING SOURCE INCL WOODBURNING &nbsp;</span></div>
 					<div class="acod_01" style="left:31.2em;top:42.5074em;"><span class="acod_16 acod_08 acod_09" style="word-spacing:-0.0094em;">STOVE OR FIREPLACE INSERT &nbsp;</span></div>
 					<div class="acod_01" style="left:30em;top:43.2124em;"><span class="acod_16 acod_08 acod_09">MANUFACTURER: &nbsp;</span></div>
 					<div class="acod_01" style="left:42.3em;top:42.0074em;"><span class="acod_16 acod_08 acod_09">DATE &nbsp;</span></div>
 					<div class="acod_01" style="left:42.3em;top:42.5074em;"><span class="acod_16 acod_08 acod_09">INSTALLED: &nbsp;</span></div>
 					<div class="acod_01" style="left:16.5em;top:42.1649em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0289em;">WIND CLASS &nbsp;</span></div>
-					<div class="acod_01" style="left:3em;top:42.3774em;"><span class="acod_16 acod_08 acod_09" style="word-spacing:0.0084em;">ROOFING, YR: ${data.yearRoofInstalled || ''} &nbsp;</span></div>
-					<div class="acod_01" style="left:10.07em;top:42.3774em;"><span class="acod_16 acod_08 acod_09" style="word-spacing:-0.0084em;">HEATING, YR: ${data.yearHeatingInstalled || ''} &nbsp;</span></div>
-					<div class="acod_01" style="left:11.7em;top:43.4174em;"><span class="acod_16 acod_08 acod_09">YR: &nbsp;</span></div>
-					<div class="acod_01" style="left:22.5em;top:42.3874em;"><span class="acod_16 acod_08 acod_09" style="word-spacing:-0.04em;">${data.constructionType === 'Joisted Masonry' ? 'X' : ''} SEMI- RESISTIVE &nbsp;</span></div>
-					<div class="acod_01" style="left:3em;top:43.3774em;"><span class="acod_16 acod_08 acod_09">OTHER: ${['Frame', 'Non-Combustible', 'Masonry Non-Combustible'].includes(data.constructionType) ? data.constructionType : ''} &nbsp;</span></div>
-					<div class="acod_01" style="left:17.7em;top:43.3774em;"><span class="acod_16 acod_08 acod_09">${data.constructionType === 'Fire Resistive' ? 'X' : ''} RESISTIVE &nbsp;</span></div>
+					<div class="acod_01" style="left:1.9em;top:42em;"><span class="acod_16 acod_08 acod_09" style="word-spacing:0.055em; font-size:16px; font-weight:bold;"> X &nbsp;</span></div>
+					<div class="acod_01" style="left:3em;top:42em;"><span class="acod_16 acod_08 acod_09" style="word-spacing:0.0084em;">ROOFING, YR: ${data.yearRoofInstalled || ''} &nbsp;</span></div>
+					<div class="acod_01" style="left:10.07em;top:42em;"><span class="acod_16 acod_08 acod_09" style="word-spacing:-0.0084em;">HEATING, YR: ${data.yearHeatingInstalled || ''} &nbsp;</span></div>
+					<div class="acod_01" style="left:8.9em;top:42em;"><span class="acod_16 acod_08 acod_09" style="word-spacing:0.055em; font-size:16px; font-weight:bold;"> X &nbsp;</span></div>
+					<div class="acod_01" style="left:11.7em;top:43em;"><span class="acod_16 acod_08 acod_09">YR: &nbsp;</span></div>
+					<div class="acod_01" style="left:3em;top:43em;"><span class="acod_16 acod_08 acod_09">OTHER: ${['Frame', 'Non-Combustible', 'Masonry Non-Combustible'].includes(data.constructionType) ? data.constructionType : ''} &nbsp;</span></div>
+					<div class="acod_01" style="left:17.7em;top:43em;"><span class="acod_16 acod_08 acod_09" style="word-spacing:-0.0407em;">${data.constructionType === 'Fire Resistive' ? 'X' : ''} RESISTIVE &nbsp;</span></div>
 					<div class="acod_01" style="left:1.8em;top:44.2149em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0458em;">PRIMARY HEAT &nbsp;</span></div>
 					<div class="acod_01" style="left:25.8em;top:44.2149em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0559em;">SECONDARY HEAT &nbsp;</span></div>
 					<div class="acod_01" style="left:3em;top:45.2124em;"><span class="acod_16 acod_08 acod_09">${data.isPrimaryHeatBoiler ? 'X' : ''} BOILER &nbsp;</span></div>
@@ -4022,6 +4044,7 @@ function generatePage52(data: ApartmentPacketData): string {
 					<div class="acod_01" style="left:30em;top:30.1649em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0848em;">OTHER OCCUPANCIES &nbsp;</span></div>
 					<div class="acod_01" style="left:1.8em;top:30.2149em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0848em;">BUILDING IMPROVEMENTS &nbsp;</span></div>
 					<div class="acod_01" style="left:3em;top:31.3774em;"><span class="acod_16 acod_08 acod_09" style="word-spacing:0.055em;">WIRING, YR: &nbsp;</span></div>
+					<div class="acod_01" style="left:1.9em;top:31.3774em;"><span class="acod_16 acod_08 acod_09" style="word-spacing:0.055em;"> X &nbsp;</span></div>
 					<div class="acod_01" style="left:10.07em;top:31.3774em;"><span class="acod_16 acod_08 acod_09" style="word-spacing:-0.0266em;">PLUMBING, YR: &nbsp;</span></div>
 					<div class="acod_01" style="left:10.07em;top:32.3774em;"><span class="acod_16 acod_08 acod_09" style="word-spacing:-0.0084em;">HEATING, YR: &nbsp;</span></div>
 					<div class="acod_01" style="left:11.7em;top:33.4174em;"><span class="acod_16 acod_08 acod_09">YR: &nbsp;</span></div>
@@ -4506,12 +4529,6 @@ const cssContent = `
 	font-size: 0.5833em;
 	font-family: "DWHCGA+Arial";
 	color: #000000;
-}
-
- body > div {
-	box-shadow: 0 0 5px rgba(0,0,0,0.3) !important;
-	margin: 20px auto !important;
-}
 }
 
 	/* General Layout Helpers */

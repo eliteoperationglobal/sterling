@@ -199,6 +199,20 @@ input[type="number"] {
   .animate-shake {
     animation: shake 0.2s ease-in-out;
   }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 5px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #e5ddd5;
+    border-radius: 10px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #9A8B7A;
+  }
 }
 
 /* Premium Card Styles */
