@@ -3891,19 +3891,20 @@ function generatePage51(data: ApartmentPacketData): string {
 					<div class="acod_01" style="left:17.1125em;top:40.5049em;"><span class="acod_11 acod_08 acod_09">GRADE &nbsp;</span></div>
 					<div class="acod_01" style="left:23.75em;top:41.1278em;"><span class="acod_07 acod_08 acod_09">${data.roofingType || ''} &nbsp;</span></div>
 					<div class="acod_01" style="left:3em;top:41.3774em;"><span class="acod_16 acod_08 acod_09" style="word-spacing:0.055em;">WIRING, YR: ${data.yearWiringInstalled || ''} &nbsp;</span></div>
-					<div class="acod_01" style="left:1.9em;top:41em;"><span class="acod_16 acod_08 acod_09" style="word-spacing:0.055em; font-size:16px; font-weight:bold;"> X &nbsp;</span></div>			
+					<div class="acod_01" style="left:1.9em;top:41em;"><span class="acod_16 acod_08 acod_09" style="word-spacing:0.055em; font-size:16px; font-weight:bold;">${data.yearWiringInstalled ? ' X ' : ''}&nbsp;</span></div>			
 					<div class="acod_01" style="left:10.07em;top:41.3774em;"><span class="acod_16 acod_08 acod_09" style="word-spacing:-0.0266em;">PLUMBING, YR: ${data.yearPlumbingInstalled || ''} &nbsp;</span></div>
-					<div class="acod_01" style="left:8.9em;top:41em;"><span class="acod_16 acod_08 acod_09" style="word-spacing:0.055em; font-size:16px; font-weight:bold;"> X &nbsp;</span></div>
+					<div class="acod_01" style="left:8.9em;top:41em;"><span class="acod_16 acod_08 acod_09" style="word-spacing:0.055em; font-size:16px; font-weight:bold;">${data.yearPlumbingInstalled ? ' X ' : ''}&nbsp;</span></div>
 					<div class="acod_01" style="left:31.2em;top:42.0074em;"><span class="acod_16 acod_08 acod_09" style="word-spacing:0.0112em;">HEATING SOURCE INCL WOODBURNING &nbsp;</span></div>
 					<div class="acod_01" style="left:31.2em;top:42.5074em;"><span class="acod_16 acod_08 acod_09" style="word-spacing:-0.0094em;">STOVE OR FIREPLACE INSERT &nbsp;</span></div>
 					<div class="acod_01" style="left:30em;top:43.2124em;"><span class="acod_16 acod_08 acod_09">MANUFACTURER: &nbsp;</span></div>
 					<div class="acod_01" style="left:42.3em;top:42.0074em;"><span class="acod_16 acod_08 acod_09">DATE &nbsp;</span></div>
 					<div class="acod_01" style="left:42.3em;top:42.5074em;"><span class="acod_16 acod_08 acod_09">INSTALLED: &nbsp;</span></div>
 					<div class="acod_01" style="left:16.5em;top:42.1649em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0289em;">WIND CLASS &nbsp;</span></div>
-					<div class="acod_01" style="left:1.9em;top:42em;"><span class="acod_16 acod_08 acod_09" style="word-spacing:0.055em; font-size:16px; font-weight:bold;"> X &nbsp;</span></div>
+					<div class="acod_01" style="left:1.9em;top:42em;"><span class="acod_16 acod_08 acod_09" style="word-spacing:0.055em; font-size:16px; font-weight:bold;">${data.yearRoofInstalled ? ' X ' : ''}&nbsp;</span></div>
 					<div class="acod_01" style="left:3em;top:42em;"><span class="acod_16 acod_08 acod_09" style="word-spacing:0.0084em;">ROOFING, YR: ${data.yearRoofInstalled || ''} &nbsp;</span></div>
 					<div class="acod_01" style="left:10.07em;top:42em;"><span class="acod_16 acod_08 acod_09" style="word-spacing:-0.0084em;">HEATING, YR: ${data.yearHeatingInstalled || ''} &nbsp;</span></div>
-					<div class="acod_01" style="left:8.9em;top:42em;"><span class="acod_16 acod_08 acod_09" style="word-spacing:0.055em; font-size:16px; font-weight:bold;"> X &nbsp;</span></div>
+					
+					<div class="acod_01" style="left:8.9em;top:42em;"><span class="acod_16 acod_08 acod_09" style="word-spacing:0.055em; font-size:16px; font-weight:bold;">${data.yearHeatingInstalled ? ' X ' : ''}&nbsp;</span></div>
 					<div class="acod_01" style="left:11.7em;top:43em;"><span class="acod_16 acod_08 acod_09">YR: &nbsp;</span></div>
 					<div class="acod_01" style="left:3em;top:43em;"><span class="acod_16 acod_08 acod_09">OTHER: ${['Frame', 'Non-Combustible', 'Masonry Non-Combustible'].includes(data.constructionType) ? data.constructionType : ''} &nbsp;</span></div>
 					<div class="acod_01" style="left:17.7em;top:43em;"><span class="acod_16 acod_08 acod_09" style="word-spacing:-0.0407em;">${data.constructionType === 'Fire Resistive' ? 'X' : ''} RESISTIVE &nbsp;</span></div>
@@ -4086,6 +4087,7 @@ function generatePage52(data: ApartmentPacketData): string {
 					<div class="acod_01" style="left:36.6em;top:41.2149em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0153em;"># GUARDS / WATCHMEN &nbsp;</span></div>
 					<div class="acod_01" style="left:44.4em;top:41.2124em;"><span class="acod_16 acod_08 acod_09" style="word-spacing:-0.01em;">CLOCK HOURLY &nbsp;</span></div>
 					<div class="acod_01" style="left:1.8em;top:43.1049em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0173em;">PREMISES FIRE PROTECTION (Sprinklers, Standpipes, CO2 / Chemical Systems) &nbsp;</span></div>
+					<div class="acod_01" style="left:1.8em;top:44.212em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0173em;">${data.hasSprinklers ? 'Sprinklers' : ''} &nbsp;</span></div>
 					<div class="acod_01" style="left:24em;top:43.1649em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0525em;">% SPRNK</span><span class="acod_11 acod_08 acod_09" style="word-spacing:1.2084em;">&nbsp;</span><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0559em;">FIRE ALARM MANUFACTURER &nbsp;</span></div>
 					<div class="acod_01" style="left:44.4em;top:43.2124em;"><span class="acod_16 acod_08 acod_09" style="word-spacing:0em;">CENTRAL STATION &nbsp;</span></div>
 					<div class="acod_01" style="left:44.4em;top:44.2124em;"><span class="acod_16 acod_08 acod_09" style="word-spacing:0.005em;">LOCAL GONG &nbsp;</span></div>

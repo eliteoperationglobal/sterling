@@ -12191,10 +12191,7 @@ const cssContent = `
 	letter-spacing: -0.007px;
 }
 
- body > div {
-	box-shadow: 0 0 5px rgba(0,0,0,0.3) !important;
-	margin: 20px auto !important;
-}
+
 	
 	.header-section {
 	  display: flex;
@@ -13394,10 +13391,7 @@ const cssContent = `
 	color: #000000;
 }
 
- body > div {
-	box-shadow: 0 0 5px rgba(0,0,0,0.3) !important;
-	margin: 20px auto !important;
-}
+
 
 /* PDF 125 */
  .pdf44_ sup {
@@ -13651,10 +13645,7 @@ padding-top: 5px;
 	-ms-transform-origin: top left;
 }
 
- body > div {
-	box-shadow: 0 0 5px rgba(0,0,0,0.3) !important;
-	margin: 20px auto !important;
-}
+
 
 
 /*pdf 131 css */
@@ -13866,10 +13857,7 @@ padding-top: 5px;
 	-ms-transform-origin: top left;
 }
 
- body > div {
-	box-shadow: 0 0 5px rgba(0,0,0,0.3) !important;
-	margin: 20px auto !important;
-} 
+ 
 .agency125{
   font-size:4px;
   color:black;
@@ -14287,10 +14275,7 @@ padding-top: 5px;
 	letter-spacing: 0.2533px;
 }
 
- body > div {
-	box-shadow: 0 0 5px rgba(0,0,0,0.3) !important;
-	margin: 20px auto !important;
-}
+
 
 /* NOTIC PDF 2 */
   .notic102_ sup {
@@ -15492,10 +15477,7 @@ padding-top: 5px;
 	letter-spacing: 0.0231px;
 }
 
- body > div {
-	box-shadow: 0 0 5px rgba(0,0,0,0.3) !important;
-	margin: 20px auto !important;
-}
+
 
 /* PROPOSAL */
  .nsp1_ sup {
@@ -15888,10 +15870,7 @@ padding-top: 5px;
 	color: #0000FF;
 }
 
- body > div {
-	box-shadow: 0 0 5px rgba(0,0,0,0.3) !important;
-	margin: 20px auto !important;
-}
+
 
 
 
@@ -16279,10 +16258,7 @@ padding-top: 5px;
 	letter-spacing: -0.0086px;
 }
 
- body > div {
-	box-shadow: 0 0 5px rgba(0,0,0,0.3) !important;
-	margin: 20px auto !important;
-}
+
 
 
  .statewashn_ sup {
@@ -16493,10 +16469,7 @@ padding-top: 5px;
 	letter-spacing: 0.0156px;
 }
 
- body > div {
-	box-shadow: 0 0 5px rgba(0,0,0,0.3) !important;
-	margin: 20px auto !important;
-}
+
 
 
  .statecoloda_ sup {
@@ -16859,10 +16832,7 @@ padding-top: 5px;
 	color: #221E1F;
 }
 
- body > div {
-	box-shadow: 0 0 5px rgba(0,0,0,0.3) !important;
-	margin: 20px auto !important;
-}
+
 
 
 
@@ -17228,10 +17198,7 @@ padding-top: 5px;
 	color: #221E1F;
 }
 
- body > div {
-	box-shadow: 0 0 5px rgba(0,0,0,0.3) !important;
-	margin: 20px auto !important;
-}
+
 
  .statepa1_ sup {
 	vertical-align: baseline;
@@ -17360,10 +17327,7 @@ padding-top: 5px;
 	letter-spacing: -0.0078px;
 }
 
- body > div {
-	box-shadow: 0 0 5px rgba(0,0,0,0.3) !important;
-	margin: 20px auto !important;
-}   
+   
 
 
  .statepa2_ sup {
