@@ -134,7 +134,7 @@ function AgencyDashboardContent() {
 
   // Pipeline stages matching ISC (counts will be updated from real data)
   const [pipelineStages, setPipelineStages] = useState<PipelineStage[]>([
-    { id: "ALL", label: "All Application", count: 0 },
+    { id: "ALL", label: "All Applications", count: 0 },
     { id: "IN_PROGRESS", label: "In Progress", count: 0 },
     // { id: "REQUIRES_REVIEW", label: "Requires Review", count: 0 },
     // { id: "APPROVAL_REQUESTED", label: "Approval Requested", count: 0 },
