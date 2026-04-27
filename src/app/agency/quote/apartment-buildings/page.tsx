@@ -305,7 +305,7 @@ function ApartmentBuildingsContent() {
         proceduresTenantComplaintsBuilding: true as boolean | null,
 
         // 22
-        hasPools: null as boolean | null,
+        hasPools: false as boolean | null,
         poolNumber: "",
         heightOfDivingBoards: "",
         lengthHeightOfSlides: "",
@@ -318,7 +318,7 @@ function ApartmentBuildingsContent() {
         poolHours: "",
 
         // 23
-        nurseryDayCareFacility: null as boolean | null,
+        nurseryDayCareFacility: false as boolean | null,
 
         leaseProhibitsTenantsDogs: true as boolean | null,
 
@@ -326,7 +326,7 @@ function ApartmentBuildingsContent() {
         describeOtherBuildingsHazards: "N/A",
 
         // 27
-        ownControlParkingFacilities: null as boolean | null,
+        ownControlParkingFacilities: false as boolean | null,
         parkingAccessControlled: null as boolean | null,
         parkingDescription: "",
 
@@ -343,6 +343,12 @@ function ApartmentBuildingsContent() {
         phone: "",
         email: "",
 
+        // Add General Liability (Optional)
+        addGeneralLiability: false as boolean,
+        glCoverageLimits: "1M / 2M / 2M" as string,
+        glFireLegalLimit: "$50,000" as string,
+        glMedicalExpenseLimit: "Not Applicable" as string,
+        glDeductible: "$2,500" as string,
     });
 
     const handleAddressSearch = async (value: string, type: "mailing" | "property") => {
@@ -528,7 +534,11 @@ function ApartmentBuildingsContent() {
                 response = await fetch(`/api/agency/submissions/${submissionId}`, {
                     method: "PATCH",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ payload: formData }),
+                    body: JSON.stringify({ 
+                        payload: formData,
+                        programId: "apartment-buildings",
+                        programName: "Commercial Property"
+                    }),
                 });
             } else {
                 response = await fetch("/api/agency/applications/submit", {
@@ -1439,6 +1449,92 @@ function ApartmentBuildingsContent() {
                         </LongGridRow>
                     </>
                 ))}
+
+                {/* ================= ADD GENERAL LIABILITY ================= */}
+                <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200 mt-6">
+                    <div className="bg-[#7A6F64] text-white px-6 py-3.5">
+                        <h2 className="text-lg font-semibold">Add General Liability coverage</h2>
+                    </div>
+
+                    <div className="px-8 pt-6 pb-7 space-y-7">
+                        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                            <h3 className="text-[18px] font-semibold tracking-tight">
+                                Add General Liability
+                            </h3>
+                            <p className="text-sm text-gray-600">
+                                Covers Bodily Injury, Property Damage, and Personal Injury
+                            </p>
+                        </div>
+
+                        <YesNoRadio
+                            value={formData.addGeneralLiability}
+                            onChange={(val) => handleInputChange("addGeneralLiability", val)}
+                        />
+                    </div>
+                </div>
+
+                {/* ================= GENERAL LIABILITY QUESTIONS ================= */}
+                {formData.addGeneralLiability && (
+                    <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200 mt-6 animate-in fade-in slide-in-from-top-4 duration-500">
+                        <div className="bg-[#7A6F64] text-white px-6 py-3.5">
+                            <h2 className="text-lg font-semibold">General Liability Questions</h2>
+                        </div>
+
+                        <div className="px-8 pt-6 pb-7 space-y-6">
+                            <GridRow label="Coverage Limits">
+                                <select
+                                    value={formData.glCoverageLimits}
+                                    onChange={(e) => handleInputChange("glCoverageLimits", e.target.value)}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded focus:ring-[#9A8B7A] text-sm"
+                                >
+                                    <option value="1M / 1M / 1M">1M / 1M / 1M</option>
+                                    <option value="1M / 2M / 1M">1M / 2M / 1M</option>
+                                    <option value="1M / 2M / 2M">1M / 2M / 2M</option>
+                                </select>
+                            </GridRow>
+
+                            <GridRow label="Fire Legal Limit">
+                                <select
+                                    value={formData.glFireLegalLimit}
+                                    onChange={(e) => handleInputChange("glFireLegalLimit", e.target.value)}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded focus:ring-[#9A8B7A] text-sm"
+                                >
+                                    <option value="$50,000">$50,000</option>
+                                    <option value="$100,000">$100,000</option>
+                                    <option value="$300,000">$300,000</option>
+                                    <option value="$500,000">$500,000</option>
+                                    <option value="$1,000,000">$1,000,000</option>
+                                </select>
+                            </GridRow>
+
+                            <GridRow label="Medical Expense Limit">
+                                <select
+                                    value={formData.glMedicalExpenseLimit}
+                                    onChange={(e) => handleInputChange("glMedicalExpenseLimit", e.target.value)}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded focus:ring-[#9A8B7A] text-sm"
+                                >
+                                    <option value="Not Applicable">Not Applicable</option>
+                                    <option value="$1,000">$1,000</option>
+                                    <option value="$5,000">$5,000</option>
+                                    <option value="$10,000">$10,000</option>
+                                </select>
+                            </GridRow>
+
+                            <GridRow label="Deductible">
+                                <select
+                                    value={formData.glDeductible}
+                                    onChange={(e) => handleInputChange("glDeductible", e.target.value)}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded focus:ring-[#9A8B7A] text-sm"
+                                >
+                                    <option value="$1,000">$1,000</option>
+                                    <option value="$2,500">$2,500</option>
+                                    <option value="$5,000">$5,000</option>
+                                    <option value="$10,000">$10,000</option>
+                                </select>
+                            </GridRow>
+                        </div>
+                    </div>
+                )}
 
 
                 {/* Continue Actions */}

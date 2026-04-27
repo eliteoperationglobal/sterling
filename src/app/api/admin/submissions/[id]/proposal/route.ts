@@ -257,10 +257,18 @@ export async function GET(
       const cachedPdf = await PDFCache.findOne({ hash: dataHash }).lean();
       if (cachedPdf && cachedPdf.pdfBuffer) {
         console.log(`📄 [Admin PDF Download] SERVING FAST CACHE for hash: ${dataHash.substring(0, 8)}...`);
+        const isApartment = submission.programId === 'apartment-buildings';
+        const policyLabel = isApartment 
+          ? (quote?.policyType === 'EXCESS_LIABILITY' ? 'General-Liability' : 'Property')
+          : 'Proposal';
+        const filename = isApartment 
+          ? `${formData.companyName}-${policyLabel}-Proposal.pdf`
+          : `${formData.companyName}-Proposal.pdf`;
+
         return new NextResponse(new Uint8Array(cachedPdf.pdfBuffer as unknown as ArrayBuffer), {
           headers: {
             'Content-Type': 'application/pdf',
-            'Content-Disposition': `attachment; filename="${formData.companyName}-Proposal.pdf"`,
+            'Content-Disposition': `attachment; filename="${filename}"`,
             'Content-Length': cachedPdf.pdfBuffer.length.toString(),
             'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
             'Pragma': 'no-cache',
@@ -311,10 +319,18 @@ export async function GET(
       // Ignored
     }
 
+    const isApartment = submission.programId === 'apartment-buildings';
+    const policyLabel = isApartment 
+      ? (quote?.policyType === 'EXCESS_LIABILITY' ? 'General-Liability' : 'Property')
+      : 'Proposal';
+    const filename = isApartment 
+      ? `${formData.companyName}-${policyLabel}-Proposal.pdf`
+      : `${formData.companyName}-Proposal.pdf`;
+
     return new NextResponse(new Uint8Array(pdfBuffer), {
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="${formData.companyName}-Proposal.pdf"`,
+        'Content-Disposition': `attachment; filename="${filename}"`,
         'Content-Length': pdfBuffer.length.toString(),
       },
     });

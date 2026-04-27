@@ -30,6 +30,8 @@ interface BindRequestSubmission {
   paymentDate?: string;
   createdAt: string;
   quotes?: any[];
+  programId?: string;
+  programName?: string;
 }
 
 export default function AdminBindRequestsPage() {
@@ -167,9 +169,14 @@ export default function AdminBindRequestsPage() {
     const pType = activePolicyTab;
     const data = policyForms[pType];
 
+    const sub = submissions.find((s) => s._id === selectedSubmissionId);
+    const label = pType === "GENERAL_LIABILITY"
+      ? (sub?.programId === 'apartment-buildings' || sub?.programName === 'Commercial Property' || sub?.programName === 'Apartment Building' ? "Property" : "General Liability")
+      : (sub?.programId === 'apartment-buildings' || sub?.programName === 'Commercial Property' || sub?.programName === 'Apartment Building' ? "General Liability" : "Excess Liability");
+
     // Validation for ONLY the active policy tab
     if (!data.effectiveDate || !data.expirationDate || !data.policyNumber) {
-      toast.error(`Please fill in all required fields for ${pType === 'EXCESS_LIABILITY' ? 'Excess Liability' : 'General Liability'}`);
+      toast.error(`Please fill in all required fields for ${label}`);
       return;
     }
 
@@ -202,7 +209,12 @@ export default function AdminBindRequestsPage() {
         throw new Error(resData.error || `Failed to approve ${pType}`);
       }
 
-      toast.success(`${pType === 'EXCESS_LIABILITY' ? 'Excess Liability' : 'General Liability'} approved successfully!`, {
+      const subForToast = submissions.find((s) => s._id === selectedSubmissionId);
+      const labelForToast = pType === "GENERAL_LIABILITY"
+        ? (subForToast?.programId === 'apartment-buildings' || subForToast?.programName === 'Commercial Property' || subForToast?.programName === 'Apartment Building' ? "Property" : "General Liability")
+        : (subForToast?.programId === 'apartment-buildings' || subForToast?.programName === 'Commercial Property' || subForToast?.programName === 'Apartment Building' ? "General Liability" : "Excess Liability");
+
+      toast.success(`${labelForToast} approved successfully!`, {
         description: "The policy has been marked as BOUND with policy details",
       });
 
@@ -531,7 +543,10 @@ export default function AdminBindRequestsPage() {
                             : "border-transparent text-gray-400 hover:text-gray-600 hover:border-gray-300"
                             }`}
                         >
-                          {q.policyType === "EXCESS_LIABILITY" ? "Excess Liability" : "General Liability"}
+                          {q.policyType === "GENERAL_LIABILITY"
+                            ? (sub?.programId === 'apartment-buildings' || sub?.programName === 'Commercial Property' || sub?.programName === 'Apartment Building' ? "Property" : "General Liability")
+                            : (sub?.programId === 'apartment-buildings' || sub?.programName === 'Commercial Property' || sub?.programName === 'Apartment Building' ? "General Liability" : "Excess Liability")
+                          }
                         </button>
                       ))}
                     </div>
@@ -735,7 +750,11 @@ export default function AdminBindRequestsPage() {
                     </>
                   ) : (
                     (() => {
-                      return `Approve ${activePolicyTab === 'EXCESS_LIABILITY' ? 'Excess Liability' : 'General Liability'}`;
+                      const sub = submissions.find((s) => s._id === selectedSubmissionId);
+                      const label = activePolicyTab === "GENERAL_LIABILITY"
+                        ? (sub?.programId === 'apartment-buildings' || sub?.programName === 'Commercial Property' || sub?.programName === 'Apartment Building' ? "Property" : "General Liability")
+                        : (sub?.programId === 'apartment-buildings' || sub?.programName === 'Commercial Property' || sub?.programName === 'Apartment Building' ? "General Liability" : "Excess Liability");
+                      return `Approve ${label}`;
                     })()
                   )}
                 </button>

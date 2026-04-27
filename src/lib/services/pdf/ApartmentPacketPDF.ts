@@ -3371,7 +3371,7 @@ function generatePage1(data: ApartmentPacketData): string {
 					<!-- Date -->
 					<div>
 						<div class="section-title-page2">Date</div>
-						<div class="date-section-page2">${data.formDate || new Date().toLocaleDateString()}</div>
+						<div class="date-section-page2">${data.formDate || new Date().toLocaleDateString('en-US')}</div>
 					</div>
 
 					<!-- Insured Information -->
@@ -3390,7 +3390,6 @@ function generatePage1(data: ApartmentPacketData): string {
 					<div>
 						<div class="section-title-page2">Quote Information</div>
 						<div class="quote-detail-page2">PROPERTY</div>
-						<div class="quote-detail-page2">${data.carrierName || "-"}</div>
 						<div class="quote-detail-page2">${data.coverageType || "General Liability"}</div>
 						<div class="quote-detail-page2">
 							Desired Coverage Dates: ${data.desiredCoverageDates || "-"}
@@ -3488,7 +3487,7 @@ function generatePage1(data: ApartmentPacketData): string {
 						</div>
 					</div>
 					
-					${data.interestInPropertyRadio === 'Owner' ? `
+					${data.interestInPropertyRadio === 'Manager' ? `
 						<div class="sub-section">
 							${renderField("Name of Property Management Firm", data.propertyManagementFirmName)}
 							${renderYesNo("Is the Property Management Firm required to maintain Commercial General Liability Insurance with minimum $1,000,000 limits and to include you as an Additional Insured?", data.isManagementFirmInsured)}
@@ -3563,8 +3562,11 @@ function generatePage2Optimized(data: ApartmentPacketData): string {
 					<hr class="section-divider" />
 					
 					${renderField("Heating Type", data.heatingType)}
+					${renderField("Year of Heating Installation", data.yearHeatingInstalled)}
 					${renderField("Plumbing Type", data.plumbingType)}
+					${renderField("Year of Plumbing Installation", data.yearPlumbingInstalled)}
 					${renderField("Roofing Type", data.roofingType)}
+					${renderField("Year of Roof Installation", data.yearRoofInstalled)}
 					
 					<div class="question-row">
 						<div class="question-text">Building Wiring:</div>
@@ -3574,6 +3576,7 @@ function generatePage2Optimized(data: ApartmentPacketData): string {
 							<span class="option ${data.buildingWiring === 'Other' ? 'selected' : ''}">Other</span>
 						</div>
 					</div>
+					${renderField("Year of Wiring Installation", data.yearWiringInstalled)}
 					${data.buildingWiring === 'Aluminum' ? renderYesNo("Is wiring pigtailed or COALR?", data.aluminumWiringPigtailedOrCOALR) : ''}
 				</div>
 			</div>
@@ -3627,8 +3630,7 @@ function generatePage3Optimized(data: ApartmentPacketData): string {
 
 					<div class="question-list">
 						${renderYesNo("Is the complex in compliance with all applicable state and local statutes governing safety devices?", data.complianceWithSafetyLaws)}
-						${renderYesNo("Are all units re-keyed prior to leasing to new tenants?", data.unitsRekeyed)}
-						${renderYesNo("Are individual unit doors secured by double locks and peep holes?", data.doorDoubleLocksPeepHoles)}
+						${renderYesNo("Are all units re-keyed prior to leasing to new tenants?", data.unitsRekeyed)}	
 						${renderYesNo("Does the complex have limited access perimeter fencing?", data.perimeterFencing)}
 						${renderYesNo("Do you contract with a security guard service for onsite security?", data.securityGuardOnsite)}
 					</div>
@@ -3776,7 +3778,7 @@ function generatePage51(data: ApartmentPacketData): string {
 					<div class="acod_01" style="left:43.445em;top:3.6999em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0136em;">DATE (MM/DD/YYYY) &nbsp;</span></div>
 					<div class="acod_01" style="left:18.93em;top:3.8338em;"><span class="acod_12 acod_08 acod_09" style="word-spacing:0.01em;">PROPERTY SECTION &nbsp;</span></div>
 					<div class="acod_01" style="left:25.8em;top:5.6165em;"><span class="acod_10 acod_08 acod_09">CARRIER &nbsp;</span></div>
-					<div class="acod_01" style="left:44.2077em;top:4.6278em;"><span class="acod_07 acod_08 acod_09">01/01/2006 &nbsp;</span></div>
+					<div class="acod_01" style="left:44.2077em;top:4.6278em;"><span class="acod_07 acod_08 acod_09">${data.formDate} &nbsp;</span></div>
 					<div class="acod_01" style="left:45.3em;top:5.7149em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0594em;">NAIC CODE &nbsp;</span></div>
 					<div class="acod_01" style="left:1.8em;top:5.7149em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0372em;">AGENCY NAME &nbsp;</span></div>
 					<div class="acod_01" style="left:1.9167em;top:6.6278em;"><span class="acod_07 acod_08 acod_09">${data.agencyName} &nbsp;</span></div>
@@ -4045,7 +4047,6 @@ function generatePage52(data: ApartmentPacketData): string {
 					<div class="acod_01" style="left:30em;top:30.1649em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0848em;">OTHER OCCUPANCIES &nbsp;</span></div>
 					<div class="acod_01" style="left:1.8em;top:30.2149em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0848em;">BUILDING IMPROVEMENTS &nbsp;</span></div>
 					<div class="acod_01" style="left:3em;top:31.3774em;"><span class="acod_16 acod_08 acod_09" style="word-spacing:0.055em;">WIRING, YR: &nbsp;</span></div>
-					<div class="acod_01" style="left:1.9em;top:31.3774em;"><span class="acod_16 acod_08 acod_09" style="word-spacing:0.055em;"> X &nbsp;</span></div>
 					<div class="acod_01" style="left:10.07em;top:31.3774em;"><span class="acod_16 acod_08 acod_09" style="word-spacing:-0.0266em;">PLUMBING, YR: &nbsp;</span></div>
 					<div class="acod_01" style="left:10.07em;top:32.3774em;"><span class="acod_16 acod_08 acod_09" style="word-spacing:-0.0084em;">HEATING, YR: &nbsp;</span></div>
 					<div class="acod_01" style="left:11.7em;top:33.4174em;"><span class="acod_16 acod_08 acod_09">YR: &nbsp;</span></div>

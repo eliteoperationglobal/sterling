@@ -108,11 +108,18 @@ export async function GET(
       return NextResponse.json({ error: "Generated PDF is empty" }, { status: 500 });
     }
 
+    const isApartment = submission.programId === 'apartment-buildings';
+    const policyLabel = isApartment 
+      ? (quote?.policyType === 'EXCESS_LIABILITY' ? 'General-Liability' : 'Property')
+      : 'Invoice';
+    const filename = isApartment 
+      ? `${formData.companyName}-${policyLabel}-Invoice.pdf`
+      : `${formData.companyName}-Invoice.pdf`;
+
     return new NextResponse(new Uint8Array(pdfBuffer), {
       headers: {
         'Content-Type': 'application/pdf',
-        // 'Content-Disposition': `attachment; filename="invoice-${submission._id.toString()}.pdf"`,
-        'Content-Disposition': `attachment; filename="${formData.companyName}-Invoice.pdf"`,
+        'Content-Disposition': `attachment; filename="${filename}"`,
         'Content-Length': pdfBuffer.length.toString(),
       },
     });

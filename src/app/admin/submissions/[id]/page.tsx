@@ -297,6 +297,7 @@ export default function AdminSubmissionDetailsPage() {
   );
 
   const data = rawData?.submission ? rawData : null;
+  const { submission, routingLogs, quotes } = data || {};
   const loading = isLoading;
   const error = swrError ? "Failed to load submission" : rawData?.error || "";
 
@@ -346,25 +347,62 @@ export default function AdminSubmissionDetailsPage() {
   }, [carrierGroups, selectedCarrierId, currentPolicyType]);
 
   useEffect(() => {
-    if (data?.quotes && carrierGroups.length > 0) {
-      const activeGroupId = selectedCarrierId || carrierGroups[0].carrierId;
-      const group = carrierGroups.find(g => g.carrierId === activeGroupId);
+    if (data) {
+      let types: string[] = [];
+      
+      if (carrierGroups.length > 0) {
+        const activeGroupId = selectedCarrierId || carrierGroups[0].carrierId;
+        const group = carrierGroups.find(g => g.carrierId === activeGroupId);
+        if (group) {
+          types = Array.from(new Set(group.quotes.map((q: any) => q.policyType || "GENERAL_LIABILITY")));
+        }
+      } else {
+        // Default to General Liability if no quotes
+        types = ["GENERAL_LIABILITY"];
+      }
+      
+      // Force both policies for Apartment Buildings program
+      if (data?.submission?.programId === 'apartment-buildings' || data?.submission?.programName === 'Commercial Property' || data?.submission?.programName === 'Apartment Building') {
+        if (!types.includes("GENERAL_LIABILITY")) types.push("GENERAL_LIABILITY");
+        if (!types.includes("EXCESS_LIABILITY")) types.push("EXCESS_LIABILITY");
+      }
 
-      if (group) {
-        let types = Array.from(new Set(group.quotes.map((q: any) => q.policyType || "GENERAL_LIABILITY")));
-        
-        // Fix the "jumping buttons" issue by ensuring a consistent order
-        types.sort((a, b) => (a === "GENERAL_LIABILITY" ? -1 : 1));
-        
-        setAvailablePolicies(types as string[]);
+      // Fix the "jumping buttons" issue by ensuring a consistent order
+      types.sort((a, b) => (a === "GENERAL_LIABILITY" ? -1 : 1));
+      
+      setAvailablePolicies(types as string[]);
 
-        // Auto-switch if current policy type is not in the new carrier's available list
-        if (types.length > 0 && !types.includes(currentPolicyType)) {
-          setCurrentPolicyType(types[0] as any);
+      // Auto-switch if current policy type is not in the new carrier's available list
+      if (types.length > 0 && !types.includes(currentPolicyType)) {
+        setCurrentPolicyType(types[0] as any);
+      }
+    }
+  }, [data, selectedCarrierId, carrierGroups, data?.submission?.programId, data?.submission?.programName]);
+  
+  // Auto-switch carrier when policy type changes if current carrier has no quote for it
+  useEffect(() => {
+    if (carrierGroups.length > 0 && currentPolicyType) {
+      const currentGroup = carrierGroups.find(g => g.carrierId === selectedCarrierId);
+      const hasQuote = currentGroup?.quotes.some(q => 
+        q.policyType === currentPolicyType || 
+        (!q.policyType && currentPolicyType === "GENERAL_LIABILITY")
+      );
+
+      if (!hasQuote) {
+        // Find first carrier that DOES have a quote for this policy type
+        const alternativeGroup = carrierGroups.find(g => 
+          g.quotes.some(q => 
+            q.policyType === currentPolicyType || 
+            (!q.policyType && currentPolicyType === "GENERAL_LIABILITY")
+          )
+        );
+
+        if (alternativeGroup) {
+          setSelectedCarrierId(alternativeGroup.carrierId);
         }
       }
     }
-  }, [data, selectedCarrierId, carrierGroups]);
+  }, [currentPolicyType, carrierGroups, selectedCarrierId]);
 
   useEffect(() => {
     if (rawData?.submission?.adminNotes !== undefined) {
@@ -605,7 +643,6 @@ export default function AdminSubmissionDetailsPage() {
     );
   }
 
-  const { submission, routingLogs, quotes } = data;
 
   // ================= ISC BUTTON STYLES =================
   const iscOutlineBtn =
@@ -623,7 +660,7 @@ export default function AdminSubmissionDetailsPage() {
   const statusHistory = [
     {
       _id: submission._id + "-created",
-      program: submission.programName || "General Liability",
+      program: submission.programName || (submission.programId === 'apartment-buildings' ? "Property" : "General Liability"),
       changedAt: submission.createdAt,
       user: submission.agencyId?.name || "System",
       status: "Submission Created",
@@ -825,7 +862,7 @@ export default function AdminSubmissionDetailsPage() {
         {/* Policy Selector */}
         {availablePolicies.length > 1 && (
           <div className="bg-white px-8 py-4 border-t border-gray-100 flex items-center gap-4 shadow-sm">
-            <span className="text-[13px] font-bold text-gray-500 uppercase tracking-wider">Policy Type:</span>
+            <span className="text-[13px] font-bold text-gray-500 uppercase tracking-wider">POLICY TYPE:</span>
             <div className="flex gap-2">
               {availablePolicies.map((type: any) => (
                 <button
@@ -836,7 +873,10 @@ export default function AdminSubmissionDetailsPage() {
                     : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                     }`}
                 >
-                  {type === "GENERAL_LIABILITY" ? "General Liability" : "Excess Liability"}
+                  {type === "GENERAL_LIABILITY"
+                    ? (submission?.programId === 'apartment-buildings' || submission?.programName === 'Commercial Property' || submission?.programName === 'Apartment Building' ? "Property" : "General Liability")
+                    : (submission?.programId === 'apartment-buildings' || submission?.programName === 'Commercial Property' || submission?.programName === 'Apartment Building' ? "General Liability" : "Excess Liability")
+                  }
                 </button>
               ))}
             </div>
@@ -1390,7 +1430,10 @@ export default function AdminSubmissionDetailsPage() {
                     </div>
                     <p className="text-gray-500 font-medium">No quote entered yet for</p>
                     <p className="text-gray-900 font-bold mt-1">
-                      {currentPolicyType === "GENERAL_LIABILITY" ? "General Liability" : "Excess Liability"}
+                      {currentPolicyType === "GENERAL_LIABILITY"
+                      ? (submission?.programId === 'apartment-buildings' || submission?.programName === 'Commercial Property' || submission?.programName === 'Apartment Building' ? "Property" : "General Liability")
+                      : (submission?.programId === 'apartment-buildings' || submission?.programName === 'Commercial Property' || submission?.programName === 'Apartment Building' ? "General Liability" : "Excess Liability")
+                    }
                     </p>
                   </div>
                 ) : (

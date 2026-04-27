@@ -25,6 +25,7 @@ interface Submission {
     email: string;
   };
   programName?: string;
+  programId?: string;
   quotes?: Quote[];
   finalPolicyDocuments?: {
     finalBinderPdfUrl?: string;
@@ -360,7 +361,10 @@ export default function UploadFinalDocumentsPage() {
                 >
                   {boundQuotes.map((q) => (
                     <option key={q._id} value={q._id}>
-                      {q.policyType === "EXCESS_LIABILITY" ? "Excess Liability" : "General Liability"} - {q.carrierId?.name || "Carrier"}
+                      {q.policyType === "EXCESS_LIABILITY" 
+                        ? (submission?.programId === 'apartment-buildings' || submission?.programName?.includes("Property") || submission?.programName?.includes("Apartment") ? "General Liability" : "Excess Liability")
+                        : (submission?.programId === 'apartment-buildings' || submission?.programName?.includes("Property") || submission?.programName?.includes("Apartment") ? "Property" : "General Liability")
+                      } - {q.carrierId?.name || "Carrier"}
                     </option>
                   ))}
                 </select>
@@ -707,7 +711,10 @@ export default function UploadFinalDocumentsPage() {
         {/* {boundQuotes.length > 0 && globalSelectedQuoteId && selectedQuote && (
           <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-sm border border-gray-200/60 p-6">
             <h2 className="text-lg font-bold text-gray-900 mb-4">
-              Uploaded Documents ({selectedQuote.policyType === "EXCESS_LIABILITY" ? "Excess Liability" : "General Liability"})
+              Uploaded Documents ({selectedQuote.policyType === "EXCESS_LIABILITY" 
+                ? (submission?.programId === 'apartment-buildings' || submission?.programName?.includes("Property") || submission?.programName?.includes("Apartment") ? "General Liability" : "Excess Liability")
+                : (submission?.programId === 'apartment-buildings' || submission?.programName?.includes("Property") || submission?.programName?.includes("Apartment") ? "Property" : "General Liability")
+              })
             </h2>
 
             <div className="space-y-3">

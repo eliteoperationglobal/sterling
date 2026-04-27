@@ -88,6 +88,7 @@ function normalizeAdditionalCoverages(formData: any) {
     inlandMarineEquipment: formData.addInlandMarineEquipment ?? false,
     buildersRisk: formData.addBuildersRisk ?? false,
     environmentalCoverage: formData.addEnvironmentalCoverage ?? false,
+    generalLiability: formData.addGeneralLiability ?? false,
   };
 }
 

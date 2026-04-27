@@ -195,6 +195,22 @@ function SubmissionDetailsContent() {
   const [bindModalOpen, setBindModalOpen] = useState(false);
   const [bindSelectedCarrierIdGL, setBindSelectedCarrierIdGL] = useState<string | null>(null);
   const [bindSelectedCarrierIdXL, setBindSelectedCarrierIdXL] = useState<string | null>(null);
+  const [paymentAuthModalOpen, setPaymentAuthModalOpen] = useState(false);
+  const [paymentAuthData, setPaymentAuthData] = useState({
+    premiumAmount: "",
+    processingFee: 0,
+    totalDue: 0,
+    cardName: "",
+    cardNumber: "",
+    cardExpiry: "",
+    cardCvv: "",
+    cardZip: "",
+    achName: "",
+    achAddress: "",
+    achBank: "",
+    achRouting: "",
+    achAccount: ""
+  });
 
   const carrierGroups = useMemo(() => {
     if (!data?.quotes?.length) return [];
@@ -284,7 +300,7 @@ function SubmissionDetailsContent() {
     }
 
     // Also add XS if the application requested it (even before quote is entered)
-    if (data?.submission?.payload?.addExcessLiability) {
+    if (data?.submission?.payload?.addExcessLiability || data?.submission?.payload?.addGeneralLiability) {
       avails.add("EXCESS_LIABILITY");
     }
 
@@ -435,6 +451,19 @@ function SubmissionDetailsContent() {
       toast.error(err.message);
     }
   };
+
+  const handlePremiumChange = (value: string) => {
+    const amount = parseFloat(value) || 0;
+    const fee = amount * 0.03;
+    const total = amount + fee;
+    setPaymentAuthData(prev => ({
+      ...prev,
+      premiumAmount: value,
+      processingFee: fee,
+      totalDue: total
+    }));
+  };
+
   const toggleNoteFilter = (filter: string) => {
     setNoteFilters((prev) =>
       prev.includes(filter)
@@ -542,11 +571,6 @@ function SubmissionDetailsContent() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  useEffect(() => {
-    if (activeTab === "Notes") {
-      scrollToBottom();
-    }
-  }, [activityLogs, activeTab]);
 
   const handleAddNote = async () => {
     if (!noteText.trim() || !submissionId) return;
@@ -707,8 +731,8 @@ function SubmissionDetailsContent() {
   const isBindRequested = submission?.status === "BIND_REQUESTED";
   const isBound = submission?.status === "BOUND";
 
-  const baseQuoteUrl = ["inland-marine", "contractors-equipment"].includes(submission?.programId || "") || 
-                       ["Equipment", "Construction Equipment"].includes(submission?.programName || "")
+  const baseQuoteUrl = ["inland-marine", "contractors-equipment"].includes(submission?.programId || "") ||
+    ["Equipment", "Construction Equipment"].includes(submission?.programName || "")
     ? "/agency/quote/contractors-equipment"
     : `/agency/quote/${submission?.programId}`;
 
@@ -837,6 +861,206 @@ function SubmissionDetailsContent() {
               >
                 Submit Request
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Payment Auth Modal */}
+      {paymentAuthModalOpen && (
+        <div className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm overflow-y-auto">
+          <div className="min-h-full flex items-start md:items-center justify-center p-4 md:p-10">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl p-5 md:p-8 animate-in fade-in zoom-in duration-200 my-auto">
+              <div className="flex justify-between items-center mb-6 md:mb-8">
+                <h3 className="text-xl md:text-2xl font-bold text-gray-900">Payment Authorization</h3>
+                <button
+                  onClick={() => setPaymentAuthModalOpen(false)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <CloseIcon className="w-6 h-6" />
+                </button>
+              </div>
+
+              {/* Top Summary Boxes */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
+                <div className="bg-[#f8fafc] border border-[#e2e8f0] rounded-xl p-6 shadow-sm">
+                  <p className="text-[11px] font-bold text-[#64748b] uppercase tracking-wider mb-3">Premium Amount</p>
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl font-bold text-[#1e293b]">$</span>
+                    <input
+                      type="number"
+                      value={paymentAuthData.premiumAmount}
+                      onChange={(e) => handlePremiumChange(e.target.value)}
+                      placeholder="0.00"
+                      className="w-full bg-transparent text-2xl font-bold text-[#1e293b] outline-none border-none p-0 focus:ring-0"
+                    />
+                  </div>
+                </div>
+
+                <div className="bg-[#f8fafc] border border-[#e2e8f0] rounded-xl p-6 shadow-sm relative">
+                  <p className="text-[11px] font-bold text-[#64748b] uppercase tracking-wider mb-3">3% Processing Fee</p>
+                  <div className="text-2xl font-bold text-[#1e293b]">
+                    ${paymentAuthData.processingFee.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </div>
+                  {/* Arrow indicator like in image if needed, but let's keep it clean */}
+                </div>
+
+                <div className="bg-[#f8fafc] border border-[#e2e8f0] rounded-xl p-6 shadow-sm">
+                  <p className="text-[11px] font-bold text-[#64748b] uppercase tracking-wider mb-3">Total Amount Due</p>
+                  <div className="text-2xl font-bold text-[#1e293b]">
+                    ${paymentAuthData.totalDue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </div>
+                </div>
+              </div>
+
+              {/* Card Payment Section */}
+              <div className="mb-10">
+                <h4 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
+                  Payment by Credit or Debit Card
+                </h4>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-[13px] font-semibold text-gray-600 mb-1.5">Name on Card</label>
+                    <input
+                      type="text"
+                      value={paymentAuthData.cardName}
+                      onChange={(e) => setPaymentAuthData({ ...paymentAuthData, cardName: e.target.value })}
+                      className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#9A8B7A]/20 focus:border-[#9A8B7A] transition-all outline-none"
+                      placeholder="Enter name as it appears on card"
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div className="md:col-span-1">
+                      <label className="block text-[13px] font-semibold text-gray-600 mb-1.5">Card Number</label>
+                      <input
+                        type="text"
+                        value={paymentAuthData.cardNumber}
+                        onChange={(e) => setPaymentAuthData({ ...paymentAuthData, cardNumber: e.target.value })}
+                        className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#9A8B7A]/20 focus:border-[#9A8B7A] transition-all outline-none"
+                        placeholder="0000 0000 0000 0000"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[13px] font-semibold text-gray-600 mb-1.5">Expiration (MM/YY)</label>
+                      <input
+                        type="text"
+                        value={paymentAuthData.cardExpiry}
+                        onChange={(e) => setPaymentAuthData({ ...paymentAuthData, cardExpiry: e.target.value })}
+                        className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#9A8B7A]/20 focus:border-[#9A8B7A] transition-all outline-none"
+                        placeholder="MM/YY"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[13px] font-semibold text-gray-600 mb-1.5">CVV</label>
+                      <input
+                        type="text"
+                        value={paymentAuthData.cardCvv}
+                        onChange={(e) => setPaymentAuthData({ ...paymentAuthData, cardCvv: e.target.value })}
+                        className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#9A8B7A]/20 focus:border-[#9A8B7A] transition-all outline-none"
+                        placeholder="123"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[13px] font-semibold text-gray-600 mb-1.5">Billing Zip Code</label>
+                      <input
+                        type="text"
+                        value={paymentAuthData.cardZip}
+                        onChange={(e) => setPaymentAuthData({ ...paymentAuthData, cardZip: e.target.value })}
+                        className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#9A8B7A]/20 focus:border-[#9A8B7A] transition-all outline-none"
+                        placeholder="00000"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <hr className="border-gray-100 mb-10" />
+
+              {/* ACH Payment Section */}
+              <div className="mb-10">
+                <h4 className="text-lg font-bold text-gray-900 mb-6 flex flex-col">
+                  Payment by Draft Check (ACH)
+                  <span className="text-xs font-medium text-gray-400 mt-1">Use this section only if paying by checking account.</span>
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <label className="block text-[13px] font-semibold text-gray-600 mb-1.5">Name on Checking Account</label>
+                    <input
+                      type="text"
+                      value={paymentAuthData.achName}
+                      onChange={(e) => setPaymentAuthData({ ...paymentAuthData, achName: e.target.value })}
+                      className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#9A8B7A]/20 focus:border-[#9A8B7A] transition-all outline-none"
+                      placeholder="Account holder name"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[13px] font-semibold text-gray-600 mb-1.5">Billing Address</label>
+                    <input
+                      type="text"
+                      value={paymentAuthData.achAddress}
+                      onChange={(e) => setPaymentAuthData({ ...paymentAuthData, achAddress: e.target.value })}
+                      className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#9A8B7A]/20 focus:border-[#9A8B7A] transition-all outline-none"
+                      placeholder="Full billing address"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div>
+                    <label className="block text-[13px] font-semibold text-gray-600 mb-1.5">Bank Name</label>
+                    <input
+                      type="text"
+                      value={paymentAuthData.achBank}
+                      onChange={(e) => setPaymentAuthData({ ...paymentAuthData, achBank: e.target.value })}
+                      className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#9A8B7A]/20 focus:border-[#9A8B7A] transition-all outline-none"
+                      placeholder="e.g. Chase"
+                    />
+                  </div>
+                  <div className="relative">
+                    <label className="block text-[13px] font-semibold text-gray-600 mb-1.5">Amount</label>
+                    <div className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 font-medium h-[46px] flex items-center">
+                      {paymentAuthData.premiumAmount || "0.00"}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-[13px] font-semibold text-gray-600 mb-1.5">Routing #</label>
+                    <input
+                      type="text"
+                      value={paymentAuthData.achRouting}
+                      onChange={(e) => setPaymentAuthData({ ...paymentAuthData, achRouting: e.target.value })}
+                      className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#9A8B7A]/20 focus:border-[#9A8B7A] transition-all outline-none"
+                      placeholder="9 digits"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[13px] font-semibold text-gray-600 mb-1.5">Account #</label>
+                    <input
+                      type="text"
+                      value={paymentAuthData.achAccount}
+                      onChange={(e) => setPaymentAuthData({ ...paymentAuthData, achAccount: e.target.value })}
+                      className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#9A8B7A]/20 focus:border-[#9A8B7A] transition-all outline-none"
+                      placeholder="Account number"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3 mt-10">
+                <button
+                  onClick={() => setPaymentAuthModalOpen(false)}
+                  className="px-8 py-3 text-sm font-bold text-gray-500 hover:text-gray-700 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    toast.success("Payment authorized successfully!");
+                    setPaymentAuthModalOpen(false);
+                  }}
+                  className={iscPrimaryBtn}
+                >
+                  Confirm Authorization
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -1064,6 +1288,13 @@ function SubmissionDetailsContent() {
               {/* ================= QUOTED (APPROVED QUOTE) ================= */}
               {(isQuoted || isBindRequested) && (
                 <>
+                  <button
+                    onClick={() => setPaymentAuthModalOpen(true)}
+                    className={iscOutlineBtn}
+                  >
+                    Payment Auth
+                  </button>
+
                   <button
                     onClick={() =>
                       window.open(
@@ -1346,7 +1577,10 @@ function SubmissionDetailsContent() {
                     : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                     }`}
                 >
-                  {type === "GENERAL_LIABILITY" ? "General Liability" : "Excess Liability"}
+                  {type === "GENERAL_LIABILITY"
+                    ? (submission?.programId === 'apartment-buildings' || submission?.programName === 'Commercial Property' || submission?.programName === 'Apartment Building' ? "Property" : "General Liability")
+                    : (submission?.programId === 'apartment-buildings' || submission?.programName === 'Commercial Property' || submission?.programName === 'Apartment Building' ? "General Liability" : "Excess Liability")
+                  }
                 </button>
               ))}
             </div>
@@ -1359,7 +1593,10 @@ function SubmissionDetailsContent() {
           <div className="mb-6 flex items-center justify-between">
             <div>
               <h3 className="text-[15px] font-semibold text-gray-900 tracking-tight">
-                {currentPolicyType === "GENERAL_LIABILITY" ? "General Liability" : "Excess Liability"}
+                {currentPolicyType === "GENERAL_LIABILITY"
+                  ? (submission?.programId === 'apartment-buildings' || submission?.programName === 'Commercial Property' || submission?.programName === 'Apartment Building' ? "Property" : "General Liability")
+                  : (submission?.programId === 'apartment-buildings' || submission?.programName === 'Commercial Property' || submission?.programName === 'Apartment Building' ? "General Liability" : "Excess Liability")
+                }
               </h3>
               <div className="mt-2 h-[1px] w-64 bg-gray-300" />
             </div>
@@ -1458,10 +1695,10 @@ function SubmissionDetailsContent() {
                   handleFileUpload(file);
                 }
               }}
-              className={`relative group cursor-pointer transition-all duration-300 ${isDragging 
-                ? "border-[#9A8B7A] bg-[#9A8B7A]/5" 
+              className={`relative group cursor-pointer transition-all duration-300 ${isDragging
+                ? "border-[#9A8B7A] bg-[#9A8B7A]/5"
                 : "border-[#e5ddd5] hover:border-[#9A8B7A] bg-gray-50 hover:bg-white"
-              } border-2 border-dashed rounded-xl p-8 text-center mb-6`}
+                } border-2 border-dashed rounded-xl p-8 text-center mb-6`}
               onClick={() => document.getElementById('agency-file-upload')?.click()}
             >
               <input
@@ -1830,7 +2067,10 @@ function SubmissionDetailsContent() {
                   </div>
                   <p className="text-gray-500 font-medium">No quote entered yet for</p>
                   <p className="text-gray-900 font-bold mt-1">
-                    {currentPolicyType === "GENERAL_LIABILITY" ? "General Liability" : "Excess Liability"}
+                    {currentPolicyType === "GENERAL_LIABILITY"
+                      ? (submission?.programId === 'apartment-buildings' || submission?.programName === 'Commercial Property' || submission?.programName === 'Apartment Building' ? "Property" : "General Liability")
+                      : (submission?.programId === 'apartment-buildings' || submission?.programName === 'Commercial Property' || submission?.programName === 'Apartment Building' ? "General Liability" : "Excess Liability")
+                    }
                   </p>
                 </div>
               ) : (

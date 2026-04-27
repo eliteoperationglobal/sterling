@@ -223,6 +223,20 @@ export interface ApartmentPacketData {
     openSides: string;
 }
 
+/**
+ * Helper to format date strings or objects to MM/DD/YYYY
+ */
+function formatDateToUS(dateInput: any): string {
+    if (!dateInput || dateInput === "-") return "-";
+    const date = new Date(dateInput);
+    if (isNaN(date.getTime())) return "-";
+    return date.toLocaleDateString('en-US', {
+        month: '2-digit',
+        day: '2-digit',
+        year: 'numeric'
+    });
+}
+
 export function mapApartmentDataToPacketData(
     formData: any,
     submissionId: string,
@@ -234,7 +248,7 @@ export function mapApartmentDataToPacketData(
     return {
         applicationId: formData.applicationId || submissionId,
         submissionId: submissionId,
-        formDate: new Date().toLocaleDateString(),
+        formDate: formatDateToUS(new Date()),
 
         // Agency Information
         agencyName: agency?.name || "Sterling Insurance Services",
@@ -259,8 +273,8 @@ export function mapApartmentDataToPacketData(
         applicantPhone: formData.applicantPhone || agency?.phone || "-",
         applicantEmail: formData.applicantEmail || agency?.email || "-",
         propertyNameAndAddress: formData.propertyNameAndAddress || "-",
-        proposedEffectiveDateFrom: formData.proposedEffectiveDateFrom || "-",
-        proposedEffectiveDateTo: formData.proposedEffectiveDateTo || "-",
+        proposedEffectiveDateFrom: formatDateToUS(formData.proposedEffectiveDateFrom),
+        proposedEffectiveDateTo: formatDateToUS(formData.proposedEffectiveDateTo),
         bankruptcyPending: formData.bankruptcyPending,
 
         // Building Type Sub-fields
@@ -339,12 +353,17 @@ export function mapApartmentDataToPacketData(
                 .map((i: any) => `$${parseInt(i.limit).toLocaleString()}`)
                 .join(", ") || "-"
             : (formData.propertyLimit || "-"),
-        propertyCoinsurance: formData.propertyCoinsurance || "-",
-        propertyValuation: formData.propertyValuation || "-",
-        propertyCausesOfLoss: formData.propertyCausesOfLoss || "-",
-        propertyDeductible: formData.propertyDeductible || "-",
+        propertyCoinsurance: formData.propertyCoinsurance || formData.subjectsOfInsurance?.[0]?.coinsurance || "-",
+        propertyValuation: (() => {
+            const v = formData.propertyValuation || formData.subjectsOfInsurance?.[0]?.valuation || "-";
+            if (v === "Actual Cash Value (ACV)") return "ACV";
+            if (v === "Replacement Cost (RC)") return "RC";
+            return v;
+        })(),
+        propertyCausesOfLoss: formData.propertyCausesOfLoss || formData.subjectsOfInsurance?.[0]?.causesOfLoss || "-",
+        propertyDeductible: formData.propertyDeductible || formData.subjectsOfInsurance?.[0]?.deductible || "-",
         propertyDeductibleType: (() => {
-            const v = formData.propertyDeductibleType || "";
+            const v = formData.propertyDeductibleType || formData.subjectsOfInsurance?.[0]?.deductibleType || "";
             const match = v.match(/\(([^)]+)\)/);
             return match ? match[1] : v;
         })(),
@@ -384,7 +403,7 @@ export function mapApartmentDataToPacketData(
         hardwiredCentralStation: formData.hardwiredCentralStation,
         batteryRoutineInspection: formData.batteryRoutineInspection,
         certificateNumber: formData.propertyDeductible || "",
-        certificateExpirationDate: formData.certificateExpirationDate || "",
+        certificateExpirationDate: formatDateToUS(formData.certificateExpirationDate),
         fireAlarmManufacturer: formData.fireAlarmManufacturer || "",
         complianceWithSafetyLaws: formData.complianceWithSafetyLaws,
         unitsRekeyed: formData.unitsRekeyed,
@@ -462,7 +481,16 @@ export function mapApartmentDataToPacketData(
         totalToBeSent: quote?.payment?.totalToBeSent ? `$${quote.payment.totalToBeSent.toLocaleString()}` : "$0.00",
         totalToFinanceCompany: quote?.payment?.totalToFinanceCompany ? `$${quote.payment.totalToFinanceCompany.toLocaleString()}` : "$0.00",
 
-        desiredCoverageDates: quote ? `${new Date(quote.effectiveDate).toLocaleDateString()} - ${new Date(quote.expirationDate).toLocaleDateString()}` : "",
+        desiredCoverageDates: (() => {
+            const eff = quote?.effectiveDate || formData.proposedEffectiveDateFrom;
+            const exp = quote?.expirationDate || formData.proposedEffectiveDateTo;
+
+            const effStr = formatDateToUS(eff);
+            const expStr = formatDateToUS(exp);
+
+            if (effStr === "-" || expStr === "-") return "-";
+            return `${effStr} - ${expStr}`;
+        })(),
         policyEndorsements: quote?.endorsements ? quote.endorsements.join(", ") : "-",
 
         // Limits mapping from quote metadata

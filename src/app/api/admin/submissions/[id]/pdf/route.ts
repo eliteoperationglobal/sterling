@@ -104,12 +104,16 @@ export async function GET(
       },
     });
 
+    const isApartment = submission.programId === 'apartment-buildings';
+    const filename = isApartment 
+      ? `${formData.companyName || formData.applicantName || 'Application'}-Property-Application.pdf`
+      : `${formData.companyName || formData.applicantName || 'Application'}-Application.pdf`;
+
     // Return PDF as response
     return new NextResponse(new Uint8Array(pdfBuffer), {
       headers: {
         'Content-Type': 'application/pdf',
-        // 'Content-Disposition': `attachment; filename="application-${submission._id.toString()}.pdf"`,
-        'Content-Disposition': `attachment; filename="${formData.companyName || formData.applicantName || 'Application'}-Application.pdf"`,
+        'Content-Disposition': `attachment; filename="${filename}"`,
       },
     });
   } catch (error: any) {

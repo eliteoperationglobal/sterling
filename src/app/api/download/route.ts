@@ -131,15 +131,26 @@ export async function GET(req: NextRequest) {
       
     const isPolicyDoc = 
       (finalSubmission.policyDocsUrl && urlCandidates.includes(finalSubmission.policyDocsUrl)) || 
-      (foundQuote?.policyDocsUrl && urlCandidates.includes(foundQuote.policyDocsUrl));
+      (foundQuote?.policyDocsUrl && urlCandidates.includes(foundQuote.policyDocsUrl)) ||
+      (foundQuote?.proposalPdfUrl && urlCandidates.includes(foundQuote.proposalPdfUrl));
+
+    const isProposal = foundQuote?.proposalPdfUrl && urlCandidates.includes(foundQuote.proposalPdfUrl);
 
     if (isBinder || isPolicyDoc) {
       const extension = downloadFilename?.split('.').pop() || 'pdf';
-      const label = isBinder ? "Binder" : "Policy-Docs";
+      const label = isBinder ? "Binder" : isProposal ? "Proposal" : "Policy-Docs";
       // Additional clarity for Excess Liability vs General Liability
       let typeLabel = "GL"; // Default to GL
+      
+      const isApartment = 
+        finalSubmission?.programId === 'apartment-buildings' || 
+        finalSubmission?.programName?.includes("Property") || 
+        finalSubmission?.programName?.includes("Apartment");
+
       if (foundQuote?.policyType === "EXCESS_LIABILITY") {
-        typeLabel = "Excess";
+        typeLabel = isApartment ? "General-Liability" : "Excess";
+      } else if (isApartment) {
+        typeLabel = "Property";
       }
 
       // Safe alphanumeric format

@@ -217,6 +217,9 @@ export async function PATCH(
     // ✅ Parse JSON body (matches your React frontend)
     const body = await req.json();
 
+    if (body.programId) submission.programId = body.programId;
+    if (body.programName) submission.programName = body.programName;
+
     // -----------------------------
     // Update Client Contact (if sent)
     // -----------------------------
@@ -249,8 +252,11 @@ export async function PATCH(
       const XS_ADDED = (!oldPayload.addExcessLiability) && (body.payload.addExcessLiability === true);
       const XS_REMOVED = (oldPayload.addExcessLiability === true) && (body.payload.addExcessLiability === false);
 
-      // 🗑️ CLEANUP: If Excess Liability is toggled OFF
-      if (body.payload.addExcessLiability === false) {
+      const GL_OPTIONAL_ADDED = (!oldPayload.addGeneralLiability) && (body.payload.addGeneralLiability === true);
+      const GL_OPTIONAL_REMOVED = (oldPayload.addGeneralLiability === true) && (body.payload.addGeneralLiability === false);
+
+      // 🗑️ CLEANUP: If Excess Liability or Optional GL is toggled OFF
+      if (body.payload.addExcessLiability === false || body.payload.addGeneralLiability === false) {
         console.log(`[Cleanup] Removing EXCESS_LIABILITY quotes for submission ${params.id}`);
         await Quote.deleteMany({
           submissionId: params.id,
@@ -265,9 +271,11 @@ export async function PATCH(
         }
       }
 
-      // 🔔 NOTIFICATIONS: If Excess Liability was just ADDED
-      if (XS_ADDED) {
-        console.log(`[Notification] XS ADDED for submission ${params.id}`);
+      // 🔔 NOTIFICATIONS: If Excess Liability or Optional GL was just ADDED
+      if (XS_ADDED || GL_OPTIONAL_ADDED) {
+        const policyName = GL_OPTIONAL_ADDED ? "General Liability" : "Excess Liability";
+        console.log(`[Notification] ${policyName} ADDED for submission ${params.id}`);
+        
         // Revert status to SUBMITTED so it shows up in "Quote Requests" list for admins
         const currentStatus = submission.status as any;
         if (currentStatus === "QUOTED" || currentStatus === "BOUND") {
@@ -277,7 +285,7 @@ export async function PATCH(
         await logActivity(
           createActivityLogData(
             "APPROVAL_REQUESTED",
-            "Policy Added: Excess Liability (Quote Required)",
+            `Policy Added: ${policyName} (Quote Required)`,
             {
               submissionId: submission._id.toString(),
               user: {
@@ -287,7 +295,7 @@ export async function PATCH(
                 role: (session.user as any).role || "agency",
               },
               details: {
-                addedPolicy: "EXCESS_LIABILITY",
+                addedPolicy: GL_OPTIONAL_ADDED ? "GENERAL_LIABILITY_OPTIONAL" : "EXCESS_LIABILITY",
                 requestId: submission.submissionNumber
               },
             }
