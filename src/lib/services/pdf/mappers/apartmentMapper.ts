@@ -6,6 +6,7 @@ export interface ApartmentPacketData {
     // Metadata
     applicationId: string;
     submissionId: string;
+    submissionNumber: string;
     formDate: string;
 
     // Agency Information
@@ -34,6 +35,18 @@ export interface ApartmentPacketData {
     proposedEffectiveDateFrom: string;
     proposedEffectiveDateTo: string;
     bankruptcyPending: boolean | null;
+    fein: string;
+    website: string;
+    yearsInBusiness: string;
+    descriptionOfOperations: string;
+    isNewVenture: boolean | null;
+    numEmployeesFullTime: string;
+    numEmployeesPartTime: string;
+    numberOfFieldEmployees: string;
+    annualGrossReceipts: string;
+    estimatedTotalGrossReceipts: string;
+    totalSqFt: string;
+    classCode: string;
 
     // Building Type Sub-fields
     buildingType: string;
@@ -172,7 +185,6 @@ export interface ApartmentPacketData {
     proceduresRegularInspectionsHazards: boolean | null;
 
     // Packet metadata
-    submissionNumber?: string;
     capitalCoLogoSVG?: string;
 
     // Financial fields for Proposal & Invoice
@@ -221,6 +233,13 @@ export interface ApartmentPacketData {
     sinkholeLimit: string;
     isHistoricalLandmark: boolean | null;
     openSides: string;
+
+    // General Liability (Optional)
+    addGeneralLiability: boolean;
+    glCoverageLimits: string;
+    glFireLegalLimit: string;
+    glMedicalExpenseLimit: string;
+    glDeductible: string;
 }
 
 /**
@@ -248,6 +267,7 @@ export function mapApartmentDataToPacketData(
     return {
         applicationId: formData.applicationId || submissionId,
         submissionId: submissionId,
+        submissionNumber: submission?.submissionNumber || formData.applicationId || submissionId,
         formDate: formatDateToUS(new Date()),
 
         // Agency Information
@@ -276,6 +296,18 @@ export function mapApartmentDataToPacketData(
         proposedEffectiveDateFrom: formatDateToUS(formData.proposedEffectiveDateFrom),
         proposedEffectiveDateTo: formatDateToUS(formData.proposedEffectiveDateTo),
         bankruptcyPending: formData.bankruptcyPending,
+        fein: formData.fein || "-",
+        website: formData.website || "-",
+        yearsInBusiness: formData.yearsInBusiness || "-",
+        descriptionOfOperations: formData.descriptionOfOperations || formData.workDescription || "-",
+        isNewVenture: formData.isNewVenture || false,
+        numEmployeesFullTime: formData.numEmployeesFullTime || "0",
+        numEmployeesPartTime: formData.numEmployeesPartTime || "0",
+        numberOfFieldEmployees: formData.numEmployeesFullTime || "0",
+        annualGrossReceipts: formData.annualGrossReceipts || formData.estimatedTotalGrossReceipts || "-",
+        estimatedTotalGrossReceipts: formData.annualGrossReceipts || formData.estimatedTotalGrossReceipts || "-",
+        totalSqFt: formData.totalBuildingArea || "-",
+        classCode: formData.classCode || "-",
 
         // Building Type Sub-fields
         buildingType: formData.buildingType || "-",
@@ -452,7 +484,6 @@ export function mapApartmentDataToPacketData(
         proceduresRegularInspectionsHazards: formData.proceduresRegularInspectionsHazards,
 
         // Metadata & Financials
-        submissionNumber: submission?.submissionNumber?.toString() || formData.applicationId || submissionId,
         capitalCoLogoSVG: agency?.capitalCoLogoSVG || capitalCoLogoSVG,
         quoteType: quote?.metadata?.type || "General Liability",
         coverageType: quote?.metadata?.coverageType || "Occurrence",
@@ -508,5 +539,12 @@ export function mapApartmentDataToPacketData(
         sinkholeLimit: formData.sinkholeLimit || "",
         isHistoricalLandmark: formData.isHistoricalLandmark ?? null,
         openSides: formData.openSides || "",
+
+        // General Liability (Optional)
+        addGeneralLiability: formData.addGeneralLiability || false,
+        glCoverageLimits: formData.glCoverageLimits || "-",
+        glFireLegalLimit: formData.glFireLegalLimit || "-",
+        glMedicalExpenseLimit: formData.glMedicalExpenseLimit || "-",
+        glDeductible: formData.glDeductible || "-",
     };
 }

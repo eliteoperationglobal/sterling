@@ -3754,7 +3754,7 @@ function generatePage2(data: ApplicationPacketData): string {
 				<!-- Quote Information -->
 				<div>
 					<div class="section-title-page2">Quote Information</div>
-					<div class="quote-detail-page2">${data.quoteType}</div>
+					<div class="quote-detail-page2">${String(data.addExcessLiability) === 'true' ? 'General & Excess Liability' : data.quoteType}</div>
 					<div class="quote-detail-page2">${data.carrierName}</div>
 					<div class="quote-detail-page2">${data.coverageType}</div>
 					<div class="quote-detail-page2">

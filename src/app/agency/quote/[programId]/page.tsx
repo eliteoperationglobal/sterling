@@ -1520,44 +1520,6 @@ export default function QuoteFormPage() {
                       )}
                   </GridRow>
 
-                  <GridRow label="Estimated Material Costs">
-                    <div className="relative">
-                      <span className="absolute left-3 top-2.5 text-gray-500">$</span>
-                      <input
-                        type="text"
-                        value={
-                          formData.estimatedMaterialCosts
-                            ? formatCurrencyInput(formData.estimatedMaterialCosts)
-                            : ""
-                        }
-                        onChange={(e) => {
-                          const formatted = formatCurrencyInput(e.target.value);
-                          handleInputChange("estimatedMaterialCosts", formatted);
-                        }}
-                        onBlur={(e) => {
-                          const parsed = parseCurrency(e.target.value);
-                          handleInputChange(
-                            "estimatedMaterialCosts",
-                            parsed > 0 ? parsed.toString() : ""
-                          );
-                        }}
-                        className={`w-full pl-8 pr-4 py-2.5 border rounded text-sm focus:ring-1 ${materialCostError || combinedCostError
-                          ? "border-red-500 focus:ring-red-400"
-                          : "border-gray-300 focus:ring-[#9A8B7A] focus:border-[#9A8B7A]"
-                          }`}
-                      />
-                    </div>
-
-                    {(materialCostError || combinedCostError) && (
-                      <p className="mt-1 text-xs text-red-600">
-                        {materialCostError
-                          ? "Material costs cannot exceed total gross receipts."
-                          : "Subcontracting + material costs must be less than total gross receipts."}
-                      </p>
-                    )}
-                  </GridRow>
-
-
                   <GridRow label="# of Field Employees">
                     <select
                       value={formData.fieldEmployees}
