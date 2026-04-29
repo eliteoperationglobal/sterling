@@ -10,6 +10,8 @@ import crypto from "crypto";
 import { generateProposalHTML } from "@/lib/services/pdf/ProposalPDFHTML";
 import { mapApartmentDataToPacketData } from "@/lib/services/pdf/mappers/apartmentMapper";
 import { generateApartmentProposalHTML } from "@/lib/services/pdf/ApartmentPacketPDF";
+import { mapContractorsDataToPacketData } from "@/lib/services/pdf/mappers/contractorsMapper";
+import { generateContractorsProposalHTML } from "@/lib/services/pdf/ContractorsEquipmentPacketPDF";
 import { loadCapitalCoLogo } from "@/lib/services/pdf/ApplicationPacketPDF";
 export type ProposalData = {
   quoteNumber: string;
@@ -253,15 +255,21 @@ export async function GET(
     // 🚀 CACHE CHECK: Hash the proposalData JSON for stability
     const dataHash = crypto.createHash("md5").update(JSON.stringify(proposalData)).digest("hex");
 
+    const isApartment = submission.programId === "apartment-buildings" || 
+                        submission.programName?.toLowerCase().includes("apartment building") || 
+                        submission.programName?.toLowerCase().includes("commercial property");
+
+    const isContractors = submission.programId === "contractors-equipment" || 
+                         submission.programName?.toLowerCase().includes("contractors equipment");
+
     try {
       const cachedPdf = await PDFCache.findOne({ hash: dataHash }).lean();
       if (cachedPdf && cachedPdf.pdfBuffer) {
         console.log(`📄 [Admin PDF Download] SERVING FAST CACHE for hash: ${dataHash.substring(0, 8)}...`);
-        const isApartment = submission.programId === 'apartment-buildings';
         const policyLabel = isApartment 
           ? (quote?.policyType === 'EXCESS_LIABILITY' ? 'General-Liability' : 'Property')
-          : 'Proposal';
-        const filename = isApartment 
+          : isContractors ? 'Equipment' : 'Proposal';
+        const filename = isApartment || isContractors
           ? `${formData.companyName}-${policyLabel}-Proposal.pdf`
           : `${formData.companyName}-Proposal.pdf`;
 
@@ -283,7 +291,7 @@ export async function GET(
     // Generate proposal HTML
     let proposalHTML: string = "";
 
-    if (submission.programId === "apartment-buildings") {
+    if (isApartment) {
       console.log("📄 [Admin Proposal Download] Generating Apartment Buildings Proposal...");
       const capitalCoLogoSVG = await loadCapitalCoLogo();
       const apartmentData = mapApartmentDataToPacketData(
@@ -295,6 +303,18 @@ export async function GET(
         capitalCoLogoSVG
       );
       proposalHTML = generateApartmentProposalHTML(apartmentData);
+    } else if (isContractors) {
+      console.log("📄 [Admin Proposal Download] Generating Contractors Equipment Proposal...");
+      const capitalCoLogoSVG = await loadCapitalCoLogo();
+      const contractorsData = mapContractorsDataToPacketData(
+        formData,
+        submission._id.toString(),
+        agency,
+        populatedQuote?.carrierId?.name || "Capital & Co",
+        submission,
+        capitalCoLogoSVG
+      );
+      proposalHTML = generateContractorsProposalHTML(contractorsData);
     } else {
       proposalHTML = generateProposalHTML(proposalData);
     }
@@ -319,11 +339,10 @@ export async function GET(
       // Ignored
     }
 
-    const isApartment = submission.programId === 'apartment-buildings';
     const policyLabel = isApartment 
       ? (quote?.policyType === 'EXCESS_LIABILITY' ? 'General-Liability' : 'Property')
-      : 'Proposal';
-    const filename = isApartment 
+      : isContractors ? 'Equipment' : 'Proposal';
+    const filename = isApartment || isContractors
       ? `${formData.companyName}-${policyLabel}-Proposal.pdf`
       : `${formData.companyName}-Proposal.pdf`;
 

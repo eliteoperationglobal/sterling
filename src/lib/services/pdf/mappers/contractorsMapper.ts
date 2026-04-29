@@ -133,7 +133,32 @@ export interface ContractorsPacketData {
     lienholderExplain: string;
     interests: AI[];
 
-    // Payment & Fees
+    // Financial fields for Proposal & Invoice
+    premium?: string;
+    carrierPolicyFee?: string;
+    sterlingFees?: string;
+    surplusLinesTax?: string;
+    stampingFee?: string;
+    stampingFeePerFiling?: string;
+    slaServiceCharge?: string;
+    fireMarshalTax?: string;
+    totalCostOfPolicy?: string;
+    quoteType?: string;
+
+
+    // Deposit & Payment Breakdown
+    depositPremium?: string;
+    depositPolicyFee?: string;
+    depositInspectionFee?: string;
+    depositStateTax?: string;
+    depositFireMarshal?: string;
+    depositAssociationDues?: string;
+    totalDeposit?: string;
+    totalToRetain?: string;
+    totalToBeSent?: string;
+    totalToFinanceCompany?: string;
+
+    // Payment & Fees (Original)
     brokerFee: string;
     displayBrokerFee: boolean | null;
     paymentOption: string;
@@ -208,7 +233,6 @@ export function mapContractorsDataToPacketData(
         effectiveDate: p.effectiveDate || "",
         policyDuration: p.policyDuration || "12 Months",
         carrierName: carrierName,
-        coverageType: "Contractors Equipment",
         desiredCoverageDates: p.effectiveDate ? `${p.effectiveDate} to ${new Date(new Date(p.effectiveDate).setFullYear(new Date(p.effectiveDate).getFullYear() + 1)).toLocaleDateString()}` : "To Be Determined",
 
         // Floating Limits
@@ -269,5 +293,33 @@ export function mapContractorsDataToPacketData(
         displayBrokerFee: p.displayBrokerFee ?? true,
         paymentOption: p.paymentOption || "",
         terrorism: p.terrorism || false,
+
+        // Financials (if quote exists)
+        premium: submission?.quote?.costs?.premium ? `$${submission.quote.costs.premium.toLocaleString()}` : "$0.00",
+        carrierPolicyFee: submission?.quote?.costs?.carrierPolicyFee ? `$${submission.quote.costs.carrierPolicyFee.toLocaleString()}` : "$0.00",
+        sterlingFees: submission?.quote?.costs?.sterlingFees ? `$${submission.quote.costs.sterlingFees.toLocaleString()}` : "$0.00",
+        surplusLinesTax: submission?.quote?.costs?.surplusLinesTax ? `$${submission.quote.costs.surplusLinesTax.toLocaleString()}` : "$0.00",
+        stampingFee: submission?.quote?.costs?.stampingFee ? `$${submission.quote.costs.stampingFee.toLocaleString()}` : "$0.00",
+        stampingFeePerFiling: submission?.quote?.costs?.stampingFeePerFiling ? `$${submission.quote.costs.stampingFeePerFiling.toLocaleString()}` : "$0.00",
+        slaServiceCharge: submission?.quote?.costs?.slaServiceCharge ? `$${submission.quote.costs.slaServiceCharge.toLocaleString()}` : "$0.00",
+        fireMarshalTax: submission?.quote?.costs?.fireMarshalTax ? `$${submission.quote.costs.fireMarshalTax.toLocaleString()}` : "$0.00",
+        totalCostOfPolicy: submission?.quote?.costs?.totalCostOfPolicy ? `$${submission.quote.costs.totalCostOfPolicy.toLocaleString()}` : "$0.00",
+        quoteType: submission?.quote?.metadata?.type || "General Liability",
+        coverageType: submission?.quote?.metadata?.coverageType || "Occurrence",
+
+
+        // Deposits
+        depositPremium: submission?.quote?.deposit?.premium ? `$${submission.quote.deposit.premium.toLocaleString()}` : "$0.00",
+        depositPolicyFee: submission?.quote?.deposit?.policyFee ? `$${submission.quote.deposit.policyFee.toLocaleString()}` : "$0.00",
+        depositInspectionFee: submission?.quote?.deposit?.inspectionFee ? `$${submission.quote.deposit.inspectionFee.toLocaleString()}` : "$0.00",
+        depositStateTax: submission?.quote?.deposit?.stateTax ? `$${submission.quote.deposit.stateTax.toLocaleString()}` : "$0.00",
+        depositFireMarshal: submission?.quote?.deposit?.fireMarshal ? `$${submission.quote.deposit.fireMarshal.toLocaleString()}` : "$0.00",
+        depositAssociationDues: submission?.quote?.deposit?.associationDues ? `$${submission.quote.deposit.associationDues.toLocaleString()}` : "$0.00",
+        totalDeposit: submission?.quote?.deposit?.totalDeposit ? `$${submission.quote.deposit.totalDeposit.toLocaleString()}` : "$0.00",
+
+        // Payment Details
+        totalToRetain: submission?.quote?.commission?.totalToRetain ? `$${submission.quote.commission.totalToRetain.toLocaleString()}` : "$0.00",
+        totalToBeSent: submission?.quote?.payment?.totalToBeSent ? `$${submission.quote.payment.totalToBeSent.toLocaleString()}` : "$0.00",
+        totalToFinanceCompany: submission?.quote?.payment?.totalToFinanceCompany ? `$${submission.quote.payment.totalToFinanceCompany.toLocaleString()}` : "$0.00",
     };
 }

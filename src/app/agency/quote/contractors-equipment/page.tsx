@@ -781,7 +781,7 @@ function ContractorsEquipmentContent() {
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
                         programId: "contractors-equipment",
-                        programName: "Construction Equipment",
+                        programName: "Contractors Equipment",
                         formData: payload,
                     }),
                 });

@@ -10,6 +10,8 @@ import * as crypto from "crypto";
 import { generateProposalHTML } from "@/lib/services/pdf/ProposalPDFHTML";
 import { mapApartmentDataToPacketData } from "@/lib/services/pdf/mappers/apartmentMapper";
 import { generateApartmentProposalHTML } from "@/lib/services/pdf/ApartmentPacketPDF";
+import { mapContractorsDataToPacketData } from "@/lib/services/pdf/mappers/contractorsMapper";
+import { generateContractorsProposalHTML } from "@/lib/services/pdf/ContractorsEquipmentPacketPDF";
 import { mapFormDataToPacketData, loadCapitalCoLogo } from "@/lib/services/pdf/ApplicationPacketPDF";
 
 
@@ -359,7 +361,14 @@ export async function GET(
     // Generate proposal HTML after cache miss
     let proposalHTML: string = "";
 
-    if (submission.programId === "apartment-buildings") {
+    const isApartment = submission.programId === "apartment-buildings" || 
+                        submission.programName?.toLowerCase().includes("apartment building") || 
+                        submission.programName?.toLowerCase().includes("commercial property");
+
+    const isContractors = submission.programId === "contractors-equipment" || 
+                         submission.programName?.toLowerCase().includes("contractors equipment");
+
+    if (isApartment) {
       console.log("📄 [Proposal Download] Generating Apartment Buildings Proposal...");
       const capitalCoLogoSVG = await loadCapitalCoLogo();
       const apartmentData = mapApartmentDataToPacketData(
@@ -371,6 +380,18 @@ export async function GET(
         capitalCoLogoSVG
       );
       proposalHTML = generateApartmentProposalHTML(apartmentData);
+    } else if (isContractors) {
+      console.log("📄 [Proposal Download] Generating Contractors Equipment Proposal...");
+      const capitalCoLogoSVG = await loadCapitalCoLogo();
+      const contractorsData = mapContractorsDataToPacketData(
+        formData,
+        submission._id.toString(),
+        agency,
+        (quote as any)?.carrierId?.name || "Capital & Co",
+        submission,
+        capitalCoLogoSVG
+      );
+      proposalHTML = generateContractorsProposalHTML(contractorsData);
     } else {
       proposalHTML = generateProposalHTML(proposalData);
     }

@@ -795,7 +795,7 @@ function AgencyDashboardContent() {
                           "New business"
                         ) : (
                           <>
-                            {sub.industry === "Construction Equipment" ? "Inland Marine" :
+                            {sub.industry === "Construction Equipment" || sub.industry === "Contractors Equipment" ? "Inland Marine" :
                               sub.industry === "Apartment Building" || sub.industry === "Commercial Property" ? "Property" : (
                                 sub.hasGeneral && sub.hasExcess ? "General & Excess Liability" :
                                   sub.hasExcess ? "Excess Liability" : "General Liability"
@@ -807,7 +807,9 @@ function AgencyDashboardContent() {
                         {sub.submissionNumber}
                       </td>
                       <td className="px-6 py-4">{sub.clientName}</td>
-                      <td className="px-6 py-4">{sub.industry}</td>
+                      <td className="px-6 py-4">
+                        {sub.industry === "Construction Equipment" ? "Contractors Equipment" : sub.industry}
+                      </td>
                       <td className="px-6 py-4">
                         {new Date(sub.createdAt).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}
                       </td>

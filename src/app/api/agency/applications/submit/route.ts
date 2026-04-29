@@ -244,7 +244,14 @@ export async function POST(req: NextRequest) {
 
       let htmlContent: string = "";
 
-      if (programId === "apartment-buildings") {
+      const isApartment = programId === "apartment-buildings" || 
+                          programName?.toLowerCase().includes("apartment building") || 
+                          programName?.toLowerCase().includes("commercial property");
+
+      const isContractors = programId === "contractors-equipment" || 
+                           programName?.toLowerCase().includes("contractors equipment");
+
+      if (isApartment) {
         console.log("📄 Generating Commercial Property PDF...");
         const apartmentData = mapApartmentDataToPacketData(
           submission.payload,
@@ -255,7 +262,7 @@ export async function POST(req: NextRequest) {
           capitalCoLogoSVG
         );
         htmlContent = generateApartmentPacketHTML(apartmentData);
-      } else if (programId === "contractors-equipment") {
+      } else if (isContractors) {
         console.log("📄 Generating Contractors Equipment PDF...");
         const contractorsData = mapContractorsDataToPacketData(
           submission.payload,

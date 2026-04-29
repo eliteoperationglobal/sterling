@@ -3350,53 +3350,148 @@ function generateProposalPage(data: ContractorsPacketData): string {
 /**
  * Page: Invoice Statement
  */
+/**
+ * Page: Invoice Statement - ISC Format (Page 12 style)
+ */
 function generateInvoicePage(data: ContractorsPacketData): string {
 	return `
-        <div class="page page2-isc">
-            <div class="main-content main-content-page2">
-                <div class="agency-bar" style="background: #f8fafc; padding: 15px; border-radius: 4px; margin-bottom: 20px; border-left: 4px solid #4A9EFF;">
-                <div><strong>REMIT PAYMENT TO:</strong></div>
-                <div style="font-size: 11pt; font-weight: bold; margin-top: 5px;">${data.agencyName}</div>
-                <div style="margin-top: 3px;">${data.agencyAddress}</div>
-                <div>${data.agencyCity}, ${data.agencyState} ${data.agencyZip}</div>
-            </div>
+	<div class="page page12-isc" style="page-break-after: always;">
+	  <div class="main-content main-content-page12">
+		<div class="invoice-header-page12">
+		  <div>
+			<div class="invoice-field-page12">${data.companyName || data.applicantName}</div>
+			<div class="invoice-field-page12">${data.mailAddress}</div>
+			<div class="invoice-field-page12">${data.mailCity}, ${data.mailState} ${data.mailZip}</div>
+			<div class="invoice-field-page12">${data.phone}</div>
+			<div class="invoice-field-page12">Email: ${data.email}</div>
+			<div class="invoice-field-page12">${data.submissionNumber || data.applicationId}</div>
+		  </div>
+		  <div>
+			<strong>Sterling Insurance Services</strong>
+			<p>5455 Wilshire Blvd. #1816<br>Los Angeles CA 90036</p>
+			<p>(310) 492-2007</p>
+			<p>info@SterlingInsurancePartners.com</p>
+			<p>License Number: 6015632</p>
+		  </div>
+		</div>
+		<div style="text-align: center;">
+			<strong>Contractors Equipment - ${data.carrierName}</strong>
+		</div>
+		
+		<div class="invoice-section-page12">
+		  <div class="invoice-section-title-page12">TOTAL COST OF POLICY*</div>
+		  <div class="invoice-row-page12">
+			<div class="invoice-label-page12">Premium</div>
+			<div class="invoice-value-page12">${data.premium || '$0.00'}</div>
+		  </div>
+		  <div class="invoice-row-page12">
+			<div class="invoice-label-page12">Carrier Policy Fee</div>
+			<div class="invoice-value-page12">${data.carrierPolicyFee || '$0.00'}</div>
+		  </div>
+		  <div class="invoice-row-page12">
+			<div class="invoice-label-page12">Sterling Insurance Services Fees</div>
+			<div class="invoice-value-page12">${data.sterlingFees || '$0.00'}</div>
+		  </div>
+		  <div class="invoice-row-page12">
+			<div class="invoice-label-page12">Surplus Lines Tax</div>
+			<div class="invoice-value-page12">${data.surplusLinesTax || '$0.00'}</div>
+		  </div>
+		  ${data.stampingFee && parseFloat(data.stampingFee.replace(/[\$,]/g, "")) > 0 ? `
+			<div class="invoice-row-page12">
+			  <div class="invoice-label-page12">Stamping Fee</div>
+			  <div class="invoice-value-page12">${data.stampingFee}</div>
+			</div>
+		  ` : ''}
+		  ${data.stampingFeePerFiling && parseFloat(data.stampingFeePerFiling.replace(/[\$,]/g, "")) > 0 ? `
+			<div class="invoice-row-page12">
+			  <div class="invoice-label-page12">PA Flat Fee</div>
+			  <div class="invoice-value-page12">${data.stampingFeePerFiling}</div>
+			</div>
+		  ` : ''}
+		  ${data.slaServiceCharge && parseFloat(data.slaServiceCharge.replace(/[\$,]/g, "")) > 0 ? `
+			<div class="invoice-row-page12">
+			  <div class="invoice-label-page12">SLSC</div>
+			  <div class="invoice-value-page12">${data.slaServiceCharge}</div>
+			</div>
+		  ` : ''}
 
-            <div class="section-container">
-                <div class="section-header">BILLING SUMMARY</div>
-                <hr class="section-divider" />
-                ${renderField("Insured", data.applicantName)}
-                ${renderField("Submission #", data.submissionNumber || data.applicationId)}
-                ${renderField("Policy Period", data.effectiveDate ? `${data.effectiveDate} - ${new Date(new Date(data.effectiveDate).setFullYear(new Date(data.effectiveDate).getFullYear() + 1)).toLocaleDateString()}` : "Pending")}
-            </div>
+		  ${data.fireMarshalTax && parseFloat(data.fireMarshalTax.replace(/[\$,]/g, "")) > 0 ? `
+			<div class="invoice-row-page12">
+			  <div class="invoice-label-page12">Fire Marshal Tax</div>
+			  <div class="invoice-value-page12">${data.fireMarshalTax}</div>
+			</div>
+		  ` : ''}
 
-            <div class="section-container">
-                <div class="section-header">AMOUNT DUE</div>
-                <hr class="section-divider" />
-                <div class="question-list">
-                    <div class="question-row">
-                        <div class="question-text">Total Policy Premium & Taxes</div>
-                        <div class="field-value">${data.totalCostOfPolicy || "$0.00"}</div>
-                    </div>
-                    <div class="question-row">
-                        <div class="question-text">Minimum Deposit Required</div>
-                        <div class="field-value">${data.totalDeposit || "$0.00"}</div>
-                    </div>
-                    <div class="divider" style="border-top: 1px solid #000; margin: 10px 0;"></div>
-                    <div class="question-row" style="font-size: 12pt;">
-                        <div class="question-text" style="font-weight: bold;">TOTAL AMOUNT PAYABLE</div>
-                        <div class="field-value" style="font-weight: bold;">${data.totalToBeSent || "$0.00"}</div>
-                    </div>
-                </div>
-                
-                <div style="margin-top: 40px; font-size: 9pt; color: #666; line-height: 1.5;">
-                    <p><strong>Notice:</strong> Please make checks payable to <strong>${data.agencyName}</strong>. Standard processing time for binding is 24-48 hours after receipt of all signed documents and payment.</p>
-                </div>
-            </div>
+		  <div class="invoice-row-total-page12">
+			<div class="invoice-label-page12">TOTAL COST OF POLICY*</div>
+			<div class="invoice-value-page12">${data.totalCostOfPolicy || '$0.00'}</div>
+		  </div>
+		</div>
+		
+		<div class="invoice-section-page12">
+		  <div class="invoice-section-title-page12">TOTAL DEPOSIT*</div>
+		  <div class="invoice-row-page12">
+			<div class="invoice-label-page12">Premium</div>
+			<div class="invoice-value-page12">${data.depositPremium || '$0.00'}</div>
+		  </div>
+		  <div class="invoice-row-page12">
+			<div class="invoice-label-page12">Carrier Policy Fee</div>
+			<div class="invoice-value-page12">${data.depositAssociationDues || '$0.00'}</div>
+		  </div>
+		  <div class="invoice-row-page12">
+			<div class="invoice-label-page12">Sterling Insurance Services Fees</div>
+			<div class="invoice-value-page12">${data.depositInspectionFee || '$0.00'}</div>
+		  </div>
+		  <div class="invoice-row-page12">
+			<div class="invoice-label-page12">Surplus Lines Tax</div>
+			<div class="invoice-value-page12">${data.depositStateTax || '$0.00'}</div>
+		  </div>
+		  ${data.depositPolicyFee && parseFloat(data.depositPolicyFee.replace(/[\$,]/g, "")) > 0 ? `
+			<div class="invoice-row-page12">
+			  <div class="invoice-label-page12">Stamping Fee</div>
+			  <div class="invoice-value-page12">${data.depositPolicyFee}</div>
+			</div>`
+			: ''}
 
+		  ${data.depositFireMarshal && parseFloat(data.depositFireMarshal.replace(/[\$,]/g, "")) > 0 ? `
+			<div class="invoice-row-page12">
+			  <div class="invoice-label-page12">Fire Marshal Tax</div>
+			  <div class="invoice-value-page12">${data.depositFireMarshal}</div>
+			</div>`
+			: ''}
 
-            </div>
-        </div>
-    `;
+		  <div class="invoice-row-total-page12">
+			<div class="invoice-label-page12">TOTAL DEPOSIT*</div>
+			<div class="invoice-value-page12">${data.totalDeposit || '$0.00'}</div>
+		  </div>
+		</div>
+		
+		<div class="invoice-section-page12">
+		  <div class="invoice-section-title-page12">TOTAL TO RETAIN*</div>
+		  <div class="invoice-row-page12">
+			<div class="invoice-label-page12">10% Commission on Premium (${data.premium || '$0.00'})</div>
+			<div class="invoice-value-page12">${data.totalToRetain || '$0.00'}</div>
+		  </div>
+		  <div class="invoice-row-total-page12">
+			<div class="invoice-label-page12">TOTAL TO RETAIN*</div>
+			<div class="invoice-value-page12">${data.totalToRetain || '$0.00'}</div>
+		  </div>
+		</div>
+		
+		<div class="invoice-section-page12">
+		  <div class="invoice-section-title-page12">TOTAL TO BE SENT</div>
+		  <div class="invoice-row-total-page12">
+			<div class="invoice-label-page12">MAKE CHECK PAYABLE FOR from agency</div>
+			<div class="invoice-value-page12">${data.totalToBeSent || '$0.00'}</div>
+		  </div>
+		  <div class="invoice-row-total-page12">
+			<div class="invoice-label-page12">MAKE CHECK PAYABLE FOR finance company</div>
+			<div class="invoice-value-page12">${data.totalToFinanceCompany || '$0.00'}</div>
+		  </div>
+		</div>
+	  </div>
+	</div>
+	`;
 }
 
 
@@ -4011,6 +4106,122 @@ const cssContent = `
 	table { width: 100%; border-collapse: collapse; margin-top: 8px; }
 	th { text-align: left; font-size: 9pt; font-weight: bold; text-transform: uppercase; color: #666; padding: 8px 5px; border-bottom: 1.5px solid #000; }
 	td { padding: 8px 5px; font-size: 9.5pt; color: #000; border-bottom: 1px solid #eee; }
+
+	/* ============================================
+	   PAGE 12 - INVOICE STATEMENT (ISC FORMAT)
+	   ============================================ */
+
+	.page12-isc .invoice-section-page12 {
+		margin-top: 0.06in;
+		margin-bottom: 0.12in;
+	}
+
+	.page12-isc .main-content-page12 {
+		padding: 0.45in 0.4in 0.35in 0.4in;
+	}
+
+	.page12-isc .extra-space {
+	  margin-bottom: 0.3in;
+	  margin-top: 0.5in;
+	}
+
+	/* Section Title */
+	.page12-isc .invoice-section-title-page12 {
+		font-size: 11pt;
+		font-weight: 700;
+		text-transform: uppercase;
+		color: #1f2937;
+		border-bottom: 1px solid #1f2937;
+		padding-bottom: 0.04in;
+		margin-bottom: 0.06in;
+	}
+
+	/* Rows */
+	.page12-isc .invoice-row-page12 {
+		display: flex;
+		justify-content: space-between;
+		padding: 0.025in 0;
+		border-bottom: none;
+	}
+
+	.page12-isc .invoice-header-page12 {
+	  margin-bottom: 0.2in;
+	  font-size: 11pt;
+	  display: flex;
+	  justify-content: space-between;
+	  align-items: flex-start;
+	}
+
+	/* Labels */
+	.page12-isc .invoice-label-page12 {
+		font-size: 10pt;
+		color: #1f2937;
+		font-weight: 400;
+	}
+
+	/* Values */
+	.page12-isc .invoice-value-page12 {
+		font-size: 10pt;
+		font-weight: 400;
+		text-align: right;
+		min-width: 1.3in;
+		color: #1f2937;
+	}
+
+	/* TOTAL ROW (Accounting Style) */
+	.page12-isc .invoice-row-total-page12 {
+		display: flex;
+		justify-content: flex-end;
+		gap: 0.7in;
+		padding-top: 0.04in;
+		margin-top: 0.06in;
+	}
+
+	.page12-isc .invoice-row-total-page12 .invoice-label-page12 {
+		font-weight: 700;
+		font-size: 10pt;
+		text-transform: uppercase;
+	}
+
+	.page12-isc .invoice-row-total-page12 .invoice-value-page12 {
+		font-weight: 800;
+		font-size: 10pt;
+		min-width: 1.3in;
+		text-align: right;
+	}
+
+	/* Binding / Payment area */
+	.page12-isc .binding-statement-page12 {
+		margin-top: 0.04in;
+		font-size: 9pt;
+	}
+
+	.page12-isc .signature-field-page12 {
+	  margin-bottom: 0.2in;
+	  margin-top: 0.5in;
+	}
+
+	.page12-isc .bottom-section {
+	  margin-top: 1.5in;
+	}
+
+	/* Disclaimer */
+	.page12-isc .invoice-disclaimer-page12 {
+		margin-top: 0.1in;
+		font-size: 8pt;
+		font-style: italic;
+	}
+
+	.page12-isc .invoice-disclaimer-page12 p {
+		margin: 0;
+		color: #6b7280;
+	}
+
+	.page12-isc .invoice-field-page12 {
+		font-size: 10pt;
+		color: #1f2937;
+		line-height: 1.4;
+	}
 `;
 ;
 

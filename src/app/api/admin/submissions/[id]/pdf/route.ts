@@ -8,6 +8,8 @@ import Quote from "@/models/Quote";
 import { generateApplicationPacketHTML, mapFormDataToPacketData, loadCapitalCoLogo } from "@/lib/services/pdf/ApplicationPacketPDF";
 import { mapApartmentDataToPacketData } from "@/lib/services/pdf/mappers/apartmentMapper";
 import { generateApartmentPacketHTML } from "@/lib/services/pdf/ApartmentPacketPDF";
+import { mapContractorsDataToPacketData } from "@/lib/services/pdf/mappers/contractorsMapper";
+import { generateContractorsPacketHTML } from "@/lib/services/pdf/ContractorsEquipmentPacketPDF";
 
 /**
  * GET /api/admin/submissions/[id]/pdf
@@ -65,7 +67,15 @@ export async function GET(
 
     let htmlContent: string = "";
 
-    if (submission.programId === "apartment-buildings") {
+    const isApartment = submission.programId === "apartment-buildings" || 
+                        submission.programName?.toLowerCase().includes("apartment building") || 
+                        submission.programName?.toLowerCase().includes("commercial property");
+
+    const isContractors = submission.programId === "contractors-equipment" || 
+                         submission.programName?.toLowerCase().includes("contractors equipment") ||
+                         submission.programName?.toLowerCase().includes("construction equipment");
+
+    if (isApartment) {
       console.log("📄 [Admin PDF Download] Generating Commercial Property PDF...");
       const apartmentData = mapApartmentDataToPacketData(
         formData,
@@ -76,6 +86,17 @@ export async function GET(
         capitalCoLogoSVG
       );
       htmlContent = generateApartmentPacketHTML(apartmentData);
+    } else if (isContractors) {
+      console.log("📄 [Admin PDF Download] Generating Contractors Equipment PDF...");
+      const contractorsData = mapContractorsDataToPacketData(
+        formData,
+        submission._id.toString(),
+        agency,
+        (quote as any)?.carrierId?.name || "Capital & Co",
+        submission,
+        capitalCoLogoSVG
+      );
+      htmlContent = generateContractorsPacketHTML(contractorsData);
     } else {
       const packetData = mapFormDataToPacketData(
         formData,
@@ -104,10 +125,11 @@ export async function GET(
       },
     });
 
-    const isApartment = submission.programId === 'apartment-buildings';
     const filename = isApartment 
       ? `${formData.companyName || formData.applicantName || 'Application'}-Property-Application.pdf`
-      : `${formData.companyName || formData.applicantName || 'Application'}-Application.pdf`;
+      : isContractors
+        ? `${formData.companyName || formData.applicantName || 'Application'}-Equipment-Application.pdf`
+        : `${formData.companyName || formData.applicantName || 'Application'}-Application.pdf`;
 
     // Return PDF as response
     return new NextResponse(new Uint8Array(pdfBuffer), {

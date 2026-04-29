@@ -1006,7 +1006,7 @@ export default function AdminSubmissionDetailsPage() {
             <div>
               <p className="text-gray-500 mb-1 leading-tight">Program Name</p>
               <p className="font-semibold text-gray-900 break-words">
-                {submission?.programName === "Advantage Contractor GL" ? "Construction" : (submission?.programName || "General Liability")}
+                {submission?.programName === "Advantage Contractor GL" ? "Construction" : (submission?.programName === "Construction Equipment" ? "Contractors Equipment" : (submission?.programName || "General Liability"))}
               </p>
             </div>
             <div>
@@ -1024,10 +1024,14 @@ export default function AdminSubmissionDetailsPage() {
               </p>
               <p className="font-semibold text-gray-900">
                 {submission.programId === 'apartment-buildings' 
-                  ? (submission?.payload?.propertyOccupancy?.totalInsuredValue ? `$${Number(submission.payload.propertyOccupancy.totalInsuredValue).toLocaleString()}` : "—")
+                  ? (submission?.payload?.propertyOccupancy?.totalInsuredValue ? `$${Number(String(submission.payload.propertyOccupancy.totalInsuredValue).replace(/[^0-9.]/g, '')).toLocaleString()}` : "—")
                   : submission.programId === 'contractors-equipment'
-                  ? (submission?.payload?.heavyLimit || submission?.payload?.lightMedLimit ? `$${(Number(submission.payload.heavyLimit || 0) + Number(submission.payload.lightMedLimit || 0)).toLocaleString()}` : "—")
-                  : (submission?.payload?.estimatedGrossReceipts ? `$${Number(submission.payload.estimatedGrossReceipts).toLocaleString()}` : "—")
+                  ? (() => {
+                      const h = Number(String(submission?.payload?.heavyLimit || 0).replace(/[^0-9.]/g, ''));
+                      const l = Number(String(submission?.payload?.lightMedLimit || 0).replace(/[^0-9.]/g, ''));
+                      return (h + l) > 0 ? `$${(h + l).toLocaleString()}` : "—";
+                    })()
+                  : (submission?.payload?.estimatedGrossReceipts ? `$${Number(String(submission.payload.estimatedGrossReceipts).replace(/[^0-9.]/g, '')).toLocaleString()}` : "—")
                 }
               </p>
             </div>

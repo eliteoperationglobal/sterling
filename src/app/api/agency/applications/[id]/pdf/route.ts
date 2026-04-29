@@ -110,7 +110,15 @@ export async function GET(
 
     let htmlContent: string = "";
 
-    if (submission.programId === "apartment-buildings") {
+    const isApartment = submission.programId === "apartment-buildings" || 
+                        submission.programName?.toLowerCase().includes("apartment building") || 
+                        submission.programName?.toLowerCase().includes("commercial property");
+
+    const isContractors = submission.programId === "contractors-equipment" || 
+                         submission.programName?.toLowerCase().includes("contractors equipment") ||
+                         submission.programName?.toLowerCase().includes("construction equipment");
+
+    if (isApartment) {
       console.log("📄 [PDF Download] Generating Apartment Buildings PDF...");
       const apartmentData = mapApartmentDataToPacketData(
         formData,
@@ -121,13 +129,13 @@ export async function GET(
         capitalCoLogoSVG
       );
       htmlContent = generateApartmentPacketHTML(apartmentData);
-    } else if (submission.programId === "contractors-equipment" || submission.programName?.toLowerCase().includes("contractors equipment")) {
+    } else if (isContractors) {
       console.log("📄 [PDF Download] Generating Contractors Equipment PDF...");
       const contractorsData = mapContractorsDataToPacketData(
         formData,
         submission._id.toString(),
         agency,
-        quote?.carrierId?.name || "Capital & Co",
+        (quote as any)?.carrierId?.name || "Capital & Co",
         submission,
         capitalCoLogoSVG
       );
@@ -191,10 +199,16 @@ export async function GET(
     // Return PDF as response
     try {
       console.log("📄 [PDF Download] Returning PDF response...");
+      const filename = isApartment 
+        ? `${formData.companyName || formData.applicantName || 'Application'}-Property-Application.pdf`
+        : isContractors
+          ? `${formData.companyName || formData.applicantName || 'Application'}-Equipment-Application.pdf`
+          : `${formData.companyName || formData.applicantName || 'Application'}-Application.pdf`;
+
       return new NextResponse(new Uint8Array(pdfBuffer), {
         headers: {
           'Content-Type': 'application/pdf',
-          'Content-Disposition': `attachment; filename="${formData.companyName || formData.applicantName || 'Application'}-Application.pdf"`,
+          'Content-Disposition': `attachment; filename="${filename}"`,
           'Content-Length': pdfBuffer.length.toString(),
         },
       });

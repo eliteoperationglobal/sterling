@@ -732,7 +732,7 @@ function SubmissionDetailsContent() {
   const isBound = submission?.status === "BOUND";
 
   const baseQuoteUrl = ["inland-marine", "contractors-equipment"].includes(submission?.programId || "") ||
-    ["Equipment", "Construction Equipment"].includes(submission?.programName || "")
+    ["Equipment", "Construction Equipment", "Contractors Equipment"].includes(submission?.programName || "")
     ? "/agency/quote/contractors-equipment"
     : `/agency/quote/${submission?.programId}`;
 

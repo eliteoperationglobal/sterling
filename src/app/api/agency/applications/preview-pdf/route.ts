@@ -4,6 +4,10 @@ import { authOptions } from "@/lib/authOptions";
 import connectDB from "@/lib/mongodb";
 import Agency from "@/models/Agency";
 import { generateApplicationPacketHTML, mapFormDataToPacketData, loadCapitalCoLogo } from "@/lib/services/pdf/ApplicationPacketPDF";
+import { mapApartmentDataToPacketData } from "@/lib/services/pdf/mappers/apartmentMapper";
+import { generateApartmentPacketHTML } from "@/lib/services/pdf/ApartmentPacketPDF";
+import { mapContractorsDataToPacketData } from "@/lib/services/pdf/mappers/contractorsMapper";
+import { generateContractorsPacketHTML } from "@/lib/services/pdf/ContractorsEquipmentPacketPDF";
 
 /**
  * POST /api/agency/applications/preview-pdf
@@ -69,20 +73,53 @@ export async function POST(req: NextRequest) {
     // Load Capital & Co logo SVG
     const capitalCoLogoSVG = await loadCapitalCoLogo();
 
-    // Map form data to packet data format
-    const packetData = mapFormDataToPacketData(
-      formData,
-      tempSubmissionId,
-      agency,
-      { status: "PREVIEW" }, 
-      // undefined, // No quote for preview
-      { programName: programName || "Advantage Contractor GL" } as any,
-      capitalCoLogoSVG,
-      excludePages8910,
-    );
+    const isApartment = programId === "apartment-buildings" || 
+                        programName?.toLowerCase().includes("apartment building") || 
+                        programName?.toLowerCase().includes("commercial property");
 
-    // Generate 12-page application packet HTML
-    const htmlContent = await generateApplicationPacketHTML(packetData);
+    const isContractors = programId === "contractors-equipment" || 
+                         programName?.toLowerCase().includes("contractors equipment");
+
+    let htmlContent: string = "";
+
+    if (isApartment) {
+      console.log("📄 [PDF Preview] Generating Apartment Buildings PDF...");
+      const apartmentData = mapApartmentDataToPacketData(
+        formData,
+        tempSubmissionId,
+        agency,
+        { status: "PREVIEW" } as any,
+        { programName: programName || "Commercial Property" } as any,
+        capitalCoLogoSVG
+      );
+      htmlContent = generateApartmentPacketHTML(apartmentData);
+    } else if (isContractors) {
+      console.log("📄 [PDF Preview] Generating Contractors Equipment PDF...");
+      const contractorsData = mapContractorsDataToPacketData(
+        formData,
+        tempSubmissionId,
+        agency,
+        "Capital & Co",
+        { programName: programName || "Contractors Equipment" } as any,
+        capitalCoLogoSVG
+      );
+      htmlContent = generateContractorsPacketHTML(contractorsData);
+    } else {
+      // Map form data to packet data format
+      const packetData = mapFormDataToPacketData(
+        formData,
+        tempSubmissionId,
+        agency,
+        { status: "PREVIEW" }, 
+        // undefined, // No quote for preview
+        { programName: programName || "Advantage Contractor GL" } as any,
+        capitalCoLogoSVG,
+        excludePages8910,
+      );
+
+      // Generate 12-page application packet HTML
+      htmlContent = await generateApplicationPacketHTML(packetData);
+    }
 
     // Generate PDF using production service (PDFShift)
     let pdfBuffer: Buffer;

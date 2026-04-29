@@ -9,6 +9,7 @@ import { generateInvoiceHTML, mapFormDataToPacketData, loadCapitalCoLogo } from 
 import { mapApartmentDataToPacketData } from "@/lib/services/pdf/mappers/apartmentMapper";
 import { mapContractorsDataToPacketData } from "@/lib/services/pdf/mappers/contractorsMapper";
 import { generateApartmentInvoiceHTML } from "@/lib/services/pdf/ApartmentPacketPDF";
+import { generateContractorsInvoiceHTML } from "@/lib/services/pdf/ContractorsEquipmentPacketPDF";
 
 /**
  * GET /api/agency/applications/[id]/invoice
@@ -98,7 +99,14 @@ export async function GET(
     
     let invoiceHTML: string = "";
 
-    if (submission.programId === "apartment-buildings") {
+    const isApartment = submission.programId === "apartment-buildings" || 
+                        submission.programName?.toLowerCase().includes("apartment building") || 
+                        submission.programName?.toLowerCase().includes("commercial property");
+
+    const isContractors = submission.programId === "contractors-equipment" || 
+                         submission.programName?.toLowerCase().includes("contractors equipment");
+
+    if (isApartment) {
       console.log("📄 [Invoice Download] Generating Apartment Buildings Invoice...");
       const apartmentData = mapApartmentDataToPacketData(
         formData,
@@ -109,6 +117,17 @@ export async function GET(
         capitalCoLogoSVG
       );
       invoiceHTML = generateApartmentInvoiceHTML(apartmentData);
+    } else if (isContractors) {
+      console.log("📄 [Invoice Download] Generating Contractors Equipment Invoice...");
+      const contractorsData = mapContractorsDataToPacketData(
+        formData,
+        submission._id.toString(),
+        agency,
+        (quote as any)?.carrierId?.name || "Capital & Co",
+        submission,
+        capitalCoLogoSVG
+      );
+      invoiceHTML = generateContractorsInvoiceHTML(contractorsData);
     } else {
       const packetData = mapFormDataToPacketData(
         formData,
@@ -167,10 +186,19 @@ export async function GET(
     // Return PDF as response
     try {
       console.log("📄 [PDF Download] Returning PDF response...");
+      const policyLabel = isApartment 
+        ? (quote?.policyType === 'EXCESS_LIABILITY' ? 'General-Liability' : 'Property')
+        : isContractors ? 'Equipment' : 'Invoice';
+
+      const customerName = formData.companyName || formData.applicantName || submission.clientContact?.name || "Invoice";
+      const filename = isApartment || isContractors
+        ? `${customerName}-${policyLabel}-Invoice.pdf`
+        : `${customerName}-Invoice.pdf`;
+
       return new NextResponse(new Uint8Array(pdfBuffer), {
         headers: {
           'Content-Type': 'application/pdf',
-          'Content-Disposition': `attachment; filename="${formData.companyName}-Invoice.pdf"`,
+          'Content-Disposition': `attachment; filename="${filename}"`,
           'Content-Length': pdfBuffer.length.toString(),
         },
       });

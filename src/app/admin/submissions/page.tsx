@@ -379,7 +379,7 @@ export default function AdminSubmissionsPage() {
                           {(() => {
                             const program = sub.programName || sub.industry || "N/A";
                             if (program.toLowerCase().includes("equipment")) {
-                              return "Construction Equipment";
+                              return "Contractors Equipment";
                             }
                             if (
                               program.includes("Advantage") ||
