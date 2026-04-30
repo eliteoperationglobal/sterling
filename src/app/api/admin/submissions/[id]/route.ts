@@ -94,6 +94,7 @@ export async function GET(
           : null,
         programId: (submission as any).programId || null,
         programName: (submission as any).programName || null,
+        hasNewEdits: (submission as any).hasNewEdits || false,
       },
       routingLogs: routingLogs.map((log: any) => ({
         ...log,

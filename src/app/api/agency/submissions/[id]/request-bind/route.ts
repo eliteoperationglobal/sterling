@@ -64,7 +64,10 @@ export async function POST(
     }
 
     // Mark submission as bind requested so it appears in admin bind-requests
-    submission.status = "BIND_REQUESTED";
+    if (submission.status !== "BOUND") {
+      submission.status = "BIND_REQUESTED";
+    }
+    
     (submission as any).bindRequested = true;
     (submission as any).bindRequestedAt = new Date();
 

@@ -36,10 +36,18 @@ export async function GET(req: NextRequest) {
     await import("@/models/Agency");
     await import("@/models/FormTemplate");
 
-    // Fetch submissions where bindRequested = true && bindApproved = false
+    // Fetch associated quotes that are BIND_REQUESTED
+    const pendingQuotes = await Quote.find({ status: "BIND_REQUESTED" }).select("submissionId").lean();
+    const submissionIdsWithPendingQuotes = pendingQuotes.map(q => q.submissionId);
+
+    // Fetch submissions where:
+    // 1. bindRequested = true && bindApproved = false (Legacy/Main policy)
+    // 2. OR any quote is in BIND_REQUESTED status
     const submissions = await Submission.find({
-      bindRequested: true,
-      bindApproved: { $ne: true }, // Not approved yet
+      $or: [
+        { bindRequested: true, bindApproved: { $ne: true } },
+        { _id: { $in: submissionIdsWithPendingQuotes } }
+      ]
     })
       .populate("agencyId", "name")
       .populate("templateId", "industry subcategory")

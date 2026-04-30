@@ -137,7 +137,8 @@ export async function GET(
         agency,
         (quote as any)?.carrierId?.name || "Capital & Co",
         submission,
-        capitalCoLogoSVG
+        capitalCoLogoSVG,
+        quote
       );
       htmlContent = generateContractorsPacketHTML(contractorsData);
     } else {

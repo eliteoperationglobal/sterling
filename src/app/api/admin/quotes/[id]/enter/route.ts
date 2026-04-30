@@ -286,7 +286,10 @@ export async function POST(
       existingQuote.specialNotes = specialNotes || undefined;
       existingQuote.customDocuments = customDocuments || [];
       existingQuote.policyType = policyType === 'EXCESS_LIABILITY' ? 'EXCESS_LIABILITY' : 'GENERAL_LIABILITY';
-      existingQuote.status = "POSTED";
+      // 🛑 PROTECTION: If the quote is already BOUND, do NOT downgrade it to POSTED.
+      if (existingQuote.status !== "BOUND") {
+        existingQuote.status = "POSTED";
+      }
       existingQuote.postedAt = new Date();
 
       quote = await existingQuote.save();
@@ -348,10 +351,25 @@ export async function POST(
       });
     }
 
-    // Ensure submission status is QUOTED
-    await Submission.findByIdAndUpdate(submissionId, {
-      status: "QUOTED",
-    });
+    // 🛑 ULTIMATE STATUS PROTECTION: Force BOUND status if a bound GL policy exists.
+    // We check the database directly for any quote marked as BOUND.
+    const allQuotesForSubmission = await Quote.find({ submissionId });
+    const hasBoundPolicy = allQuotesForSubmission.some(q => q.status === "BOUND");
+    
+    // If we found a bound policy, we FORCE the status to BOUND.
+    const definitiveStatus = hasBoundPolicy ? "BOUND" : "QUOTED";
+
+    console.log(`[EXEC] Forcing status for ${submissionId} to ${definitiveStatus} (Found bound quote: ${hasBoundPolicy})`);
+
+    await Submission.updateOne(
+      { _id: submissionId },
+      { 
+        $set: { 
+          status: definitiveStatus,
+          hasNewEdits: false 
+        } 
+      }
+    );
 
     // Log activity: Quote created or updated
     await logActivity(

@@ -261,13 +261,16 @@ function SubmissionDetailsContent() {
   const currentQuote: SubmissionDetails["quotes"][0] | null = useMemo(() => {
     if (!data?.quotes?.length) return null;
 
-    // IF BOUND: Find the ACTUAL bound quote for this policy type across ALL carriers
+    // IF BOUND: Prefer the ACTUAL bound quote for this policy type
     if (data?.submission?.status === "BOUND") {
       const boundQuoteForType = data.quotes.find((q: any) =>
         q.status === "BOUND" &&
         (q.policyType === currentPolicyType || (!q.policyType && currentPolicyType === "GENERAL_LIABILITY"))
       );
       if (boundQuoteForType) return boundQuoteForType;
+      
+      // FALLBACK: If no bound quote exists for this type yet (e.g. newly added Excess), 
+      // fall through to the comparison mode lookup below to show the POSTED quote.
     }
 
     // OTHERWISE (Comparison Mode): Isolate lookup to selected carrier group only
@@ -279,7 +282,15 @@ function SubmissionDetailsContent() {
       (!q.policyType && currentPolicyType === "GENERAL_LIABILITY")
     );
 
-    return policyQuote || null;
+    if (policyQuote) return policyQuote;
+
+    // ULTIMATE FALLBACK: Search ALL quotes for this policy type if the active carrier group doesn't have it
+    const globalFallback = data.quotes.find((q: any) =>
+      q.policyType === currentPolicyType ||
+      (!q.policyType && currentPolicyType === "GENERAL_LIABILITY")
+    );
+
+    return globalFallback || null;
   }, [data, carrierGroups, selectedCarrierId, currentPolicyType]);
 
   useEffect(() => {
@@ -804,7 +815,8 @@ function SubmissionDetailsContent() {
             <h3 className="text-xl font-bold text-gray-900 mb-2">Request Bind</h3>
             <p className="text-gray-500 text-sm mb-6">Select the carriers you wish to bind with for each policy.</p>
 
-            {availablePolicies.includes("GENERAL_LIABILITY") && data.quotes?.some(q => q.policyType === "GENERAL_LIABILITY" || !q.policyType) && (
+            {/* Only show GL selector if GL is NOT already bound */}
+            {availablePolicies.includes("GENERAL_LIABILITY") && !data.quotes?.some(q => (q.policyType === "GENERAL_LIABILITY" || !q.policyType) && q.status === "BOUND") && data.quotes?.some(q => q.policyType === "GENERAL_LIABILITY" || !q.policyType) && (
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-2">General Liability Carrier</label>
                 <select
@@ -813,7 +825,7 @@ function SubmissionDetailsContent() {
                   className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-black focus:border-black block p-3 outline-none transition-all"
                 >
                   <option value="">Do not bind GL...</option>
-                  {data.quotes?.filter(q => q.policyType === "GENERAL_LIABILITY" || !q.policyType).map((quote) => (
+                  {data.quotes?.filter(q => (q.policyType === "GENERAL_LIABILITY" || !q.policyType) && q.status !== "BOUND").map((quote) => (
                     <option key={quote._id} value={quote.carrierId?._id}>
                       {quote.carrierId?.name || "Unknown Carrier"}
                     </option>
@@ -822,7 +834,9 @@ function SubmissionDetailsContent() {
               </div>
             )}
 
-            {availablePolicies.includes("EXCESS_LIABILITY") && data.quotes?.some(q => q.policyType === "EXCESS_LIABILITY") && (
+
+            {/* Only show XL selector if XL is NOT already bound */}
+            {availablePolicies.includes("EXCESS_LIABILITY") && !data.quotes?.some(q => q.policyType === "EXCESS_LIABILITY" && q.status === "BOUND") && data.quotes?.some(q => q.policyType === "EXCESS_LIABILITY") && (
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-2">Excess Liability Carrier</label>
                 <select
@@ -831,7 +845,7 @@ function SubmissionDetailsContent() {
                   className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-black focus:border-black block p-3 outline-none transition-all"
                 >
                   <option value="">Do not bind XL...</option>
-                  {data.quotes?.filter(q => q.policyType === "EXCESS_LIABILITY").map((quote) => (
+                  {data.quotes?.filter(q => q.policyType === "EXCESS_LIABILITY" && q.status !== "BOUND").map((quote) => (
                     <option key={quote._id} value={quote.carrierId?._id}>
                       {quote.carrierId?.name || "Unknown Carrier"}
                     </option>
@@ -839,6 +853,7 @@ function SubmissionDetailsContent() {
                 </select>
               </div>
             )}
+
 
             <div className="flex justify-end gap-3 mt-4">
               <button
@@ -1086,8 +1101,16 @@ function SubmissionDetailsContent() {
                 <h1 className="flex items-center gap-3 text-xl md:text-[24px] font-semibold text-gray-900 leading-tight">
                   <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3">
                     {(submission?.payload?.companyName || submission?.clientContact?.name || "???")}
-                    <span className="inline-flex items-center rounded-md bg-gray-100 px-3 py-[4px] text-[13px] font-medium text-gray-700 w-fit">
-                      {(submission?.status || "").replace(/_/g, " ")}
+                    <span className={`inline-flex items-center rounded-md px-3 py-[4px] text-[13px] font-bold border transition-all w-fit ${
+                      (() => {
+                        const isBound = submission?.status === "BOUND" || (quotes || []).some((q: any) => q.status === "BOUND");
+                        return isBound ? "bg-green-100 text-green-700 border-green-200" : "bg-gray-100 text-gray-700 border-gray-200";
+                      })()
+                    }`}>
+                      {(() => {
+                        const isBound = submission?.status === "BOUND" || (quotes || []).some((q: any) => q.status === "BOUND");
+                        return isBound ? "BOUND" : (submission?.status || "").replace(/_/g, " ");
+                      })()}
                     </span>
                   </div>
                 </h1>
@@ -1343,14 +1366,26 @@ function SubmissionDetailsContent() {
                     View
                   </button>
 
-                  {submission?.status === "QUOTED" && (
-                    <button
-                      onClick={() => setBindModalOpen(true)}
-                      className={iscPrimaryBtn}
-                    >
-                      Request Bind
-                    </button>
-                  )}
+                  {/* Request Bind Button - Show if the CURRENT policy is not bound yet */}
+                  {(() => {
+                    const status = currentQuote?.status;
+                    const isBound = status === "BOUND";
+                    // Show if not bound AND (account is quoted OR quote is ready to bind)
+                    const canRequestBind = !isBound && (
+                      data?.submission?.status === "QUOTED" || 
+                      status === "POSTED" || 
+                      status === "ENTERED"
+                    );
+                    
+                    return canRequestBind && (
+                      <button
+                        onClick={() => setBindModalOpen(true)}
+                        className={iscPrimaryBtn}
+                      >
+                        Request Bind
+                      </button>
+                    );
+                  })()}
 
                   {isBindRequested && (
                     <button
@@ -1497,8 +1532,26 @@ function SubmissionDetailsContent() {
                   >
                     Cancel Quote
                   </button>
+                  {/* Request Bind for new policies added to an already-bound submission */}
+                  {currentQuote && currentQuote.status === "BIND_REQUESTED" && (
+                    <button
+                      disabled
+                      className={`${iscPrimaryBtn} opacity-60 cursor-not-allowed`}
+                    >
+                      Bind Requested
+                    </button>
+                  )}
+                  {currentQuote && ["POSTED", "ENTERED"].includes(currentQuote.status) && (
+                    <button
+                      onClick={() => setBindModalOpen(true)}
+                      className={iscPrimaryBtn}
+                    >
+                      Request Bind
+                    </button>
+                  )}
                 </>
               )}
+
             </div> {/* END RIGHT BUTTONS */}
           </div>
         </div>
@@ -1629,7 +1682,7 @@ function SubmissionDetailsContent() {
               <div className="flex">
                 <span className="w-36 text-gray-500">Policy Number:</span>
                 <span className="font-medium text-gray-900 leading-[18px] tracking-tight">
-                  {currentQuote?.policyNumber || submission.policyNumber || "Not Bound"}
+                  {currentQuote?.policyNumber || (currentPolicyType === "GENERAL_LIABILITY" ? submission.policyNumber : "") || "Not Bound"}
                 </span>
               </div>
 
@@ -1637,10 +1690,11 @@ function SubmissionDetailsContent() {
                 <span className="w-36 text-gray-500">Effective Date:</span>
                 <span className="font-medium text-gray-900 leading-[18px] tracking-tight">
                   {(() => {
-                    const effStr = currentQuote?.effectiveDate || submission.effectiveDate || submission?.createdAt;
-                    const effDate = effStr ? new Date(effStr) : new Date();
-
-                    const expStr = currentQuote?.expirationDate || submission.expirationDate;
+                    const effStr = currentQuote?.effectiveDate || (currentPolicyType === "GENERAL_LIABILITY" ? (submission.effectiveDate || submission?.createdAt) : "");
+                    if (!effStr) return "TBD";
+                    
+                    const effDate = new Date(effStr);
+                    const expStr = currentQuote?.expirationDate || (currentPolicyType === "GENERAL_LIABILITY" ? submission.expirationDate : "");
                     const expDate = expStr ? new Date(expStr) : new Date(new Date(effDate).setFullYear(effDate.getFullYear() + 1));
 
                     return `${effDate.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })} - ${expDate.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}`;

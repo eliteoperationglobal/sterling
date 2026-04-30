@@ -166,6 +166,19 @@ export interface ContractorsPacketData {
 }
 
 /**
+ * Helper to format currency strings or numbers to $0,000.00
+ */
+function formatUSD(amount: any): string {
+    if (amount === undefined || amount === null || amount === "") return "$0.00";
+    const num = typeof amount === "string" ? parseFloat(amount.replace(/[\$,]/g, "")) : amount;
+    if (isNaN(num)) return "$0.00";
+    return `$${num.toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    })}`;
+}
+
+/**
  * Maps raw submission payload to ContractorsPacketData
  */
 export function mapContractorsDataToPacketData(
@@ -174,7 +187,8 @@ export function mapContractorsDataToPacketData(
     agency: any,
     carrierName: string = "Capital & Co",
     submission: any = {},
-    capitalCoLogoSVG?: string
+    capitalCoLogoSVG?: string,
+    quote?: any
 ): ContractorsPacketData {
     return {
         // Metadata
@@ -295,31 +309,31 @@ export function mapContractorsDataToPacketData(
         terrorism: p.terrorism || false,
 
         // Financials (if quote exists)
-        premium: submission?.quote?.costs?.premium ? `$${submission.quote.costs.premium.toLocaleString()}` : "$0.00",
-        carrierPolicyFee: submission?.quote?.costs?.carrierPolicyFee ? `$${submission.quote.costs.carrierPolicyFee.toLocaleString()}` : "$0.00",
-        sterlingFees: submission?.quote?.costs?.sterlingFees ? `$${submission.quote.costs.sterlingFees.toLocaleString()}` : "$0.00",
-        surplusLinesTax: submission?.quote?.costs?.surplusLinesTax ? `$${submission.quote.costs.surplusLinesTax.toLocaleString()}` : "$0.00",
-        stampingFee: submission?.quote?.costs?.stampingFee ? `$${submission.quote.costs.stampingFee.toLocaleString()}` : "$0.00",
-        stampingFeePerFiling: submission?.quote?.costs?.stampingFeePerFiling ? `$${submission.quote.costs.stampingFeePerFiling.toLocaleString()}` : "$0.00",
-        slaServiceCharge: submission?.quote?.costs?.slaServiceCharge ? `$${submission.quote.costs.slaServiceCharge.toLocaleString()}` : "$0.00",
-        fireMarshalTax: submission?.quote?.costs?.fireMarshalTax ? `$${submission.quote.costs.fireMarshalTax.toLocaleString()}` : "$0.00",
-        totalCostOfPolicy: submission?.quote?.costs?.totalCostOfPolicy ? `$${submission.quote.costs.totalCostOfPolicy.toLocaleString()}` : "$0.00",
-        quoteType: submission?.quote?.metadata?.type || "General Liability",
-        coverageType: submission?.quote?.metadata?.coverageType || "Occurrence",
+        premium: formatUSD(quote?.costs?.premium ?? quote?.carrierQuoteUSD ?? submission?.quote?.costs?.premium),
+        carrierPolicyFee: formatUSD(quote?.costs?.carrierPolicyFee ?? quote?.carrierFeesUSD ?? submission?.quote?.costs?.carrierPolicyFee),
+        sterlingFees: formatUSD(quote?.costs?.sterlingFees ?? quote?.sterlingInsuranceServicesFeesUSD ?? submission?.quote?.costs?.sterlingFees),
+        surplusLinesTax: formatUSD(quote?.costs?.surplusLinesTax ?? quote?.premiumTaxAmountUSD ?? submission?.quote?.costs?.surplusLinesTax),
+        stampingFee: formatUSD(quote?.costs?.stampingFee ?? quote?.stampingFeeAmountUSD ?? submission?.quote?.costs?.stampingFee),
+        stampingFeePerFiling: formatUSD(quote?.costs?.stampingFeePerFiling ?? quote?.stampingFeePerFilingUSD ?? submission?.quote?.costs?.stampingFeePerFiling),
+        slaServiceCharge: formatUSD(quote?.costs?.slaServiceCharge ?? quote?.slaServiceChargeUSD ?? submission?.quote?.costs?.slaServiceCharge),
+        fireMarshalTax: formatUSD(quote?.costs?.fireMarshalTax ?? quote?.fireMarshalTaxAmountUSD ?? submission?.quote?.costs?.fireMarshalTax),
+        totalCostOfPolicy: formatUSD(quote?.costs?.totalCostOfPolicy ?? quote?.finalAmountUSD ?? submission?.quote?.costs?.totalCostOfPolicy),
+        quoteType: quote?.metadata?.type || quote?.policyType || submission?.quote?.metadata?.type || "General Liability",
+        coverageType: quote?.metadata?.coverageType || quote?.coverageType || submission?.quote?.metadata?.coverageType || "Occurrence",
 
 
         // Deposits
-        depositPremium: submission?.quote?.deposit?.premium ? `$${submission.quote.deposit.premium.toLocaleString()}` : "$0.00",
-        depositPolicyFee: submission?.quote?.deposit?.policyFee ? `$${submission.quote.deposit.policyFee.toLocaleString()}` : "$0.00",
-        depositInspectionFee: submission?.quote?.deposit?.inspectionFee ? `$${submission.quote.deposit.inspectionFee.toLocaleString()}` : "$0.00",
-        depositStateTax: submission?.quote?.deposit?.stateTax ? `$${submission.quote.deposit.stateTax.toLocaleString()}` : "$0.00",
-        depositFireMarshal: submission?.quote?.deposit?.fireMarshal ? `$${submission.quote.deposit.fireMarshal.toLocaleString()}` : "$0.00",
-        depositAssociationDues: submission?.quote?.deposit?.associationDues ? `$${submission.quote.deposit.associationDues.toLocaleString()}` : "$0.00",
-        totalDeposit: submission?.quote?.deposit?.totalDeposit ? `$${submission.quote.deposit.totalDeposit.toLocaleString()}` : "$0.00",
+        depositPremium: formatUSD(quote?.deposit?.premium ?? quote?.depositPremiumUSD ?? submission?.quote?.deposit?.premium),
+        depositPolicyFee: formatUSD(quote?.deposit?.policyFee ?? quote?.depositStampingUSD ?? submission?.quote?.deposit?.policyFee),
+        depositInspectionFee: formatUSD(quote?.deposit?.inspectionFee ?? quote?.depositSterlingFeesUSD ?? submission?.quote?.deposit?.inspectionFee),
+        depositStateTax: formatUSD(quote?.deposit?.stateTax ?? quote?.depositTaxUSD ?? submission?.quote?.deposit?.stateTax),
+        depositFireMarshal: formatUSD(quote?.deposit?.fireMarshal ?? quote?.depositFireMarshalUSD ?? submission?.quote?.deposit?.fireMarshal),
+        depositAssociationDues: formatUSD(quote?.deposit?.associationDues ?? quote?.depositCarrierFeesUSD ?? submission?.quote?.deposit?.associationDues),
+        totalDeposit: formatUSD(quote?.deposit?.totalDeposit ?? quote?.totalDepositUSD ?? submission?.quote?.deposit?.totalDeposit),
 
         // Payment Details
-        totalToRetain: submission?.quote?.commission?.totalToRetain ? `$${submission.quote.commission.totalToRetain.toLocaleString()}` : "$0.00",
-        totalToBeSent: submission?.quote?.payment?.totalToBeSent ? `$${submission.quote.payment.totalToBeSent.toLocaleString()}` : "$0.00",
-        totalToFinanceCompany: submission?.quote?.payment?.totalToFinanceCompany ? `$${submission.quote.payment.totalToFinanceCompany.toLocaleString()}` : "$0.00",
+        totalToRetain: formatUSD(quote?.commission?.totalToRetain ?? quote?.totalToRetainUSD ?? submission?.quote?.commission?.totalToRetain),
+        totalToBeSent: formatUSD(quote?.payment?.totalToBeSent ?? quote?.totalToBeSentUSD ?? submission?.quote?.payment?.totalToBeSent),
+        totalToFinanceCompany: formatUSD(quote?.payment?.totalToFinanceCompany ?? quote?.totalToFinanceCompanyUSD ?? submission?.quote?.payment?.totalToFinanceCompany),
     };
 }

@@ -125,7 +125,8 @@ export async function GET(
         agency,
         (quote as any)?.carrierId?.name || "Capital & Co",
         submission,
-        capitalCoLogoSVG
+        capitalCoLogoSVG,
+        quote
       );
       invoiceHTML = generateContractorsInvoiceHTML(contractorsData);
     } else {
@@ -187,7 +188,7 @@ export async function GET(
     try {
       console.log("📄 [PDF Download] Returning PDF response...");
       const policyLabel = isApartment 
-        ? (quote?.policyType === 'EXCESS_LIABILITY' ? 'General-Liability' : 'Property')
+        ? (quote?.policyType === 'EXCESS_LIABILITY' ? 'General-Liability' : 'Commercial-Property')
         : isContractors ? 'Equipment' : 'Invoice';
 
       const customerName = formData.companyName || formData.applicantName || submission.clientContact?.name || "Invoice";

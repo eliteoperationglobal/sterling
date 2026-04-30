@@ -191,6 +191,8 @@ export interface ApartmentPacketData {
     quoteType?: string;
     coverageType?: string;
     policyType?: "GENERAL_LIABILITY" | "EXCESS_LIABILITY";
+    policyLabel?: string;
+    programName?: string;
     carrierName?: string;
     premium?: string;
     carrierPolicyFee?: string;
@@ -254,6 +256,19 @@ function formatDateToUS(dateInput: any): string {
         day: '2-digit',
         year: 'numeric'
     });
+}
+
+/**
+ * Helper to format currency strings or numbers to $0,000.00
+ */
+function formatUSD(amount: any): string {
+    if (amount === undefined || amount === null || amount === "") return "$0.00";
+    const num = typeof amount === "string" ? parseFloat(amount.replace(/[\$,]/g, "")) : amount;
+    if (isNaN(num)) return "$0.00";
+    return `$${num.toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    })}`;
 }
 
 export function mapApartmentDataToPacketData(
@@ -485,32 +500,54 @@ export function mapApartmentDataToPacketData(
 
         // Metadata & Financials
         capitalCoLogoSVG: agency?.capitalCoLogoSVG || capitalCoLogoSVG,
-        quoteType: quote?.metadata?.type || "General Liability",
-        coverageType: quote?.metadata?.coverageType || "Occurrence",
-        policyType: quote?.metadata?.type || "GENERAL_LIABILITY",
-        carrierName: quote?.metadata?.carrierName || "-",
-        premium: quote?.costs?.premium ? `$${quote.costs.premium.toLocaleString()}` : "$0.00",
-        carrierPolicyFee: quote?.costs?.carrierPolicyFee ? `$${quote.costs.carrierPolicyFee.toLocaleString()}` : "$0.00",
-        sterlingFees: quote?.costs?.sterlingFees ? `$${quote.costs.sterlingFees.toLocaleString()}` : "$0.00",
-        surplusLinesTax: quote?.costs?.surplusLinesTax ? `$${quote.costs.surplusLinesTax.toLocaleString()}` : "$0.00",
-        stampingFee: quote?.costs?.stampingFee ? `$${quote.costs.stampingFee.toLocaleString()}` : "$0.00",
-        stampingFeePerFiling: quote?.costs?.stampingFeePerFiling ? `$${quote.costs.stampingFeePerFiling.toLocaleString()}` : "$0.00",
-        slaServiceCharge: quote?.costs?.slaServiceCharge ? `$${quote.costs.slaServiceCharge.toLocaleString()}` : "$0.00",
-        fireMarshalTax: quote?.costs?.fireMarshalTax ? `$${quote.costs.fireMarshalTax.toLocaleString()}` : "$0.00",
-        fireMarshalFlatFee: quote?.costs?.fireMarshalFlatFee ? `$${quote.costs.fireMarshalFlatFee.toLocaleString()}` : "$0.00",
-        totalCostOfPolicy: quote?.costs?.totalCostOfPolicy ? `$${quote.costs.totalCostOfPolicy.toLocaleString()}` : "$0.00",
+        programName: submission?.programName || "Commercial Property",
+        quoteType: (() => {
+            const type = quote?.policyType || "GENERAL_LIABILITY";
+            const isApartment = submission?.programId === 'apartment-buildings' || 
+                               submission?.programName?.toLowerCase().includes("apartment building") || 
+                               submission?.programName?.toLowerCase().includes("commercial property");
+            
+            if (isApartment) {
+                return type === "GENERAL_LIABILITY" ? "Commercial Property" : "General Liability";
+            }
+            return type === "GENERAL_LIABILITY" ? "General Liability" : "Excess Liability";
+        })(),
+        coverageType: quote?.metadata?.coverageType || quote?.coverageType || "Occurrence",
+        policyType: quote?.metadata?.type || quote?.policyType || "GENERAL_LIABILITY",
+        policyLabel: (() => {
+            const type = quote?.policyType || "GENERAL_LIABILITY";
+            const isApartment = submission?.programId === 'apartment-buildings' || 
+                               submission?.programName?.toLowerCase().includes("apartment building") || 
+                               submission?.programName?.toLowerCase().includes("commercial property");
+            
+            if (isApartment) {
+                return type === "GENERAL_LIABILITY" ? "Commercial Property" : "General Liability";
+            }
+            return type === "GENERAL_LIABILITY" ? "General Liability" : "Excess Liability";
+        })(),
+        carrierName: quote?.metadata?.carrierName || quote?.carrierId?.name || "-",
+        premium: formatUSD(quote?.costs?.premium ?? quote?.carrierQuoteUSD),
+        carrierPolicyFee: formatUSD(quote?.costs?.carrierPolicyFee ?? quote?.carrierFeesUSD),
+        sterlingFees: formatUSD(quote?.costs?.sterlingFees ?? quote?.sterlingInsuranceServicesFeesUSD),
+        surplusLinesTax: formatUSD(quote?.costs?.surplusLinesTax ?? quote?.premiumTaxAmountUSD),
+        stampingFee: formatUSD(quote?.costs?.stampingFee ?? quote?.stampingFeeAmountUSD),
+        stampingFeePerFiling: formatUSD(quote?.costs?.stampingFeePerFiling ?? quote?.stampingFeePerFilingUSD),
+        slaServiceCharge: formatUSD(quote?.costs?.slaServiceCharge ?? quote?.slaServiceChargeUSD),
+        fireMarshalTax: formatUSD(quote?.costs?.fireMarshalTax ?? quote?.fireMarshalTaxAmountUSD),
+        fireMarshalFlatFee: formatUSD(quote?.costs?.fireMarshalFlatFee ?? quote?.fireMarshalFlatFeeUSD),
+        totalCostOfPolicy: formatUSD(quote?.costs?.totalCostOfPolicy ?? quote?.finalAmountUSD),
 
-        depositPremium: quote?.deposit?.premium ? `$${quote.deposit.premium.toLocaleString()}` : "$0.00",
-        depositAssociationDues: quote?.deposit?.associationDues ? `$${quote.deposit.associationDues.toLocaleString()}` : "$0.00",
-        depositInspectionFee: quote?.deposit?.inspectionFee ? `$${quote.deposit.inspectionFee.toLocaleString()}` : "$0.00",
-        depositStateTax: quote?.deposit?.stateTax ? `$${quote.deposit.stateTax.toLocaleString()}` : "$0.00",
-        depositPolicyFee: quote?.deposit?.policyFee ? `$${quote.deposit.policyFee.toLocaleString()}` : "$0.00",
-        depositFireMarshal: quote?.deposit?.fireMarshal ? `$${quote.deposit.fireMarshal.toLocaleString()}` : "$0.00",
-        totalDeposit: quote?.deposit?.totalDeposit ? `$${quote.deposit.totalDeposit.toLocaleString()}` : "$0.00",
+        depositPremium: formatUSD(quote?.deposit?.premium ?? quote?.depositPremiumUSD),
+        depositAssociationDues: formatUSD(quote?.deposit?.associationDues ?? quote?.depositCarrierFeesUSD),
+        depositInspectionFee: formatUSD(quote?.deposit?.inspectionFee ?? quote?.depositSterlingFeesUSD),
+        depositStateTax: formatUSD(quote?.deposit?.stateTax ?? quote?.depositTaxUSD),
+        depositPolicyFee: formatUSD(quote?.deposit?.policyFee ?? quote?.depositStampingUSD),
+        depositFireMarshal: formatUSD(quote?.deposit?.fireMarshal ?? quote?.depositFireMarshalUSD),
+        totalDeposit: formatUSD(quote?.deposit?.totalDeposit ?? quote?.totalDepositUSD),
 
-        totalToRetain: quote?.commission?.totalToRetain ? `$${quote.commission.totalToRetain.toLocaleString()}` : "$0.00",
-        totalToBeSent: quote?.payment?.totalToBeSent ? `$${quote.payment.totalToBeSent.toLocaleString()}` : "$0.00",
-        totalToFinanceCompany: quote?.payment?.totalToFinanceCompany ? `$${quote.payment.totalToFinanceCompany.toLocaleString()}` : "$0.00",
+        totalToRetain: formatUSD(quote?.commission?.totalToRetain ?? quote?.totalToRetainUSD),
+        totalToBeSent: formatUSD(quote?.payment?.totalToBeSent ?? quote?.totalToBeSentUSD),
+        totalToFinanceCompany: formatUSD(quote?.payment?.totalToFinanceCompany ?? quote?.totalToFinanceCompanyUSD),
 
         desiredCoverageDates: (() => {
             const eff = quote?.effectiveDate || formData.proposedEffectiveDateFrom;

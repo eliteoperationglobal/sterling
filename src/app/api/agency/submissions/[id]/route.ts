@@ -206,16 +206,23 @@ export async function PATCH(
     //   );
     // }
 
-    // Only prevent editing if BOUND
-    if (submission.status === "BOUND") {
-      return NextResponse.json(
-        { error: "Bound submissions cannot be edited." },
-        { status: 400 }
-      );
-    }
+    // Only prevent editing if BOUND (Removed per user request to allow post-bound mods)
+    // if (submission.status === "BOUND") {
+    //   return NextResponse.json(
+    //     { error: "Bound submissions cannot be edited." },
+    //     { status: 400 }
+    //   );
+    // }
 
     // ✅ Parse JSON body (matches your React frontend)
     const body = await req.json();
+
+    // If bound, mark as having new edits
+    if (submission.status === "BOUND") {
+      console.log(`[PATCH] Force marking bound submission ${params.id} as modified (hasNewEdits = true)`);
+      await Submission.findByIdAndUpdate(params.id, { $set: { hasNewEdits: true } });
+      submission.hasNewEdits = true; // Also update the local object
+    }
 
     if (body.programId) submission.programId = body.programId;
     if (body.programName) submission.programName = body.programName;
@@ -277,8 +284,9 @@ export async function PATCH(
         console.log(`[Notification] ${policyName} ADDED for submission ${params.id}`);
         
         // Revert status to SUBMITTED so it shows up in "Quote Requests" list for admins
+        // BUT ONLY IF NOT BOUND. If it's BOUND, we keep it BOUND and use hasNewEdits.
         const currentStatus = submission.status as any;
-        if (currentStatus === "QUOTED" || currentStatus === "BOUND") {
+        if (currentStatus === "QUOTED") {
           submission.status = "SUBMITTED";
         }
 

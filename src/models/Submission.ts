@@ -102,6 +102,7 @@ export interface ISubmission extends Document {
   bindApproved?: boolean;
   bindApprovedAt?: Date;
   bindStatus?: "NOT_REQUESTED" | "REQUESTED" | "BOUND";
+  hasNewEdits: boolean;
 
   // Final Policy Documents (uploaded by admin after carrier issues policy)
   finalPolicyDocuments?: {
@@ -324,6 +325,10 @@ const SubmissionSchema: Schema = new Schema(
       index: true,
     },
     bindApprovedAt: Date,
+    hasNewEdits: {
+      type: Boolean,
+      default: false,
+    },
     bindStatus: {
       type: String,
       enum: ["NOT_REQUESTED", "REQUESTED", "BOUND"],
@@ -392,8 +397,11 @@ SubmissionSchema.pre("save", async function (next) {
   next();
 });
 
-const Submission: Model<ISubmission> =
-  mongoose.models.Submission ||
-  mongoose.model<ISubmission>("Submission", SubmissionSchema);
+// Delete model from cache if it exists (to handle schema changes in development)
+if (mongoose.models.Submission) {
+  delete mongoose.models.Submission;
+}
+
+const Submission: Model<ISubmission> = mongoose.model<ISubmission>("Submission", SubmissionSchema);
 
 export default Submission;

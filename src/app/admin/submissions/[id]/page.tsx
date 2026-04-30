@@ -77,6 +77,7 @@ interface SubmissionDetails {
     selectedCarrierId?: string;
     binderUrl?: string;
     policyDocsUrl?: string;
+    hasNewEdits?: boolean;
     updatedAt: string;
     createdAt: string;
   };
@@ -796,9 +797,28 @@ export default function AdminSubmissionDetailsPage() {
                 <h1 className="flex items-center gap-3 text-[24px] font-semibold text-gray-900 leading-tight">
                   <div>
                     {(submission?.clientContact?.name || "???")}
-                    <span className="ml-3 inline-flex items-center rounded-md bg-gray-100 px-3 py-[4px] text-[13px] font-medium text-gray-700">
-                      {(submission?.status || "").replace(/_/g, " ")}
+                    <span className={`ml-3 inline-flex items-center rounded-md px-3 py-[4px] text-[13px] font-bold border transition-all ${
+                      (() => {
+                        const isBound = submission?.status === "BOUND" || (quotes || []).some((q: any) => q.status === "BOUND");
+                        return isBound ? "bg-green-100 text-green-700 border-green-200" : "bg-gray-100 text-gray-700 border-gray-200";
+                      })()
+                    }`}>
+                      {(() => {
+                        const isBound = submission?.status === "BOUND" || (quotes || []).some((q: any) => q.status === "BOUND");
+                        return isBound ? "BOUND" : (submission?.status || "").replace(/_/g, " ");
+                      })()}
                     </span>
+                    {(submission?.hasNewEdits || (() => {
+                      // Only show MODIFIED on BOUND submissions that have new unbounded policies
+                      if (submission?.status !== "BOUND") return false;
+                      const hasExcessInPayload = submission.payload?.addExcessLiability === true;
+                      const hasBoundExcessQuote = quotes?.some((q: any) => q.policyType === "EXCESS_LIABILITY" && q.status === "BOUND");
+                      return hasExcessInPayload && !hasBoundExcessQuote;
+                    })()) && (
+                      <span className="ml-2 inline-flex items-center rounded-md bg-rose-100 px-3 py-[4px] text-[13px] font-bold text-rose-700 border border-rose-200 animate-pulse">
+                        MODIFIED
+                      </span>
+                    )}
                   </div>
                 </h1>
 
@@ -928,6 +948,21 @@ export default function AdminSubmissionDetailsPage() {
               )}
               {submission.status === "BOUND" && (
                 <>
+                  {(submission.hasNewEdits || (() => {
+                    const hasExcessInPayload = submission.payload?.addExcessLiability === true;
+                    const hasBoundExcessQuote = quotes?.some(q => q.policyType === "EXCESS_LIABILITY" && q.status === "BOUND");
+                    return hasExcessInPayload && !hasBoundExcessQuote;
+                  })()) && (
+                    <button
+                      onClick={() => window.open(`/admin/submissions/${submissionId}/quote`, "_blank")}
+                      className="h-[42px] px-6 rounded-md text-sm font-bold bg-rose-600 text-white transition-all duration-200 hover:bg-rose-700 shadow-lg shadow-rose-200 flex items-center gap-2"
+                    >
+                      <svg className="w-4 h-4 font-bold" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                      Re-enter Quote
+                    </button>
+                  )}
                   {(() => {
                     let binderUrl = currentQuote?.binderUrl;
                     let policyDocsUrl = currentQuote?.policyDocsUrl;
@@ -1014,7 +1049,7 @@ export default function AdminSubmissionDetailsPage() {
               <p className="font-semibold text-gray-900">
                 {currentQuote?.effectiveDate
                   ? new Date(currentQuote.effectiveDate).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })
-                  : (submission.effectiveDate ? new Date(submission.effectiveDate).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) : "TBD")}
+                  : (currentPolicyType === "GENERAL_LIABILITY" && submission.effectiveDate ? new Date(submission.effectiveDate).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) : "TBD")}
               </p>
             </div>
             <div>
@@ -1053,7 +1088,7 @@ export default function AdminSubmissionDetailsPage() {
             </div>
             <div>
               <p className="text-gray-500 mb-1 leading-tight">Policy Number</p>
-              <p className="font-semibold text-gray-900">{currentQuote?.policyNumber || submission.policyNumber || "N/A"}</p>
+              <p className="font-semibold text-gray-900">{currentQuote?.policyNumber || (currentPolicyType === "GENERAL_LIABILITY" ? submission.policyNumber : "") || "N/A"}</p>
             </div>
           </div>
         </div>

@@ -5706,7 +5706,7 @@ function generateInvoicePage(data: ApartmentPacketData): string {
 		  </div>
 		</div>
 		<div style="text-align: center;">
-			<strong>${data.policyType === 'GENERAL_LIABILITY' ? 'General Liability' : 'Excess Liability'} - ${data.carrierName}</strong>
+			<strong>${data.policyLabel || (data.policyType === 'GENERAL_LIABILITY' ? 'General Liability' : 'Excess Liability')} - ${data.carrierName}</strong>
 		</div>
 		
 		<div class="invoice-section-page12">
