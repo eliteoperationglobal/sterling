@@ -2029,7 +2029,7 @@ export default function QuoteFormPage() {
               <div className="px-4 md:px-8 pt-6 pb-7">
 
                 <div className="space-y-6 mt-1">
-                  <div className="grid grid-cols-1 md:grid-cols-[200px_1fr_320px] gap-4 md:gap-x-6 items-center">
+                  {/* <div className="grid grid-cols-1 md:grid-cols-[200px_1fr_320px] gap-4 md:gap-x-6 items-center">
                     <label className="text-sm font-medium text-gray-900">Broker Fee</label>
                     <div></div>
                     <div className="relative">
@@ -2080,7 +2080,7 @@ export default function QuoteFormPage() {
                         <span className="text-sm text-gray-700">No</span>
                       </label>
                     </div>
-                  </div>
+                  </div> */}
 
                   <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-start">
                     <label className="text-sm font-medium text-gray-900 pt-2">Payment Options</label>

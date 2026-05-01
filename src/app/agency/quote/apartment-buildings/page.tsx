@@ -349,6 +349,7 @@ function ApartmentBuildingsContent() {
         glFireLegalLimit: "$50,000" as string,
         glMedicalExpenseLimit: "Not Applicable" as string,
         glDeductible: "$2,500" as string,
+        paymentOption: "" as string,
     });
 
     const handleAddressSearch = async (value: string, type: "mailing" | "property") => {
@@ -527,6 +528,11 @@ function ApartmentBuildingsContent() {
             return;
         }
 
+        if (!formData.paymentOption) {
+            toast.error("Please select a Payment Option before submitting");
+            return;
+        }
+
         try {
             setIsSubmitting(true);
             let response;
@@ -534,7 +540,7 @@ function ApartmentBuildingsContent() {
                 response = await fetch(`/api/agency/submissions/${submissionId}`, {
                     method: "PATCH",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ 
+                    body: JSON.stringify({
                         payload: formData,
                         programId: "apartment-buildings",
                         programName: "Commercial Property"
@@ -1450,6 +1456,32 @@ function ApartmentBuildingsContent() {
                     </>
                 ))}
 
+                {/* Payment Options */}
+                <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200">
+                    <div className="bg-[#7A6F64] text-white px-4 md:px-6 py-3.5">
+                        <h2 className="text-base md:text-lg font-semibold">Payment Options</h2>
+                    </div>
+                    <div className="px-4 md:px-8 pt-6 pb-7">
+                        <div className="space-y-6 mt-1">
+                            <div className="grid grid-cols-1 md:grid-cols-[300px_1fr_320px] gap-4 md:gap-x-6 items-start">
+                                <label className="text-sm font-medium text-gray-900 md:pt-2 leading-snug">Payment Options</label>
+                                <div className="hidden md:block"></div>
+                                <div>
+                                    <select
+                                        value={formData.paymentOption}
+                                        onChange={(e) => handleInputChange('paymentOption', e.target.value)}
+                                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] text-sm"
+                                    >
+                                        <option value="" disabled hidden>Select payment option</option>
+                                        <option value="Full Pay">Full Pay</option>
+                                        <option value="Premium Financial Partners Co.">Premium Financial Partners Co.</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 {/* ================= ADD GENERAL LIABILITY ================= */}
                 <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200 mt-6">
                     <div className="bg-[#7A6F64] text-white px-6 py-3.5">
@@ -1535,7 +1567,6 @@ function ApartmentBuildingsContent() {
                         </div>
                     </div>
                 )}
-
 
                 {/* Continue Actions */}
                 <div className="flex justify-end pt-4">

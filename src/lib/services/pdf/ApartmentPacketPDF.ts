@@ -5580,12 +5580,6 @@ const cssContent = `
 		margin: 0;
 		color: #6b7280;
 	}
-
-	.page12-isc .invoice-field-page12 {
-		font-size: 10pt;
-		color: #1f2937;
-		line-height: 1.4;
-	}
 `;
 
 

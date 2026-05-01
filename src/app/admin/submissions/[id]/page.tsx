@@ -351,34 +351,31 @@ export default function AdminSubmissionDetailsPage() {
     if (data) {
       let types: string[] = [];
       
-      if (carrierGroups.length > 0) {
-        const activeGroupId = selectedCarrierId || carrierGroups[0].carrierId;
-        const group = carrierGroups.find(g => g.carrierId === activeGroupId);
-        if (group) {
-          types = Array.from(new Set(group.quotes.map((q: any) => q.policyType || "GENERAL_LIABILITY")));
-        }
+      // Derive available policies from ALL quotes across ALL carriers
+      if (data?.quotes?.length) {
+        types = Array.from(new Set(data.quotes.map((q: any) => q.policyType || "GENERAL_LIABILITY")));
       } else {
-        // Default to General Liability if no quotes
         types = ["GENERAL_LIABILITY"];
       }
       
-      // Force both policies for Apartment Buildings program
-      if (data?.submission?.programId === 'apartment-buildings' || data?.submission?.programName === 'Commercial Property' || data?.submission?.programName === 'Apartment Building') {
-        if (!types.includes("GENERAL_LIABILITY")) types.push("GENERAL_LIABILITY");
+      // Also add from payload if excess was requested
+      if (data?.submission?.payload?.addExcessLiability || data?.submission?.payload?.addGeneralLiability) {
         if (!types.includes("EXCESS_LIABILITY")) types.push("EXCESS_LIABILITY");
       }
+
+
 
       // Fix the "jumping buttons" issue by ensuring a consistent order
       types.sort((a, b) => (a === "GENERAL_LIABILITY" ? -1 : 1));
       
       setAvailablePolicies(types as string[]);
 
-      // Auto-switch if current policy type is not in the new carrier's available list
+      // Auto-switch if current policy type is not available
       if (types.length > 0 && !types.includes(currentPolicyType)) {
         setCurrentPolicyType(types[0] as any);
       }
     }
-  }, [data, selectedCarrierId, carrierGroups, data?.submission?.programId, data?.submission?.programName]);
+  }, [data, data?.submission?.programId, data?.submission?.programName]);
   
   // Auto-switch carrier when policy type changes if current carrier has no quote for it
   useEffect(() => {
@@ -653,10 +650,10 @@ export default function AdminSubmissionDetailsPage() {
     "h-[42px] px-6 rounded-md text-sm font-semibold bg-[#7A6F64] text-white transition-all duration-200 hover:bg-[#7A6F64] flex items-center justify-center";
 
   // ✅ STATUS FLAGS
-  const isSubmitted = submission?.status === "SUBMITTED";
-  const isQuoted = submission?.status === "QUOTED";
-  const isBindRequested = submission?.status === "BIND_REQUESTED";
-  const isBound = submission?.status === "BOUND";
+  const isBound = submission?.status === "BOUND" || (quotes || []).some((q: any) => q.status === "BOUND");
+  const isSubmitted = !isBound && submission?.status === "SUBMITTED";
+  const isQuoted = !isBound && submission?.status === "QUOTED";
+  const isBindRequested = !isBound && submission?.status === "BIND_REQUESTED";
 
   const statusHistory = [
     {
@@ -909,7 +906,10 @@ export default function AdminSubmissionDetailsPage() {
             <div className="flex items-center gap-4">
               <h2 className="text-[16px] font-semibold text-gray-900">App Info</h2>
               <span className="px-3 py-[4px] rounded-md bg-gray-100 text-[13px] text-gray-700">
-                {(submission?.status || "").replace(/_/g, " ")}
+                {(() => {
+                  const isBound = submission?.status === "BOUND" || (quotes || []).some((q: any) => q.status === "BOUND");
+                  return isBound ? "BOUND" : (submission?.status || "").replace(/_/g, " ");
+                })()}
               </span>
             </div>
 

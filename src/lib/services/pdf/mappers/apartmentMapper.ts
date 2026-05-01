@@ -219,6 +219,7 @@ export interface ApartmentPacketData {
 
     desiredCoverageDates?: string;
     policyEndorsements?: string;
+    paymentOption?: string;
 
     // Coverage Limits
     occurrenceLimit?: string;
@@ -583,5 +584,6 @@ export function mapApartmentDataToPacketData(
         glFireLegalLimit: formData.glFireLegalLimit || "-",
         glMedicalExpenseLimit: formData.glMedicalExpenseLimit || "-",
         glDeductible: formData.glDeductible || "-",
+        paymentOption: formData.paymentOption || "Premium Financial Partners Co.",
     };
 }

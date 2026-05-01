@@ -268,7 +268,7 @@ function SubmissionDetailsContent() {
         (q.policyType === currentPolicyType || (!q.policyType && currentPolicyType === "GENERAL_LIABILITY"))
       );
       if (boundQuoteForType) return boundQuoteForType;
-      
+
       // FALLBACK: If no bound quote exists for this type yet (e.g. newly added Excess), 
       // fall through to the comparison mode lookup below to show the POSTED quote.
     }
@@ -327,6 +327,31 @@ function SubmissionDetailsContent() {
       setCurrentPolicyType(types[0] as any);
     }
   }, [data]);
+
+  // Auto-switch carrier when policy type changes if current carrier has no quote for it
+  useEffect(() => {
+    if (carrierGroups.length > 0 && currentPolicyType) {
+      const currentGroup = carrierGroups.find(g => g.carrierId === selectedCarrierId);
+      const hasQuote = currentGroup?.quotes.some((q: any) =>
+        q.policyType === currentPolicyType ||
+        (!q.policyType && currentPolicyType === "GENERAL_LIABILITY")
+      );
+
+      if (!hasQuote) {
+        // Find first carrier that DOES have a quote for this policy type
+        const alternativeGroup = carrierGroups.find(g =>
+          g.quotes.some((q: any) =>
+            q.policyType === currentPolicyType ||
+            (!q.policyType && currentPolicyType === "GENERAL_LIABILITY")
+          )
+        );
+
+        if (alternativeGroup) {
+          setSelectedCarrierId(alternativeGroup.carrierId);
+        }
+      }
+    }
+  }, [currentPolicyType, carrierGroups]);
 
   const fetchSubmission = () => mutate();
 
@@ -736,11 +761,11 @@ function SubmissionDetailsContent() {
 
 
   // ✅ STATUS FLAGS
-  const isSubmitted = submission?.status === "SUBMITTED";
-  const isApprovalRequested = submission?.status === "APPROVAL_REQUESTED";
-  const isQuoted = submission?.status === "QUOTED";
-  const isBindRequested = submission?.status === "BIND_REQUESTED";
-  const isBound = submission?.status === "BOUND";
+  const isBound = submission?.status === "BOUND" || (quotes || []).some((q: any) => q.status === "BOUND");
+  const isSubmitted = !isBound && submission?.status === "SUBMITTED";
+  const isApprovalRequested = !isBound && submission?.status === "APPROVAL_REQUESTED";
+  const isQuoted = !isBound && submission?.status === "QUOTED";
+  const isBindRequested = !isBound && submission?.status === "BIND_REQUESTED";
 
   const baseQuoteUrl = ["inland-marine", "contractors-equipment"].includes(submission?.programId || "") ||
     ["Equipment", "Construction Equipment", "Contractors Equipment"].includes(submission?.programName || "")
@@ -1101,12 +1126,11 @@ function SubmissionDetailsContent() {
                 <h1 className="flex items-center gap-3 text-xl md:text-[24px] font-semibold text-gray-900 leading-tight">
                   <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3">
                     {(submission?.payload?.companyName || submission?.clientContact?.name || "???")}
-                    <span className={`inline-flex items-center rounded-md px-3 py-[4px] text-[13px] font-bold border transition-all w-fit ${
-                      (() => {
+                    <span className={`inline-flex items-center rounded-md px-3 py-[4px] text-[13px] font-bold border transition-all w-fit ${(() => {
                         const isBound = submission?.status === "BOUND" || (quotes || []).some((q: any) => q.status === "BOUND");
                         return isBound ? "bg-green-100 text-green-700 border-green-200" : "bg-gray-100 text-gray-700 border-gray-200";
                       })()
-                    }`}>
+                      }`}>
                       {(() => {
                         const isBound = submission?.status === "BOUND" || (quotes || []).some((q: any) => q.status === "BOUND");
                         return isBound ? "BOUND" : (submission?.status || "").replace(/_/g, " ");
@@ -1194,7 +1218,10 @@ function SubmissionDetailsContent() {
             <div className="flex items-center gap-4">
               <h2 className="text-[16px] font-semibold text-gray-900">App Info</h2>
               <span className="px-3 py-[4px] rounded-md bg-gray-100 text-[13px] text-gray-700">
-                {(submission?.status || "").replace(/_/g, " ")}
+                {(() => {
+                  const isBound = submission?.status === "BOUND" || (data?.quotes || []).some((q: any) => q.status === "BOUND");
+                  return isBound ? "BOUND" : (submission?.status || "").replace(/_/g, " ");
+                })()}
               </span>
             </div>
 
@@ -1372,11 +1399,11 @@ function SubmissionDetailsContent() {
                     const isBound = status === "BOUND";
                     // Show if not bound AND (account is quoted OR quote is ready to bind)
                     const canRequestBind = !isBound && (
-                      data?.submission?.status === "QUOTED" || 
-                      status === "POSTED" || 
+                      data?.submission?.status === "QUOTED" ||
+                      status === "POSTED" ||
                       status === "ENTERED"
                     );
-                    
+
                     return canRequestBind && (
                       <button
                         onClick={() => setBindModalOpen(true)}
@@ -1533,22 +1560,34 @@ function SubmissionDetailsContent() {
                     Cancel Quote
                   </button>
                   {/* Request Bind for new policies added to an already-bound submission */}
-                  {currentQuote && currentQuote.status === "BIND_REQUESTED" && (
-                    <button
-                      disabled
-                      className={`${iscPrimaryBtn} opacity-60 cursor-not-allowed`}
-                    >
-                      Bind Requested
-                    </button>
-                  )}
-                  {currentQuote && ["POSTED", "ENTERED"].includes(currentQuote.status) && (
-                    <button
-                      onClick={() => setBindModalOpen(true)}
-                      className={iscPrimaryBtn}
-                    >
-                      Request Bind
-                    </button>
-                  )}
+                  {(() => {
+                    // Check if there are any quotes that are currently in a bind-requested state
+                    const hasBindRequestedQuotes = (data?.quotes || []).some((q: any) => q.status === "BIND_REQUESTED");
+                    
+                    // Check if there are any quotes that are ready to be bound (unbounded and not requested yet)
+                    const hasBindableQuotes = (data?.quotes || []).some((q: any) => ["POSTED", "ENTERED", "QUOTED"].includes(q.status));
+                    
+                    return (
+                      <>
+                        {hasBindRequestedQuotes && !hasBindableQuotes && (
+                          <button
+                            disabled
+                            className={`${iscPrimaryBtn} opacity-60 cursor-not-allowed`}
+                          >
+                            Bind Requested
+                          </button>
+                        )}
+                        {hasBindableQuotes && (
+                          <button
+                            onClick={() => setBindModalOpen(true)}
+                            className={iscPrimaryBtn}
+                          >
+                            Request Bind
+                          </button>
+                        )}
+                      </>
+                    );
+                  })()}
                 </>
               )}
 
@@ -1692,7 +1731,7 @@ function SubmissionDetailsContent() {
                   {(() => {
                     const effStr = currentQuote?.effectiveDate || (currentPolicyType === "GENERAL_LIABILITY" ? (submission.effectiveDate || submission?.createdAt) : "");
                     if (!effStr) return "TBD";
-                    
+
                     const effDate = new Date(effStr);
                     const expStr = currentQuote?.expirationDate || (currentPolicyType === "GENERAL_LIABILITY" ? submission.expirationDate : "");
                     const expDate = expStr ? new Date(expStr) : new Date(new Date(effDate).setFullYear(effDate.getFullYear() + 1));
