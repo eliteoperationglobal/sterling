@@ -1723,8 +1723,8 @@ export default function QuoteFormPage() {
                         }
                         className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] text-sm"
                       >
-                        <option value="1M / 1M / 1M">1M / 1M / 1M</option>
-                        <option value="1M / 2M / 1M">1M / 2M / 1M</option>
+                        {/* <option value="1M / 1M / 1M">1M / 1M / 1M</option> */}
+                        {/* <option value="1M / 2M / 1M">1M / 2M / 1M</option> */}
                         <option value="1M / 2M / 2M">1M / 2M / 2M</option>
                         {/* <option value="100k / 100k / 100k">100k / 100k / 100k</option>
                         <option value="250k / 250k / 250k">250k / 250k / 250k</option>
@@ -1753,7 +1753,7 @@ export default function QuoteFormPage() {
                         }
                         className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] text-sm bg-white"
                       >
-                        <option value="$50,000">$50,000</option>
+                        {/* <option value="$50,000">$50,000</option> */}
                         <option value="$100,000">$100,000</option>
                       </select>
                     </div>
