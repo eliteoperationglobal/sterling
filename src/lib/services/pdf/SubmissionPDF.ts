@@ -2894,13 +2894,13 @@ export function mapFormDataToPacketData(
 
   // Format dates
   const formDate = formData.effectiveDate
-    ? new Date(formData.effectiveDate).toLocaleDateString()
+    ? new Date().toLocaleDateString('en-US', { timeZone: 'UTC' })
     : new Date().toLocaleDateString();
 
   const coverageDates = formData.effectiveDate && formData.expirationDate
-    ? `${new Date(formData.effectiveDate).toLocaleDateString()} - ${new Date(formData.expirationDate).toLocaleDateString()}`
+    ? `${new Date().toLocaleDateString('en-US', { timeZone: 'UTC' })} - ${new Date().toLocaleDateString('en-US', { timeZone: 'UTC' })}`
     : formData.effectiveDate
-      ? `${new Date(formData.effectiveDate).toLocaleDateString()} - ${new Date(new Date(formData.effectiveDate).setFullYear(new Date(formData.effectiveDate).getFullYear() + 1)).toLocaleDateString()}`
+      ? `${new Date().toLocaleDateString('en-US', { timeZone: 'UTC' })} - ${new Date(new Date(formData.effectiveDate).setFullYear(new Date(formData.effectiveDate).getFullYear() + 1)).toLocaleDateString()}`
       : '';
 
   // Format states of operation

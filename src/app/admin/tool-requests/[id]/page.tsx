@@ -389,7 +389,7 @@ export default function ProcessToolRequestPage() {
                       <div>
                         <p className="text-sm text-gray-500 font-medium mb-1">Effective Date</p>
                         <p className="text-base font-semibold text-gray-900">
-                          {new Date(request.requestData.effectiveDateBOR).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}
+                          {new Date().toLocaleDateString('en-US', { timeZone: 'UTC', month: '2-digit', day: '2-digit', year: 'numeric' })}
                         </p>
                       </div>
                     )}
@@ -402,7 +402,7 @@ export default function ProcessToolRequestPage() {
                       <div>
                         <p className="text-sm text-gray-500 font-medium mb-1">Date of Birth</p>
                         <p className="text-base font-semibold text-gray-900">
-                          {new Date(request.requestData.dateOfBirth).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}
+                          {new Date().toLocaleDateString('en-US', { timeZone: 'UTC', month: '2-digit', day: '2-digit', year: 'numeric' })}
                         </p>
                       </div>
                     )}

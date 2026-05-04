@@ -3273,7 +3273,7 @@ function generateProposalPage(data: ContractorsPacketData): string {
                 ${renderField("Carrier", data.carrierName)}
                 ${renderField("Quote Type", data.quoteType)}
                 ${renderField("Coverage Type", data.coverageType)}
-                ${renderField("Coverage Dates", data.effectiveDate ? `${data.effectiveDate} - ${new Date(new Date(data.effectiveDate).setFullYear(new Date(data.effectiveDate).getFullYear() + 1)).toLocaleDateString()}` : "Pending")}
+                ${renderField("Coverage Dates", data.effectiveDate ? `${data.effectiveDate} - ${new Date(new Date(data.effectiveDate).setFullYear(new Date(data.effectiveDate).getFullYear() + 1)).toLocaleDateString('en-US', { timeZone: 'UTC' })}` : "Pending")}
             </div>
 
             <div class="section-container">

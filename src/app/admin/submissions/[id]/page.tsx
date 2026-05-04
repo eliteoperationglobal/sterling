@@ -1048,8 +1048,8 @@ export default function AdminSubmissionDetailsPage() {
               <p className="text-gray-500 mb-1 leading-tight">Effective Date:</p>
               <p className="font-semibold text-gray-900">
                 {currentQuote?.effectiveDate
-                  ? new Date(currentQuote.effectiveDate).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })
-                  : (currentPolicyType === "GENERAL_LIABILITY" && submission.effectiveDate ? new Date(submission.effectiveDate).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) : "TBD")}
+                  ? new Date(currentQuote.effectiveDate).toLocaleDateString('en-US', { timeZone: 'UTC', month: '2-digit', day: '2-digit', year: 'numeric' })
+                  : (currentPolicyType === "GENERAL_LIABILITY" && submission.effectiveDate ? new Date(submission.effectiveDate).toLocaleDateString('en-US', { timeZone: 'UTC', month: '2-digit', day: '2-digit', year: 'numeric' }) : "TBD")}
               </p>
             </div>
             <div>

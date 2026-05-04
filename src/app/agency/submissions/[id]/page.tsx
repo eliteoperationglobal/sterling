@@ -1736,7 +1736,7 @@ function SubmissionDetailsContent() {
                     const expStr = currentQuote?.expirationDate || (currentPolicyType === "GENERAL_LIABILITY" ? submission.expirationDate : "");
                     const expDate = expStr ? new Date(expStr) : new Date(new Date(effDate).setFullYear(effDate.getFullYear() + 1));
 
-                    return `${effDate.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })} - ${expDate.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}`;
+                    return `${effDate.toLocaleDateString('en-US', { timeZone: 'UTC', month: '2-digit', day: '2-digit', year: 'numeric' })} - ${expDate.toLocaleDateString('en-US', { timeZone: 'UTC', month: '2-digit', day: '2-digit', year: 'numeric' })}`;
                   })()}
                 </span>
               </div>

@@ -247,7 +247,7 @@ export function mapContractorsDataToPacketData(
         effectiveDate: p.effectiveDate || "",
         policyDuration: p.policyDuration || "12 Months",
         carrierName: carrierName,
-        desiredCoverageDates: p.effectiveDate ? `${p.effectiveDate} to ${new Date(new Date(p.effectiveDate).setFullYear(new Date(p.effectiveDate).getFullYear() + 1)).toLocaleDateString()}` : "To Be Determined",
+        desiredCoverageDates: p.effectiveDate ? `${p.effectiveDate} to ${new Date(new Date(p.effectiveDate).setFullYear(new Date(p.effectiveDate).getFullYear() + 1)).toLocaleDateString('en-US', { timeZone: 'UTC' })}` : "To Be Determined",
 
         // Floating Limits
         miscToolsLimit: p.miscToolsLimit || "$10,000",
