@@ -32,6 +32,7 @@ interface Submission {
   agentId?: string | null;
   hasGeneral?: boolean;
   hasExcess?: boolean;
+  effectiveDate?: string | null;
 }
 
 interface DashboardStats {
@@ -417,10 +418,11 @@ function AgencyDashboardContent() {
 
   const exportToCSV = () => {
     if (submissions.length === 0) return;
-    const headers = ["Submission ID", "Industry", "Subtype", "Client Name", "Client Email", "Client Phone", "Status", "State", "Files", "Created Date", "Updated Date"];
+    const headers = ["Submission ID", "Industry", "Subtype", "Client Name", "Client Email", "Client Phone", "Status", "State", "Files", "Effective Date", "Created Date", "Updated Date"];
     const rows = submissions.map((sub) => [
       sub.submissionNumber, sub.industry, sub.subtype, sub.clientName, sub.clientEmail, sub.clientPhone,
       sub.status, sub.state, sub.fileCount.toString(),
+      sub.effectiveDate ? new Date(sub.effectiveDate).toLocaleDateString('en-US', { timeZone: 'UTC' }) : "—",
       new Date(sub.createdAt).toLocaleDateString('en-US', { timeZone: 'UTC' }),
       new Date(sub.updatedAt).toLocaleDateString('en-US', { timeZone: 'UTC' }),
     ]);
@@ -811,7 +813,7 @@ function AgencyDashboardContent() {
                         {sub.industry === "Construction Equipment" ? "Contractors Equipment" : sub.industry}
                       </td>
                       <td className="px-6 py-4">
-                        {new Date(sub.createdAt).toLocaleDateString('en-US', { timeZone: 'UTC', month: '2-digit', day: '2-digit', year: 'numeric' })}
+                        {sub.effectiveDate ? new Date(sub.effectiveDate).toLocaleDateString('en-US', { timeZone: 'UTC', month: '2-digit', day: '2-digit', year: 'numeric' }) : "—"}
                       </td>
 
                       {/* <td className="px-6 py-4 text-center">

@@ -1729,11 +1729,11 @@ function SubmissionDetailsContent() {
                 <span className="w-36 text-gray-500">Effective Date:</span>
                 <span className="font-medium text-gray-900 leading-[18px] tracking-tight">
                   {(() => {
-                    const effStr = currentQuote?.effectiveDate || (currentPolicyType === "GENERAL_LIABILITY" ? (submission.effectiveDate || submission?.createdAt) : "");
+                    const effStr = currentQuote?.effectiveDate || (currentPolicyType === "GENERAL_LIABILITY" ? (submission.payload?.effectiveDate || submission.effectiveDate || submission?.createdAt) : "");
                     if (!effStr) return "TBD";
 
                     const effDate = new Date(effStr);
-                    const expStr = currentQuote?.expirationDate || (currentPolicyType === "GENERAL_LIABILITY" ? submission.expirationDate : "");
+                    const expStr = currentQuote?.expirationDate || (currentPolicyType === "GENERAL_LIABILITY" ? (submission.payload?.expirationDate || submission.expirationDate) : "");
                     const expDate = expStr ? new Date(expStr) : new Date(new Date(effDate).setFullYear(effDate.getFullYear() + 1));
 
                     return `${effDate.toLocaleDateString('en-US', { timeZone: 'UTC', month: '2-digit', day: '2-digit', year: 'numeric' })} - ${expDate.toLocaleDateString('en-US', { timeZone: 'UTC', month: '2-digit', day: '2-digit', year: 'numeric' })}`;

@@ -70,7 +70,7 @@ export async function GET(req: NextRequest) {
     };
 
     const submissions = await Submission.find(query)
-      .select("submissionNumber status createdAt updatedAt state agentName agentId payload.agentName clientContact templateId files programName")
+      .select("submissionNumber status createdAt updatedAt state agentName agentId payload.agentName payload.effectiveDate clientContact templateId files programName")
       .populate("templateId", "industry subtype title")
       .sort({ createdAt: -1 })
       .skip(skip)
@@ -85,7 +85,7 @@ export async function GET(req: NextRequest) {
       submissionId: { $in: submissionIds },
       status: { $in: ["POSTED", "APPROVED", "BOUND"] },
     })
-      .select("submissionId finalAmountUSD policyType createdAt carrierId")
+      .select("submissionId finalAmountUSD policyType createdAt carrierId effectiveDate")
       .populate("carrierId", "name")
       .sort({ createdAt: 1 })
       .lean();
@@ -97,6 +97,7 @@ export async function GET(req: NextRequest) {
       estimatedPremium: number | null;
       hasGeneral: boolean;
       hasExcess: boolean;
+      quoteEffectiveDate: string | null;
     }> = {};
     
     // Group quotes by submission
@@ -112,6 +113,7 @@ export async function GET(req: NextRequest) {
       let kinsaleTotal = 0;
       let hasGeneral = false;
       let hasExcess = false;
+      let quoteEffectiveDate: string | null = null;
 
       subQuotes.forEach((q: any) => {
         const amount = q.finalAmountUSD || 0;
@@ -126,6 +128,10 @@ export async function GET(req: NextRequest) {
         } else if (carrierName.includes("kinsale")) {
           kinsaleTotal += amount;
         }
+
+        if (q.effectiveDate) {
+          quoteEffectiveDate = q.effectiveDate;
+        }
       });
 
       quoteMap[subId] = {
@@ -133,7 +139,8 @@ export async function GET(req: NextRequest) {
         kinsaleTotal: kinsaleTotal > 0 ? kinsaleTotal : null,
         estimatedPremium: richmondTotal || kinsaleTotal || null,
         hasGeneral,
-        hasExcess
+        hasExcess,
+        quoteEffectiveDate
       };
     });
 
@@ -143,7 +150,8 @@ export async function GET(req: NextRequest) {
         kinsaleTotal: null, 
         estimatedPremium: null,
         hasGeneral: false,
-        hasExcess: false
+        hasExcess: false,
+        quoteEffectiveDate: null
       };
       return {
         _id: sub._id.toString(),
@@ -166,6 +174,7 @@ export async function GET(req: NextRequest) {
         hasExcess: totals.hasExcess || false,
         agentName: sub.agentName || sub.payload?.agentName || null,
         agentId: sub.agentId ? sub.agentId.toString() : null,
+        effectiveDate: totals.quoteEffectiveDate || sub.payload?.effectiveDate || null,
       };
     });
 
