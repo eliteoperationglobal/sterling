@@ -316,17 +316,17 @@ export function generateQuoteHTML(quoteData: QuoteData): string {
       </div>
       <div class="info-item">
         <div class="info-label">Effective Date</div>
-        <div class="info-value">${new Date().toLocaleDateString('en-US', { timeZone: 'UTC' })}</div>
+        <div class="info-value">${new Date(quoteData.effectiveDate).toLocaleDateString('en-US', { timeZone: 'UTC' })}</div>
       </div>
       <div class="info-item">
         <div class="info-label">Expiration Date</div>
-        <div class="info-value">${new Date().toLocaleDateString('en-US', { timeZone: 'UTC' })}</div>
+        <div class="info-value">${new Date(quoteData.expirationDate).toLocaleDateString('en-US', { timeZone: 'UTC' })}</div>
       </div>
     </div>
   </div>
 
   <div class="validity">
-    <strong>Quote Validity:</strong> This quote is valid until ${new Date().toLocaleDateString('en-US', { timeZone: 'UTC' })}. 
+    <strong>Quote Validity:</strong> This quote is valid until ${new Date(quoteData.expirationDate).toLocaleDateString('en-US', { timeZone: 'UTC' })}. 
     Premium and coverage are subject to carrier approval and underwriting review.
   </div>
 

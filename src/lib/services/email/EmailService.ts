@@ -246,11 +246,11 @@ export function generateQuoteEmailHTML(data: QuoteEmailData): string {
         </div>
         <div class="detail-row">
           <span class="detail-label">Effective Date:</span>
-          <span class="detail-value">${new Date().toLocaleDateString('en-US', { timeZone: 'UTC' })}</span>
+          <span class="detail-value">${new Date(data.effectiveDate).toLocaleDateString('en-US', { timeZone: 'UTC' })}</span>
         </div>
         <div class="detail-row">
           <span class="detail-label">Quote Valid Until:</span>
-          <span class="detail-value">${new Date().toLocaleDateString('en-US', { timeZone: 'UTC' })}</span>
+          <span class="detail-value">${new Date(data.expirationDate).toLocaleDateString('en-US', { timeZone: 'UTC' })}</span>
         </div>
       </div>
       
@@ -316,8 +316,8 @@ YOUR QUOTED PREMIUM: $${data.premium.toLocaleString()} per year
 QUOTE DETAILS:
 - Quote Number: ${data.quoteNumber}
 - Coverage Limits: ${data.coverageLimits}
-- Effective Date: ${new Date().toLocaleDateString('en-US', { timeZone: 'UTC' })}
-- Quote Valid Until: ${new Date().toLocaleDateString('en-US', { timeZone: 'UTC' })}
+- Effective Date: ${new Date(data.effectiveDate).toLocaleDateString('en-US', { timeZone: 'UTC' })}
+- Quote Valid Until: ${new Date(data.expirationDate).toLocaleDateString('en-US', { timeZone: 'UTC' })}
 
 NEXT STEPS:
 1. Review your quote details carefully

@@ -400,8 +400,8 @@ export default function AdminSubmissionsPage() {
                       <td className="px-6 py-5">
                         <div className="font-semibold text-[#2d2a26]">
                           {sub.status === "BOUND" && sub.bindApprovedAt
-                            ? new Date(sub.bindApprovedAt).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })
-                            : new Date(sub.createdAt).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}
+                            ? new Date(sub.bindApprovedAt).toLocaleDateString('en-US', { timeZone: 'UTC', month: '2-digit', day: '2-digit', year: 'numeric' })
+                            : new Date(sub.createdAt).toLocaleDateString('en-US', { timeZone: 'UTC', month: '2-digit', day: '2-digit', year: 'numeric' })}
                         </div>
                         <div className="text-[11px] text-[#6b5e52] mt-0.5">
                           {sub.status === "BOUND" && sub.bindApprovedAt

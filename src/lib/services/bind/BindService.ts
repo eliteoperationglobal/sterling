@@ -105,7 +105,7 @@ export class BindService {
           clientEmail: submission.clientContact.email,
           agencyName: agency.name,
           quoteNumber: quote._id.toString(),
-          effectiveDate: quote.effectiveDate ? new Date().toLocaleDateString('en-US', { timeZone: 'UTC' }) : undefined,
+          effectiveDate: quote.effectiveDate ? new Date(quote.effectiveDate).toLocaleDateString('en-US', { timeZone: 'UTC' }) : undefined,
           finalAmount: quote.finalAmountUSD,
           programName: submission.programName || "Insurance Policy",
           submissionId: submission._id.toString(),

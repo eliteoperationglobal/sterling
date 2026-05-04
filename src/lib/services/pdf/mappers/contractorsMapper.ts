@@ -195,7 +195,7 @@ export function mapContractorsDataToPacketData(
         applicationId: submission.applicationNumber || "Pending",
         submissionId: submissionId,
         submissionNumber: submission.submissionNumber || submission.applicationNumber || "Pending",
-        formDate: submission.createdAt ? new Date(submission.createdAt).toLocaleDateString() : new Date().toLocaleDateString(),
+        formDate: submission.createdAt ? new Date(submission.createdAt).toLocaleDateString('en-US', { timeZone: 'UTC' }) : new Date().toLocaleDateString(),
         capitalCoLogoSVG,
 
         // Agency Information

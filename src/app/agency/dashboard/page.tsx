@@ -421,8 +421,8 @@ function AgencyDashboardContent() {
     const rows = submissions.map((sub) => [
       sub.submissionNumber, sub.industry, sub.subtype, sub.clientName, sub.clientEmail, sub.clientPhone,
       sub.status, sub.state, sub.fileCount.toString(),
-      new Date(sub.createdAt).toLocaleDateString(),
-      new Date(sub.updatedAt).toLocaleDateString(),
+      new Date(sub.createdAt).toLocaleDateString('en-US', { timeZone: 'UTC' }),
+      new Date(sub.updatedAt).toLocaleDateString('en-US', { timeZone: 'UTC' }),
     ]);
     const csvContent = [headers, ...rows].map((row) => row.map((cell) => `"${cell}"`).join(",")).join("\n");
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
@@ -811,7 +811,7 @@ function AgencyDashboardContent() {
                         {sub.industry === "Construction Equipment" ? "Contractors Equipment" : sub.industry}
                       </td>
                       <td className="px-6 py-4">
-                        {new Date(sub.createdAt).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}
+                        {new Date(sub.createdAt).toLocaleDateString('en-US', { timeZone: 'UTC', month: '2-digit', day: '2-digit', year: 'numeric' })}
                       </td>
 
                       {/* <td className="px-6 py-4 text-center">

@@ -1334,7 +1334,7 @@ export default function AdminSubmissionDetailsPage() {
                                   <span className="whitespace-pre-wrap break-words">{note.description}</span>
                                 </div>
                                 <div className="text-[10px] text-gray-400 mt-1.5 px-1 font-medium italic">
-                                  {new Date(note.createdAt).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}
+                                  {new Date(note.createdAt).toLocaleDateString('en-US', { timeZone: 'UTC', month: '2-digit', day: '2-digit', year: 'numeric' })}
                                 </div>
                               </div>
                             </div>
@@ -1362,7 +1362,7 @@ export default function AdminSubmissionDetailsPage() {
                     className="px-4 py-3 grid grid-cols-4 text-[14px] text-gray-900 border-b border-gray-100 last:border-0"
                   >
                     <span>{item.program}</span>
-                    <span>{new Date(item.changedAt).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}</span>
+                    <span>{new Date(item.changedAt).toLocaleDateString('en-US', { timeZone: 'UTC', month: '2-digit', day: '2-digit', year: 'numeric' })}</span>
                     <span>{item.user}</span>
                     <span>{item.status}</span>
                   </div>

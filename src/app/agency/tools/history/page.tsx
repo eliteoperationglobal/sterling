@@ -250,7 +250,7 @@ export default function RequestHistoryPage() {
                     <div className="text-right">
                       <p className="text-xs text-gray-500">Submitted</p>
                       <p className="text-sm font-medium text-gray-900">
-                        {new Date(request.createdAt).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}
+                        {new Date(request.createdAt).toLocaleDateString('en-US', { timeZone: 'UTC', month: '2-digit', day: '2-digit', year: 'numeric' })}
                       </p>
                     </div>
                   </div>

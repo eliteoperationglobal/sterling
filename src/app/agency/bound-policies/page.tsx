@@ -217,7 +217,7 @@ export default function AgencyBoundPoliciesPage() {
                     <div className="text-left sm:text-right">
                       <p className="text-xs text-gray-500">Bound on</p>
                       <p className="text-sm font-medium text-gray-900">
-                        {new Date(policy.bindApprovedAt).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}
+                        {new Date(policy.bindApprovedAt).toLocaleDateString('en-US', { timeZone: 'UTC', month: '2-digit', day: '2-digit', year: 'numeric' })}
                       </p>
                     </div>
                   )}
@@ -246,7 +246,7 @@ export default function AgencyBoundPoliciesPage() {
                       <div>
                         <span className="text-xs text-gray-500">Effective Date</span>
                         <p className="font-semibold text-gray-900">
-                          {new Date(policy.quote.effectiveDate).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}
+                          {new Date(policy.quote.effectiveDate).toLocaleDateString('en-US', { timeZone: 'UTC', month: '2-digit', day: '2-digit', year: 'numeric' })}
                         </p>
                       </div>
                     )}
@@ -254,7 +254,7 @@ export default function AgencyBoundPoliciesPage() {
                       <div>
                         <span className="text-xs text-gray-500">Expiration Date</span>
                         <p className="font-semibold text-gray-900">
-                          {new Date(policy.quote.expirationDate).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}
+                          {new Date(policy.quote.expirationDate).toLocaleDateString('en-US', { timeZone: 'UTC', month: '2-digit', day: '2-digit', year: 'numeric' })}
                         </p>
                       </div>
                     )}

@@ -1612,7 +1612,7 @@ function SubmissionDetailsContent() {
               <p className="text-gray-500 mb-1">Create Date:</p>
               <p className="font-semibold text-gray-900">
                 {currentQuote?.createdAt
-                  ? new Date(currentQuote.createdAt).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })
+                  ? new Date(currentQuote.createdAt).toLocaleDateString('en-US', { timeZone: 'UTC', month: '2-digit', day: '2-digit', year: 'numeric' })
                   : (submission?.createdAt ? new Date(submission.createdAt) : new Date()).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}
               </p>
             </div>
@@ -1646,7 +1646,7 @@ function SubmissionDetailsContent() {
                 {submission.status !== "BOUND"
                   ? "Not Bound"
                   : boundPolicy?.bindDate
-                    ? new Date(boundPolicy.bindDate).toLocaleDateString()
+                    ? new Date(boundPolicy.bindDate).toLocaleDateString('en-US', { timeZone: 'UTC' })
                     : "—"}
               </p>
             </div>*/}
@@ -2030,7 +2030,7 @@ function SubmissionDetailsContent() {
                               </div>
 
                               <div className="text-[10px] text-gray-400 mt-1.5 px-1 font-medium select-none">
-                                {new Date(note.createdAt).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}
+                                {new Date(note.createdAt).toLocaleDateString('en-US', { timeZone: 'UTC', month: '2-digit', day: '2-digit', year: 'numeric' })}
                                 {' • '}
                                 {new Date(note.createdAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
                               </div>
@@ -2060,7 +2060,7 @@ function SubmissionDetailsContent() {
                   className="px-4 py-3 grid grid-cols-4 min-w-[600px] text-sm border-t"
                 >
                   <span>{item.program}</span>
-                  <span>{new Date(item.changedAt).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}</span>
+                  <span>{new Date(item.changedAt).toLocaleDateString('en-US', { timeZone: 'UTC', month: '2-digit', day: '2-digit', year: 'numeric' })}</span>
                   <span>{item.user}</span>
                   <span>{item.status}</span>
                 </div>

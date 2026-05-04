@@ -7737,13 +7737,13 @@ export function mapFormDataToPacketData(
 
 	// Format dates
 	const formDate = formData.effectiveDate
-		? new Date().toLocaleDateString('en-US', { timeZone: 'UTC' })
+		? new Date(formData.effectiveDate).toLocaleDateString('en-US', { timeZone: 'UTC' })
 		: new Date().toLocaleDateString();
 
 	const coverageDates = formData.effectiveDate && formData.expirationDate
-		? `${new Date().toLocaleDateString('en-US', { timeZone: 'UTC' })} - ${new Date().toLocaleDateString('en-US', { timeZone: 'UTC' })}`
+		? `${new Date(formData.effectiveDate).toLocaleDateString('en-US', { timeZone: 'UTC' })} - ${new Date(formData.expirationDate).toLocaleDateString('en-US', { timeZone: 'UTC' })}`
 		: formData.effectiveDate
-			? `${new Date().toLocaleDateString('en-US', { timeZone: 'UTC' })} - ${new Date(new Date(formData.effectiveDate).setFullYear(new Date(formData.effectiveDate).getFullYear() + 1)).toLocaleDateString()}`
+			? `${new Date(formData.effectiveDate).toLocaleDateString('en-US', { timeZone: 'UTC' })} - ${new Date(new Date(formData.effectiveDate).setFullYear(new Date(formData.effectiveDate).getFullYear() + 1)).toLocaleDateString()}`
 			: '';
 
 	// Format states of operation
@@ -7857,8 +7857,8 @@ export function mapFormDataToPacketData(
 		contactName: `${formData.firstName || ''} ${formData.lastName || ''}`.trim() || formData.contactPerson || '',
 		phone: formData.phone || '',
 		email: formData.email || '',
-		effectiveDate: formData.effectiveDate ? new Date().toLocaleDateString('en-US', { timeZone: 'UTC' }) : new Date().toLocaleDateString(),
-		expirationDate: formData.expirationDate ? new Date().toLocaleDateString('en-US', { timeZone: 'UTC' }) : (formData.effectiveDate ? new Date(new Date(formData.effectiveDate).setFullYear(new Date(formData.effectiveDate).getFullYear() + 1)).toLocaleDateString() : ''),
+		effectiveDate: formData.effectiveDate ? new Date(formData.effectiveDate).toLocaleDateString('en-US', { timeZone: 'UTC' }) : new Date().toLocaleDateString(),
+		expirationDate: formData.expirationDate ? new Date(formData.expirationDate).toLocaleDateString('en-US', { timeZone: 'UTC' }) : (formData.effectiveDate ? new Date(new Date(formData.effectiveDate).setFullYear(new Date(formData.effectiveDate).getFullYear() + 1)).toLocaleDateString() : ''),
 		naics: formData.naics || '',
 		entityType: formData.entityType || '',
 		yearsInBusiness: formData.yearsInBusiness || 0,
