@@ -97,8 +97,8 @@ const initialFormData = {
   totalPayroll: "",
   yearsInBusiness: "",
   classCodeWork: {},
-  coverageLimits: "1M / 1M / 1M",
-  fireLegalLimit: "$50,000",
+  coverageLimits: "1M / 2M / 2M",
+  fireLegalLimit: "$100,000",
   medicalExpenseLimit: "Not Applicable",
   selfInsuredRetention: "$2,500",
   lossesLast5Years: "0",
@@ -1331,8 +1331,8 @@ export default function QuoteFormPage() {
     <div className="min-h-screen bg-gray-50">
       {/* Top Bar */}
       <div className="bg-[#2F3338] text-white px-4 md:px-6 py-3 flex flex-wrap items-center justify-between gap-2">
-        <Link 
-          href={submissionId ? `/agency/submissions/${submissionId}` : "/agency/marketplace"} 
+        <Link
+          href={submissionId ? `/agency/submissions/${submissionId}` : "/agency/marketplace"}
           className="flex items-center gap-2 text-gray-300 hover:text-white"
         >
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -3731,7 +3731,7 @@ export default function QuoteFormPage() {
               >
                 Return to Dashboard
               </Link>
-              
+
               <div className="flex flex-col md:flex-row items-center gap-3">
                 {/* Download PDF Button */}
                 <button

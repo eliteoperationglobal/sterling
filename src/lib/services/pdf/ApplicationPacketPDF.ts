@@ -7920,7 +7920,7 @@ export function mapFormDataToPacketData(
 			const val = parts[0] || '1M';
 			return val.includes('$') ? val : `$${val.replace('M', ',000,000').replace('m', ',000,000')}`;
 		})(),
-		fireLegalLimit: formData.fireLegalLimit || '$50,000',
+		fireLegalLimit: formData.fireLegalLimit || '$100,000',
 		medPayLimit: formData.medicalExpenseLimit || '$5,000',
 		selfInsuredRetention: formData.selfInsuredRetention || formData.deductible || '$2,500',
 		excessLiabilityLimit: formData.excessLiabilityLimit ? `$${formData.excessLiabilityLimit}` : undefined,
