@@ -2,11 +2,12 @@
 
 export const dynamic = 'force-dynamic';
 
-import { useState, Suspense } from "react";
+import { useState, Suspense, useEffect } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
+import { v4 as uuidv4 } from "uuid";
 
 function SignInContent() {
   const router = useRouter();
@@ -14,8 +15,21 @@ function SignInContent() {
   const callbackUrl = searchParams.get("callbackUrl") || "/";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [otp, setOtp] = useState("");
+  const [showOtp, setShowOtp] = useState(false);
+  const [deviceId, setDeviceId] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    // Generate or retrieve a persistent device ID
+    let id = localStorage.getItem("sterling_device_id");
+    if (!id) {
+      id = uuidv4();
+      localStorage.setItem("sterling_device_id", id);
+    }
+    setDeviceId(id);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,16 +40,61 @@ function SignInContent() {
       const result = await signIn("credentials", {
         email,
         password,
+        otp: showOtp ? otp : undefined,
+        deviceId,
         redirect: false,
         callbackUrl,
       });
 
       if (result?.error) {
+        // If it's a generic signin error, check if 2FA is actually required
+        if (result.error === "CredentialsSignin") {
+          try {
+            const checkRes = await fetch("/api/auth/check-2fa", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ email }),
+            });
+            const { required } = await checkRes.json();
+            
+            if (required) {
+              setShowOtp(true);
+              setLoading(false);
+              toast.info("Verification Required", { 
+                description: "A code has been sent to your agency email.",
+                duration: 5000 
+              });
+              return;
+            }
+          } catch (e) {
+            // Fall back to standard error
+          }
+        }
+
+        // Handle specific errors if they somehow bypass the generic code
+        const errorMsg = result.error.toLowerCase();
+        if (errorMsg.includes("invalid_otp")) {
+          setError("Invalid verification code. Please try again.");
+          toast.error("Invalid Code");
+          setLoading(false);
+          return;
+        }
+
+        if (errorMsg.includes("otp_expired")) {
+          setError("Too many failed attempts. A new code has been sent to your email.");
+          toast.warning("New Code Sent", { description: "Please use the latest code sent to your inbox." });
+          setLoading(false);
+          setShowOtp(true); // Keep them on the OTP screen
+          return;
+        }
+
+        // If we reach here, it's a genuine invalid credential error
         setError("Invalid email or password");
         toast.error("Sign in failed", { description: "Check your credentials and try again." });
         setLoading(false);
         return;
       }
+
 
       const sessionRes = await fetch("/api/auth/session");
       if (!sessionRes.ok) throw new Error("Unable to fetch session after sign in");
@@ -99,39 +158,72 @@ function SignInContent() {
               className="h-16 w-auto object-contain"
             />
           </div>
-          <h2 className="text-2xl font-bold text-[#2d2a26]">Welcome back</h2>
-          <p className="text-sm text-[#6b5e52] mt-1">Please enter your details to sign in.</p>
+          <h2 className="text-2xl font-bold text-[#2d2a26]">
+            {showOtp ? "Verify your identity" : "Welcome back"}
+          </h2>
+          <p className="text-sm text-[#6b5e52] mt-1">
+            {showOtp 
+              ? "Enter the 6-digit code sent to your agency's email." 
+              : "Please enter your details to sign in."}
+          </p>
         </div>
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-2">
-            <label className="block text-sm font-semibold text-[#2d2a26]" htmlFor="email">
-              Email address
-            </label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full rounded-[8px] border border-[#e5ddd5] bg-[#ffffff] px-4 py-3 text-sm text-[#2d2a26] placeholder:text-[#6b5e52] focus:border-[#9A8B7A] focus:outline-none focus:ring-1 focus:ring-[#9A8B7A] transition-all"
-            />
-          </div>
+          {!showOtp ? (
+            <>
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-[#2d2a26]" htmlFor="email">
+                  Email address
+                </label>
+                <input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="w-full rounded-[8px] border border-[#e5ddd5] bg-[#ffffff] px-4 py-3 text-sm text-[#2d2a26] placeholder:text-[#6b5e52] focus:border-[#9A8B7A] focus:outline-none focus:ring-1 focus:ring-[#9A8B7A] transition-all"
+                />
+              </div>
 
-          <div className="space-y-2">
-            <label className="block text-sm font-semibold text-[#2d2a26]" htmlFor="password">
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full rounded-[8px] border border-[#e5ddd5] bg-[#ffffff] px-4 py-3 text-sm text-[#2d2a26] placeholder:text-[#6b5e52] focus:border-[#9A8B7A] focus:outline-none focus:ring-1 focus:ring-[#9A8B7A] transition-all"
-            />
-          </div>
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-[#2d2a26]" htmlFor="password">
+                  Password
+                </label>
+                <input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="w-full rounded-[8px] border border-[#e5ddd5] bg-[#ffffff] px-4 py-3 text-sm text-[#2d2a26] placeholder:text-[#6b5e52] focus:border-[#9A8B7A] focus:outline-none focus:ring-1 focus:ring-[#9A8B7A] transition-all"
+                />
+              </div>
+            </>
+          ) : (
+            <div className="space-y-2">
+              <label className="block text-sm font-semibold text-[#2d2a26]" htmlFor="otp">
+                Verification Code
+              </label>
+              <input
+                id="otp"
+                type="text"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value)}
+                required
+                maxLength={6}
+                placeholder="000000"
+                className="w-full rounded-[8px] border border-[#e5ddd5] bg-[#ffffff] px-4 py-3 text-2xl text-center tracking-[10px] font-bold text-[#2d2a26] placeholder:text-[#6b5e52] focus:border-[#9A8B7A] focus:outline-none focus:ring-1 focus:ring-[#9A8B7A] transition-all"
+              />
+              <button 
+                type="button" 
+                onClick={() => setShowOtp(false)}
+                className="text-xs text-[#9A8B7A] hover:underline"
+              >
+                Back to password
+              </button>
+            </div>
+          )}
 
           {error && (
             <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-600">
@@ -144,7 +236,9 @@ function SignInContent() {
             disabled={loading}
             className="w-full bg-[#c2a07e] hover:bg-[#b08d6a] text-white font-[600] py-3 rounded-[10px] transition-colors disabled:opacity-70 disabled:cursor-not-allowed flex justify-center items-center gap-2"
           >
-            {loading ? "Signing in..." : "Sign In"}
+            {loading 
+              ? (showOtp ? "Verifying..." : "Signing in...") 
+              : (showOtp ? "Verify Code" : "Sign In")}
           </button>
         </form>
 

@@ -1,4 +1,4 @@
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 
 /**
  * Email Service
@@ -37,37 +37,40 @@ interface QuoteEmailData {
 }
 
 /**
- * Send email using configured email service
- * This is a mock implementation - replace with actual email service
+ * Send email using Resend service
  */
-
 export async function sendEmail(options: EmailOptions): Promise<boolean> {
   try {
-    if (process.env.EMAIL_ENABLED !== "true") {
-      console.log("⚠️ EMAIL DISABLED — skipping real send");
+    const apiKey = process.env.RESEND_API_KEY;
+    
+    if (!apiKey) {
+      console.warn("⚠️ RESEND_API_KEY is not set — skipping real email send");
+      console.log("Would have sent email to:", options.to);
       return true;
     }
 
-    const transporter = nodemailer.createTransport({
-      host: process.env.EMAIL_HOST,
-      port: Number(process.env.EMAIL_PORT || 587),
-      secure: Number(process.env.EMAIL_PORT) === 465,
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-    });
+    const resend = new Resend(apiKey);
 
-    await transporter.sendMail({
-      from: `"Sterling Portal" <${process.env.EMAIL_FROM}>`,
-      to: options.to,
+    const fromName = "Sterling Portal";
+    const fromEmail = process.env.EMAIL_FROM || "noreply@resend.dev";
+
+    const { data, error } = await resend.emails.send({
+      from: `${fromName} <${fromEmail}>`,
+      to: [options.to],
       subject: options.subject,
       html: options.html,
-      text: options.text,
-      attachments: options.attachments,
+      text: options.text || "",
+      attachments: options.attachments?.map(att => ({
+        filename: att.filename,
+        content: att.content,
+      })),
     });
 
-    console.log("✅ REAL EMAIL SENT TO:", options.to);
+    if (error) {
+      console.error("❌ Email Delivery Error:", error);
+      return false;
+    }
+
     return true;
   } catch (error) {
     console.error("❌ EMAIL SEND FAILED:", error);
@@ -978,3 +981,48 @@ export async function sendBindRequestToCarrier(data: BindRequestEmailData): Prom
 
   return await sendEmail(emailOptions);
 }
+
+/**
+ * Generate 2FA OTP Email HTML
+ */
+export function generate2FAEmailHTML(otp: string): string {
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    .container { font-family: sans-serif; padding: 20px; color: #333; }
+    .code { font-size: 32px; font-weight: bold; color: #c2a07e; letter-spacing: 5px; margin: 20px 0; }
+    .footer { font-size: 12px; color: #666; margin-top: 30px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Security Verification Code</h2>
+    <p>A new device is attempting to log into your Sterling Portal account. Use the following code to verify your identity:</p>
+    <div class="code">${otp}</div>
+    <p>This code will expire in 10 minutes.</p>
+    <p>If you did not request this code, please contact support immediately.</p>
+    <div class="footer">
+      © ${new Date().getFullYear()} Sterling Wholesale Insurance.
+    </div>
+  </div>
+</body>
+</html>
+  `;
+}
+
+/**
+ * Send 2FA OTP Email
+ */
+export async function send2FAEmail(to: string, otp: string): Promise<boolean> {
+  const html = generate2FAEmailHTML(otp);
+  
+  return await sendEmail({
+    to,
+    subject: "Sterling Portal - Verification Code",
+    html,
+    text: `Your Sterling Portal verification code is: ${otp}. It expires in 10 minutes.`,
+  });
+}
+

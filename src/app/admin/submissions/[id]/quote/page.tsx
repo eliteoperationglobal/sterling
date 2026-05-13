@@ -257,6 +257,8 @@ export default function AdminQuotePage() {
           premiumTaxAmountUSD: q.premiumTaxAmountUSD?.toString() || "",
           stampingFeePercent: q.stampingFeePercent?.toString() || "",
           stampingFeeAmountUSD: q.stampingFeeAmountUSD?.toString() || "",
+          stampingFeePerFilingUSD: q.stampingFeePerFilingUSD?.toString() || "",
+          slaServiceChargeUSD: q.slaServiceChargeUSD?.toString() || "",
           fireMarshalTaxPercent: q.fireMarshalTaxPercent?.toString() || "",
           fireMarshalTaxAmountUSD: q.fireMarshalTaxAmountUSD?.toString() || "",
           policyFeeUSD: q.policyFeeUSD?.toString() || "",
@@ -299,6 +301,8 @@ export default function AdminQuotePage() {
           setPremiumTaxAmountUSD(s.premiumTaxAmountUSD);
           setStampingFeePercent(s.stampingFeePercent);
           setStampingFeeAmountUSD(s.stampingFeeAmountUSD);
+          setStampingFeePerFilingUSD(s.stampingFeePerFilingUSD);
+          setSlaServiceChargeUSD(s.slaServiceChargeUSD);
           setFireMarshalTaxPercent(s.fireMarshalTaxPercent);
           setFireMarshalTaxAmountUSD(s.fireMarshalTaxAmountUSD);
           setPolicyFeeUSD(s.policyFeeUSD);
@@ -400,6 +404,8 @@ export default function AdminQuotePage() {
         if (data.success && data.taxRate && data.taxAmount) {
           setPremiumTaxPercent(data.taxRate.toFixed(2));
           setPremiumTaxAmountUSD(data.taxAmount.toString());
+          if (data.filingFee) setStampingFeePerFilingUSD(data.filingFee.toString());
+          if (data.slaServiceCharge) setSlaServiceChargeUSD(data.slaServiceCharge.toString());
         } else {
           // Fallback to manual entry if API fails
           console.warn("Tax calculator API failed, using manual entry");
@@ -843,6 +849,8 @@ export default function AdminQuotePage() {
       premiumTaxAmountUSD: state.premiumTaxAmountUSD ? parseCurrency(state.premiumTaxAmountUSD) : undefined,
       stampingFeePercent: state.stampingFeePercent || undefined,
       stampingFeeAmountUSD: state.stampingFeeAmountUSD ? parseCurrency(state.stampingFeeAmountUSD) : undefined,
+      stampingFeePerFilingUSD: state.stampingFeePerFilingUSD ? parseCurrency(state.stampingFeePerFilingUSD) : undefined,
+      slaServiceChargeUSD: state.slaServiceChargeUSD ? parseCurrency(state.slaServiceChargeUSD) : undefined,
       fireMarshalTaxPercent: state.fireMarshalTaxPercent || undefined,
       fireMarshalTaxAmountUSD: state.fireMarshalTaxAmountUSD ? parseCurrency(state.fireMarshalTaxAmountUSD) : undefined,
       fireMarshalFlatFeeUSD: state.fireMarshalFlatFeeUSD ? parseCurrency(state.fireMarshalFlatFeeUSD) : undefined,
@@ -1774,6 +1782,7 @@ export default function AdminQuotePage() {
                       className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-900 font-semibold focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all hover:border-gray-300 !text-gray-900"
                     >
                       <option value="Not Applicable">Not Applicable</option>
+                      <option value="2500">$2,500</option>
                       <option value="5000">$5,000</option>
                       <option value="10000">$10,000</option>
                     </select>

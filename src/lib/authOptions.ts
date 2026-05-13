@@ -3,14 +3,21 @@ import connectDB from "@/lib/mongodb";
 import User from "@/models/User";
 import { verifyPassword } from "@/lib/auth";
 import type { NextAuthOptions } from "next-auth";
+import OTP from "@/models/OTP";
+import TrustedDevice from "@/models/TrustedDevice";
+import { send2FAEmail } from "@/lib/services/email/EmailService";
+import crypto from "crypto";
+import bcrypt from "bcryptjs";
 
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
       name: "Credentials",
       credentials: {
-        email: { label: "Email", type: "email", placeholder: "email@example.com" },
+        email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
+        deviceId: { label: "Device ID", type: "text" },
+        otp: { label: "OTP", type: "text" },
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
@@ -33,6 +40,81 @@ export const authOptions: NextAuthOptions = {
           if (!isValid) {
             return null;
           }
+
+          // --- 2FA LOGIC START ---
+          // Only apply 2FA to agency roles, not system_admin
+          if (user.role !== "system_admin") {
+            const deviceId = credentials.deviceId;
+
+            // Check if this device is trusted
+            const isTrusted = await TrustedDevice.findOne({
+              userId: user._id,
+              deviceId: deviceId
+            });
+
+            if (!isTrusted) {
+              // If no OTP provided, send one
+              if (!credentials.otp || credentials.otp.trim() === "" || credentials.otp === "undefined") {
+                const otpCode = crypto.randomInt(100000, 999999).toString();
+                const hashedOtp = await bcrypt.hash(otpCode, 10);
+                
+                // Save hashed OTP to DB (expires in 10 mins)
+                await OTP.findOneAndUpdate(
+                  { userId: user._id },
+                  { 
+                    otp: hashedOtp, 
+                    attempts: 0,
+                    expiresAt: new Date(Date.now() + 10 * 60 * 1000) 
+                  },
+                  { upsert: true }
+                );
+
+                // Send Email
+                const agencyEmail = (user.agencyId as any)?.email || user.email;
+                await send2FAEmail(agencyEmail, otpCode);
+
+                throw new Error("2FA_REQUIRED");
+              } else {
+                // Find OTP record
+                const otpRecord = await OTP.findOne({ userId: user._id });
+
+                if (!otpRecord) {
+                  throw new Error("INVALID_OTP");
+                }
+
+                // Verify hash
+                const isOtpValid = await bcrypt.compare(credentials.otp, otpRecord.otp);
+
+                if (!isOtpValid) {
+                  const newAttempts = (otpRecord.attempts || 0) + 1;
+                  
+                  if (newAttempts >= 5) {
+                    await OTP.deleteOne({ _id: otpRecord._id });
+                    throw new Error("OTP_EXPIRED");
+                  } else {
+                    await OTP.updateOne({ _id: otpRecord._id }, { attempts: newAttempts });
+                    throw new Error("INVALID_OTP");
+                  }
+                }
+
+                // OTP is valid! 
+                if (deviceId) {
+                  await TrustedDevice.findOneAndUpdate(
+                    { userId: user._id, deviceId: deviceId },
+                    { lastUsedAt: new Date() },
+                    { upsert: true }
+                  );
+                }
+                await OTP.deleteOne({ _id: otpRecord._id });
+              }
+            } else {
+              await TrustedDevice.updateOne(
+                { _id: isTrusted._id },
+                { lastUsedAt: new Date() }
+              );
+            }
+          }
+          // --- 2FA LOGIC END ---
 
           // Handle agencyId - it might be populated or just an ObjectId
           const agencyId = 

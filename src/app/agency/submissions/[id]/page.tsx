@@ -108,6 +108,8 @@ interface SubmissionDetails {
     stampingFeeAmountUSD?: number;
     fireMarshalTaxAmountUSD?: number;
     fireMarshalFlatFeeUSD?: number;
+    stampingFeePerFilingUSD?: number;
+    slaServiceChargeUSD?: number;
     brokerFeeAmountUSD: number;
     finalAmountUSD: number;
     status: string;
@@ -196,6 +198,7 @@ function SubmissionDetailsContent() {
   const [bindSelectedCarrierIdGL, setBindSelectedCarrierIdGL] = useState<string | null>(null);
   const [bindSelectedCarrierIdXL, setBindSelectedCarrierIdXL] = useState<string | null>(null);
   const [paymentAuthModalOpen, setPaymentAuthModalOpen] = useState(false);
+  const [paymentAuthConfirmed, setPaymentAuthConfirmed] = useState(false);
   const [paymentAuthData, setPaymentAuthData] = useState({
     premiumAmount: "",
     processingFee: 0,
@@ -953,137 +956,6 @@ function SubmissionDetailsContent() {
                 </div>
               </div>
 
-              {/* Card Payment Section */}
-              <div className="mb-10">
-                <h4 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
-                  Payment by Credit or Debit Card
-                </h4>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-[13px] font-semibold text-gray-600 mb-1.5">Name on Card</label>
-                    <input
-                      type="text"
-                      value={paymentAuthData.cardName}
-                      onChange={(e) => setPaymentAuthData({ ...paymentAuthData, cardName: e.target.value })}
-                      className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#9A8B7A]/20 focus:border-[#9A8B7A] transition-all outline-none"
-                      placeholder="Enter name as it appears on card"
-                    />
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div className="md:col-span-1">
-                      <label className="block text-[13px] font-semibold text-gray-600 mb-1.5">Card Number</label>
-                      <input
-                        type="text"
-                        value={paymentAuthData.cardNumber}
-                        onChange={(e) => setPaymentAuthData({ ...paymentAuthData, cardNumber: e.target.value })}
-                        className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#9A8B7A]/20 focus:border-[#9A8B7A] transition-all outline-none"
-                        placeholder="0000 0000 0000 0000"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[13px] font-semibold text-gray-600 mb-1.5">Expiration (MM/YY)</label>
-                      <input
-                        type="text"
-                        value={paymentAuthData.cardExpiry}
-                        onChange={(e) => setPaymentAuthData({ ...paymentAuthData, cardExpiry: e.target.value })}
-                        className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#9A8B7A]/20 focus:border-[#9A8B7A] transition-all outline-none"
-                        placeholder="MM/YY"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[13px] font-semibold text-gray-600 mb-1.5">CVV</label>
-                      <input
-                        type="text"
-                        value={paymentAuthData.cardCvv}
-                        onChange={(e) => setPaymentAuthData({ ...paymentAuthData, cardCvv: e.target.value })}
-                        className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#9A8B7A]/20 focus:border-[#9A8B7A] transition-all outline-none"
-                        placeholder="123"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[13px] font-semibold text-gray-600 mb-1.5">Billing Zip Code</label>
-                      <input
-                        type="text"
-                        value={paymentAuthData.cardZip}
-                        onChange={(e) => setPaymentAuthData({ ...paymentAuthData, cardZip: e.target.value })}
-                        className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#9A8B7A]/20 focus:border-[#9A8B7A] transition-all outline-none"
-                        placeholder="00000"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <hr className="border-gray-100 mb-10" />
-
-              {/* ACH Payment Section */}
-              <div className="mb-10">
-                <h4 className="text-lg font-bold text-gray-900 mb-6 flex flex-col">
-                  Payment by Draft Check (ACH)
-                  <span className="text-xs font-medium text-gray-400 mt-1">Use this section only if paying by checking account.</span>
-                </h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <label className="block text-[13px] font-semibold text-gray-600 mb-1.5">Name on Checking Account</label>
-                    <input
-                      type="text"
-                      value={paymentAuthData.achName}
-                      onChange={(e) => setPaymentAuthData({ ...paymentAuthData, achName: e.target.value })}
-                      className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#9A8B7A]/20 focus:border-[#9A8B7A] transition-all outline-none"
-                      placeholder="Account holder name"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[13px] font-semibold text-gray-600 mb-1.5">Billing Address</label>
-                    <input
-                      type="text"
-                      value={paymentAuthData.achAddress}
-                      onChange={(e) => setPaymentAuthData({ ...paymentAuthData, achAddress: e.target.value })}
-                      className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#9A8B7A]/20 focus:border-[#9A8B7A] transition-all outline-none"
-                      placeholder="Full billing address"
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div>
-                    <label className="block text-[13px] font-semibold text-gray-600 mb-1.5">Bank Name</label>
-                    <input
-                      type="text"
-                      value={paymentAuthData.achBank}
-                      onChange={(e) => setPaymentAuthData({ ...paymentAuthData, achBank: e.target.value })}
-                      className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#9A8B7A]/20 focus:border-[#9A8B7A] transition-all outline-none"
-                      placeholder="e.g. Chase"
-                    />
-                  </div>
-                  <div className="relative">
-                    <label className="block text-[13px] font-semibold text-gray-600 mb-1.5">Amount</label>
-                    <div className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 font-medium h-[46px] flex items-center">
-                      {paymentAuthData.premiumAmount || "0.00"}
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-[13px] font-semibold text-gray-600 mb-1.5">Routing #</label>
-                    <input
-                      type="text"
-                      value={paymentAuthData.achRouting}
-                      onChange={(e) => setPaymentAuthData({ ...paymentAuthData, achRouting: e.target.value })}
-                      className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#9A8B7A]/20 focus:border-[#9A8B7A] transition-all outline-none"
-                      placeholder="9 digits"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[13px] font-semibold text-gray-600 mb-1.5">Account #</label>
-                    <input
-                      type="text"
-                      value={paymentAuthData.achAccount}
-                      onChange={(e) => setPaymentAuthData({ ...paymentAuthData, achAccount: e.target.value })}
-                      className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#9A8B7A]/20 focus:border-[#9A8B7A] transition-all outline-none"
-                      placeholder="Account number"
-                    />
-                  </div>
-                </div>
-              </div>
-
               <div className="flex justify-end gap-3 mt-10">
                 <button
                   onClick={() => setPaymentAuthModalOpen(false)}
@@ -1094,6 +966,7 @@ function SubmissionDetailsContent() {
                 <button
                   onClick={() => {
                     toast.success("Payment authorized successfully!");
+                    setPaymentAuthConfirmed(true);
                     setPaymentAuthModalOpen(false);
                   }}
                   className={iscPrimaryBtn}
@@ -1127,9 +1000,9 @@ function SubmissionDetailsContent() {
                   <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3">
                     {(submission?.payload?.companyName || submission?.clientContact?.name || "???")}
                     <span className={`inline-flex items-center rounded-md px-3 py-[4px] text-[13px] font-bold border transition-all w-fit ${(() => {
-                        const isBound = submission?.status === "BOUND" || (quotes || []).some((q: any) => q.status === "BOUND");
-                        return isBound ? "bg-green-100 text-green-700 border-green-200" : "bg-gray-100 text-gray-700 border-gray-200";
-                      })()
+                      const isBound = submission?.status === "BOUND" || (quotes || []).some((q: any) => q.status === "BOUND");
+                      return isBound ? "bg-green-100 text-green-700 border-green-200" : "bg-gray-100 text-gray-700 border-gray-200";
+                    })()
                       }`}>
                       {(() => {
                         const isBound = submission?.status === "BOUND" || (quotes || []).some((q: any) => q.status === "BOUND");
@@ -1339,7 +1212,16 @@ function SubmissionDetailsContent() {
               {(isQuoted || isBindRequested) && (
                 <>
                   <button
-                    onClick={() => setPaymentAuthModalOpen(true)}
+                    onClick={() => {
+                      if (paymentAuthConfirmed) {
+                        window.open(
+                          `/api/agency/applications/${submissionId}/payment-auth?quoteId=${currentQuote?._id || ''}&premiumAmount=${paymentAuthData.premiumAmount || 0}&processingFee=${paymentAuthData.processingFee || 0}&totalDue=${paymentAuthData.totalDue || 0}`,
+                          "_blank"
+                        );
+                      } else {
+                        setPaymentAuthModalOpen(true);
+                      }
+                    }}
                     className={iscOutlineBtn}
                   >
                     Payment Auth
@@ -1563,10 +1445,10 @@ function SubmissionDetailsContent() {
                   {(() => {
                     // Check if there are any quotes that are currently in a bind-requested state
                     const hasBindRequestedQuotes = (data?.quotes || []).some((q: any) => q.status === "BIND_REQUESTED");
-                    
+
                     // Check if there are any quotes that are ready to be bound (unbounded and not requested yet)
                     const hasBindableQuotes = (data?.quotes || []).some((q: any) => ["POSTED", "ENTERED", "QUOTED"].includes(q.status));
-                    
+
                     return (
                       <>
                         {hasBindRequestedQuotes && !hasBindableQuotes && (
@@ -2190,6 +2072,12 @@ function SubmissionDetailsContent() {
                       )}
                       {(currentQuote.fireMarshalFlatFeeUSD || 0) > 0 && (submission?.state === 'WA' || submission?.clientContact?.businessAddress?.state === 'WA' || submission?.state === 'Washington') && (
                         <RatingRow label="WA Flat Fee" value={formatCurrency(currentQuote.fireMarshalFlatFeeUSD || 0)} />
+                      )}
+                      {(currentQuote.stampingFeePerFilingUSD || 0) > 0 && (
+                        <RatingRow label="PA Flat Fee" value={formatCurrency(currentQuote.stampingFeePerFilingUSD || 0)} />
+                      )}
+                      {(currentQuote.slaServiceChargeUSD || 0) > 0 && (
+                        <RatingRow label="SLSC" value={formatCurrency(currentQuote.slaServiceChargeUSD || 0)} />
                       )}
                       <RatingRow label="Surplus Lines Policy Fee" value={formatCurrency(currentQuote.sterlingInsuranceServicesFeesUSD || 0)} />
                     </div>
