@@ -12,94 +12,94 @@ import { loadCapitalCoLogo } from "@/lib/services/pdf/ApplicationPacketPDF";
  * Generate and download payment authorization PDF
  */
 export async function GET(
-    req: NextRequest,
-    { params }: { params: { id: string } }
+  req: NextRequest,
+  { params }: { params: { id: string } }
 ) {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session || !session.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const user = session.user as any;
+    const applicationId = params.id;
+
     try {
-        const session = await getServerSession(authOptions);
+      await connectDB();
+    } catch (dbError: any) {
+      console.error("MongoDB connection error:", dbError.message);
+      return NextResponse.json(
+        { error: "Database connection failed. Please try again." },
+        { status: 503 }
+      );
+    }
 
-        if (!session || !session.user) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-        }
+    // Get application
+    const submission = await Submission.findOne({
+      _id: applicationId,
+      agencyId: user.agencyId,
+    });
 
-        const user = session.user as any;
-        const applicationId = params.id;
+    if (!submission) {
+      return NextResponse.json(
+        { error: "Application not found" },
+        { status: 404 }
+      );
+    }
 
-        try {
-            await connectDB();
-        } catch (dbError: any) {
-            console.error("MongoDB connection error:", dbError.message);
-            return NextResponse.json(
-                { error: "Database connection failed. Please try again." },
-                { status: 503 }
-            );
-        }
+    // Get agency details
+    let agency: any = null;
+    try {
+      agency = await Agency.findById(user.agencyId);
+    } catch (error: any) {
+      console.error("Error fetching agency:", error.message);
+      agency = {
+        name: "Agency",
+        email: "",
+        phone: "",
+        address: { street: "", city: "", state: "", zip: "" },
+      };
+    }
 
-        // Get application
-        const submission = await Submission.findOne({
-            _id: applicationId,
-            agencyId: user.agencyId,
-        });
+    const url = new URL(req.url);
+    const quoteId = url.searchParams.get("quoteId");
+    const premiumAmount = parseFloat(url.searchParams.get("premiumAmount") || "0");
+    const processingFee = parseFloat(url.searchParams.get("processingFee") || "0");
+    const totalDue = parseFloat(url.searchParams.get("totalDue") || "0");
 
-        if (!submission) {
-            return NextResponse.json(
-                { error: "Application not found" },
-                { status: 404 }
-            );
-        }
+    // Get quote if available
+    let quote: any = null;
+    try {
+      if (quoteId) {
+        quote = await Quote.findById(quoteId).populate("carrierId", "name");
+      } else {
+        quote = await Quote.findOne({ submissionId: submission._id }).populate("carrierId", "name");
+      }
+      if (quote) {
+        quote = quote.toObject();
+      }
+    } catch (error: any) {
+      console.warn("Error fetching quote (optional):", error.message);
+    }
 
-        // Get agency details
-        let agency: any = null;
-        try {
-            agency = await Agency.findById(user.agencyId);
-        } catch (error: any) {
-            console.error("Error fetching agency:", error.message);
-            agency = {
-                name: "Agency",
-                email: "",
-                phone: "",
-                address: { street: "", city: "", state: "", zip: "" },
-            };
-        }
+    // Load logo
+    const capitalCoLogoSVG = await loadCapitalCoLogo();
 
-        const url = new URL(req.url);
-        const quoteId = url.searchParams.get("quoteId");
-        const premiumAmount = parseFloat(url.searchParams.get("premiumAmount") || "0");
-        const processingFee = parseFloat(url.searchParams.get("processingFee") || "0");
-        const totalDue = parseFloat(url.searchParams.get("totalDue") || "0");
+    const formData = submission.payload || {};
+    const companyName = formData.companyName || formData.applicantName || submission.clientContact?.name || "Customer";
+    const agentName = formData.agentName || user.name || "Agent";
+    const agencyName = agency?.name || (session?.user as any)?.agencyName || "Agency";
+    const carrierName = quote?.carrierId?.name || "Carrier";
+    const effectiveDate = formData.effectiveDate || submission.effectiveDate || "";
+    const paymentOption = formData.paymentOption || "N/A";
 
-        // Get quote if available
-        let quote: any = null;
-        try {
-            if (quoteId) {
-                quote = await Quote.findById(quoteId).populate("carrierId", "name");
-            } else {
-                quote = await Quote.findOne({ submissionId: submission._id }).populate("carrierId", "name");
-            }
-            if (quote) {
-                quote = quote.toObject();
-            }
-        } catch (error: any) {
-            console.warn("Error fetching quote (optional):", error.message);
-        }
+    const fmtUSD = (v: number) => v.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-        // Load logo
-        const capitalCoLogoSVG = await loadCapitalCoLogo();
+    const today = new Date().toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" });
 
-        const formData = submission.payload || {};
-        const companyName = formData.companyName || formData.applicantName || submission.clientContact?.name || "Customer";
-        const agentName = formData.agentName || user.name || "Agent";
-        const agencyName = agency?.name || (session?.user as any)?.agencyName || "Agency";
-        const carrierName = quote?.carrierId?.name || "Carrier";
-        const effectiveDate = formData.effectiveDate || submission.effectiveDate || "";
-        const paymentOption = formData.paymentOption || "N/A";
-
-        const fmtUSD = (v: number) => v.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
-        const today = new Date().toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" });
-
-        // Generate Payment Authorization HTML
-        const paymentAuthHTML = `
+    // Generate Payment Authorization HTML
+    const paymentAuthHTML = `
     <!DOCTYPE html>
     <html>
     <head>
@@ -234,50 +234,50 @@ export async function GET(
     </html>
     `;
 
-        // Generate PDF
-        let pdfBuffer: Buffer;
-        try {
-            console.log("📄 [Payment Auth PDF] Starting PDF generation...");
-            const { generatePDFFromHTML } = await import("@/lib/services/pdf/PDFService");
-            pdfBuffer = await generatePDFFromHTML({
-                html: paymentAuthHTML,
-                format: "A4",
-                printBackground: true,
-                margin: { top: "0px", right: "0px", bottom: "0px", left: "0px" },
-            });
-            console.log(`📄 [Payment Auth PDF] PDF generated successfully - Size: ${pdfBuffer.length} bytes`);
-        } catch (pdfError: any) {
-            console.error("📄 [Payment Auth PDF] PDF generation error:", pdfError);
-            return NextResponse.json(
-                {
-                    error: pdfError?.message || "Failed to generate PDF",
-                    details: process.env.NODE_ENV === "development" ? pdfError?.stack : undefined,
-                },
-                { status: 500 }
-            );
-        }
-
-        if (!pdfBuffer || pdfBuffer.length === 0) {
-            return NextResponse.json({ error: "Generated PDF is empty" }, { status: 500 });
-        }
-
-        const filename = `${companyName}-Payment-Authorization.pdf`;
-
-        return new NextResponse(new Uint8Array(pdfBuffer), {
-            headers: {
-                "Content-Type": "application/pdf",
-                "Content-Disposition": `attachment; filename="${filename}"`,
-                "Content-Length": pdfBuffer.length.toString(),
-            },
-        });
-    } catch (error: any) {
-        console.error("📄 [Payment Auth PDF] Unexpected error:", error);
-        return NextResponse.json(
-            {
-                error: error?.message || "Failed to generate PDF",
-                details: process.env.NODE_ENV === "development" ? error?.stack : undefined,
-            },
-            { status: 500 }
-        );
+    // Generate PDF
+    let pdfBuffer: Buffer;
+    try {
+      console.log("📄 [Payment Auth PDF] Starting PDF generation...");
+      const { generatePDFFromHTML } = await import("@/lib/services/pdf/PDFService");
+      pdfBuffer = await generatePDFFromHTML({
+        html: paymentAuthHTML,
+        format: "A4",
+        printBackground: true,
+        margin: { top: "0px", right: "0px", bottom: "0px", left: "0px" },
+      });
+      console.log(`📄 [Payment Auth PDF] PDF generated successfully - Size: ${pdfBuffer.length} bytes`);
+    } catch (pdfError: any) {
+      console.error("📄 [Payment Auth PDF] PDF generation error:", pdfError);
+      return NextResponse.json(
+        {
+          error: pdfError?.message || "Failed to generate PDF",
+          details: process.env.NODE_ENV === "development" ? pdfError?.stack : undefined,
+        },
+        { status: 500 }
+      );
     }
+
+    if (!pdfBuffer || pdfBuffer.length === 0) {
+      return NextResponse.json({ error: "Generated PDF is empty" }, { status: 500 });
+    }
+
+    const filename = `${companyName}-Payment-Authorization.pdf`;
+
+    return new NextResponse(new Uint8Array(pdfBuffer), {
+      headers: {
+        "Content-Type": "application/pdf",
+        "Content-Disposition": `attachment; filename="${filename}"`,
+        "Content-Length": pdfBuffer.length.toString(),
+      },
+    });
+  } catch (error: any) {
+    console.error("📄 [Payment Auth PDF] Unexpected error:", error);
+    return NextResponse.json(
+      {
+        error: error?.message || "Failed to generate PDF",
+        details: process.env.NODE_ENV === "development" ? error?.stack : undefined,
+      },
+      { status: 500 }
+    );
+  }
 }

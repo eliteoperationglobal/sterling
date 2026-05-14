@@ -42,8 +42,10 @@ export const authOptions: NextAuthOptions = {
           }
 
           // --- 2FA LOGIC START ---
-          // Only apply 2FA to agency roles, not system_admin
-          if (user.role !== "system_admin") {
+          const is2FAEnabled = process.env.ENABLE_2FA === "true";
+
+          // Only apply 2FA if enabled AND user is NOT system_admin
+          if (is2FAEnabled && user.role !== "system_admin") {
             const deviceId = credentials.deviceId;
 
             // Check if this device is trusted

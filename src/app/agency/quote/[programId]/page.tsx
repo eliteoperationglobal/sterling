@@ -874,6 +874,7 @@ export default function QuoteFormPage() {
     "Tree Trimmer": "- The trimming and/or removal of trees. Stump grinding OK as well. No right-of-way or fire break clearing.",
     "Water & Sewer Mains": "- Installs, plans, and manages the installation and repair of building sewer and water service. No Public Works.",
     "Water/ Fire Damage Restoration": "- The act of cleaning and restoring property that has sustained water, smoke or fire damage. No mold remediation. This policy does not include professional liability coverage.",
+    "Waterproofing": "- Applies to contractors performing waterproofing, sealing, or moisture-protection work on buildings, roofs, decks, walls, or other structures.",
     "Welding (Non-Structural)": "- Non-Structural welding. No stairs, handrails, trailers, autos, boats, boilers, conveyors, production/manufacturing/industrial facilities, pressurized pipes, oil/gas related, or anything deemed structural.",
     "Welding (Structural)": "- Structural Welding, no bridges, trailers, autos, boats, boilers, conveyors, production/manufacturing/industrial facilities,pressurized pipes, or anything oil/gas related.",
     "Other": " "
@@ -1280,6 +1281,7 @@ export default function QuoteFormPage() {
     "Tree Trimmer",
     "Water & Sewer Mains",
     "Water/ Fire Damage Restoration",
+    "Waterproofing",
     "Welding (Non-Structural)",
     "Welding (Structural)",
     "Other",

@@ -11,6 +11,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ required: false }, { status: 400 });
     }
 
+    const is2FAEnabled = process.env.ENABLE_2FA === "true";
+    if (!is2FAEnabled) {
+      return NextResponse.json({ required: false });
+    }
+
     await connectDB();
 
     const user = await User.findOne({ email: email.toLowerCase() });
