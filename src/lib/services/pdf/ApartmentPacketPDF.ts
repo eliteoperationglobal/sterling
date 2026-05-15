@@ -3364,7 +3364,7 @@ function generatePage1(data: ApartmentPacketData): string {
 
 				<!-- Application ID -->
 				<div class="application-id-large-page2">
-					General Liability Application ID: ${data.submissionNumber || data.applicationId || "Pending"}
+					Property Liability & General Liability Application ID: ${data.submissionNumber || data.applicationId || "Pending"}
 				</div>
 
 				<!-- 3 Column Layout -->
@@ -3390,7 +3390,7 @@ function generatePage1(data: ApartmentPacketData): string {
 					<!-- Quote Information -->
 					<div>
 						<div class="section-title-page2">Quote Information</div>
-						<div class="quote-detail-page2">PROPERTY</div>
+						<div class="quote-detail-page2">PROPERTY${data.addGeneralLiability ? " & General Liability" : ""}</div>
 						<div class="quote-detail-page2">${data.coverageType || "General Liability"}</div>
 						<div class="quote-detail-page2">
 							Desired Coverage Dates: ${data.desiredCoverageDates || "-"}
@@ -3411,7 +3411,7 @@ function generatePage1(data: ApartmentPacketData): string {
 					${renderField("Applicant Email", data.email)}
 					${renderField("Agent Name", data.agentName)}
 					${renderField("Applicant Mailing Address", data.applicantMailingAddress || "-")}
-					${renderField("Property Name and Address", data.propertyNameAndAddress || "-")}
+					${renderField("Property Address", data.propertyNameAndAddress || "-")}
 					${renderField("Proposed Effective Date From", data.proposedEffectiveDateFrom)}
 					${renderField("Proposed Effective Date To", data.proposedEffectiveDateTo)}
 					

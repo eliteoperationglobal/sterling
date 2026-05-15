@@ -271,16 +271,16 @@ function ApartmentBuildingsContent() {
         unitsRekeyed: true as boolean | null,
 
         // 12
-        doorDoubleLocksPeepHoles: null as boolean | null,
+        doorDoubleLocksPeepHoles: true as boolean | null,
 
         // 13
-        perimeterFencing: null as boolean | null,
+        perimeterFencing: true as boolean | null,
 
         // 14
         // (Field removed)
 
         // 15
-        securityGuardOnsite: null as boolean | null,
+        securityGuardOnsite: false as boolean | null,
 
         // 16
         // (Fields removed)
@@ -292,13 +292,13 @@ function ApartmentBuildingsContent() {
         proceduresTenantSafetyComplaints: true as boolean | null,
 
         // 19
-        fullTimeMaintenanceStaff: null as boolean | null,
+        fullTimeMaintenanceStaff: false as boolean | null,
         proceduresInspectingSystems: null as boolean | null,
 
         // 20
         hireContractorsMaintenance: true as boolean | null,
         hireContractorsMaintenanceDetails: "",
-        contractorsRequiredCGL: null as boolean | null,
+        contractorsRequiredCGL: true as boolean | null,
         contractorsRequiredCGLExplanation: "",
 
         // 21
