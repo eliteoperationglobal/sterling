@@ -118,8 +118,9 @@ function generateAgencyLogoHTML(logo: string, logoWidth: string = "520px") {
 }
 function generateAgencyLogoHTML1(logo: string) {
 	return `
-    <div style="position:absolute;left:20em;top:4.5em;width:260px;height:80px;display:flex;align-items:center;justify-content:center;background:transparent;z-index:10;">
-      <img src="${logo}" style="max-width:100%;max-height:100%;object-fit:contain;" />
+    <div style="position:absolute;left:50%;transform:translateX(-50%);top:2.5em;width:30em;height:5.4em;background:#ffffff;z-index:9;"></div>
+    <div style="position:absolute;left:50%;transform:translateX(-50%);top:2.5em;width:32em;height:5.8em;display:flex;align-items:center;justify-content:center;background:transparent;z-index:10;">
+      <img src="${logo}" style="width:380px;max-width:100%;max-height:100%;object-fit:contain;" />
     </div>
   `;
 }
