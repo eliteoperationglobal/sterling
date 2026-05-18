@@ -10,6 +10,12 @@ import { generateProposalHTML } from "@/lib/services/pdf";
 import { generateCarrierFormsHTML } from "@/lib/services/pdf";
 import { savePDFToStorage } from "@/lib/services/pdf/storage";
 
+function formatDateMMDDYYYY(dateInput: string | Date) {
+  const d = new Date(dateInput);
+  if (isNaN(d.getTime())) return "";
+  return `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`;
+}
+
 /**
  * POST /api/agency/quotes/[id]/generate-documents
  * Generate Proposal and Carrier Forms PDFs and store them in submission
@@ -98,7 +104,7 @@ export async function POST(
 
       const proposalData = {
         quoteNumber: quote._id.toString().substring(0, 8).toUpperCase(),
-        proposalDate: new Date().toLocaleDateString(),
+        proposalDate: formatDateMMDDYYYY(new Date()),
         companyName: formData.companyName || submission.clientContact?.name || "Unknown",
         dba: formData.dba,
         firstName: formData.firstName || "",
@@ -117,8 +123,8 @@ export async function POST(
         carrierName: carrier.name,
         carrierReference: quote.carrierReference,
         programName: (submission as any).programName || "Advantage Contractor GL",
-        effectiveDate: quote.effectiveDate ? new Date(quote.effectiveDate).toLocaleDateString() : new Date().toLocaleDateString(),
-        expirationDate: quote.expirationDate ? new Date(quote.expirationDate).toLocaleDateString() : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toLocaleDateString(),
+        effectiveDate: quote.effectiveDate ? formatDateMMDDYYYY(quote.effectiveDate) : formatDateMMDDYYYY(new Date()),
+        expirationDate: quote.expirationDate ? formatDateMMDDYYYY(quote.expirationDate) : formatDateMMDDYYYY(new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)),
         carrierQuoteUSD: quote.carrierQuoteUSD,
         premiumTaxPercent: quote.premiumTaxPercent,
         premiumTaxAmountUSD: quote.premiumTaxAmountUSD || 0,

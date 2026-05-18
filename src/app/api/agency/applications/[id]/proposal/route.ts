@@ -81,8 +81,33 @@ export type ProposalData = {
   descriptionOfOperations: string;
 };
 
+function formatDateMMDDYYYY(dateInput: string | Date) {
+  const d = new Date(dateInput);
+  if (isNaN(d.getTime())) return "";
+  return `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`;
+}
+
 function getPolicyDateRange(dateInput: string | Date) {
-  const start = new Date(dateInput);
+  let start = new Date(dateInput);
+
+  // If it's an invalid date string, attempt to parse manually (e.g. DD/MM/YYYY)
+  if (isNaN(start.getTime()) && typeof dateInput === "string") {
+    const parts = dateInput.split(/[-/.]/);
+    if (parts.length === 3) {
+      const p0 = parseInt(parts[0], 10);
+      const p1 = parseInt(parts[1], 10);
+      const p2 = parseInt(parts[2], 10);
+      if (p0 > 12) { // DD/MM/YYYY format
+        start = new Date(p2, p1 - 1, p0);
+      } else { // MM/DD/YYYY format
+        start = new Date(p2, p0 - 1, p1);
+      }
+    }
+  }
+
+  if (isNaN(start.getTime())) {
+    start = new Date();
+  }
 
   const end = new Date(start);
   end.setFullYear(start.getFullYear() + 1);
@@ -226,8 +251,8 @@ export async function GET(
     let policyFeeUSD = 0;
     let brokerFeeAmountUSD = 0;
     let finalAmountUSD = 0;
-    let effectiveDate = new Date().toLocaleDateString();
-    let expirationDate = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toLocaleDateString();
+    let effectiveDate = new Date();
+    let expirationDate = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
     let limits: any = undefined;
     let endorsements: string[] = [];
     let specialNotes = "";
@@ -250,8 +275,8 @@ export async function GET(
       policyFeeUSD = quote.policyFeeUSD || 0;
       brokerFeeAmountUSD = quote.brokerFeeAmountUSD || 0;
       finalAmountUSD = quote.finalAmountUSD || 0;
-      if (quote.effectiveDate) effectiveDate = new Date(quote.effectiveDate).toLocaleDateString();
-      if (quote.expirationDate) expirationDate = new Date(quote.expirationDate).toLocaleDateString();
+      if (quote.effectiveDate) effectiveDate = new Date(quote.effectiveDate);
+      if (quote.expirationDate) expirationDate = new Date(quote.expirationDate);
       limits = quote.limits || {};
       endorsements = quote.endorsements || [];
       specialNotes = quote.specialNotes || "";
@@ -266,7 +291,7 @@ export async function GET(
     const proposalData: ProposalData = {
       subcontractorCosts: formatToUSD(formData.estimatedSubcontractingCosts || "0"),
       quoteNumber,
-      proposalDate: new Date().toLocaleDateString(),
+      proposalDate: formatDateMMDDYYYY(new Date()),
       desiredCoverageDates: getPolicyDateRange(effectiveDate),
       companyName: formData.companyName || submission.clientContact?.name || "Unknown",
       dba: formData.dba,
@@ -301,7 +326,7 @@ export async function GET(
       carrierName,
       programName,
       effectiveDate: getPolicyDateRange(effectiveDate),
-      expirationDate,
+      expirationDate: formatDateMMDDYYYY(expirationDate),
       carrierQuoteUSD,
       premiumTaxPercent,
       premiumTaxAmountUSD,
