@@ -1033,7 +1033,7 @@ function ApartmentBuildingsContent() {
                         </GridRow>
                         <GridRow label="Total Building Area (Sq Ft)">
                             <div className="flex items-center justify-end gap-2">
-                                <input type="text" value={formData.totalBuildingArea} onChange={(e) => handleInputChange("totalBuildingArea", e.target.value.replace(/\D/g, ''))} className="w-full px-4 py-2 border border-gray-300 rounded text-sm focus:ring-[#9A8B7A]" placeholder="e.g., 5,000" />
+                                <input type="text" value={formData.totalBuildingArea ? Number(formData.totalBuildingArea).toLocaleString('en-US') : ""} onChange={(e) => handleInputChange("totalBuildingArea", e.target.value.replace(/\D/g, ''))} className="w-full px-4 py-2 border border-gray-300 rounded text-sm focus:ring-[#9A8B7A]" placeholder="e.g., 5,000" />
                                 <span className="text-gray-500 text-sm whitespace-nowrap">Sq Ft</span>
                             </div>
                         </GridRow>
@@ -1140,16 +1140,8 @@ function ApartmentBuildingsContent() {
                 ))}
                 {renderSection("Coverage Details", (
                     <>
-
-                        <GridRow label="Are there multiple buildings or structures?">
-                            <div className="pt-2">
-                                <YesNoRadio value={formData.hasMultipleBuildings} onChange={(v) => handleInputChange("hasMultipleBuildings", v)} />
-                            </div>
-                        </GridRow>
-
-                        {formData.hasMultipleBuildings === true && (
-                            <div className="space-y-6 pt-4">
-                                {formData.subjectsOfInsurance.map((item, index) => (
+                        <div className="space-y-6 pt-4">
+                            {formData.subjectsOfInsurance.map((item, index) => (
                                     <div key={index} className="space-y-4 bg-gray-50/30 p-4 rounded-lg border border-gray-200 relative group animate-in fade-in slide-in-from-top-2 duration-300">
                                         <GridRow label={index === 0 ? "Subject of Insurance" : `Subject of Insurance ${index + 1}`}>
                                             <div className="flex items-center gap-2">
@@ -1180,7 +1172,7 @@ function ApartmentBuildingsContent() {
                                                 <span className="text-gray-500 text-sm">$</span>
                                                 <input
                                                     type="text"
-                                                    value={item.limit}
+                                                    value={item.limit ? Number(item.limit).toLocaleString('en-US') : ""}
                                                     onChange={(e) => updateSubjectOfInsurance(index, "limit", e.target.value.replace(/\D/g, ''))}
                                                     className="w-full px-4 py-2 border border-gray-300 rounded text-sm focus:ring-[#9A8B7A]"
                                                     placeholder="Enter Limit"
@@ -1229,7 +1221,7 @@ function ApartmentBuildingsContent() {
                                         <GridRow label="Deductible ($)">
                                             <div className="flex items-center justify-end gap-2">
                                                 <span className="text-gray-500 text-sm">$</span>
-                                                <input type="text" value={item.deductible || formData.propertyDeductible || ""} onChange={(e) => updateSubjectOfInsurance(index, "deductible", e.target.value.replace(/\D/g, ''))} className="w-full px-4 py-2 border border-gray-300 rounded text-sm focus:ring-[#9A8B7A]" />
+                                                <input type="text" value={item.deductible || formData.propertyDeductible ? Number(item.deductible || formData.propertyDeductible).toLocaleString('en-US') : ""} onChange={(e) => updateSubjectOfInsurance(index, "deductible", e.target.value.replace(/\D/g, ''))} className="w-full px-4 py-2 border border-gray-300 rounded text-sm focus:ring-[#9A8B7A]" />
                                             </div>
                                         </GridRow>
 
@@ -1259,8 +1251,6 @@ function ApartmentBuildingsContent() {
                                     </button>
                                 </GridRow>
                             </div>
-                        )}
-
 
                     </>
                 ))}
