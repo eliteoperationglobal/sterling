@@ -9,6 +9,7 @@ import Agency from "@/models/Agency";
 import { generateBinderHTML } from "@/lib/services/pdf/BinderPDF";
 import { savePDFToStorage } from "@/lib/services/pdf/storage";
 import { logActivity, createActivityLogData } from "@/utils/activityLogger";
+import { getDisplayProgramName } from "@/utils/formatters";
 import {
   getStampingFeePerFiling,
   getSLAServiceCharge,
@@ -432,7 +433,7 @@ export async function POST(
         policyNumber: policyNumber || undefined,
         effectiveDate: effectiveDate ? new Date(effectiveDate).toLocaleDateString() : new Date().toLocaleDateString(),
         expirationDate: expirationDate ? new Date(expirationDate).toLocaleDateString() : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toLocaleDateString(),
-        programName: (submission as any).programName || "Advantage Contractor GL",
+        programName: getDisplayProgramName((submission as any).programName),
         carrierQuoteUSD,
         carrierFeesUSD: carrierFees > 0 ? carrierFees : undefined,
         sterlingInsuranceServicesFeesUSD: sterlingFees > 0 ? sterlingFees : undefined,
@@ -519,7 +520,7 @@ export async function POST(
         effectiveDate: effectiveDate ? new Date(effectiveDate).toLocaleDateString() : new Date().toLocaleDateString(),
         expirationDate: expirationDate ? new Date(expirationDate).toLocaleDateString() : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toLocaleDateString(),
         carrierName: carrier.name,
-        programName: (submission as any).programName || "Advantage Contractor GL",
+        programName: getDisplayProgramName((submission as any).programName),
         pdfBuffer: undefined, // We'll include the URL instead
         binderPdfUrl,
       });

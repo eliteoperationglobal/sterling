@@ -12,8 +12,7 @@ import { mapContractorsDataToPacketData } from "@/lib/services/pdf/mappers/contr
 import { savePDFToStorage } from "@/lib/services/pdf/storage";
 import { sendEmail } from "@/lib/services/email/EmailService";
 import { logActivity, createActivityLogData } from "@/utils/activityLogger";
-
-
+import { getDisplayProgramName } from "@/utils/formatters";
 
 
 /**
@@ -375,7 +374,7 @@ export async function POST(req: NextRequest) {
         carrierEmail: submission.carrierEmail || "",
         agencyName: agency.name || "Unknown Agency",
         companyName: formData.companyName || "Unknown Company",
-        programName: programName || "Advantage Contractor GL",
+        programName: getDisplayProgramName(programName),
         submittedDate: new Date().toLocaleDateString(),
         applicantEmail: formData.email || "",
         applicantPhone: formData.phone || "",

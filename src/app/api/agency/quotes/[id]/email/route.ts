@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/authOptions";
 import connectDB from "@/lib/mongodb";
 import mongoose from "mongoose";
 import { sendQuoteEmail } from "@/lib/services/email/EmailService";
+import { getDisplayProgramName } from "@/utils/formatters";
 
 /**
  * POST /api/agency/quotes/[id]/email
@@ -51,7 +52,7 @@ export async function POST(
       premium: quote.calculatedPremium,
       effectiveDate: quote.effectiveDate,
       expirationDate: quote.expirationDate,
-      programName: quote.programId.split('-').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
+      programName: getDisplayProgramName(quote.programId.split('-').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')),
       coverageLimits: quote.formData.coverageLimits || "N/A",
       quotePDFUrl: `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/agency/quotes/${id}/pdf`,
     };

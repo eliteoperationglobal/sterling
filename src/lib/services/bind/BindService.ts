@@ -3,6 +3,7 @@ import Quote from "@/models/Quote";
 import Carrier from "@/models/Carrier";
 import Agency from "@/models/Agency";
 import { sendBindRequestToCarrier } from "@/lib/services/email/EmailService";
+import { getDisplayProgramName } from "@/utils/formatters";
 
 export interface IRequestBindResult {
   success: boolean;
@@ -107,7 +108,7 @@ export class BindService {
           quoteNumber: quote._id.toString(),
           effectiveDate: quote.effectiveDate ? new Date(quote.effectiveDate).toLocaleDateString('en-US', { timeZone: 'UTC' }) : undefined,
           finalAmount: quote.finalAmountUSD,
-          programName: submission.programName || "Insurance Policy",
+          programName: getDisplayProgramName(submission.programName),
           submissionId: submission._id.toString(),
           signedProposalUrl: proposalDoc?.documentUrl,
           signedCarrierFormsUrl: carrierFormsDoc?.documentUrl,
