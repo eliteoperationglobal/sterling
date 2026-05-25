@@ -4805,7 +4805,7 @@ function generatePage12(data: ApplicationPacketData): string {
 		  </div>
 		  <div>
 			<strong>Sterling Insurance Services</strong>
-			<p>5455 Wilshire Blvd. #1816<br>Los Angeles CA 90036</p>
+			<p>292 S La Cienega Blvd Ste 206<br>Beverly Hills CA 90211</p>
 			<p>(310) 492-2007</p>
 			<p>info@SterlingInsurancePartners.com</p>
 			<p>License Number: 6015632</p>
@@ -6469,7 +6469,7 @@ function generateProposal(data: ApplicationPacketData): string {
 					<div class="nsp1_01" style="left:16.8667em;top:11.7222em;"><span class="nsp1_10 nsp1_11 nsp1_15" style="word-spacing:0.0032em;">Effective Date: </span><span class="nsp1_13 nsp1_11 nsp1_12" style="word-spacing:0.0043em;">11/28/2025 </span><span class="nsp1_16 nsp1_11 nsp1_17" style="word-spacing:-0.0287em;">– </span><span class="nsp1_13 nsp1_11 nsp1_18">11/28/2026 &nbsp;</span></div>
 					<div class="nsp1_01" style="left:20.1567em;top:13.1322em;"><span class="nsp1_10 nsp1_11 nsp1_15" style="word-spacing:0.0012em;">Prepared by: Eidan Gamaty &nbsp;</span></div>
 					<div class="nsp1_01" style="left:19.3467em;top:14.5372em;"><span class="nsp1_10 nsp1_11 nsp1_15" style="word-spacing:0.0004em;">Capital &amp; Co Insurance Services &nbsp;</span></div>
-					<div class="nsp1_01" style="left:17.1017em;top:15.6122em;"><span class="nsp1_10 nsp1_11 nsp1_19" style="word-spacing:-0.0015em;">5455 Wilshire Blvd, Los Angeles, CA 90036 &nbsp;</span></div>
+					<div class="nsp1_01" style="left:17.1017em;top:15.6122em;"><span class="nsp1_10 nsp1_11 nsp1_19" style="word-spacing:-0.0015em;">292 S La Cienega Blvd Ste 206, Beverly Hills, CA 90211 &nbsp;</span></div>
 					<div class="nsp1_01" style="left:20.2017em;top:44.4314em;"><span class="nsp1_20 nsp1_11 nsp1_21" style="word-spacing:-0.0011em;">Executive Summary &nbsp;</span></div>
 					<div class="nsp1_01" style="left:8.17em;top:46.1289em;"><span class="nsp1_10 nsp1_11 nsp1_21" style="word-spacing:0.0009em;">This insurance proposal sets forth the recommended coverage options, policy terms, and &nbsp;</span></div>
 					<div class="nsp1_01" style="left:7.77em;top:47.2039em;"><span class="nsp1_10 nsp1_11 nsp1_12" style="word-spacing:-0.0006em;">premium allocations specifically tailored to meet the needs of your business. The proposed &nbsp;</span></div>
@@ -6561,7 +6561,7 @@ function generateProposal(data: ApplicationPacketData): string {
 					<div class="nsp1_01" style="left:36.9183em;top:48.9639em;"><span class="nsp1_10 nsp1_11 nsp1_50" style="word-spacing:-0.0017em;">Date : ____________ &nbsp;</span></div>
 					<div class="nsp1_01" style="left:20.5867em;top:52.0341em;"><span class="nsp1_25 nsp1_08 nsp1_26" style="word-spacing:0.0016em;">Contact Information &nbsp;</span></div>
 					<div class="nsp1_01" style="left:10.5817em;top:53.4589em;"><span class="nsp1_13 nsp1_11 nsp1_15" style="word-spacing:0.0046em;">GAMATY INSURANCE AGENCY LLC DBA</span><span class="nsp1_13 nsp1_11 nsp1_17" style="word-spacing:0.2216em;">&nbsp;</span><span class="nsp1_13 nsp1_11 nsp1_28" style="word-spacing:-0.0024em;">Capital &amp; Co Insurance Services &nbsp;</span></div>
-					<div class="nsp1_01" style="left:17.1017em;top:54.5339em;"><span class="nsp1_10 nsp1_11 nsp1_19" style="word-spacing:-0.0015em;">5455 Wilshire Blvd, Los Angeles, CA 90036 &nbsp;</span></div>
+					<div class="nsp1_01" style="left:17.1017em;top:54.5339em;"><span class="nsp1_10 nsp1_11 nsp1_19" style="word-spacing:-0.0015em;">292 S La Cienega Blvd Ste 206, Beverly Hills, CA 90211 &nbsp;</span></div>
 					<div class="nsp1_01" style="left:21.0367em;top:55.611em;"><span class="nsp1_52 nsp1_53 nsp1_17">&nbsp;</span><span class="nsp1_52 nsp1_53 nsp1_17" style="word-spacing:-0.0301em;">&nbsp;</span><span class="nsp1_10 nsp1_11 nsp1_14" style="word-spacing:-0.0023em;">M: (310) 492-2007 &nbsp;</span></div>
 					<div class="nsp1_01" style="left:11.5017em;top:56.8326em;"><span class="nsp1_54 nsp1_55 nsp1_17" style="font-weight:bold;">✉</span><span class="nsp1_56 nsp1_53 nsp1_17" style="word-spacing:-0.0301em;">&nbsp;</span><span class="nsp1_57 nsp1_11 nsp1_19" style="word-spacing:-0.0043em;">M: </span><a href="mailto:certificates@capcoinsurance.com" target="_blank"><span class="nsp1_58 nsp1_11 nsp1_12" style="word-spacing:0.0124em;">certificates@capcoinsurance.com </span></a><a href="mailto:cs@capcoinsurance.com" target="_blank"><span class="nsp1_57 nsp1_11 nsp1_17" style="word-spacing:0.0012em;">/ </span></a><a href="mailto:cs@capcoinsurance.com" target="_blank"><span class="nsp1_58 nsp1_11 nsp1_19">cs@capcoinsurance.com &nbsp;</span></a></div>
 					<div class="nsp1_01" style="left:46.755em;top:59.5486em;"><span class="nsp1_24 nsp1_08 nsp1_17">3</span></div>

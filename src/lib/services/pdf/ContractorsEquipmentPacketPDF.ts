@@ -3368,7 +3368,7 @@ function generateInvoicePage(data: ContractorsPacketData): string {
 		  </div>
 		  <div>
 			<strong>Sterling Insurance Services</strong>
-			<p>5455 Wilshire Blvd. #1816<br>Los Angeles CA 90036</p>
+			<p>292 S La Cienega Blvd Ste 206<br>Beverly Hills CA 90211</p>
 			<p>(310) 492-2007</p>
 			<p>info@SterlingInsurancePartners.com</p>
 			<p>License Number: 6015632</p>

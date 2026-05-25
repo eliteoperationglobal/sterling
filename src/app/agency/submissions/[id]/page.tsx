@@ -2011,7 +2011,7 @@ function SubmissionDetailsContent() {
                     <div className="flex items-center gap-2">
                       <MapPin className="w-4 h-4 text-gray-400" />
                       <span>
-                        5455 Wilshire Blvd, Los Angeles, CA 90036, United States
+                        292 S La Cienega Blvd Ste 206, Beverly Hills, CA 90211, United States
                       </span>
                     </div>
 

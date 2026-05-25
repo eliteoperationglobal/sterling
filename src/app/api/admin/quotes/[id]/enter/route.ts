@@ -511,9 +511,30 @@ export async function POST(
     try {
       const { sendQuoteToBroker } = await import("@/lib/services/email/EmailService");
 
+      // Map specific Capco agents to their direct emails
+      const capcoAgentEmails: Record<string, string> = {
+        "Eidan Gamaty": "Eidan@capcoinsurance.com",
+        "Moshe Gamaty": "Moshe.g@capcoinsurance.com",
+        "Michael Gamaty": "Michael@capcoinsurance.com",
+        "Yoav Anatian": "Joe@capcoinsurance.com",
+        "Jake Weiner": "Jake@capcoinsurance.com",
+        "Benjamin Solender": "Ben@capcoinsurance.com",
+        "Michal Kraut": "Michal@capcoinsurance.com",
+        "Jonathan Akwa": "Jonathan@capcoinsurance.com",
+      };
+
+      const agentName = submission.agentName || "";
+      let resolvedBrokerEmail = agency?.email || submission.clientContact?.email || "";
+      
+      // If the submission has an agent name and it exists in our Capco map, use their specific email
+      if (agentName && capcoAgentEmails[agentName]) {
+        resolvedBrokerEmail = capcoAgentEmails[agentName];
+        console.log(`📧 Using specific agent email for ${agentName}: ${resolvedBrokerEmail}`);
+      }
+
       await sendQuoteToBroker({
-        brokerEmail: agency?.email || submission.clientContact?.email || "",
-        brokerName: agency?.name || "Broker",
+        brokerEmail: resolvedBrokerEmail,
+        brokerName: agentName || agency?.name || "Broker",
         companyName: formData.companyName || submission.clientContact?.name || "Unknown Company",
         quoteNumber: quote._id.toString().substring(0, 8).toUpperCase(),
         finalAmount: finalAmountUSD,
@@ -525,7 +546,7 @@ export async function POST(
         binderPdfUrl,
       });
 
-      console.log(`✅ Quote email sent to broker: ${agency?.email}`);
+      console.log(`✅ Quote email sent to broker/agent: ${resolvedBrokerEmail}`);
     } catch (emailError: any) {
       console.error("❌ Email send error:", emailError);
       // Continue even if email fails - admin can manually send

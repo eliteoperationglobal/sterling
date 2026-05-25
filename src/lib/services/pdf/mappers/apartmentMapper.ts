@@ -102,7 +102,6 @@ export interface ApartmentPacketData {
     grade: string;
     otherOccupancies: string;
     percentageElderly: string;
-    hasMultipleBuildings: boolean | null;
 
     // Property Insurance Details
     subjectOfInsurance: string;
@@ -289,10 +288,10 @@ export function mapApartmentDataToPacketData(
         // Agency Information
         agencyName: agency?.name || "Sterling Insurance Services",
         agentName: formData.agentName || "-",
-        agencyAddress: agency?.address?.street || "5455 Wilshire Blvd",
-        agencyCity: agency?.address?.city || "Los Angeles",
+        agencyAddress: agency?.address?.street || "292 S La Cienega Blvd Ste 206",
+        agencyCity: agency?.address?.city || "Beverly Hills",
         agencyState: agency?.address?.state || "CA",
-        agencyZip: agency?.address?.zip || "90036",
+        agencyZip: agency?.address?.zip || "90211",
         agencyPhone: agency?.phone || "(310) 492-2007",
         agencyEmail: agency?.email || "info@sterlinginsurancepartners.com",
 
@@ -391,7 +390,6 @@ export function mapApartmentDataToPacketData(
                 .join(", ")
             : (formData.subjectOfInsurance || "").replace(/\s*\([^)]+\)/, "").trim(),
         percentageElderly: formData.percentageElderly || "",
-        hasMultipleBuildings: formData.hasMultipleBuildings,
 
         // Property Insurance Details
         subjectOfInsurance: formData.subjectOfInsurance || "-",

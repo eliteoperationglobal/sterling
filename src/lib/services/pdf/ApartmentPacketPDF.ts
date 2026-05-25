@@ -3536,7 +3536,7 @@ function generatePage2Optimized(data: ApartmentPacketData): string {
 					${renderField("Distance to Fire Hydrant", data.distanceToFireHydrant)}
 					${renderField("Distance to Fire Station", data.distanceToFireStation)}
 					${renderField("Fire District", data.fireDistrict)}
-					${renderYesNo("Are there multiple buildings or structures?", data.hasMultipleBuildings)}
+
 
 					<div class="divider"></div>
 					<div class="section-header">PROPERTY INSURANCE</div>
@@ -5693,7 +5693,7 @@ function generateInvoicePage(data: ApartmentPacketData): string {
 		  </div>
 		  <div>
 			<strong>Sterling Insurance Services</strong>
-			<p>5455 Wilshire Blvd. #1816<br>Los Angeles CA 90036</p>
+			<p>292 S La Cienega Blvd Ste 206<br>Beverly Hills CA 90211</p>
 			<p>(310) 492-2007</p>
 			<p>info@SterlingInsurancePartners.com</p>
 			<p>License Number: 6015632</p>

@@ -674,36 +674,36 @@ export function generateProposalHTML(data: ProposalData): string {
 				<div class="pdf24new_01" style="left:21.9954em;top:28.7831em;"><span
 						class="pdf24new_15 pdf24new_11 pdf24new_12" style="word-spacing:0em;">Policy Details
 						&nbsp;</span></div>
-				<div style="position:absolute;left:8em;top:31.5em;width:36em;">
+				<div style="position:absolute;left:16em;top:31.5em;width:28em;">
 					<table style="width:100%;border-collapse:collapse;font-family:inherit;">
 						<tbody>
 							<tr>
-								<td style="width:48%;text-align:right;padding:0.22em 0.6em 0.22em 0;vertical-align:top;"><span class="pdf24new_21 pdf24new_11 pdf24new_09" style="word-spacing:-0.0096em;">Carrier:</span></td>
-								<td style="width:52%;text-align:left;padding:0.22em 0 0.22em 0.6em;vertical-align:top;"><span class="pdf24new_22 pdf24new_11 pdf24new_09">${data.carrierName}${data.carrierNameXL && data.carrierNameXL !== data.carrierName ? ` &amp; ${data.carrierNameXL}` : ""}</span></td>
+								<td style="width:1%;white-space:nowrap;text-align:left;padding:0.22em 0.6em 0.22em 0;vertical-align:top;"><span class="pdf24new_21 pdf24new_11 pdf24new_09" style="word-spacing:-0.0096em;">Carrier:</span></td>
+								<td style="text-align:left;padding:0.22em 0 0.22em 0.6em;vertical-align:top;"><span class="pdf24new_22 pdf24new_11 pdf24new_09">${data.carrierName}${data.carrierNameXL && data.carrierNameXL !== data.carrierName ? ` &amp; ${data.carrierNameXL}` : ""}</span></td>
 							</tr>
 							<tr>
-								<td style="width:48%;text-align:right;padding:0.22em 0.6em 0.22em 0;vertical-align:top;"><span class="pdf24new_21 pdf24new_11 pdf24new_12" style="word-spacing:-0.0075em;">Policy Form:</span></td>
-								<td style="width:52%;text-align:left;padding:0.22em 0 0.22em 0.6em;vertical-align:top;"><span class="pdf24new_22 pdf24new_11 pdf24new_09">General Liability ${data.addExcessLiability === true ? "&amp; Excess Liability" : ""}</span></td>
+								<td style="width:1%;white-space:nowrap;text-align:left;padding:0.22em 0.6em 0.22em 0;vertical-align:top;"><span class="pdf24new_21 pdf24new_11 pdf24new_12" style="word-spacing:-0.0075em;">Policy Form:</span></td>
+								<td style="text-align:left;padding:0.22em 0 0.22em 0.6em;vertical-align:top;"><span class="pdf24new_22 pdf24new_11 pdf24new_09">General Liability ${data.addExcessLiability === true ? "&amp; Excess Liability" : ""}</span></td>
 							</tr>
 							<tr>
-								<td style="width:48%;text-align:right;padding:0.22em 0.6em 0.22em 0;vertical-align:top;"><span class="pdf24new_21 pdf24new_11 pdf24new_12" style="word-spacing:-0.0139em;">Active Owners:</span></td>
-								<td style="width:52%;text-align:left;padding:0.22em 0 0.22em 0.6em;vertical-align:top;"><span class="pdf24new_22 pdf24new_11 pdf24new_12">1</span></td>
+								<td style="width:1%;white-space:nowrap;text-align:left;padding:0.22em 0.6em 0.22em 0;vertical-align:top;"><span class="pdf24new_21 pdf24new_11 pdf24new_12" style="word-spacing:-0.0139em;">Active Owners:</span></td>
+								<td style="text-align:left;padding:0.22em 0 0.22em 0.6em;vertical-align:top;"><span class="pdf24new_22 pdf24new_11 pdf24new_12">1</span></td>
 							</tr>
 							<tr>
-								<td style="width:48%;text-align:right;padding:0.22em 0.6em 0.22em 0;vertical-align:top;"><span class="pdf24new_21 pdf24new_11 pdf24new_12" style="word-spacing:-0.0183em;">Gross Receipts:</span></td>
-								<td style="width:52%;text-align:left;padding:0.22em 0 0.22em 0.6em;vertical-align:top;"><span class="pdf24new_22 pdf24new_11 pdf24new_09">${data.grossReceipts}</span></td>
+								<td style="width:1%;white-space:nowrap;text-align:left;padding:0.22em 0.6em 0.22em 0;vertical-align:top;"><span class="pdf24new_21 pdf24new_11 pdf24new_12" style="word-spacing:-0.0183em;">Gross Receipts:</span></td>
+								<td style="text-align:left;padding:0.22em 0 0.22em 0.6em;vertical-align:top;"><span class="pdf24new_22 pdf24new_11 pdf24new_09">${data.grossReceipts}</span></td>
 							</tr>
 							<tr>
-								<td style="width:48%;text-align:right;padding:0.22em 0.6em 0.22em 0;vertical-align:top;"><span class="pdf24new_21 pdf24new_11 pdf24new_12" style="word-spacing:-0.0254em;">Subcontractor Costs:</span></td>
-								<td style="width:52%;text-align:left;padding:0.22em 0 0.22em 0.6em;vertical-align:top;"><span class="pdf24new_22 pdf24new_11 pdf24new_09">${data.subcontractorCosts}</span></td>
+								<td style="width:1%;white-space:nowrap;text-align:left;padding:0.22em 0.6em 0.22em 0;vertical-align:top;"><span class="pdf24new_21 pdf24new_11 pdf24new_12" style="word-spacing:-0.0254em;">Subcontractor Costs:</span></td>
+								<td style="text-align:left;padding:0.22em 0 0.22em 0.6em;vertical-align:top;"><span class="pdf24new_22 pdf24new_11 pdf24new_09">${data.subcontractorCosts}</span></td>
 							</tr>
 							<tr>
-								<td style="width:48%;text-align:right;padding:0.22em 0.6em 0.22em 0;vertical-align:top;"><span class="pdf24new_21 pdf24new_11 pdf24new_12" style="word-spacing:-0.0189em;">Employee Payroll:</span></td>
-								<td style="width:52%;text-align:left;padding:0.22em 0 0.22em 0.6em;vertical-align:top;"><span class="pdf24new_22 pdf24new_11 pdf24new_09">${data.employeePayroll}</span></td>
+								<td style="width:1%;white-space:nowrap;text-align:left;padding:0.22em 0.6em 0.22em 0;vertical-align:top;"><span class="pdf24new_21 pdf24new_11 pdf24new_12" style="word-spacing:-0.0189em;">Employee Payroll:</span></td>
+								<td style="text-align:left;padding:0.22em 0 0.22em 0.6em;vertical-align:top;"><span class="pdf24new_22 pdf24new_11 pdf24new_09">${data.employeePayroll}</span></td>
 							</tr>
 							<tr>
-								<td style="width:48%;text-align:right;padding:0.22em 0.6em 0.22em 0;vertical-align:top;"><span class="pdf24new_21 pdf24new_11 pdf24new_12" style="word-spacing:0.0001em;">Class Code:</span></td>
-								<td style="width:52%;text-align:left;padding:0.22em 0 0.22em 0.6em;vertical-align:top;"><span class="pdf24new_22 pdf24new_11 pdf24new_09">${data.classCode || ""}</span></td>
+								<td style="width:1%;white-space:nowrap;text-align:left;padding:0.22em 0.6em 0.22em 0;vertical-align:top;"><span class="pdf24new_21 pdf24new_11 pdf24new_12" style="word-spacing:0.0001em;">Class Code:</span></td>
+								<td style="text-align:left;padding:0.22em 0 0.22em 0.6em;vertical-align:top;"><span class="pdf24new_22 pdf24new_11 pdf24new_09">${data.classCode || ""}</span></td>
 							</tr>
 						</tbody>
 					</table>

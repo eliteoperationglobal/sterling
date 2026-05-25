@@ -64,10 +64,10 @@ export async function GET(
         email: "eidan@capcoinsurance.com",
         phone: "(310) 284-2136",
         address: {
-          street: "5455 Wilshire Blvd. Suite 1816",
-          city: "Los Angeles",
+          street: "292 S La Cienega Blvd Ste 206",
+          city: "Beverly Hills",
           state: "CA",
-          zip: "90036",
+          zip: "90211",
         },
       };
     }

@@ -191,7 +191,7 @@ export async function GET(
       name: "Gamaty Insurance Agency LLC DBA Capital & Co Insurance Services",
       email: "eidan@capcoinsurance.com",
       phone: "(310) 284-2136",
-      address: { street: "5455 Wilshire Blvd. Suite 1816", city: "Los Angeles", state: "CA", zip: "90036" },
+      address: { street: "292 S La Cienega Blvd Ste 206", city: "Beverly Hills", state: "CA", zip: "90211" },
     };
 
     let agency: any;
