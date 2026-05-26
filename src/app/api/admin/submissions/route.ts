@@ -36,6 +36,7 @@ export async function GET(req: NextRequest) {
     // Import models to ensure they're registered for populate
     await import("@/models/FormTemplate");
     await import("@/models/Agency");
+    const Quote = (await import("@/models/Quote")).default;
 
     const searchParams = req.nextUrl.searchParams;
     const status = searchParams.get("status");
@@ -102,29 +103,57 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    const formattedSubmissions = submissions.map((sub: any) => ({
-      _id: sub._id.toString(),
-      submissionId: sub._id.toString(),
-      submissionNumber: sub.submissionNumber ?? null,
-      agencyId: sub.agencyId?._id?.toString() || null,
-      agencyName: sub.agencyId?.name || "Unknown Agency",
-      industry: sub.templateId?.industry || sub.programName || "Unknown",
-      subtype: sub.templateId?.subtype || "Unknown",
-      templateTitle: sub.templateId?.title || sub.programName || "Unknown",
-      programId: sub.programId || null,
-      programName: sub.programName || null,
-      clientName: sub.clientContact?.name || "N/A",
-      clientEmail: sub.clientContact?.email || "N/A",
-      clientPhone: sub.clientContact?.phone || "N/A",
-      status: sub.status,
-      createdAt: sub.createdAt,
-      updatedAt: sub.updatedAt,
-      fileCount: sub.files?.length || 0,
-      state: sub.state || "N/A",
-      applicationPdfUrl: sub.applicationPdfUrl || null,
-      submittedToCarrierAt: sub.submittedToCarrierAt || null,
-      bindApprovedAt: sub.bindApprovedAt || null,
-    }));
+    // --- Fetch Quote records to get effectiveDate (same logic as agency API) ---
+    const submissionIds = submissions.map((s: any) => s._id);
+    const quotes = await Quote.find({
+      submissionId: { $in: submissionIds },
+      status: { $in: ["POSTED", "APPROVED", "BOUND"] },
+    })
+      .select("submissionId effectiveDate")
+      .sort({ createdAt: 1 })
+      .lean();
+
+    // Build submissionId → effectiveDate map (last quote with a date wins)
+    const quoteEffectiveDateMap: Record<string, string | null> = {};
+    for (const q of quotes as any[]) {
+      if (q.effectiveDate) {
+        quoteEffectiveDateMap[q.submissionId.toString()] = q.effectiveDate;
+      }
+    }
+
+    const formattedSubmissions = submissions.map((sub: any) => {
+      const subId = sub._id.toString();
+      const effectiveDate =
+        quoteEffectiveDateMap[subId] ||
+        sub.effectiveDate ||
+        sub.payload?.effectiveDate ||
+        null;
+
+      return {
+        _id: subId,
+        submissionId: subId,
+        submissionNumber: sub.submissionNumber ?? null,
+        agencyId: sub.agencyId?._id?.toString() || null,
+        agencyName: sub.agencyId?.name || "Unknown Agency",
+        industry: sub.templateId?.industry || sub.programName || "Unknown",
+        subtype: sub.templateId?.subtype || "Unknown",
+        templateTitle: sub.templateId?.title || sub.programName || "Unknown",
+        programId: sub.programId || null,
+        programName: sub.programName || null,
+        clientName: sub.clientContact?.name || "N/A",
+        clientEmail: sub.clientContact?.email || "N/A",
+        clientPhone: sub.clientContact?.phone || "N/A",
+        status: sub.status,
+        createdAt: sub.createdAt,
+        updatedAt: sub.updatedAt,
+        fileCount: sub.files?.length || 0,
+        state: sub.state || "N/A",
+        applicationPdfUrl: sub.applicationPdfUrl || null,
+        submittedToCarrierAt: sub.submittedToCarrierAt || null,
+        bindApprovedAt: sub.bindApprovedAt || null,
+        effectiveDate,
+      };
+    });
 
     return NextResponse.json({
       submissions: formattedSubmissions,

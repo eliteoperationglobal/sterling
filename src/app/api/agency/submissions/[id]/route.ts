@@ -36,11 +36,15 @@ export async function GET(
     await import("@/models/Carrier");
     const { default: BoundPolicy } = await import("@/models/BoundPolicy");
 
-    // Find submission and verify it belongs to the agency
-    const submission = await Submission.findOne({
-      _id: params.id,
-      agencyId: (session.user as any).agencyId,
-    })
+    // Find submission — admin can view any submission, agency users only their own
+    const userRole = (session.user as any).role;
+    const isAdmin = userRole === "system_admin";
+
+    const submission = await Submission.findOne(
+      isAdmin
+        ? { _id: params.id }                                             // admin: no agency filter
+        : { _id: params.id, agencyId: (session.user as any).agencyId }  // agency: scoped to their own
+    )
       .populate("templateId")
       .lean();
 

@@ -22,6 +22,7 @@ interface Submission {
   applicationPdfUrl?: string;
   submittedToCarrierAt?: string;
   bindApprovedAt?: string;
+  effectiveDate?: string | null;
 }
 
 interface PipelineStage {
@@ -349,7 +350,7 @@ export default function AdminSubmissionsPage() {
                     <th className="px-4 lg:px-6 py-4 text-left">Client</th>
                     <th className="px-4 lg:px-6 py-4 text-left">Program</th>
                     <th className="px-4 lg:px-6 py-4 text-left">Status</th>
-                    <th className="px-4 lg:px-6 py-4 text-left">Submitted</th>
+                    <th className="px-4 lg:px-6 py-4 text-left">Effective Date</th>
                     <th className="px-4 lg:px-6 py-4 text-center">Actions</th>
                   </tr>
                 </thead>
@@ -399,14 +400,9 @@ export default function AdminSubmissionsPage() {
                       </td>
                       <td className="px-6 py-5">
                         <div className="font-semibold text-[#2d2a26]">
-                          {sub.status === "BOUND" && sub.bindApprovedAt
-                            ? new Date(sub.bindApprovedAt).toLocaleDateString('en-US', { timeZone: 'UTC', month: '2-digit', day: '2-digit', year: 'numeric' })
-                            : new Date(sub.createdAt).toLocaleDateString('en-US', { timeZone: 'UTC', month: '2-digit', day: '2-digit', year: 'numeric' })}
-                        </div>
-                        <div className="text-[11px] text-[#6b5e52] mt-0.5">
-                          {sub.status === "BOUND" && sub.bindApprovedAt
-                            ? new Date(sub.bindApprovedAt).toLocaleTimeString()
-                            : new Date(sub.createdAt).toLocaleTimeString()}
+                          {sub.effectiveDate
+                            ? new Date(sub.effectiveDate).toLocaleDateString('en-US', { timeZone: 'UTC', month: '2-digit', day: '2-digit', year: 'numeric' })
+                            : "—"}
                         </div>
                       </td>
                       <td className="px-6 py-5 text-center relative">

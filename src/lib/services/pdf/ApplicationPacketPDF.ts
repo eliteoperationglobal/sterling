@@ -4617,8 +4617,7 @@ function generatePage11(data: ApplicationPacketData): string {
   </div>
 
   <div class="signature-right">
-	<div class="signature-value">${data.lossWarrantyDate || ""}</div>
-	<div class="signature-line22">____________________________</div>
+	<div class="signature-line22 date-with-margin">____________________________</div>
 	<div class="signature-label">Date</div>
   </div>
 
@@ -7254,7 +7253,7 @@ function generateCaliforniaFormPage2(data: ApplicationPacketData): string {
  */
 function generateCaliforniaFormPage3(data: ApplicationPacketData): string {
 	const insuredName = data.companyName || '';
-	const coverageType = data.coverageType || data.quoteType || '';
+	const coverageType = String(data.addExcessLiability) === 'true' ? 'General & Excess Liability' : (data.coverageType || data.quoteType || '');
 	const agentName = data.agentName || '';
 	const agencyName = data.agencyName || '';
 
@@ -7282,7 +7281,7 @@ function generateCaliforniaFormPage3(data: ApplicationPacketData): string {
 		  <p class="ca-sl2-option"><strong>(A)</strong> Name of Insured: <span class="ca-sl2-ul ca-sl2-ul-long">${insuredName}</span></p>
 		  <p class="ca-sl2-option"><strong>(B)</strong> Description of Risk: <span class="ca-sl2-ul ca-sl2-ul-long"></span></p>
 		  <p class="ca-sl2-hint">(e.g., Tattoo Parlor, Cannabis Dispensary, Vacant Building, <strong>NOT TYPE OF COVERAGE</strong>)</p>
-		  <p class="ca-sl2-option"><strong>(C)</strong> Type of Insurance or Coverage Code: <span class="ca-sl2-ul ca-sl2-ul-long">${coverageType}</span></p>
+		  <p class="ca-sl2-option"><strong>(C)</strong> Type of Insurance or Coverage Code: <span class="ca-sl2-ul ca-sl2-ul-long">${String(data.addExcessLiability) === 'true' ? 'General & Excess Liability' : data.quoteType}</span></p>
 		</div>
 	  </div>
 	  
@@ -7298,24 +7297,25 @@ function generateCaliforniaFormPage3(data: ApplicationPacketData): string {
 			  <div class="ca-sl2-table-cell ca-sl2-cell-header"><span>INSURER 3</span></div>
 			</div>
 			<div class="ca-sl2-table-row">
-			  <div class="ca-sl2-table-cell"><span class="ca-sl2-cell-label">NAIC ID</span><span class="ca-sl2-input"></span></div>
-			  <div class="ca-sl2-table-cell"><span class="ca-sl2-cell-label">NAIC ID</span><span class="ca-sl2-input"></span></div>
-			  <div class="ca-sl2-table-cell"><span class="ca-sl2-cell-label">NAIC ID</span><span class="ca-sl2-input"></span></div>
+			  <div class="ca-sl2-table-cell"><span class="ca-sl2-cell-label">NAIC ID</span><span class="ca-sl2-input">&nbsp;&nbsp;19046</span></div>
+			  <div class="ca-sl2-table-cell"><span class="ca-sl2-cell-label">NAIC ID</span><span class="ca-sl2-input">&nbsp;&nbsp;29424</span></div>
+			  <div class="ca-sl2-table-cell"><span class="ca-sl2-cell-label">NAIC ID</span><span class="ca-sl2-input">&nbsp;&nbsp;24740</span></div>
+			</div>
+			
+			<div class="ca-sl2-table-row">
+			  <div class="ca-sl2-table-cell"><span class="ca-sl2-cell-label">MONTH, YEAR OF DECLINATION</span><span class="ca-sl2-input">&nbsp;&nbsp;03/2026</span></div>
+			  <div class="ca-sl2-table-cell"><span class="ca-sl2-cell-label">MONTH, YEAR OF DECLINATION</span><span class="ca-sl2-input">&nbsp;&nbsp;03/2026</span></div>
+			  <div class="ca-sl2-table-cell"><span class="ca-sl2-cell-label">MONTH, YEAR OF DECLINATION</span><span class="ca-sl2-input">&nbsp;&nbsp;03/2026</span></div>
 			</div>
 			<div class="ca-sl2-table-row">
-			  <div class="ca-sl2-table-cell"><span class="ca-sl2-cell-label">MONTH, YEAR OF DECLINATION</span><span class="ca-sl2-input"></span></div>
-			  <div class="ca-sl2-table-cell"><span class="ca-sl2-cell-label">MONTH, YEAR OF DECLINATION</span><span class="ca-sl2-input"></span></div>
-			  <div class="ca-sl2-table-cell"><span class="ca-sl2-cell-label">MONTH, YEAR OF DECLINATION</span><span class="ca-sl2-input"></span></div>
+			  <div class="ca-sl2-table-cell"><span class="ca-sl2-cell-label">FULL NAME OF ADMITTED INSURER</span><span class="ca-sl2-input">&nbsp;&nbsp;Travelers Cas Ins Co of Amer</span></div>
+			  <div class="ca-sl2-table-cell"><span class="ca-sl2-cell-label">FULL NAME OF ADMITTED INSURER</span><span class="ca-sl2-input">&nbsp;&nbsp;Hartford Cas Ins Co</span></div>
+			  <div class="ca-sl2-table-cell"><span class="ca-sl2-cell-label">FULL NAME OF ADMITTED INSURER</span><span class="ca-sl2-input">&nbsp;&nbsp;Safeco Ins Co of Amer</span></div>
 			</div>
 			<div class="ca-sl2-table-row">
-			  <div class="ca-sl2-table-cell"><span class="ca-sl2-cell-label">FULL NAME OF ADMITTED INSURER</span><span class="ca-sl2-input"></span></div>
-			  <div class="ca-sl2-table-cell"><span class="ca-sl2-cell-label">FULL NAME OF ADMITTED INSURER</span><span class="ca-sl2-input"></span></div>
-			  <div class="ca-sl2-table-cell"><span class="ca-sl2-cell-label">FULL NAME OF ADMITTED INSURER</span><span class="ca-sl2-input"></span></div>
-			</div>
-			<div class="ca-sl2-table-row">
-			  <div class="ca-sl2-table-cell"><span class="ca-sl2-cell-label">CONTACT INFORMATION</span><span class="ca-sl2-input ca-sl2-input-sub">FULL NAME</span><span class="ca-sl2-input ca-sl2-input-sub">PHONE / EMAIL</span><span class="ca-sl2-input ca-sl2-input-sub">OR WEBSITE</span></div>
-			  <div class="ca-sl2-table-cell"><span class="ca-sl2-cell-label">CONTACT INFORMATION</span><span class="ca-sl2-input ca-sl2-input-sub">FULL NAME</span><span class="ca-sl2-input ca-sl2-input-sub">PHONE / EMAIL</span><span class="ca-sl2-input ca-sl2-input-sub">OR WEBSITE</span></div>
-			  <div class="ca-sl2-table-cell"><span class="ca-sl2-cell-label">CONTACT INFORMATION</span><span class="ca-sl2-input ca-sl2-input-sub">FULL NAME</span><span class="ca-sl2-input ca-sl2-input-sub">PHONE / EMAIL</span><span class="ca-sl2-input ca-sl2-input-sub">OR WEBSITE</span></div>
+			  <div class="ca-sl2-table-cell"><span class="ca-sl2-cell-label">CONTACT INFORMATION</span><span class="ca-sl2-input ca-sl2-input-sub">FULL NAME : Marry White </span><span class="ca-sl2-input ca-sl2-input-sub">PHONE / EMAIL : 761-859-2451 </span><span class="ca-sl2-input ca-sl2-input-sub">OR WEBSITE : www.travelers.com </span></div>
+			  <div class="ca-sl2-table-cell"><span class="ca-sl2-cell-label">CONTACT INFORMATION</span><span class="ca-sl2-input ca-sl2-input-sub">FULL NAME : Robert Harris </span><span class="ca-sl2-input ca-sl2-input-sub">PHONE / EMAIL : 894-216-7421 </span><span class="ca-sl2-input ca-sl2-input-sub">OR WEBSITE : www.thehartford.com </span></div>
+			  <div class="ca-sl2-table-cell"><span class="ca-sl2-cell-label">CONTACT INFORMATION</span><span class="ca-sl2-input ca-sl2-input-sub">FULL NAME : Marry White </span><span class="ca-sl2-input ca-sl2-input-sub">PHONE / EMAIL : 761-859-2451 </span><span class="ca-sl2-input ca-sl2-input-sub">OR WEBSITE : www.safeco.com </span></div>
 			</div>
 		  </div>
 		  <p class="ca-sl2-option"><strong>(B)</strong> If you did not list at least three insurers in 3(A) above, describe in detail how you determined that fewer than THREE admitted insurers write the type of insurance described on lines 2(B) and 2(C).</p>
@@ -10471,6 +10471,9 @@ const cssContent = `
 
 .signature-right{
   width:25%;
+}
+.date-with-margin {
+	margin-top: 0.17in;
 }
 
 .signature-value{

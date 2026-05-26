@@ -655,6 +655,13 @@ export default function AdminSubmissionDetailsPage() {
   const isQuoted = !isBound && submission?.status === "QUOTED";
   const isBindRequested = !isBound && submission?.status === "BIND_REQUESTED";
 
+  // ✅ BASE QUOTE URL — same logic as agency side
+  const baseQuoteUrl =
+    ["inland-marine", "contractors-equipment"].includes(submission?.programId || "") ||
+    ["Equipment", "Construction Equipment", "Contractors Equipment"].includes(submission?.programName || "")
+      ? "/agency/quote/contractors-equipment"
+      : `/agency/quote/${submission?.programId}`;
+
   const statusHistory = [
     {
       _id: submission._id + "-created",
@@ -1006,6 +1013,32 @@ export default function AdminSubmissionDetailsPage() {
                   })()}
                 </>
               )}
+              {/* ✅ VIEW — opens application form in read-only mode */}
+              <button
+                onClick={() =>
+                  window.open(
+                    `${baseQuoteUrl}?mode=view&id=${submission._id}`,
+                    "_blank"
+                  )
+                }
+                className={iscOutlineBtn}
+              >
+                View
+              </button>
+
+              {/* ✅ MODIFY — opens application form in edit mode */}
+              <button
+                onClick={() =>
+                  window.open(
+                    `${baseQuoteUrl}?mode=edit&id=${submission._id}`,
+                    "_blank"
+                  )
+                }
+                className={iscOutlineBtn}
+              >
+                Modify
+              </button>
+
               <button
                 onClick={() => window.open(`/api/admin/submissions/${submissionId}/pdf?quoteId=${currentQuote?._id || ""}`, "_blank")}
                 className={iscOutlineBtn}
