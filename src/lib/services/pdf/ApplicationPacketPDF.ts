@@ -5073,7 +5073,7 @@ function generateAcord125Page1(data: ApplicationPacketData): string {
 					<div class="pdf44_01" style="left:2.994em;top:34.6966em;"><span class="pdf44_15 pdf44_08 pdf44_09" style="word-spacing:0.0001em;">INTERNATIONAL PROPERTY EXPOSURE SUPPLEMENT &nbsp;</span></div>
 					<div class="pdf44_01" style="left:2.994em;top:35.6986em;"><span class="pdf44_15 pdf44_08 pdf44_09" style="word-spacing:0.0002em;">LOSS SUMMARY &nbsp;</span></div>
 					<div class="pdf44_01" style="left:1.794em;top:36.6851em;"><span class="pdf44_17 pdf44_08 pdf44_16" style="word-spacing:0.0001em;">POLICY INFORMATION &nbsp;</span></div>
-					<div class="pdf44_01" style="left:1.674em;top:37.7166em;"><span> <span class="pdf44_10 pdf44_11 pdf44_09" style="word-spacing:0.0001em;">PROPOSED EFF DATE </span> <br> <span class="avee22">&nbsp;&nbsp;&nbsp;&nbsp;${effDate} </span></span> <span> <span class="pdf44_10 pdf44_11 pdf44_09" style="word-spacing:0.5562em;">&nbsp;</span><span class="pdf44_10 pdf44_11 pdf44_09" style="word-spacing:0.0001em;"></span> <span class="avee22">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;${expDate} &nbsp;</span></span></div>
+					<div class="pdf44_01" style="left:1.674em;top:37.7166em;"><span> <span class="pdf44_10 pdf44_11 pdf44_09" style="word-spacing:0.0001em;">PROPOSED EFF DATE </span> <br> <span class="avee22">&nbsp;&nbsp;&nbsp;&nbsp;${data.effectiveDate || ''} </span></span> <span> <span class="pdf44_10 pdf44_11 pdf44_09" style="word-spacing:0.5562em;">&nbsp;</span><span class="pdf44_10 pdf44_11 pdf44_09" style="word-spacing:0.0001em;"></span> <span class="avee22">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;${data.expirationDate || ''} &nbsp;</span></span></div>
 
 					<div class="pdf44_01" style="left:1.674em;top:37.7166em;"><span class="pdf44_10 pdf44_11 pdf44_09" style="word-spacing:0.0001em;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span class="pdf44_10 pdf44_11 pdf44_09" style="word-spacing:0.5562em;">&nbsp;</span><span class="pdf44_10 pdf44_11 pdf44_09" style="word-spacing:0.0001em;">PROPOSED EXP DATE &nbsp;</span></div>
 					<div class="pdf44_01" style="left:40.884em;top:37.5066em;"><span class="pdf44_10 pdf44_11 pdf44_09">MINIMUM &nbsp;</span></div>
@@ -7740,11 +7740,13 @@ export function mapFormDataToPacketData(
 		? new Date(formData.effectiveDate).toLocaleDateString('en-US', { timeZone: 'UTC' })
 		: new Date().toLocaleDateString();
 
-	const coverageDates = formData.effectiveDate && formData.expirationDate
-		? `${new Date(formData.effectiveDate).toLocaleDateString('en-US', { timeZone: 'UTC' })} - ${new Date(formData.expirationDate).toLocaleDateString('en-US', { timeZone: 'UTC' })}`
-		: formData.effectiveDate
-			? `${new Date(formData.effectiveDate).toLocaleDateString('en-US', { timeZone: 'UTC' })} - ${new Date(new Date(formData.effectiveDate).setFullYear(new Date(formData.effectiveDate).getFullYear() + 1)).toLocaleDateString()}`
-			: '';
+	const effStr = quote?.effectiveDate || formData.effectiveDate || submission?.effectiveDate || submission?.createdAt;
+	const effDateObj = effStr ? new Date(effStr) : new Date();
+	const expStr = quote?.expirationDate || formData.expirationDate || submission?.expirationDate;
+	const expDateObj = expStr ? new Date(expStr) : new Date(new Date(effDateObj).setFullYear(effDateObj.getFullYear() + 1));
+	const formattedEff = effDateObj.toLocaleDateString("en-US", { timeZone: "UTC", month: "2-digit", day: "2-digit", year: "numeric" });
+	const formattedExp = expDateObj.toLocaleDateString("en-US", { timeZone: "UTC", month: "2-digit", day: "2-digit", year: "numeric" });
+	const coverageDates = `${formattedEff} - ${formattedExp}`;
 
 	// Format states of operation
 	const statesOfOperation = Array.isArray(formData.selectedStates)
@@ -7857,8 +7859,8 @@ export function mapFormDataToPacketData(
 		contactName: `${formData.firstName || ''} ${formData.lastName || ''}`.trim() || formData.contactPerson || '',
 		phone: formData.phone || '',
 		email: formData.email || '',
-		effectiveDate: formData.effectiveDate ? new Date(formData.effectiveDate).toLocaleDateString('en-US', { timeZone: 'UTC' }) : new Date().toLocaleDateString(),
-		expirationDate: formData.expirationDate ? new Date(formData.expirationDate).toLocaleDateString('en-US', { timeZone: 'UTC' }) : (formData.effectiveDate ? new Date(new Date(formData.effectiveDate).setFullYear(new Date(formData.effectiveDate).getFullYear() + 1)).toLocaleDateString() : ''),
+		effectiveDate: formattedEff,
+		expirationDate: formattedExp,
 		naics: formData.naics || '',
 		entityType: formData.entityType || '',
 		yearsInBusiness: formData.yearsInBusiness || 0,

@@ -564,7 +564,11 @@ function ApartmentBuildingsContent() {
 
             setTimeout(() => {
                 if (isEditMode && submissionId) {
-                    window.location.href = `/agency/submissions/${submissionId}?updated=true`;
+                    if ((session?.user as any)?.role === "system_admin") {
+                        window.location.href = `/admin/submissions/${submissionId}?updated=true`;
+                    } else {
+                        window.location.href = `/agency/submissions/${submissionId}?updated=true`;
+                    }
                 } else {
                     window.location.href = "/agency/dashboard?submitted=true";
                 }

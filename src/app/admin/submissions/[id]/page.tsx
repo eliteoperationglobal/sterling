@@ -1532,8 +1532,14 @@ export default function AdminSubmissionDetailsPage() {
                         {(currentQuote.fireMarshalTaxAmountUSD || 0) > 0 && (
                           <RatingRow label="Fire Marshal Tax (%)" value={formatCurrency(currentQuote.fireMarshalTaxAmountUSD || 0)} />
                         )}
-                        {(currentQuote.fireMarshalFlatFeeUSD || 0) > 0 && (submission?.clientContact?.businessAddress?.state === 'WA') && (
+                        {(currentQuote.fireMarshalFlatFeeUSD || 0) > 0 && (submission?.state === 'WA' || submission?.clientContact?.businessAddress?.state === 'WA' || submission?.state === 'Washington') && (
                           <RatingRow label="WA Flat Fee" value={formatCurrency(currentQuote.fireMarshalFlatFeeUSD || 0)} />
+                        )}
+                        {(currentQuote.stampingFeePerFilingUSD || 0) > 0 && (
+                          <RatingRow label="PA Flat Fee" value={formatCurrency(currentQuote.stampingFeePerFilingUSD || 0)} />
+                        )}
+                        {(currentQuote.slaServiceChargeUSD || 0) > 0 && (
+                          <RatingRow label="SLSC" value={formatCurrency(currentQuote.slaServiceChargeUSD || 0)} />
                         )}
                         <RatingRow label="Surplus Lines Policy Fee" value={formatCurrency(currentQuote.sterlingInsuranceServicesFeesUSD || 0)} />
                       </div>

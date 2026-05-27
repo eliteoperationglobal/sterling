@@ -111,6 +111,7 @@ export default function AdminQuotePage() {
   const [uploadError, setUploadError] = useState("");
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [customDocuments, setCustomDocuments] = useState<string[]>([""]);
+  const [hasExistingQuotes, setHasExistingQuotes] = useState(false);
 
   // Available endorsements
   const availableEndorsements = [
@@ -169,45 +170,47 @@ export default function AdminQuotePage() {
       const brokerFee = parseFloat(formData.brokerFee) || 0;
       setBrokerFeeFromForm(brokerFee);
 
-      // Get limits from form
-      if (formData.coverageLimits) {
-        const limitsStr = formData.coverageLimits;
-        setGeneralLiabilityLimit(limitsStr);
-        setAggregateLimit(limitsStr);
-      }
+      if (!hasExistingQuotes) {
+        // Get limits from form
+        if (formData.coverageLimits) {
+          const limitsStr = formData.coverageLimits;
+          setGeneralLiabilityLimit(limitsStr);
+          setAggregateLimit(limitsStr);
+        }
 
-      if (formData.excessLiabilityLimit) {
-        setExcessLimit(formData.excessLiabilityLimit);
-      }
-      // Fire Legal Limit and Medical Expense Limit may have dollar signs
-      if (formData.fireLegalLimit) {
-        const cleanValue = formData.fireLegalLimit.replace(/[$,]/g, '');
-        setFireLegalLimit(cleanValue);
-      }
-      if (formData.medicalExpenseLimit) {
-        const cleanValue = formData.medicalExpenseLimit.replace(/[$,]/g, '');
-        setMedicalExpenseLimit(cleanValue);
-      }
-      if (formData.deductible) {
-        const cleanValue = formData.deductible.replace(/[$,]/g, '');
-        setDeductible(cleanValue);
-      }
+        if (formData.excessLiabilityLimit) {
+          setExcessLimit(formData.excessLiabilityLimit);
+        }
+        // Fire Legal Limit and Medical Expense Limit may have dollar signs
+        if (formData.fireLegalLimit) {
+          const cleanValue = formData.fireLegalLimit.replace(/[$,]/g, '');
+          setFireLegalLimit(cleanValue);
+        }
+        if (formData.medicalExpenseLimit) {
+          const cleanValue = formData.medicalExpenseLimit.replace(/[$,]/g, '');
+          setMedicalExpenseLimit(cleanValue);
+        }
+        if (formData.deductible) {
+          const cleanValue = formData.deductible.replace(/[$,]/g, '');
+          setDeductible(cleanValue);
+        }
 
-      // Get endorsements from form
-      const formEndorsements: string[] = [];
-      if (formData.blanketAdditionalInsured) formEndorsements.push("Blanket Additional Insured");
-      if (formData.blanketWaiverOfSubrogation) formEndorsements.push("Blanket Waiver of Subrogation");
-      if (formData.blanketPrimaryWording) formEndorsements.push("Blanket Primary Wording");
-      if (formData.blanketPerProjectAggregate) formEndorsements.push("Blanket Per Project Aggregate");
-      if (formData.blanketCompletedOpsAggregate) formEndorsements.push("Blanket Completed Operations Aggregate");
-      if (formData.actsOfTerrorism) formEndorsements.push("Acts of Terrorism");
-      if (formData.noticeOfCancellationToThirdParties) formEndorsements.push("Notice of Cancellation to Third Parties");
+        // Get endorsements from form
+        const formEndorsements: string[] = [];
+        if (formData.blanketAdditionalInsured) formEndorsements.push("Blanket Additional Insured");
+        if (formData.blanketWaiverOfSubrogation) formEndorsements.push("Blanket Waiver of Subrogation");
+        if (formData.blanketPrimaryWording) formEndorsements.push("Blanket Primary Wording");
+        if (formData.blanketPerProjectAggregate) formEndorsements.push("Blanket Per Project Aggregate");
+        if (formData.blanketCompletedOpsAggregate) formEndorsements.push("Blanket Completed Operations Aggregate");
+        if (formData.actsOfTerrorism) formEndorsements.push("Acts of Terrorism");
+        if (formData.noticeOfCancellationToThirdParties) formEndorsements.push("Notice of Cancellation to Third Parties");
 
-      if (formEndorsements.length > 0) {
-        setSelectedEndorsements(formEndorsements);
+        if (formEndorsements.length > 0) {
+          setSelectedEndorsements(formEndorsements);
+        }
       }
     }
-  }, [submission]);
+  }, [submission, hasExistingQuotes]);
 
   // Apply renter-quote specific defaults when opened from "Renter Quote" action
   useEffect(() => {
@@ -248,6 +251,7 @@ export default function AdminQuotePage() {
 
       // ✅ Pre-populate form from existing quotes in DB
       if (subData.quotes && subData.quotes.length > 0) {
+        setHasExistingQuotes(true);
         const quoteToState = (q: any) => ({
           selectedCarrierId: q.carrierId?._id || q.carrierId || "",
           carrierQuoteUSD: q.carrierQuoteUSD?.toString() || "",

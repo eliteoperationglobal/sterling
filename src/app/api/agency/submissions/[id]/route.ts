@@ -174,22 +174,24 @@ export async function PATCH(
       );
     }
 
-    // Only agency users can update submissions
+    // Allow agency users and system admins to update submissions
     const userRole = (session.user as any).role;
-    if (userRole !== "agency_admin" && userRole !== "agency_user") {
+    const isAdmin = userRole === "system_admin";
+    if (userRole !== "agency_admin" && userRole !== "agency_user" && !isAdmin) {
       return NextResponse.json(
-        { error: "Forbidden - Agency access required" },
+        { error: "Forbidden - Access required" },
         { status: 403 }
       );
     }
 
     await connectDB();
 
-    // Find submission and verify agency ownership
-    const submission = await Submission.findOne({
-      _id: params.id,
-      agencyId: (session.user as any).agencyId,
-    });
+    // Find submission — admin can edit any submission, agency users only their own
+    const submission = await Submission.findOne(
+      isAdmin
+        ? { _id: params.id }
+        : { _id: params.id, agencyId: (session.user as any).agencyId }
+    );
     console.log("Current Submission Status:", submission.status);
 
     if (!submission) {

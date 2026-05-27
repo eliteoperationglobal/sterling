@@ -797,7 +797,15 @@ function ContractorsEquipmentContent() {
 
             setTimeout(() => {
                 router.refresh()
-                router.push("/agency/dashboard")
+                if (isEditMode && submissionId) {
+                    if ((session?.user as any)?.role === "system_admin") {
+                        router.push(`/admin/submissions/${submissionId}?updated=true`);
+                    } else {
+                        router.push(`/agency/submissions/${submissionId}?updated=true`);
+                    }
+                } else {
+                    router.push("/agency/dashboard")
+                }
             }, 1500)
 
         } catch (error: any) {
