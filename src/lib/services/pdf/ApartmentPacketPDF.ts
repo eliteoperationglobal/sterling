@@ -5692,11 +5692,11 @@ function generateInvoicePage(data: ApartmentPacketData): string {
 			<div class="invoice-field-page12">${data.submissionNumber}</div>
 		  </div>
 		  <div>
-			<strong>Sterling Insurance Services</strong>
-			<p>292 S La Cienega Blvd Ste 206<br>Beverly Hills CA 90211</p>
-			<p>(310) 492-2007</p>
-			<p>info@SterlingInsurancePartners.com</p>
-			<p>License Number: 6015632</p>
+			<div class="invoice-field-page12" style="font-weight: bold; max-width: 300px;">${data.agencyName}</div>
+			<div class="invoice-field-page12">${data.agencyAddress}</div>
+			<div class="invoice-field-page12">${data.agencyCity}, ${data.agencyState} ${data.agencyZip}</div>
+			<div class="invoice-field-page12">${data.agencyPhone}</div>
+			<div class="invoice-field-page12">${data.agencyEmail}</div>
 		  </div>
 		</div>
 		<div style="text-align: center;">
@@ -5820,6 +5820,13 @@ function generateInvoicePage(data: ApartmentPacketData): string {
 			<div class="invoice-label-page12">MAKE CHECK PAYABLE FOR finance company</div>
 			<div class="invoice-value-page12">${data.totalToFinanceCompany || '$0.00'}</div>
 		  </div>
+		</div>
+		<div style="text-align: center; margin-top: 62px;">
+			<strong style="font-size: 20px;">Sterling Insurance Services</strong>
+			<p>5455 Wilshire Blvd. #1816,<br>Los Angeles, CA 90036</p>
+			<p>(310) 492-2007</p>
+			<p>info@SterlingInsurancePartners.com</p>
+			<p>License Number: 6015632</p>
 		</div>
 	  </div>
 	</div>

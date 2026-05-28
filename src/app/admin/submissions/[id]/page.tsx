@@ -265,6 +265,26 @@ export default function AdminSubmissionDetailsPage() {
   const [ratingLoading, setRatingLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  const [paymentAuthModalOpen, setPaymentAuthModalOpen] = useState(false);
+  const [paymentAuthConfirmed, setPaymentAuthConfirmed] = useState(false);
+  const [paymentAuthData, setPaymentAuthData] = useState({
+    premiumAmount: "",
+    processingFee: 0,
+    totalDue: 0
+  });
+
+  const handlePremiumChange = (value: string) => {
+    const amount = parseFloat(value) || 0;
+    const fee = amount * 0.03;
+    const total = amount + fee;
+    setPaymentAuthData((prev) => ({
+      ...prev,
+      premiumAmount: value,
+      processingFee: fee,
+      totalDue: total
+    }));
+  };
+
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -350,14 +370,14 @@ export default function AdminSubmissionDetailsPage() {
   useEffect(() => {
     if (data) {
       let types: string[] = [];
-      
+
       // Derive available policies from ALL quotes across ALL carriers
       if (data?.quotes?.length) {
         types = Array.from(new Set(data.quotes.map((q: any) => q.policyType || "GENERAL_LIABILITY")));
       } else {
         types = ["GENERAL_LIABILITY"];
       }
-      
+
       // Also add from payload if excess was requested
       if (data?.submission?.payload?.addExcessLiability || data?.submission?.payload?.addGeneralLiability) {
         if (!types.includes("EXCESS_LIABILITY")) types.push("EXCESS_LIABILITY");
@@ -367,7 +387,7 @@ export default function AdminSubmissionDetailsPage() {
 
       // Fix the "jumping buttons" issue by ensuring a consistent order
       types.sort((a, b) => (a === "GENERAL_LIABILITY" ? -1 : 1));
-      
+
       setAvailablePolicies(types as string[]);
 
       // Auto-switch if current policy type is not available
@@ -376,21 +396,21 @@ export default function AdminSubmissionDetailsPage() {
       }
     }
   }, [data, data?.submission?.programId, data?.submission?.programName]);
-  
+
   // Auto-switch carrier when policy type changes if current carrier has no quote for it
   useEffect(() => {
     if (carrierGroups.length > 0 && currentPolicyType) {
       const currentGroup = carrierGroups.find(g => g.carrierId === selectedCarrierId);
-      const hasQuote = currentGroup?.quotes.some(q => 
-        q.policyType === currentPolicyType || 
+      const hasQuote = currentGroup?.quotes.some(q =>
+        q.policyType === currentPolicyType ||
         (!q.policyType && currentPolicyType === "GENERAL_LIABILITY")
       );
 
       if (!hasQuote) {
         // Find first carrier that DOES have a quote for this policy type
-        const alternativeGroup = carrierGroups.find(g => 
-          g.quotes.some(q => 
-            q.policyType === currentPolicyType || 
+        const alternativeGroup = carrierGroups.find(g =>
+          g.quotes.some(q =>
+            q.policyType === currentPolicyType ||
             (!q.policyType && currentPolicyType === "GENERAL_LIABILITY")
           )
         );
@@ -658,7 +678,7 @@ export default function AdminSubmissionDetailsPage() {
   // ✅ BASE QUOTE URL — same logic as agency side
   const baseQuoteUrl =
     ["inland-marine", "contractors-equipment"].includes(submission?.programId || "") ||
-    ["Equipment", "Construction Equipment", "Contractors Equipment"].includes(submission?.programName || "")
+      ["Equipment", "Construction Equipment", "Contractors Equipment"].includes(submission?.programName || "")
       ? "/agency/quote/contractors-equipment"
       : `/agency/quote/${submission?.programId}`;
 
@@ -695,11 +715,81 @@ export default function AdminSubmissionDetailsPage() {
   return (
     <div className="min-h-screen bg-[#f5f1eb]">
       <MobileNav isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} />
+
+      {/* Payment Auth Modal */}
+      {paymentAuthModalOpen && (
+        <div className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm overflow-y-auto">
+          <div className="min-h-full flex items-start md:items-center justify-center p-4 md:p-10">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl p-5 md:p-8 animate-in fade-in zoom-in duration-200 my-auto">
+              <div className="flex justify-between items-center mb-6 md:mb-8">
+                <h3 className="text-xl md:text-2xl font-bold text-gray-900">Payment Authorization</h3>
+                <button
+                  onClick={() => setPaymentAuthModalOpen(false)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <CloseIcon className="w-6 h-6" />
+                </button>
+              </div>
+
+              {/* Top Summary Boxes */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
+                <div className="bg-[#f8fafc] border border-[#e2e8f0] rounded-xl p-6 shadow-sm">
+                  <p className="text-[11px] font-bold text-[#64748b] uppercase tracking-wider mb-3">Premium Amount</p>
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl font-bold text-[#1e293b]">$</span>
+                    <input
+                      type="number"
+                      value={paymentAuthData.premiumAmount}
+                      onChange={(e) => handlePremiumChange(e.target.value)}
+                      placeholder="0.00"
+                      className="w-full bg-transparent text-2xl font-bold text-[#1e293b] outline-none border-none p-0 focus:ring-0"
+                    />
+                  </div>
+                </div>
+
+                <div className="bg-[#f8fafc] border border-[#e2e8f0] rounded-xl p-6 shadow-sm relative">
+                  <p className="text-[11px] font-bold text-[#64748b] uppercase tracking-wider mb-3">3% Processing Fee</p>
+                  <div className="text-2xl font-bold text-[#1e293b]">
+                    ${paymentAuthData.processingFee.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </div>
+                </div>
+
+                <div className="bg-[#f8fafc] border border-[#e2e8f0] rounded-xl p-6 shadow-sm">
+                  <p className="text-[11px] font-bold text-[#64748b] uppercase tracking-wider mb-3">Total Amount Due</p>
+                  <div className="text-2xl font-bold text-[#1e293b]">
+                    ${paymentAuthData.totalDue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3 mt-10">
+                <button
+                  onClick={() => setPaymentAuthModalOpen(false)}
+                  className="px-8 py-3 text-sm font-bold text-gray-500 hover:text-gray-700 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    toast.success("Payment authorized successfully!");
+                    setPaymentAuthConfirmed(true);
+                    setPaymentAuthModalOpen(false);
+                  }}
+                  className={iscPrimaryBtn}
+                >
+                  Confirm Authorization
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <header className="bg-white/80 backdrop-blur-xl border-b border-[#e5ddd5] sticky top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
             <div className="flex items-center gap-4 md:gap-10">
-              <button 
+              <button
                 onClick={() => setIsMobileMenuOpen(true)}
                 className="lg:hidden p-2 -ml-2 rounded-lg hover:bg-gray-100 transition-colors"
               >
@@ -801,12 +891,11 @@ export default function AdminSubmissionDetailsPage() {
                 <h1 className="flex items-center gap-3 text-[24px] font-semibold text-gray-900 leading-tight">
                   <div>
                     {(submission?.clientContact?.name || "???")}
-                    <span className={`ml-3 inline-flex items-center rounded-md px-3 py-[4px] text-[13px] font-bold border transition-all ${
-                      (() => {
-                        const isBound = submission?.status === "BOUND" || (quotes || []).some((q: any) => q.status === "BOUND");
-                        return isBound ? "bg-green-100 text-green-700 border-green-200" : "bg-gray-100 text-gray-700 border-gray-200";
-                      })()
-                    }`}>
+                    <span className={`ml-3 inline-flex items-center rounded-md px-3 py-[4px] text-[13px] font-bold border transition-all ${(() => {
+                      const isBound = submission?.status === "BOUND" || (quotes || []).some((q: any) => q.status === "BOUND");
+                      return isBound ? "bg-green-100 text-green-700 border-green-200" : "bg-gray-100 text-gray-700 border-gray-200";
+                    })()
+                      }`}>
                       {(() => {
                         const isBound = submission?.status === "BOUND" || (quotes || []).some((q: any) => q.status === "BOUND");
                         return isBound ? "BOUND" : (submission?.status || "").replace(/_/g, " ");
@@ -819,10 +908,10 @@ export default function AdminSubmissionDetailsPage() {
                       const hasBoundExcessQuote = quotes?.some((q: any) => q.policyType === "EXCESS_LIABILITY" && q.status === "BOUND");
                       return hasExcessInPayload && !hasBoundExcessQuote;
                     })()) && (
-                      <span className="ml-2 inline-flex items-center rounded-md bg-rose-100 px-3 py-[4px] text-[13px] font-bold text-rose-700 border border-rose-200 animate-pulse">
-                        MODIFIED
-                      </span>
-                    )}
+                        <span className="ml-2 inline-flex items-center rounded-md bg-rose-100 px-3 py-[4px] text-[13px] font-bold text-rose-700 border border-rose-200 animate-pulse">
+                          MODIFIED
+                        </span>
+                      )}
                   </div>
                 </h1>
 
@@ -922,12 +1011,29 @@ export default function AdminSubmissionDetailsPage() {
 
             <div className="flex items-center gap-3">
               {submission.status !== "SUBMITTED" && submission.status !== "BOUND" && (
-                <button
-                  onClick={() => window.open(`/api/admin/submissions/${submissionId}/proposal?quoteId=${currentQuote?._id || ""}`, "_blank")}
-                  className={iscOutlineBtn}
-                >
-                  Proposal
-                </button>
+                <>
+                  <button
+                    onClick={() => {
+                      if (paymentAuthConfirmed) {
+                        window.open(
+                          `/api/admin/submissions/${submissionId}/payment-auth?quoteId=${currentQuote?._id || ''}&premiumAmount=${paymentAuthData.premiumAmount || 0}&processingFee=${paymentAuthData.processingFee || 0}&totalDue=${paymentAuthData.totalDue || 0}`,
+                          "_blank"
+                        );
+                      } else {
+                        setPaymentAuthModalOpen(true);
+                      }
+                    }}
+                    className={iscOutlineBtn}
+                  >
+                    Payment Auth
+                  </button>
+                  <button
+                    onClick={() => window.open(`/api/admin/submissions/${submissionId}/proposal?quoteId=${currentQuote?._id || ""}`, "_blank")}
+                    className={iscOutlineBtn}
+                  >
+                    Proposal
+                  </button>
+                </>
               )}
               {submission.status !== "SUBMITTED" && (
                 <button
@@ -960,16 +1066,16 @@ export default function AdminSubmissionDetailsPage() {
                     const hasBoundExcessQuote = quotes?.some(q => q.policyType === "EXCESS_LIABILITY" && q.status === "BOUND");
                     return hasExcessInPayload && !hasBoundExcessQuote;
                   })()) && (
-                    <button
-                      onClick={() => window.open(`/admin/submissions/${submissionId}/quote`, "_blank")}
-                      className="h-[42px] px-6 rounded-md text-sm font-bold bg-rose-600 text-white transition-all duration-200 hover:bg-rose-700 shadow-lg shadow-rose-200 flex items-center gap-2"
-                    >
-                      <svg className="w-4 h-4 font-bold" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                      </svg>
-                      Re-enter Quote
-                    </button>
-                  )}
+                      <button
+                        onClick={() => window.open(`/admin/submissions/${submissionId}/quote`, "_blank")}
+                        className="h-[42px] px-6 rounded-md text-sm font-bold bg-rose-600 text-white transition-all duration-200 hover:bg-rose-700 shadow-lg shadow-rose-200 flex items-center gap-2"
+                      >
+                        <svg className="w-4 h-4 font-bold" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                        Re-enter Quote
+                      </button>
+                    )}
                   {(() => {
                     let binderUrl = currentQuote?.binderUrl;
                     let policyDocsUrl = currentQuote?.policyDocsUrl;
@@ -1087,19 +1193,19 @@ export default function AdminSubmissionDetailsPage() {
             </div>
             <div>
               <p className="text-gray-500 mb-1 leading-tight">
-                {submission.programId === 'apartment-buildings' ? 'Total Insured Value (TIV):' : 
-                 submission.programId === 'contractors-equipment' ? 'Total Equipment Value:' : 'Estimated Gross Receipts:'}
+                {submission.programId === 'apartment-buildings' ? 'Total Insured Value (TIV):' :
+                  submission.programId === 'contractors-equipment' ? 'Total Equipment Value:' : 'Estimated Gross Receipts:'}
               </p>
               <p className="font-semibold text-gray-900">
-                {submission.programId === 'apartment-buildings' 
+                {submission.programId === 'apartment-buildings'
                   ? (submission?.payload?.propertyOccupancy?.totalInsuredValue ? `$${Number(String(submission.payload.propertyOccupancy.totalInsuredValue).replace(/[^0-9.]/g, '')).toLocaleString()}` : "—")
                   : submission.programId === 'contractors-equipment'
-                  ? (() => {
+                    ? (() => {
                       const h = Number(String(submission?.payload?.heavyLimit || 0).replace(/[^0-9.]/g, ''));
                       const l = Number(String(submission?.payload?.lightMedLimit || 0).replace(/[^0-9.]/g, ''));
                       return (h + l) > 0 ? `$${(h + l).toLocaleString()}` : "—";
                     })()
-                  : (submission?.payload?.estimatedGrossReceipts ? `$${Number(String(submission.payload.estimatedGrossReceipts).replace(/[^0-9.]/g, '')).toLocaleString()}` : "—")
+                    : (submission?.payload?.estimatedGrossReceipts ? `$${Number(String(submission.payload.estimatedGrossReceipts).replace(/[^0-9.]/g, '')).toLocaleString()}` : "—")
                 }
               </p>
             </div>
@@ -1144,10 +1250,10 @@ export default function AdminSubmissionDetailsPage() {
                   handleFileUpload(file);
                 }
               }}
-              className={`relative group cursor-pointer transition-all duration-300 ${isDragging 
-                ? "border-[#9A8B7A] bg-[#9A8B7A]/5" 
+              className={`relative group cursor-pointer transition-all duration-300 ${isDragging
+                ? "border-[#9A8B7A] bg-[#9A8B7A]/5"
                 : "border-gray-200 hover:border-[#9A8B7A] bg-gray-50 hover:bg-white"
-              } border-2 border-dashed rounded-xl p-8 text-center mb-6`}
+                } border-2 border-dashed rounded-xl p-8 text-center mb-6`}
               onClick={() => document.getElementById('admin-file-upload')?.click()}
             >
               <input
@@ -1194,7 +1300,10 @@ export default function AdminSubmissionDetailsPage() {
                 <div key={index} className="px-4 py-3 grid grid-cols-3 items-center text-[14px] border border-t-0 border-gray-200">
                   <span className="font-medium text-gray-900 truncate pr-4">{file.fileName}</span>
                   <span className="text-gray-500">{file.uploadedAt ? new Date(file.uploadedAt).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) : new Date().toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}</span>
-                  <a href={`/api/download?url=${encodeURIComponent(file.fileUrl)}`} download={file.fileName} className="text-[#9A8B7A] hover:text-[#7A6F64] font-medium hover:underline transition-colors">Download</a>
+                  <div className="flex items-center gap-4">
+                    <a href={`/api/download?url=${encodeURIComponent(file.fileUrl)}`} download={file.fileName} className="text-[#9A8B7A] hover:text-[#7A6F64] font-medium hover:underline transition-colors">Download</a>
+                    <a href={`/api/download?url=${encodeURIComponent(file.fileUrl)}&view=true`} target="_blank" rel="noopener noreferrer" className="text-[#9A8B7A] hover:text-[#7A6F64] font-medium hover:underline transition-colors">View</a>
+                  </div>
                 </div>
               ))
             )}
@@ -1505,9 +1614,9 @@ export default function AdminSubmissionDetailsPage() {
                     <p className="text-gray-500 font-medium">No quote entered yet for</p>
                     <p className="text-gray-900 font-bold mt-1">
                       {currentPolicyType === "GENERAL_LIABILITY"
-                      ? (submission?.programId === 'apartment-buildings' || submission?.programName === 'Commercial Property' || submission?.programName === 'Apartment Building' ? "Property" : "General Liability")
-                      : (submission?.programId === 'apartment-buildings' || submission?.programName === 'Commercial Property' || submission?.programName === 'Apartment Building' ? "General Liability" : "Excess Liability")
-                    }
+                        ? (submission?.programId === 'apartment-buildings' || submission?.programName === 'Commercial Property' || submission?.programName === 'Apartment Building' ? "Property" : "General Liability")
+                        : (submission?.programId === 'apartment-buildings' || submission?.programName === 'Commercial Property' || submission?.programName === 'Apartment Building' ? "General Liability" : "Excess Liability")
+                      }
                     </p>
                   </div>
                 ) : (

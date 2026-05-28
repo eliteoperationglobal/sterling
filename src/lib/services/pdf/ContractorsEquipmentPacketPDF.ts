@@ -3367,11 +3367,11 @@ function generateInvoicePage(data: ContractorsPacketData): string {
 			<div class="invoice-field-page12">${data.submissionNumber || data.applicationId}</div>
 		  </div>
 		  <div>
-			<strong>Sterling Insurance Services</strong>
-			<p>292 S La Cienega Blvd Ste 206<br>Beverly Hills CA 90211</p>
-			<p>(310) 492-2007</p>
-			<p>info@SterlingInsurancePartners.com</p>
-			<p>License Number: 6015632</p>
+			<div class="invoice-field-page12" style="font-weight: bold; max-width: 300px;">${data.agencyName}</div>
+			<div class="invoice-field-page12">${data.agencyAddress}</div>
+			<div class="invoice-field-page12">${data.agencyCity}, ${data.agencyState} ${data.agencyZip}</div>
+			<div class="invoice-field-page12">${data.agencyPhone}</div>
+			<div class="invoice-field-page12">${data.agencyEmail}</div>
 		  </div>
 		</div>
 		<div style="text-align: center;">
@@ -3489,6 +3489,13 @@ function generateInvoicePage(data: ContractorsPacketData): string {
 			<div class="invoice-value-page12">${data.totalToFinanceCompany || '$0.00'}</div>
 		  </div>
 		</div>
+		<div style="text-align: center; margin-top: 62px;">
+			<strong style="font-size: 20px;">Sterling Insurance Services</strong>
+			<p>5455 Wilshire Blvd. #1816,<br>Los Angeles, CA 90036</p>
+			<p>(310) 492-2007</p>
+			<p>info@SterlingInsurancePartners.com</p>
+			<p>License Number: 6015632</p>
+		</div>
 	  </div>
 	</div>
 	`;
@@ -3499,10 +3506,10 @@ function generateInvoicePage(data: ContractorsPacketData): string {
  * Format Yes/No with underlined text selections - Standard Horizontal
  */
 function renderYesNo(label: string, value: boolean | null | undefined, explanation?: string): string {
-    const isYes = value === true;
-    const isNo = value === false;
+	const isYes = value === true;
+	const isNo = value === false;
 
-    return `
+	return `
         <div class="question-row">
             <div class="question-text">${label}</div>
             <div class="yes-no-options">
@@ -3520,8 +3527,8 @@ function renderYesNo(label: string, value: boolean | null | undefined, explanati
  * Format Standard Field (Label: Value) - Standard Horizontal
  */
 function renderField(label: string, value: string | number | undefined, options: { width?: string } = {}): string {
-    const width = options.width || "100%";
-    return `
+	const width = options.width || "100%";
+	return `
         <div class="field-item" style="width: ${width};">
             <span class="field-label">${label}:</span>
             <span class="field-value">${value || '-'}</span>
@@ -3533,7 +3540,7 @@ function renderField(label: string, value: string | number | undefined, options:
  * Format Signature Row with Underline
  */
 function renderSignatureRow(label: string, value: string = "", width: string = '100%', className: string = ''): string {
-    return `
+	return `
         <div class="signature-row ${className}" style="width: ${width};">
             <span class="signature-label">${label}</span>
             <span class="signature-underline">${value || '&nbsp;'}</span>
@@ -3546,42 +3553,42 @@ function renderSignatureRow(label: string, value: string = "", width: string = '
  * Generate CapitalCo Logo HTML based on carrier or default
  */
 function generateCapitalCoLogoHTML(svgContent?: string, logoSize: string = '100%'): string {
-    if (svgContent) {
-        let optimizedSVG = svgContent
-            .replace(/<\?xml[^>]*\?>/g, '')
-            .replace(/<!--[\s\S]*?-->/g, '')
-            .replace(/\s+/g, ' ')
-            .replace(/>\s+</g, '><')
-            .trim();
+	if (svgContent) {
+		let optimizedSVG = svgContent
+			.replace(/<\?xml[^>]*\?>/g, '')
+			.replace(/<!--[\s\S]*?-->/g, '')
+			.replace(/\s+/g, ' ')
+			.replace(/>\s+</g, '><')
+			.trim();
 
-        const viewBoxMatch = optimizedSVG.match(/viewBox=["']([^"']+)["']/);
-        const viewBox = viewBoxMatch ? viewBoxMatch[1] : '0 0 100 120';
+		const viewBoxMatch = optimizedSVG.match(/viewBox=["']([^"']+)["']/);
+		const viewBox = viewBoxMatch ? viewBoxMatch[1] : '0 0 100 120';
 
-        return `<svg viewBox="${viewBox}" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:${logoSize};height:auto;" preserveAspectRatio="xMidYMid meet">
+		return `<svg viewBox="${viewBox}" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:${logoSize};height:auto;" preserveAspectRatio="xMidYMid meet">
                 ${optimizedSVG.replace(/<svg[^>]*>/, '').replace(/<\/svg>/, '')}
             </svg>`;
-    }
-    // Fallback hands logo to match Apartment reference
-    return `<svg viewBox="0 0 100 120" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:${logoSize};height:auto;"><defs><linearGradient id="handsGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#7dd3fc" stop-opacity="0.95"/><stop offset="50%" stop-color="#60a5fa" stop-opacity="0.9"/><stop offset="100%" stop-color="#3b82f6" stop-opacity="0.85"/></linearGradient></defs><path d="M30 15 Q35 10 45 12 Q55 14 60 20 Q65 28 62 38 Q60 45 55 50 Q50 52 45 50 Q40 48 38 45 Q35 40 35 35 Q33 28 35 22 Q32 18 30 15 Z" fill="url(#handsGradient)"/><path d="M70 15 Q65 10 55 12 Q45 14 40 20 Q35 28 38 38 Q40 45 45 50 Q50 52 55 50 Q60 48 62 45 Q65 40 65 35 Q67 28 65 22 Q68 18 70 15 Z" fill="url(#handsGradient)"/><ellipse cx="50" cy="45" rx="12" ry="8" fill="url(#handsGradient)" opacity="0.4"/></svg>`;
+	}
+	// Fallback hands logo to match Apartment reference
+	return `<svg viewBox="0 0 100 120" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:${logoSize};height:auto;"><defs><linearGradient id="handsGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#7dd3fc" stop-opacity="0.95"/><stop offset="50%" stop-color="#60a5fa" stop-opacity="0.9"/><stop offset="100%" stop-color="#3b82f6" stop-opacity="0.85"/></linearGradient></defs><path d="M30 15 Q35 10 45 12 Q55 14 60 20 Q65 28 62 38 Q60 45 55 50 Q50 52 45 50 Q40 48 38 45 Q35 40 35 35 Q33 28 35 22 Q32 18 30 15 Z" fill="url(#handsGradient)"/><path d="M70 15 Q65 10 55 12 Q45 14 40 20 Q35 28 38 38 Q40 45 45 50 Q50 52 55 50 Q60 48 62 45 Q65 40 65 35 Q67 28 65 22 Q68 18 70 15 Z" fill="url(#handsGradient)"/><ellipse cx="50" cy="45" rx="12" ry="8" fill="url(#handsGradient)" opacity="0.4"/></svg>`;
 }
 
 function generatePage1(data: ContractorsPacketData): string {
-    const email = data.agencyEmail?.toLowerCase() || "";
-    let selectedLogo = data.capitalCoLogoSVG;
+	const email = data.agencyEmail?.toLowerCase() || "";
+	let selectedLogo = data.capitalCoLogoSVG;
 
-    if (email === "max@blueangelins.com") {
-        selectedLogo = blueAngelLogoSVG;
-    }
-    if (email === "office@sjinsuranceservices.com") {
-        selectedLogo = sjjLogoSVG;
-    }
-    if (email === "patrick@patrickariasinsurance.com") {
-        selectedLogo = patrickAriasLogoSVG;
-    }
+	if (email === "max@blueangelins.com") {
+		selectedLogo = blueAngelLogoSVG;
+	}
+	if (email === "office@sjinsuranceservices.com") {
+		selectedLogo = sjjLogoSVG;
+	}
+	if (email === "patrick@patrickariasinsurance.com") {
+		selectedLogo = patrickAriasLogoSVG;
+	}
 
-    const logoSize = email === "patrick@patrickariasinsurance.com" ? "60%" : "100%";
+	const logoSize = email === "patrick@patrickariasinsurance.com" ? "60%" : "100%";
 
-    return `
+	return `
         <div class="page page2-isc">
             <div class="main-content main-content-page2">
                 <!-- Top Agency + Logo -->
@@ -3674,12 +3681,12 @@ function generatePage1(data: ContractorsPacketData): string {
                     <div class="section-header">3. MAILING INFORMATION</div>
                     <hr class="section-divider" />
                     ${data.sameAsMailing ?
-            `<div style="font-style: italic; color: #6B7280; font-size: 9.5pt; padding: 5px 0;">Mailing Address: Same as Physical Address</div>` :
-            `
+			`<div style="font-style: italic; color: #6B7280; font-size: 9.5pt; padding: 5px 0;">Mailing Address: Same as Physical Address</div>` :
+			`
                         ${renderField("Mailing Address", `${data.mailAddress} ${data.mailApt || ""}`)}
                         ${renderField("City, State, Zip", `${data.mailCity}, ${data.mailState} ${data.mailZip}`)}
                         `
-        }
+		}
                 </div>
 
 
@@ -3690,7 +3697,7 @@ function generatePage1(data: ContractorsPacketData): string {
 
 
 function generatePage2(data: ContractorsPacketData): string {
-    return `
+	return `
         <div class="page page2-isc">
             <div class="main-content main-content-page2">
                 <div class="section-container" style="margin-top: 0;">
@@ -3751,9 +3758,9 @@ function generatePage2(data: ContractorsPacketData): string {
 
 
 function generatePage3(data: ContractorsPacketData): string {
-    const renderTable = (items: EquipmentItem[]) => {
-        if (!items || items.length === 0) return '<div class="explanation-text" style="background: transparent; border: none; padding: 10px 0; font-style: italic;">No items scheduled for this category.</div>';
-        return `
+	const renderTable = (items: EquipmentItem[]) => {
+		if (!items || items.length === 0) return '<div class="explanation-text" style="background: transparent; border: none; padding: 10px 0; font-style: italic;">No items scheduled for this category.</div>';
+		return `
             <table>
                 <thead>
                     <tr>
@@ -3777,9 +3784,9 @@ function generatePage3(data: ContractorsPacketData): string {
                 </tbody>
             </table>
         `;
-    };
+	};
 
-    return `
+	return `
         <div class="page page2-isc">
             <div class="main-content main-content-page2">
                 <div class="section-container" style="margin-top: 0;">
@@ -4221,7 +4228,7 @@ const cssContent = `
 ;
 
 export function generateContractorsPacketHTML(data: ContractorsPacketData): string {
-    return `
+	return `
         <!DOCTYPE html>
         <html>
         <head>
@@ -4238,7 +4245,7 @@ export function generateContractorsPacketHTML(data: ContractorsPacketData): stri
 }
 
 export function generateContractorsProposalHTML(data: ContractorsPacketData): string {
-    return `
+	return `
         <!DOCTYPE html>
         <html>
         <head>
@@ -4253,7 +4260,7 @@ export function generateContractorsProposalHTML(data: ContractorsPacketData): st
 }
 
 export function generateContractorsInvoiceHTML(data: ContractorsPacketData): string {
-    return `
+	return `
         <!DOCTYPE html>
         <html>
         <head>

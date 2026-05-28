@@ -29,6 +29,7 @@ export default function AdminQuoteRequestsPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [submissions, setSubmissions] = useState<QuoteRequestSubmission[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -74,6 +75,15 @@ export default function AdminQuoteRequestsPage() {
       setLoading(false);
     }
   };
+  
+  const filteredSubmissions = submissions.filter((sub) => {
+    if (!searchQuery) return true;
+    const q = searchQuery.toLowerCase().trim();
+    const agencyName = String(sub.agencyId?.name || "").toLowerCase();
+    const clientName = String(sub.clientContact?.name || "").toLowerCase();
+    const appId = String(sub.submissionNumber || (sub._id ? sub._id.slice(-8) : "")).toLowerCase();
+    return agencyName.includes(q) || appId.includes(q) || clientName.includes(q);
+  });
 
   if (loading) {
     return (
@@ -98,68 +108,68 @@ export default function AdminQuoteRequestsPage() {
           <div className="flex flex-col lg:flex-row lg:items-center justify-between py-4 lg:py-0 lg:h-16 gap-4 lg:gap-0">
             <div className="flex items-center justify-between w-full lg:w-auto">
               <div className="flex items-center gap-4 md:gap-10">
-                <button 
+                <button
                   onClick={() => setIsMobileMenuOpen(true)}
                   className="lg:hidden p-2 -ml-2 rounded-lg hover:bg-gray-100 transition-colors"
                 >
                   <Menu className="w-6 h-6 text-[#9A8B7A]" />
                 </button>
-              <Link href="/admin/dashboard" className="flex items-center gap-4 group">
-                <div className="relative">
-                  <div className="absolute inset-0 bg-gradient-to-br from-rose-500 via-pink-500 to-orange-500 rounded-2xl blur-md opacity-50 group-hover:opacity-75 animate-pulse transition-all duration-500"></div>
-                  <div className="relative w-12 h-12 bg-gradient-to-br from-rose-600 via-rose-700 to-pink-700 rounded-2xl flex items-center justify-center shadow-2xl shadow-rose-600/40 group-hover:shadow-rose-600/60 transition-all duration-500 group-hover:scale-110 group-hover:rotate-3">
-                    <div className="absolute inset-1 bg-gradient-to-br from-white/20 to-transparent rounded-xl"></div>
-                    <div className="relative">
-                      <span className="text-white font-black text-lg tracking-tighter drop-shadow-lg">SP</span>
+                <Link href="/admin/dashboard" className="flex items-center gap-4 group">
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-gradient-to-br from-rose-500 via-pink-500 to-orange-500 rounded-2xl blur-md opacity-50 group-hover:opacity-75 animate-pulse transition-all duration-500"></div>
+                    <div className="relative w-12 h-12 bg-gradient-to-br from-rose-600 via-rose-700 to-pink-700 rounded-2xl flex items-center justify-center shadow-2xl shadow-rose-600/40 group-hover:shadow-rose-600/60 transition-all duration-500 group-hover:scale-110 group-hover:rotate-3">
+                      <div className="absolute inset-1 bg-gradient-to-br from-white/20 to-transparent rounded-xl"></div>
+                      <div className="relative">
+                        <span className="text-white font-black text-lg tracking-tighter drop-shadow-lg">SP</span>
+                      </div>
+                      <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-yellow-300 rounded-full opacity-0 group-hover:opacity-100 animate-ping"></div>
+                      <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-yellow-400 rounded-full opacity-0 group-hover:opacity-100"></div>
                     </div>
-                    <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-yellow-300 rounded-full opacity-0 group-hover:opacity-100 animate-ping"></div>
-                    <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-yellow-400 rounded-full opacity-0 group-hover:opacity-100"></div>
-                  </div>
-                  <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full flex items-center justify-center shadow-lg border-2 border-white">
-                    <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                    </svg>
-                  </div>
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-gray-900 font-bold text-lg tracking-tight bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text">Sterling Portal</span>
-                    <div className="px-2 py-0.5 bg-gradient-to-r from-rose-50 to-pink-50 border border-rose-200 rounded-md">
-                      <span className="text-[10px] font-black text-rose-600 tracking-wider">ADMIN</span>
+                    <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full flex items-center justify-center shadow-lg border-2 border-white">
+                      <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                      </svg>
                     </div>
                   </div>
-                  <p className="text-xs text-gray-500 font-semibold -mt-0.5 tracking-wide">Control Center</p>
-                </div>
-              </Link>
-              <nav className="hidden lg:flex items-center gap-1">
-                <Link href="/admin/dashboard" className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition">
-                  Dashboard
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-900 font-bold text-lg tracking-tight bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text">Sterling Portal</span>
+                      <div className="px-2 py-0.5 bg-gradient-to-r from-rose-50 to-pink-50 border border-rose-200 rounded-md">
+                        <span className="text-[10px] font-black text-rose-600 tracking-wider">ADMIN</span>
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-500 font-semibold -mt-0.5 tracking-wide">Control Center</p>
+                  </div>
                 </Link>
-                <Link href="/admin/quotes" className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition">
-                  Quotes
-                </Link>
-                <Link href="/admin/quote-requests" className="relative px-4 py-2 text-sm font-semibold text-[#9A8B7A]">
-                  Quote Request
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#9A8B7A] rounded-full"></div>
-                  {pendingCount > 0 && (
-                    <span className="absolute -top-1 -right-1 inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-[#9A8B7A] rounded-full shadow-lg animate-pulse">
-                      {pendingCount}
-                    </span>
-                  )}
-                </Link>
-                <Link href="/admin/bind-requests" className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition">
-                  Bind Requests
-                </Link>
-                <Link href="/admin/bound-policies" className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition">
-                  Policies
-                </Link>
-                <Link href="/admin/tool-requests" className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition">
-                  Tool Requests
-                </Link>
-              </nav>
+                <nav className="hidden lg:flex items-center gap-1">
+                  <Link href="/admin/dashboard" className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition">
+                    Dashboard
+                  </Link>
+                  <Link href="/admin/quotes" className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition">
+                    Quotes
+                  </Link>
+                  <Link href="/admin/quote-requests" className="relative px-4 py-2 text-sm font-semibold text-[#9A8B7A]">
+                    Quote Request
+                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#9A8B7A] rounded-full"></div>
+                    {pendingCount > 0 && (
+                      <span className="absolute -top-1 -right-1 inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-[#9A8B7A] rounded-full shadow-lg animate-pulse">
+                        {pendingCount}
+                      </span>
+                    )}
+                  </Link>
+                  <Link href="/admin/bind-requests" className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition">
+                    Bind Requests
+                  </Link>
+                  <Link href="/admin/bound-policies" className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition">
+                    Policies
+                  </Link>
+                  <Link href="/admin/tool-requests" className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition">
+                    Tool Requests
+                  </Link>
+                </nav>
+              </div>
             </div>
-            </div>
-            
+
             <div className="hidden lg:flex items-center gap-3">
               <div className="hidden sm:flex flex-col items-end">
                 <p className="text-sm font-semibold text-gray-900">{(session?.user as any)?.name || "Admin"}</p>
@@ -215,6 +225,22 @@ export default function AdminQuoteRequestsPage() {
               </div>
             </div>
           )}
+
+          {/* Search Bar */}
+          <div className="mt-6 relative max-w-2xl">
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+              <svg className="h-5 w-5 text-[#9A8B7A]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+            <input
+              type="text"
+              placeholder="Search by Agency Name or App ID..."
+              className="block w-full pl-11 pr-4 py-3 border border-[#e5ddd5] rounded-xl bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#9A8B7A] focus:border-transparent sm:text-sm shadow-sm transition-all duration-300"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
         </div>
 
         {/* Error Message */}
@@ -240,9 +266,19 @@ export default function AdminQuoteRequestsPage() {
             <p className="text-lg font-semibold text-gray-900 mb-1">No Pending Quote Requests</p>
             <p className="text-sm text-gray-600">All submissions have been quoted or are in other stages</p>
           </div>
+        ) : filteredSubmissions.length === 0 ? (
+          <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-sm border border-[#e5ddd5] p-12 text-center">
+            <div className="w-16 h-16 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+            <p className="text-lg font-semibold text-gray-900 mb-1">No Results Found</p>
+            <p className="text-sm text-gray-600">No quote requests match your search criteria.</p>
+          </div>
         ) : (
           <div className="space-y-4">
-            {submissions.map((submission) => (
+            {filteredSubmissions.map((submission) => (
               <div
                 key={submission._id}
                 className="group bg-white/80 backdrop-blur-xl rounded-2xl shadow-sm border border-[#e5ddd5] hover:shadow-xl hover:border-[#9A8B7A] transition-all duration-300 overflow-hidden"
@@ -272,8 +308,8 @@ export default function AdminQuoteRequestsPage() {
                       </div>
                     </div>
                     <div className="text-left sm:text-right">
-                       <p className="text-xs text-gray-500 font-medium mb-1">App ID</p>
-                       <p className="text-sm font-bold text-gray-900">{submission.submissionNumber || submission._id.slice(-8).toUpperCase()}</p>
+                      <p className="text-xs text-gray-500 font-medium mb-1">App ID</p>
+                      <p className="text-sm font-bold text-gray-900">{submission.submissionNumber || submission._id.slice(-8).toUpperCase()}</p>
                     </div>
                   </div>
 
@@ -288,8 +324,8 @@ export default function AdminQuoteRequestsPage() {
                       <p className="text-sm font-bold text-gray-900">{submission.clientContact.phone}</p>
                     </div>
                     <div className="md:col-span-2">
-                       <p className="text-xs text-gray-500 font-medium mb-1">Status</p>
-                       <p className="text-sm font-bold text-blue-600">Waiting for Quote</p>
+                      <p className="text-xs text-gray-500 font-medium mb-1">Status</p>
+                      <p className="text-sm font-bold text-blue-600">Waiting for Quote</p>
                     </div>
                   </div>
 

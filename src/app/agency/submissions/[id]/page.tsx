@@ -1735,13 +1735,23 @@ function SubmissionDetailsContent() {
                     {(submission?.updatedAt ? new Date(submission.updatedAt) : new Date()).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}
                   </span>
 
-                  <a
-                    href={`/api/download?url=${encodeURIComponent(file.fileUrl)}`}
-                    download={file.fileName}
-                    className="text-[#9A8B7A] hover:text-[#7A6F64] font-medium hover:underline transition-colors"
-                  >
-                    Download
-                  </a>
+                  <div className="flex items-center gap-4">
+                    <a
+                      href={`/api/download?url=${encodeURIComponent(file.fileUrl)}`}
+                      download={file.fileName}
+                      className="text-[#9A8B7A] hover:text-[#7A6F64] font-medium hover:underline transition-colors"
+                    >
+                      Download
+                    </a>
+                    <a
+                      href={`/api/download?url=${encodeURIComponent(file.fileUrl)}&view=true`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[#9A8B7A] hover:text-[#7A6F64] font-medium hover:underline transition-colors"
+                    >
+                      View
+                    </a>
+                  </div>
                 </div>
               ))
             )}
@@ -2011,7 +2021,7 @@ function SubmissionDetailsContent() {
                     <div className="flex items-center gap-2">
                       <MapPin className="w-4 h-4 text-gray-400" />
                       <span>
-                        292 S La Cienega Blvd Ste 206, Beverly Hills, CA 90211, United States
+                        5455 Wilshire Blvd. #1816,Los Angeles, CA 90036
                       </span>
                     </div>
 
