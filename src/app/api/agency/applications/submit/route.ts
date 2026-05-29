@@ -177,7 +177,7 @@ export async function POST(req: NextRequest) {
       applicationNumber,
       agencyId: user.agencyId,
       agentId: user.id || undefined,
-      agentName: user.name || user.email || undefined,
+      agentName: formData.agentName || user.name || user.email || undefined,
       templateId: null,
       payload: normalizedPayload,
       files: [],
@@ -367,25 +367,25 @@ export async function POST(req: NextRequest) {
     }
 
     // Send email to carrier with PDF attachment
-    try {
-      const { sendApplicationToCarrier } = await import("@/lib/services/email/EmailService");
+    // try {
+    //   const { sendApplicationToCarrier } = await import("@/lib/services/email/EmailService");
 
-      await sendApplicationToCarrier({
-        carrierEmail: submission.carrierEmail || "",
-        agencyName: agency.name || "Unknown Agency",
-        companyName: formData.companyName || "Unknown Company",
-        programName: getDisplayProgramName(programName),
-        submittedDate: new Date().toLocaleDateString(),
-        applicantEmail: formData.email || "",
-        applicantPhone: formData.phone || "",
-        pdfBuffer,
-      });
+    //   await sendApplicationToCarrier({
+    //     carrierEmail: submission.carrierEmail || "",
+    //     agencyName: agency.name || "Unknown Agency",
+    //     companyName: formData.companyName || "Unknown Company",
+    //     programName: getDisplayProgramName(programName),
+    //     submittedDate: new Date().toLocaleDateString(),
+    //     applicantEmail: formData.email || "",
+    //     applicantPhone: formData.phone || "",
+    //     pdfBuffer,
+    //   });
 
-      console.log(`✅ Application email sent to carrier: ${submission.carrierEmail}`);
-    } catch (emailError) {
-      console.error("Email send error:", emailError);
-      // Continue even if email fails - admin can manually send
-    }
+    //   console.log(`✅ Application email sent to carrier: ${submission.carrierEmail}`);
+    // } catch (emailError) {
+    //   console.error("Email send error:", emailError);
+    //   // Continue even if email fails - admin can manually send
+    // }
 
     return NextResponse.json({
       success: true,

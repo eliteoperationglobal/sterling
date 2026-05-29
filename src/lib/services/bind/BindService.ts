@@ -2,7 +2,7 @@ import Submission from "@/models/Submission";
 import Quote from "@/models/Quote";
 import Carrier from "@/models/Carrier";
 import Agency from "@/models/Agency";
-import { sendBindRequestToCarrier } from "@/lib/services/email/EmailService";
+// import { sendBindRequestToCarrier } from "@/lib/services/email/EmailService";
 import { getDisplayProgramName } from "@/utils/formatters";
 
 export interface IRequestBindResult {
@@ -98,28 +98,28 @@ export class BindService {
         const carrierFormsDoc = submission.signedDocuments?.find(d => d.documentType === "CARRIER_FORM" && d.signatureStatus === "SIGNED");
 
         // Send email to carrier underwriter
-        console.log("🔒 [BIND SERVICE] 📧 Sending bind request email to carrier...");
-        const emailSent = await sendBindRequestToCarrier({
-          carrierEmail: carrier.email,
-          carrierName: carrier.name,
-          clientName: submission.clientContact.name,
-          clientEmail: submission.clientContact.email,
-          agencyName: agency.name,
-          quoteNumber: quote._id.toString(),
-          effectiveDate: quote.effectiveDate ? new Date(quote.effectiveDate).toLocaleDateString('en-US', { timeZone: 'UTC' }) : undefined,
-          finalAmount: quote.finalAmountUSD,
-          programName: getDisplayProgramName(submission.programName),
-          submissionId: submission._id.toString(),
-          signedProposalUrl: proposalDoc?.documentUrl,
-          signedCarrierFormsUrl: carrierFormsDoc?.documentUrl,
-          applicationPdfUrl: submission.applicationPdfUrl,
-        });
+        console.log("🔒 [BIND SERVICE] 📧 Sending bind request email to carrier... (DISABLED)");
+        // const emailSent = await sendBindRequestToCarrier({
+        //   carrierEmail: carrier.email,
+        //   carrierName: carrier.name,
+        //   clientName: submission.clientContact.name,
+        //   clientEmail: submission.clientContact.email,
+        //   agencyName: agency.name,
+        //   quoteNumber: quote._id.toString(),
+        //   effectiveDate: quote.effectiveDate ? new Date(quote.effectiveDate).toLocaleDateString('en-US', { timeZone: 'UTC' }) : undefined,
+        //   finalAmount: quote.finalAmountUSD,
+        //   programName: getDisplayProgramName(submission.programName),
+        //   submissionId: submission._id.toString(),
+        //   signedProposalUrl: proposalDoc?.documentUrl,
+        //   signedCarrierFormsUrl: carrierFormsDoc?.documentUrl,
+        //   applicationPdfUrl: submission.applicationPdfUrl,
+        // });
 
-        if (emailSent) {
-          console.log("🔒 [BIND SERVICE] ✅ Email sent successfully to carrier underwriter");
-        } else {
-          console.log("🔒 [BIND SERVICE] ⚠️ Email sending failed (mock mode - this is expected)");
-        }
+        // if (emailSent) {
+        //   console.log("🔒 [BIND SERVICE] ✅ Email sent successfully to carrier underwriter");
+        // } else {
+        //   console.log("🔒 [BIND SERVICE] ⚠️ Email sending failed (mock mode - this is expected)");
+        // }
       }
 
       console.log("🔒 [BIND SERVICE] ========================================");

@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/authOptions";
 import connectDB from "@/lib/mongodb";
 import mongoose from "mongoose";
-import { sendQuoteEmail } from "@/lib/services/email/EmailService";
+// import { sendQuoteEmail } from "@/lib/services/email/EmailService";
 import { getDisplayProgramName } from "@/utils/formatters";
 
 /**
@@ -58,17 +58,17 @@ export async function POST(
     };
 
     // Send email
-    const emailSent = await sendQuoteEmail(emailData);
+    // const emailSent = await sendQuoteEmail(emailData);
 
-    if (!emailSent) {
-      return NextResponse.json(
-        { error: "Failed to send email" },
-        { status: 500 }
-      );
-    }
+    // if (!emailSent) {
+    //   return NextResponse.json(
+    //     { error: "Failed to send email" },
+    //     { status: 500 }
+    //   );
+    // }
 
     // Log email sent (you might want to store this in database)
-    console.log(`📧 Quote ${quote.quoteNumber} emailed to ${emailData.recipientEmail}`);
+    console.log(`📧 Quote ${quote.quoteNumber} emailed to ${emailData.recipientEmail} (DISABLED)`);
 
     return NextResponse.json({
       success: true,

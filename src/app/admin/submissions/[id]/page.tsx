@@ -918,7 +918,9 @@ export default function AdminSubmissionDetailsPage() {
                 <div className="flex items-center flex-wrap gap-x-5 gap-y-1 mt-2 text-[14px] text-gray-700">
                   <span className="flex items-center gap-1.5">
                     <User className="w-[18px] h-[18px] text-gray-400" />
-                    {(submission?.clientContact?.name || "???")}
+                    {submission?.payload?.firstName || submission?.payload?.lastName
+                      ? `${submission.payload.firstName || ""} ${submission.payload.lastName || ""}`.trim()
+                      : (submission?.clientContact?.name || "???")}
                   </span>
                   {(submission?.payload?.dba || submission?.dba) && (
                     <span className="flex items-center gap-1.5">
@@ -969,30 +971,6 @@ export default function AdminSubmissionDetailsPage() {
                 </option>
               ))}
             </select>
-          </div>
-        )}
-
-        {/* Policy Selector */}
-        {availablePolicies.length > 1 && (
-          <div className="bg-white px-8 py-4 border-t border-gray-100 flex items-center gap-4 shadow-sm">
-            <span className="text-[13px] font-bold text-gray-500 uppercase tracking-wider">POLICY TYPE:</span>
-            <div className="flex gap-2">
-              {availablePolicies.map((type: any) => (
-                <button
-                  key={type}
-                  onClick={() => setCurrentPolicyType(type)}
-                  className={`px-4 py-1.5 rounded-lg text-[13px] font-bold transition-all ${currentPolicyType === type
-                    ? "bg-[#7A6F64] text-white shadow-md shadow-gray-200"
-                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                    }`}
-                >
-                  {type === "GENERAL_LIABILITY"
-                    ? (submission?.programId === 'apartment-buildings' || submission?.programName === 'Commercial Property' || submission?.programName === 'Apartment Building' ? "Property" : "General Liability")
-                    : (submission?.programId === 'apartment-buildings' || submission?.programName === 'Commercial Property' || submission?.programName === 'Apartment Building' ? "General Liability" : "Excess Liability")
-                  }
-                </button>
-              ))}
-            </div>
           </div>
         )}
 
@@ -1231,6 +1209,115 @@ export default function AdminSubmissionDetailsPage() {
             </div>
           </div>
         </div>
+        {/* Policy Selector */}
+        {availablePolicies.length > 1 && (
+          <div className="bg-white px-8 py-4 border-t border-gray-100 flex items-center gap-4 shadow-sm">
+            <span className="text-[13px] font-bold text-gray-500 uppercase tracking-wider">POLICY TYPE:</span>
+            <div className="flex gap-2">
+              {availablePolicies.map((type: any) => (
+                <button
+                  key={type}
+                  onClick={() => setCurrentPolicyType(type)}
+                  className={`px-4 py-1.5 rounded-lg text-[13px] font-bold transition-all ${currentPolicyType === type
+                    ? "bg-[#7A6F64] text-white shadow-md shadow-gray-200"
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    }`}
+                >
+                  {type === "GENERAL_LIABILITY"
+                    ? (submission?.programId === 'apartment-buildings' || submission?.programName === 'Commercial Property' || submission?.programName === 'Apartment Building' ? "Property" : "General Liability")
+                    : (submission?.programId === 'apartment-buildings' || submission?.programName === 'Commercial Property' || submission?.programName === 'Apartment Building' ? "General Liability" : "Excess Liability")
+                  }
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+        {/* ISC STYLE – STANDARD GL A-RATED SECTION */}
+        <div className="bg-white px-4 md:px-8 py-6 border-t border-gray-200">
+
+          {/* SECTION TITLE */}
+          <div className="mb-6 flex items-center justify-between">
+            <div>
+              <h3 className="text-[15px] font-semibold text-gray-900 tracking-tight">
+                {currentPolicyType === "GENERAL_LIABILITY"
+                  ? (submission?.programId === 'apartment-buildings' || submission?.programName === 'Commercial Property' || submission?.programName === 'Apartment Building' ? "Property" : "General Liability")
+                  : (submission?.programId === 'apartment-buildings' || submission?.programName === 'Commercial Property' || submission?.programName === 'Apartment Building' ? "General Liability" : "Excess Liability")
+                }
+              </h3>
+              <div className="mt-2 h-[1px] w-64 bg-gray-300" />
+            </div>
+          </div>
+
+          {/* CONTENT GRID */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 lg:gap-x-24 gap-y-6 text-[14px]">
+
+            {/* LEFT */}
+            <div className="space-y-4">
+              <div className="flex">
+                <span className="w-28 text-gray-500">Carrier:</span>
+                <span className="font-medium text-gray-900 leading-[18px] tracking-tight">
+                  {currentQuote?.carrierId?.name || "—"}
+                </span>
+              </div>
+
+              <div className="flex">
+                <span className="w-28 text-gray-500">Cost:</span>
+                <span className="font-medium text-gray-900 leading-[18px] tracking-tight">
+                  {currentQuote?.finalAmountUSD
+                    ? `$${currentQuote.finalAmountUSD.toLocaleString()}`
+                    : "Not Quoted"}
+                </span>
+              </div>
+            </div>
+
+            {/* RIGHT */}
+            <div className="space-y-4">
+              <div className="flex">
+                <span className="w-36 text-gray-500">Policy Number:</span>
+                <span className="font-medium text-gray-900 leading-[18px] tracking-tight">
+                  {currentQuote?.policyNumber || (currentPolicyType === "GENERAL_LIABILITY" ? submission.policyNumber : "") || "Not Bound"}
+                </span>
+              </div>
+
+              <div className="flex">
+                <span className="w-36 text-gray-500">Effective Date:</span>
+                <span className="font-medium text-gray-900 leading-[18px] tracking-tight">
+                  {(() => {
+                    const effStr = currentQuote?.effectiveDate || (currentPolicyType === "GENERAL_LIABILITY" ? (submission.payload?.effectiveDate || submission.effectiveDate || submission?.createdAt) : "");
+                    if (!effStr) return "TBD";
+
+                    const effDate = new Date(effStr);
+                    const expStr = currentQuote?.expirationDate || (currentPolicyType === "GENERAL_LIABILITY" ? (submission.payload?.expirationDate || submission.expirationDate) : "");
+                    const expDate = expStr ? new Date(expStr) : new Date(new Date(effDate).setFullYear(effDate.getFullYear() + 1));
+
+                    return `${effDate.toLocaleDateString('en-US', { timeZone: 'UTC', month: '2-digit', day: '2-digit', year: 'numeric' })} - ${expDate.toLocaleDateString('en-US', { timeZone: 'UTC', month: '2-digit', day: '2-digit', year: 'numeric' })}`;
+                  })()}
+                </span>
+              </div>
+
+
+              {/* <div className="flex">
+                <span className="w-36 text-gray-500">Carrier Ref:</span>
+                <span className="font-medium text-gray-900 leading-[18px] tracking-tight">
+                  {currentQuote?.carrierReference || "—"}
+                </span>
+              </div> */}
+
+              {currentQuote?.specialNotes && (
+                <div className="flex">
+                  <span className="w-36 text-gray-500">Special Notes:</span>
+                  <span className="font-medium text-gray-900 leading-[18px] tracking-tight">
+                    {currentQuote.specialNotes}
+                  </span>
+                </div>
+              )}
+
+            </div>
+
+          </div>
+        </div>
+
+
         <div className="bg-white px-8 py-6 grid grid-cols-1 lg:grid-cols-3 gap-10 border-b border-gray-200 rounded-xl">
           {/* LEFT – UPLOADED DOCUMENTS */}
           <div className="lg:col-span-2">

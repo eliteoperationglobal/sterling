@@ -42,7 +42,7 @@ interface QuoteEmailData {
 export async function sendEmail(options: EmailOptions): Promise<boolean> {
   try {
     const apiKey = process.env.RESEND_API_KEY;
-    
+
     if (!apiKey) {
       console.warn("⚠️ RESEND_API_KEY is not set — skipping real email send");
       console.log("Would have sent email to:", options.to);
@@ -346,17 +346,17 @@ Sterling Wholesale Insurance Team
 /**
  * Send quote email to client
  */
-export async function sendQuoteEmail(data: QuoteEmailData): Promise<boolean> {
-  const html = generateQuoteEmailHTML(data);
-  const text = generateQuoteEmailText(data);
+// export async function sendQuoteEmail(data: QuoteEmailData): Promise<boolean> {
+//   const html = generateQuoteEmailHTML(data);
+//   const text = generateQuoteEmailText(data);
 
-  return await sendEmail({
-    to: data.recipientEmail,
-    subject: `Your Insurance Quote ${data.quoteNumber} - $${data.premium.toLocaleString()}/year`,
-    html,
-    text,
-  });
-}
+//   return await sendEmail({
+//     to: data.recipientEmail,
+//     subject: `Your Insurance Quote ${data.quoteNumber} - $${data.premium.toLocaleString()}/year`,
+//     html,
+//     text,
+//   });
+// }
 
 /**
  * Application Email Data
@@ -540,28 +540,28 @@ export function generateCarrierApplicationEmailHTML(data: ApplicationEmailData):
 /**
  * Send application to carrier
  */
-export async function sendApplicationToCarrier(data: ApplicationEmailData): Promise<boolean> {
-  const html = generateCarrierApplicationEmailHTML(data);
+// export async function sendApplicationToCarrier(data: ApplicationEmailData): Promise<boolean> {
+//   const html = generateCarrierApplicationEmailHTML(data);
 
-  const emailOptions: EmailOptions = {
-    to: data.carrierEmail,
-    subject: `New Application: ${data.companyName} - ${data.programName}`,
-    html,
-    text: `New application submitted for ${data.companyName}. Program: ${data.programName}. Please review the attached PDF.`,
-  };
+//   const emailOptions: EmailOptions = {
+//     to: data.carrierEmail,
+//     subject: `New Application: ${data.companyName} - ${data.programName}`,
+//     html,
+//     text: `New application submitted for ${data.companyName}. Program: ${data.programName}. Please review the attached PDF.`,
+//   };
 
-  // Add PDF attachment if provided
-  if (data.pdfBuffer) {
-    emailOptions.attachments = [
-      {
-        filename: `Application-${data.companyName.replace(/[^a-z0-9]/gi, '_')}.pdf`,
-        content: data.pdfBuffer,
-      },
-    ];
-  }
+//   // Add PDF attachment if provided
+//   if (data.pdfBuffer) {
+//     emailOptions.attachments = [
+//       {
+//         filename: `Application-${data.companyName.replace(/[^a-z0-9]/gi, '_')}.pdf`,
+//         content: data.pdfBuffer,
+//       },
+//     ];
+//   }
 
-  return await sendEmail(emailOptions);
-}
+//   return await sendEmail(emailOptions);
+// }
 
 /**
  * Broker Quote Email Data
@@ -733,10 +733,10 @@ export function generateBrokerQuoteEmailHTML(data: BrokerQuoteEmailData): string
       
       <div class="attachment-notice">
         📎 <strong>Binder PDF Available</strong><br/>
-        ${data.binderPdfUrl ? 
-          `You can download the binder from your portal dashboard.` : 
-          `The binder PDF will be available in your portal dashboard.`
-        }
+        ${data.binderPdfUrl ?
+      `You can download the binder from your portal dashboard.` :
+      `The binder PDF will be available in your portal dashboard.`
+    }
       </div>
       
       <p><strong>Next Steps:</strong></p>
@@ -956,31 +956,31 @@ export function generateBindRequestEmailHTML(data: BindRequestEmailData): string
 /**
  * Send bind request email to carrier underwriter
  */
-export async function sendBindRequestToCarrier(data: BindRequestEmailData): Promise<boolean> {
-  const html = generateBindRequestEmailHTML(data);
+// export async function sendBindRequestToCarrier(data: BindRequestEmailData): Promise<boolean> {
+//   const html = generateBindRequestEmailHTML(data);
 
-  const emailOptions: EmailOptions = {
-    to: data.carrierEmail,
-    subject: `Bind Request - ${data.clientName} - ${data.programName || 'Insurance Policy'}`,
-    html,
-    text: `Bind request submitted for ${data.clientName}. Quote Number: ${data.quoteNumber}. Total Premium: $${data.finalAmount.toFixed(2)}. All documents signed and payment received.`,
-  };
+//   const emailOptions: EmailOptions = {
+//     to: data.carrierEmail,
+//     subject: `Bind Request - ${data.clientName} - ${data.programName || 'Insurance Policy'}`,
+//     html,
+//     text: `Bind request submitted for ${data.clientName}. Quote Number: ${data.quoteNumber}. Total Premium: $${data.finalAmount.toFixed(2)}. All documents signed and payment received.`,
+//   };
 
-  // Note: In production, you would fetch the PDFs from URLs and attach them
-  // For now, we're just logging that attachments would be included
-  console.log("📧 [BIND EMAIL] Attachments would include:");
-  if (data.signedProposalUrl) {
-    console.log(`   - Signed Proposal: ${data.signedProposalUrl}`);
-  }
-  if (data.signedCarrierFormsUrl) {
-    console.log(`   - Signed Carrier Forms: ${data.signedCarrierFormsUrl}`);
-  }
-  if (data.applicationPdfUrl) {
-    console.log(`   - Application PDF: ${data.applicationPdfUrl}`);
-  }
+// Note: In production, you would fetch the PDFs from URLs and attach them
+// For now, we're just logging that attachments would be included
+//   console.log("📧 [BIND EMAIL] Attachments would include:");
+//   if (data.signedProposalUrl) {
+//     console.log(`   - Signed Proposal: ${data.signedProposalUrl}`);
+//   }
+//   if (data.signedCarrierFormsUrl) {
+//     console.log(`   - Signed Carrier Forms: ${data.signedCarrierFormsUrl}`);
+//   }
+//   if (data.applicationPdfUrl) {
+//     console.log(`   - Application PDF: ${data.applicationPdfUrl}`);
+//   }
 
-  return await sendEmail(emailOptions);
-}
+//   return await sendEmail(emailOptions);
+// }
 
 /**
  * Generate 2FA OTP Email HTML
@@ -1017,7 +1017,7 @@ export function generate2FAEmailHTML(otp: string): string {
  */
 export async function send2FAEmail(to: string, otp: string): Promise<boolean> {
   const html = generate2FAEmailHTML(otp);
-  
+
   return await sendEmail({
     to,
     subject: "Sterling Portal - Verification Code",
@@ -1025,4 +1025,4 @@ export async function send2FAEmail(to: string, otp: string): Promise<boolean> {
     text: `Your Sterling Portal verification code is: ${otp}. It expires in 10 minutes.`,
   });
 }
-
+
