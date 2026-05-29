@@ -3834,14 +3834,14 @@ function generatePage51(data: ApartmentPacketData): string {
 					<div class="acod_01" style="left:17.7em;top:13.7149em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0102em;">STREET ADDRESS: &nbsp;</span></div>
 					<div class="acod_01" style="left:15.8563em;top:13.6278em;"><span class="acod_07 acod_08 acod_09">1</span></div>
 					<div class="acod_01" style="left:15.8563em;top:14.6278em;"><span class="acod_07 acod_08 acod_09">2</span></div>
-					<div class="acod_01" style="left:22.5833em;top:13.6278em;"><span class="acod_07 acod_08 acod_09" style="word-spacing:0em;">453 1/2 31st St , Manhattan Beach, CA 90266 &nbsp;</span></div>
+					<div class="acod_01" style="left:22.5833em;top:13.6278em;"><span class="acod_07 acod_08 acod_09" style="word-spacing:0em;">${data.propertyNameAndAddress || "-"} &nbsp;</span></div>
 					<div class="acod_01" style="left:17.7em;top:14.7149em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0677em;">BLDG DESCRIPTION: &nbsp;</span></div>
 					<div class="acod_01" style="left:19.9492em;top:15.5049em;"><span class="acod_11 acod_08 acod_09">VALU- &nbsp;</span></div>
 					<div class="acod_01" style="left:17.55em;top:15.8749em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0645em;">COINS % &nbsp;</span></div>
 					<div class="acod_01" style="left:19.9358em;top:15.9649em;"><span class="acod_11 acod_08 acod_09">ATION &nbsp;</span></div>
 					<div class="acod_01" style="left:1.8em;top:14.6013em;"><span class="acod_13 acod_08 acod_09" style="word-spacing:0.0297em;">PREMISES INFORMATION &nbsp;</span></div>
 					<div class="acod_01" style="left:3.385em;top:15.6799em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:-0.0449em;">SUBJECT OF INSURANCE &nbsp;</span></div>
-					<div class="acod_01" style="left:23.1667em;top:14.6278em;"><span class="acod_07 acod_08 acod_09" style="word-spacing:0em;">453 1/2 31st St , Manhattan Beach, CA 90266 &nbsp;</span></div>
+					<div class="acod_01" style="left:23.1667em;top:14.6278em;"><span class="acod_07 acod_08 acod_09" style="word-spacing:0em;">${data.propertyNameAndAddress || "-"} &nbsp;</span></div>
 					<div class="acod_01" style="left:34.1308em;top:15.5049em;"><span class="acod_11 acod_08 acod_09" style="word-spacing:1.6055em;">DED BLKT &nbsp;</span></div>
 					<div class="acod_01" style="left:36.6133em;top:15.9649em;"><span class="acod_11 acod_08 acod_09">#</span></div>
 					<div class="acod_01" style="left:27.19em;top:15.5449em;z-index:1208;"><span class="acod_11 acod_08 acod_09">INFLATION &nbsp;</span></div>
@@ -4456,7 +4456,7 @@ export function generateAcord125Page2(data: ApartmentPacketData): string {
 					<div class="pdf44_01" style="left:1.794em;top:9.6851em;"><span class="pdf44_17 pdf44_08 pdf44_09" style="word-spacing:0.0001em;">PREMISES INFORMATION</span><span class="pdf44_17 pdf44_08 pdf44_09" style="word-spacing:0.278em;">&nbsp;</span><span class="pdf44_17 pdf44_08 pdf44_09" style="word-spacing:0.0002em;">(Attach ACORD 823 for Additional Premises) &nbsp;</span></div>
 					<div class="pdf44_01" style="left:25.794em;top:7.9266em;"><span class="pdf44_10 pdf44_11 pdf44_12" style="word-spacing:0.0004em;">PRIMARY E-MAIL ADDRESS: &nbsp;</span></div>
 					<div class="pdf44_01" style="left:25.794em;top:8.9286em;"><span class="pdf44_10 pdf44_11 pdf44_12" style="word-spacing:0.0004em;">SECONDARY E-MAIL ADDRESS: &nbsp;</span></div>
-					<div class="pdf44_01" style="left:1.956em;top:10.7176em;"><span class="pdf44_18 pdf44_08 pdf44_23" style="word-spacing:-0.0003em;">LOC #</span><span> <span class="pdf44_18 pdf44_08 pdf44_09" style="word-spacing:1.2528em;">&nbsp;</span><span class="pdf44_18 pdf44_08 pdf44_09">STREET </span> <span class="avee22"> ${data.applicantAddress} <span> &nbsp;</span></div>
+					<div class="pdf44_01" style="left:1.956em;top:10.7176em;"><span class="pdf44_18 pdf44_08 pdf44_23" style="word-spacing:-0.0003em;">LOC #</span><span> <span class="pdf44_18 pdf44_08 pdf44_09" style="word-spacing:1.2528em;">&nbsp;</span><span class="pdf44_18 pdf44_08 pdf44_09"> </span> <span class="avee22"> ${data.propertyNameAndAddress || "-"} </span> &nbsp;</span></div>
 					<div class="pdf44_01" style="left:22.194em;top:10.7176em;"><span class="pdf44_18 pdf44_08 pdf44_16" style="word-spacing:0em;">CITY LIMITS</span><span class="pdf44_18 pdf44_08 pdf44_09" style="word-spacing:1.6881em;">&nbsp;</span><span class="pdf44_18 pdf44_08 pdf44_09">INTEREST &nbsp;</span></div>
 					<div class="pdf44_01" style="left:31.914em;top:10.7176em;"><span class="pdf44_18 pdf44_08 pdf44_16" style="word-spacing:0.0001em;"># FULL TIME EMPL </span><span class="pdf44_18 pdf44_08 pdf44_09" style="word-spacing:1.1703em;">&nbsp;</span><span class="pdf44_18 pdf44_08 pdf44_12" style="word-spacing:0.0005em;">ANNUAL REVENUES:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="avee22"> ${data.estimatedTotalGrossReceipts} </span></span><span class="pdf44_18 pdf44_08 pdf44_09" style="word-spacing:0.1893em;">&nbsp;</span><span class="pdf44_18 pdf44_08 pdf44_12" style="word-spacing:0.0005em;"> &nbsp;</span></div>
 					<div class="pdf44_01" style="left:31.914em;top:10.7176em;"><span class="pdf44_18 pdf44_08 pdf44_16" style="word-spacing:0.0001em;"># FULL TIME EMPL <br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="avee22">${data.numberOfFieldEmployees}</span> </span><span class="pdf44_18 pdf44_08 pdf44_09" style="word-spacing:1.1703em;">&nbsp;</span><span class="pdf44_18 pdf44_08 pdf44_12" style="word-spacing:0.0005em;"></span><span class="pdf44_18 pdf44_08 pdf44_09" style="word-spacing:0.1893em;">&nbsp;</span><span class="pdf44_18 pdf44_08 pdf44_12" style="word-spacing:0.0005em;"> &nbsp;</span></div>
@@ -5692,11 +5692,11 @@ function generateInvoicePage(data: ApartmentPacketData): string {
 			<div class="invoice-field-page12">${data.submissionNumber}</div>
 		  </div>
 		  <div>
-			<div class="invoice-field-page12" style="font-weight: bold; max-width: 300px;">${data.agencyName}</div>
-			<div class="invoice-field-page12">${data.agencyAddress}</div>
-			<div class="invoice-field-page12">${data.agencyCity}, ${data.agencyState} ${data.agencyZip}</div>
-			<div class="invoice-field-page12">${data.agencyPhone}</div>
-			<div class="invoice-field-page12">${data.agencyEmail}</div>
+			<strong>Sterling Insurance Services</strong>
+			<p>292 S La Cienega Blvd Ste 206<br>Beverly Hills CA 90211</p>
+			<p>(310) 492-2007</p>
+			<p>info@SterlingInsurancePartners.com</p>
+			<p>License Number: 6015632</p>
 		  </div>
 		</div>
 		<div style="text-align: center;">
@@ -5820,13 +5820,6 @@ function generateInvoicePage(data: ApartmentPacketData): string {
 			<div class="invoice-label-page12">MAKE CHECK PAYABLE FOR finance company</div>
 			<div class="invoice-value-page12">${data.totalToFinanceCompany || '$0.00'}</div>
 		  </div>
-		</div>
-		<div style="text-align: center; margin-top: 62px;">
-			<strong style="font-size: 20px;">Sterling Insurance Services</strong>
-			<p>5455 Wilshire Blvd. #1816,<br>Los Angeles, CA 90036</p>
-			<p>(310) 492-2007</p>
-			<p>info@SterlingInsurancePartners.com</p>
-			<p>License Number: 6015632</p>
 		</div>
 	  </div>
 	</div>

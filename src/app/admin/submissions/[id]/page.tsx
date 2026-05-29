@@ -1161,15 +1161,15 @@ export default function AdminSubmissionDetailsPage() {
                 {submission?.programName === "Advantage Contractor GL" ? "Construction" : (submission?.programName === "Construction Equipment" ? "Contractors Equipment" : (submission?.programName || "General Liability"))}
               </p>
             </div>
-            <div>
+            {/* <div>
               <p className="text-gray-500 mb-1 leading-tight">Effective Date:</p>
               <p className="font-semibold text-gray-900">
                 {currentQuote?.effectiveDate
                   ? new Date(currentQuote.effectiveDate).toLocaleDateString('en-US', { timeZone: 'UTC', month: '2-digit', day: '2-digit', year: 'numeric' })
                   : (currentPolicyType === "GENERAL_LIABILITY" && submission.effectiveDate ? new Date(submission.effectiveDate).toLocaleDateString('en-US', { timeZone: 'UTC', month: '2-digit', day: '2-digit', year: 'numeric' }) : "TBD")}
               </p>
-            </div>
-            <div>
+            </div> */}
+            {/* <div>
               <p className="text-gray-500 mb-1 leading-tight">
                 {submission.programId === 'apartment-buildings' ? 'Total Insured Value (TIV):' :
                   submission.programId === 'contractors-equipment' ? 'Total Equipment Value:' : 'Estimated Gross Receipts:'}
@@ -1186,27 +1186,50 @@ export default function AdminSubmissionDetailsPage() {
                     : (submission?.payload?.estimatedGrossReceipts ? `$${Number(String(submission.payload.estimatedGrossReceipts).replace(/[^0-9.]/g, '')).toLocaleString()}` : "—")
                 }
               </p>
-            </div>
+            </div> */}
             <div>
               <p className="text-gray-500 mb-1 leading-tight">Total Cost</p>
               <p className="font-semibold text-gray-900">
                 {formatCurrency(currentQuote?.finalAmountUSD)}
               </p>
             </div>
-            <div>
+            {/* <div>
               <p className="text-gray-500 mb-1 leading-tight">Carrier Name</p>
               <p className="font-semibold text-gray-900">
                 {currentQuote?.carrierId?.name || "Carrier"}
+              </p>
+            </div> */}
+            {/* Create Date */}
+            <div>
+              <p className="text-gray-500 mb-1">Create Date:</p>
+              <p className="font-semibold text-gray-900">
+                {currentQuote?.createdAt
+                  ? new Date(currentQuote.createdAt).toLocaleDateString('en-US', { timeZone: 'UTC', month: '2-digit', day: '2-digit', year: 'numeric' })
+                  : (submission?.createdAt ? new Date(submission.createdAt) : new Date()).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}
               </p>
             </div>
             <div>
               <p className="text-gray-500 mb-1 leading-tight">Agency Name</p>
               <p className="font-semibold text-gray-900">{submission.agencyId?.name || "N/A"}</p>
             </div>
+            {/* Agent */}
             <div>
+              <p className="text-gray-500 mb-1">Agent:</p>
+              <p className="font-semibold text-gray-900">
+                {submission?.payload?.agentName || "—"}
+              </p>
+            </div>
+            {/* Payment Option */}
+            <div>
+              <p className="text-gray-500 mb-1">Payment Option:</p>
+              <p className="font-semibold text-gray-900">
+                {submission?.payload?.paymentOption || "—"}
+              </p>
+            </div>
+            {/* <div>
               <p className="text-gray-500 mb-1 leading-tight">Policy Number</p>
               <p className="font-semibold text-gray-900">{currentQuote?.policyNumber || (currentPolicyType === "GENERAL_LIABILITY" ? submission.policyNumber : "") || "N/A"}</p>
-            </div>
+            </div> */}
           </div>
         </div>
         {/* Policy Selector */}
