@@ -548,6 +548,12 @@ export default function QuoteFormPage() {
           classCodeWork: payload.classCodeWork || {},
         }));
 
+        // If the saved submission has a description (auto-generated or manually edited),
+        // mark it as "edited" so the classCodeWork useEffect won't overwrite it.
+        if (payload.carrierApprovedDescription) {
+          setIsDescriptionEdited(true);
+        }
+
       } catch (err) {
         console.error("Failed to fetch submission data:", err);
       }
@@ -920,11 +926,8 @@ export default function QuoteFormPage() {
       .join("\n\n");
 
     setFormData((prev: any) => {
-      // If user already typed something different, keep it
-      if (
-        prev.carrierApprovedDescription &&
-        !generatedDescription.includes(prev.carrierApprovedDescription)
-      ) {
+      // If user has manually edited the description, don't overwrite their changes
+      if (isDescriptionEdited) {
         return prev;
       }
 
@@ -934,7 +937,7 @@ export default function QuoteFormPage() {
       };
     });
 
-  }, [formData.classCodeWork]);
+  }, [formData.classCodeWork, isDescriptionEdited]);
 
   // Derive the description based solely on the selected class code.
   // const effectiveDescription = useMemo(() => {
