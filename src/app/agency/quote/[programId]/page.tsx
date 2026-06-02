@@ -1778,6 +1778,7 @@ export default function QuoteFormPage() {
                         className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] text-sm bg-white"
                       >
                         <option value="Not Applicable">Not Applicable</option>
+                        <option value="$2,500">$2,500</option>
                         <option value="$5,000">$5,000</option>
                         <option value="$10,000">$10,000</option>
                       </select>
