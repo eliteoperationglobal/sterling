@@ -120,7 +120,7 @@ function AgencyDashboardContent() {
 
   // Map ISC pipeline stages to real database statuses
   const stageToStatusMap: Record<string, string | string[]> = {
-    "IN_PROGRESS": ["SUBMITTED", "APPROVAL_REQUESTED"],
+    "IN_PROGRESS": ["SUBMITTED", "APPROVAL_REQUESTED", "ROUTED"],
     "REQUIRES_REVIEW": "ROUTED",
     "APPROVAL_REQUESTED": "ROUTED",
     "CONDITIONALLY_APPROVED": "ROUTED",
@@ -130,7 +130,7 @@ function AgencyDashboardContent() {
     "READY_TO_BIND": "BIND_REQUESTED",
     "BOUND": "BOUND",
     "UNDERWRITING_DECLINED": "DECLINED",
-    "CANCELLED": "CANCELLED",
+    "CANCELLED": ["CANCELLED", "DECLINED"],
   };
 
   // Pipeline stages matching ISC (counts will be updated from real data)
@@ -328,27 +328,30 @@ function AgencyDashboardContent() {
         "BIND_REQUESTED": 0,
         "BOUND": 0,
         "CANCELLED": 0,
+        "DECLINED": 0,
       };
 
       fetchedSubmissions.forEach((sub: Submission) => {
         if (counts[sub.status] !== undefined) {
           counts[sub.status]++;
+        } else {
+          counts[sub.status] = 1;
         }
       });
 
       // Update pipeline stages with real counts
       setPipelineStages([
         { id: "ALL", label: "All Applications", count: fetchedSubmissions.length },
-        { id: "IN_PROGRESS", label: "In Progress", count: counts.SUBMITTED || 0 },
+        { id: "IN_PROGRESS", label: "In Progress", count: (counts.SUBMITTED || 0) + (counts.APPROVAL_REQUESTED || 0) + (counts.ROUTED || 0) },
         // { id: "REQUIRES_REVIEW", label: "Requires Review", count: 0 },
         // { id: "APPROVAL_REQUESTED", label: "Approval Requested", count: Math.floor((counts.ROUTED || 0) / 3) },
         // { id: "CONDITIONALLY_APPROVED", label: "Quote Conditionally Approved", count: 0 },
-        { id: "APPROVED_QUOTE", label: "Approved Quote", count: counts.QUOTED || 0, color: "teal" },
+        { id: "APPROVED_QUOTE", label: "Approved Quote", count: (counts.QUOTED || 0) + (counts.BIND_REQUESTED || 0), color: "teal" },
         // { id: "PENDING_BIND", label: "Pending Bind", count: 0 },
         // { id: "INCOMPLETE_BIND", label: "Incomplete Bind", count: 0 },
         // { id: "READY_TO_BIND", label: "Ready To Bind", count: counts.BIND_REQUESTED || 0 },
         { id: "BOUND", label: "Bound", count: counts.BOUND || 0 },
-        { id: "CANCELLED", label: "Cancelled", count: counts.CANCELLED || 0 },
+        { id: "CANCELLED", label: "Cancelled", count: (counts.CANCELLED || 0) + (counts.DECLINED || 0) },
         // { id: "UNDERWRITING_DECLINED", label: "Underwriting Declined", count: 0 },
       ]);
 

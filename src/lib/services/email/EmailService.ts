@@ -576,6 +576,7 @@ interface BrokerQuoteEmailData {
   expirationDate: string;
   carrierName: string;
   programName: string;
+  submissionId: string;
   pdfBuffer?: Buffer;
   binderPdfUrl?: string;
 }
@@ -748,7 +749,7 @@ export function generateBrokerQuoteEmailHTML(data: BrokerQuoteEmailData): string
       </ol>
       
       <div style="text-align: center; margin: 30px 0;">
-        <a href="${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/agency/dashboard" class="cta-button">
+        <a href="${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/agency/submissions/${data.submissionId}" class="cta-button">
           View Quote in Portal
         </a>
       </div>

@@ -81,7 +81,7 @@ export async function GET(
       if (quoteId) {
         quote = await Quote.findById(quoteId).populate("carrierId", "name");
       } else {
-        quote = await Quote.findOne({ submissionId: submission._id }).populate("carrierId", "name");
+        quote = await Quote.findOne({ submissionId: submission._id, policyType: { $in: [null, 'GENERAL_LIABILITY'] } }).populate("carrierId", "name");
       }
       if (quote) {
         quote = quote.toObject();

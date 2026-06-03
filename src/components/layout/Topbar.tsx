@@ -190,7 +190,7 @@ export default function Topbar() {
         </button>
 
         {/* ⭐ SEARCH */}
-        <div className="flex items-center border border-[#e5ddd5] rounded-xl px-3 py-2 flex-1 bg-[#f5f1eb] min-w-0 focus-within:ring-2 focus-within:ring-[#9A8B7A]/20 focus-within:border-[#9A8B7A] transition-all">
+        {/* <div className="flex items-center border border-[#e5ddd5] rounded-xl px-3 py-2 flex-1 bg-[#f5f1eb] min-w-0 focus-within:ring-2 focus-within:ring-[#9A8B7A]/20 focus-within:border-[#9A8B7A] transition-all">
 
           <Search className="w-4 h-4 text-[#9A8B7A] mr-2 shrink-0" />
 
@@ -198,12 +198,12 @@ export default function Topbar() {
             placeholder="Search"
             className="flex-1 outline-none text-sm text-[#2d2a26] placeholder-[#6b5e52] bg-transparent min-w-0"
           />
-        </div>
+        </div> */}
 
         {/* ⭐ ADVANCED */}
-        <button className="hidden md:block text-sm font-semibold text-[#9A8B7A] hover:text-[#8a6f4d] transition-colors whitespace-nowrap">
+        {/* <button className="hidden md:block text-sm font-semibold text-[#9A8B7A] hover:text-[#8a6f4d] transition-colors whitespace-nowrap">
           Advanced
-        </button>
+        </button> */}
       </div>
 
       {/* ================= RIGHT ================= */}

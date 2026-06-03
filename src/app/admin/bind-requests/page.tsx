@@ -45,6 +45,7 @@ export default function AdminBindRequestsPage() {
   const [pendingCount, setPendingCount] = useState(0);
   const [isDraggingBinder, setIsDraggingBinder] = useState(false);
   const [isDraggingDocs, setIsDraggingDocs] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Modal State
   type PolicyFormData = {
@@ -243,6 +244,16 @@ export default function AdminBindRequestsPage() {
     }
   };
 
+  const filteredSubmissions = submissions.filter((sub) => {
+    if (!searchQuery.trim()) return true;
+    const query = searchQuery.toLowerCase();
+    return (
+      sub.clientContact?.name?.toLowerCase().includes(query) ||
+      sub.clientContact?.email?.toLowerCase().includes(query) ||
+      sub.agencyId?.name?.toLowerCase().includes(query)
+    );
+  });
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#f5f1eb]">
@@ -385,6 +396,22 @@ export default function AdminBindRequestsPage() {
           )}
         </div>
 
+        {/* Search Bar */}
+        <div className="mb-6 relative max-w-2xl">
+          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+            <svg className="h-5 w-5 text-[#9A8B7A]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+          <input
+            type="text"
+            placeholder="Search by Agency Name, Client Name, or Email..."
+            className="block w-full pl-11 pr-4 py-3 border border-[#e5ddd5] rounded-xl bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#9A8B7A] focus:border-transparent sm:text-sm shadow-sm transition-all duration-300"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+
         {/* Error Message */}
         {error && (
           <div className="bg-gradient-to-r from-red-50 to-rose-50 border-l-4 border-red-500 rounded-xl p-4 mb-6 shadow-sm">
@@ -408,9 +435,14 @@ export default function AdminBindRequestsPage() {
             <p className="text-lg font-semibold text-gray-900 mb-1">No Pending Bind Requests</p>
             <p className="text-sm text-gray-600">All bind requests have been processed</p>
           </div>
+        ) : filteredSubmissions.length === 0 ? (
+          <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-sm border border-[#e5ddd5] p-12 text-center">
+            <p className="text-lg font-semibold text-gray-900 mb-1">No results found</p>
+            <p className="text-sm text-gray-600">Try adjusting your search query</p>
+          </div>
         ) : (
           <div className="space-y-4">
-            {submissions.map((submission) => (
+            {filteredSubmissions.map((submission) => (
               <div
                 key={submission._id}
                 className="group bg-white/80 backdrop-blur-xl rounded-2xl shadow-sm border border-[#e5ddd5] hover:shadow-xl hover:border-[#9A8B7A] transition-all duration-300 overflow-hidden"

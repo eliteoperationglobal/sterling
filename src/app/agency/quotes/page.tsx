@@ -110,19 +110,19 @@ export default function AgencyQuotesPage() {
       if (currentFilter !== "ALL") {
         params.append("status", currentFilter);
       }
-      
+
       console.log("📡 Fetching quotes with filter:", currentFilter);
       const response = await fetch(`/api/agency/quotes?${params.toString()}`);
-      
+
       if (!response.ok) {
         const errorData = await response.json();
         console.error("❌ Quotes fetch failed:", errorData);
         throw new Error(errorData.error || "Failed to fetch quotes");
       }
-      
+
       const data = await response.json();
       console.log("✅ Quotes fetched:", data.count || 0);
-      
+
       if (data.quotes) {
         setAllQuotes(data.quotes);
         // Apply client-side filtering for search and carrier
@@ -231,7 +231,7 @@ export default function AgencyQuotesPage() {
         // Refresh quotes with current filter
         await fetchQuotes();
       }
-      
+
       // Always reset submitting state after fetch completes
       setSubmitting(false);
     } catch (err: any) {
@@ -381,7 +381,7 @@ export default function AgencyQuotesPage() {
                   />
                 </div>
               </div>
-              
+
               {/* Carrier Filter */}
               <div className="md:w-48">
                 <select
@@ -409,7 +409,7 @@ export default function AgencyQuotesPage() {
                 </button>
               )}
             </div>
-            
+
             {/* Results Count */}
             {(searchQuery || filterCarrier !== "ALL") && (
               <p className="text-xs text-gray-500 mt-3">
@@ -646,15 +646,15 @@ export default function AgencyQuotesPage() {
                             >
                               View Quote Details & Workflow
                             </Link>
-                          <FinanceOption
-                            quoteId={quote._id}
-                            finalAmountUSD={previewFinalAmount}
-                            esignCompleted={quote.esignCompleted || false}
-                            paymentStatus={quote.paymentStatus || "PENDING"}
-                            submissionId={quote.submissionId}
-                          />
-                        </div>
-                      )}
+                            <FinanceOption
+                              quoteId={quote._id}
+                              finalAmountUSD={previewFinalAmount}
+                              esignCompleted={quote.esignCompleted || false}
+                              paymentStatus={quote.paymentStatus || "PENDING"}
+                              submissionId={quote.submissionId}
+                            />
+                          </div>
+                        )}
                         {quote.status === "BOUND" && (
                           <div className="mt-4 p-4 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl">
                             <p className="text-green-800 font-bold mb-2">
@@ -713,14 +713,14 @@ export default function AgencyQuotesPage() {
                         Created: {new Date(quote.createdAt).toLocaleDateString('en-US', { timeZone: 'UTC', month: '2-digit', day: '2-digit', year: 'numeric' })}
                       </span>
                     </div>
-                </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        </main>
-      </div>
-    );
-  }
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </main>
+    </div>
+  );
+}
 

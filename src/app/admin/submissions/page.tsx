@@ -199,7 +199,7 @@ export default function AdminSubmissionsPage() {
       <div className="px-4 md:px-10 pt-4 md:pt-8 pb-4">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-0">
           <div className="flex items-center gap-4 mb-2 md:mb-6">
-            <button 
+            <button
               onClick={() => setIsMobileMenuOpen(true)}
               className="lg:hidden p-2 -ml-2 rounded-lg hover:bg-gray-100 transition-colors"
             >

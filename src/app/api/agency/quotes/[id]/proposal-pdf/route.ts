@@ -20,6 +20,30 @@ function formatDateMMDDYYYY(dateInput: string | Date) {
   return `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`;
 }
 
+function extractLimits(value: string) {
+  if (!value) return ["", "", ""];
+
+  const parts = value.split("/").map(v => v.trim());
+
+  return parts.map((v: string) => {
+    // Check if it's already a full dollar amount
+    if (v.includes("$") || v.length > 5) return v;
+    const num = parseFloat(v) * 1000000;
+    if (isNaN(num)) return v;
+    return "$" + num.toLocaleString();
+  });
+}
+function formatToUSD(value: any) {
+  if (value === undefined || value === null || value === "") return "";
+  if (typeof value === "string" && value.includes("/")) {
+    return value;
+  }
+  const str = String(value).replace(/[$,]/g, "");
+  const num = Number(str);
+  if (isNaN(num)) return String(value).includes("$") ? String(value) : `$${value}`;
+  return `$${num.toLocaleString()}`;
+}
+
 /**
  * GET /api/agency/quotes/[id]/proposal-pdf
  * Generate and download Proposal PDF for a quote
@@ -115,6 +139,17 @@ export async function GET(
       limits: quote.limits,
       endorsements: quote.endorsements || [],
       specialNotes: quote.specialNotes,
+      occurrenceLimit: extractLimits(quote.limits?.generalLiability || formData?.coverageLimits)[0],
+      fireLegalLimit: formatToUSD(quote.limits?.fireLegalLimit || formData?.fireLegalLimit || "100000"),
+      medPayLimit: (() => {
+        const val = quote.limits?.medicalExpenseLimit || formData?.medicalExpenseLimit || "5000";
+        return val === "Not Applicable" ? val : formatToUSD(val);
+      })(),
+      personalAdvertisingInjuryLimit: extractLimits(quote.limits?.generalLiability || formData?.coverageLimits)[0],
+      aggregateLimit: extractLimits(quote.limits?.generalLiability || formData?.coverageLimits)[1],
+      productsCompletedOpsLimit: extractLimits(quote.limits?.generalLiability || formData?.coverageLimits)[2],
+      deductible: formatToUSD(quote.limits?.deductible || formData?.deductible || formData?.selfInsuredRetention || "2500"),
+      selfInsuredRetention: formatToUSD(quote.limits?.deductible || formData?.selfInsuredRetention || formData?.deductible || "2500"),
       grossReceipts: (function (val: any) { if (!val) return "$0"; const s = String(val); return s.includes("$") ? s : "$" + Number(s.replace(/[^0-9.-]+/g, "")).toLocaleString(); })(formData.estimatedGrossReceipts || formData.classCodes?.[0]?.grossReceipts || formData.classCode?.[0]?.grossReceipts || "0"),
       subcontractorCosts: (function (val: any) { if (!val) return "$0"; const s = String(val); return s.includes("$") ? s : "$" + Number(s.replace(/[^0-9.-]+/g, "")).toLocaleString(); })(formData.estimatedSubcontractingCosts || "0"),
       employeePayroll: (function (val: any) { if (!val) return "$0"; const s = String(val); return s.includes("$") ? s : "$" + Number(s.replace(/[^0-9.-]+/g, "")).toLocaleString(); })(formData.totalPayroll || formData.totalPayrollAmount || "0"),

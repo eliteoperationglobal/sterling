@@ -87,6 +87,29 @@ function formatDateMMDDYYYY(dateInput: string | Date) {
   return `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`;
 }
 
+function extractLimits(value: string) {
+  if (!value) return ["", "", ""];
+
+  const parts = value.split("/").map(v => v.trim());
+
+  return parts.map((v: string) => {
+    if (v.includes("$") || v.length > 5) return v;
+    const num = parseFloat(v) * 1000000;
+    if (isNaN(num)) return v;
+    return "$" + num.toLocaleString();
+  });
+}
+function formatToUSD(value: any) {
+  if (value === undefined || value === null || value === "") return "";
+  if (typeof value === "string" && value.includes("/")) {
+    return value;
+  }
+  const str = String(value).replace(/[$,]/g, "");
+  const num = Number(str);
+  if (isNaN(num)) return String(value).includes("$") ? String(value) : `$${value}`;
+  return `$${num.toLocaleString()}`;
+}
+
 function getPolicyDateRange(dateInput: string | Date) {
   let start = new Date(dateInput);
 
@@ -116,31 +139,6 @@ function getPolicyDateRange(dateInput: string | Date) {
     `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`;
 
   return `${format(start)} – ${format(end)}`;
-}
-function extractLimits(value: string) {
-  if (!value) return ["", "", ""];
-
-  const parts = value.split("/").map(v => v.trim());
-
-  return parts.map((v: string) => {
-    // Check if it's already a full dollar amount
-    if (v.includes("$") || v.length > 5) return v;
-    const num = parseFloat(v) * 1000000;
-    if (isNaN(num)) return v;
-    return "$" + num.toLocaleString();
-  });
-}
-
-function formatToUSD(value: any) {
-  if (value === undefined || value === null || value === "") return "";
-  // If it's already a formatted string with $, return it
-  if (typeof value === "string" && (value.includes("$") || value.includes("/"))) {
-    return value;
-  }
-  const str = String(value).replace(/[$,]/g, "");
-  const num = Number(str);
-  if (isNaN(num)) return String(value);
-  return `$${num.toLocaleString()}`;
 }
 /**
  * GET /api/agency/applications/[id]/proposal
@@ -340,10 +338,13 @@ export async function GET(
       aggregateLimit: aggregate,
       productsCompletedOpsLimit: products,
       personalAdvertisingInjuryLimit: occurrence,
-      fireLegalLimit: formatToUSD(limits?.fireLegalLimit || formData?.fireLegalLimit),
-      medPayLimit: limits?.medicalExpenseLimit && limits.medicalExpenseLimit !== "Not Applicable" ? formatToUSD(limits.medicalExpenseLimit) : "Not Applicable",
-      deductible: formatToUSD(limits?.deductible || formData?.deductible || "Not Applicable"),
-      selfInsuredRetention: formatToUSD(limits?.deductible || formData?.deductible || "Not Applicable"),
+      fireLegalLimit: formatToUSD(limits?.fireLegalLimit || formData?.fireLegalLimit || "100000"),
+      medPayLimit: (() => {
+        const val = limits?.medicalExpenseLimit || formData?.medicalExpenseLimit || "5000";
+        return val === "Not Applicable" ? val : formatToUSD(val);
+      })(),
+      deductible: formatToUSD(limits?.deductible || formData?.deductible || formData?.selfInsuredRetention || "2500"),
+      selfInsuredRetention: formatToUSD(limits?.deductible || formData?.selfInsuredRetention || formData?.deductible || "2500"),
 
 
       employeePayroll: formatToUSD(formData.totalPayroll || formData.totalPayrollAmount || "$0"),

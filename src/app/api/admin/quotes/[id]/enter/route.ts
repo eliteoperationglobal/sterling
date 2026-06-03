@@ -542,6 +542,7 @@ export async function POST(
         expirationDate: expirationDate ? new Date(expirationDate).toLocaleDateString() : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toLocaleDateString(),
         carrierName: carrier.name,
         programName: getDisplayProgramName((submission as any).programName),
+        submissionId: submissionId,
         pdfBuffer: undefined, // We'll include the URL instead
         binderPdfUrl,
       });

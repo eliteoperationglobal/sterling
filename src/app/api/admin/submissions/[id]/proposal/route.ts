@@ -129,12 +129,12 @@ function extractLimits(value: string) {
 }
 function formatToUSD(value: any) {
   if (value === undefined || value === null || value === "") return "";
-  if (typeof value === "string" && (value.includes("$") || value.includes("/"))) {
+  if (typeof value === "string" && value.includes("/")) {
     return value;
   }
   const str = String(value).replace(/[$,]/g, "");
   const num = Number(str);
-  if (isNaN(num)) return String(value);
+  if (isNaN(num)) return String(value).includes("$") ? String(value) : `$${value}`;
   return `$${num.toLocaleString()}`;
 }
 
@@ -259,13 +259,16 @@ export async function GET(
       endorsements,
       specialNotes,
       occurrenceLimit: occurrence,
-      fireLegalLimit: formatToUSD(limits?.fireLegalLimit || formData?.fireLegalLimit),
-      medPayLimit: limits?.medicalExpenseLimit && limits.medicalExpenseLimit !== "Not Applicable" ? formatToUSD(limits.medicalExpenseLimit) : "Not Applicable",
+      fireLegalLimit: formatToUSD(limits?.fireLegalLimit || formData?.fireLegalLimit || "100000"),
+      medPayLimit: (() => {
+        const val = limits?.medicalExpenseLimit || formData?.medicalExpenseLimit || "5000";
+        return val === "Not Applicable" ? val : formatToUSD(val);
+      })(),
       personalAdvertisingInjuryLimit: occurrence,
       aggregateLimit: aggregate,
       productsCompletedOpsLimit: products,
-      deductible: formatToUSD(limits?.deductible || formData?.deductible || "Not Applicable"),
-      selfInsuredRetention: formatToUSD(limits?.deductible || formData?.deductible || "Not Applicable"),
+      deductible: formatToUSD(limits?.deductible || formData?.deductible || formData?.selfInsuredRetention || "2500"),
+      selfInsuredRetention: formatToUSD(limits?.deductible || formData?.selfInsuredRetention || formData?.deductible || "2500"),
       employeePayroll: formatToUSD(formData.totalPayroll || formData.totalPayrollAmount || "$0"),
       descriptionOfOperations:
         formData.carrierApprovedDescription ||

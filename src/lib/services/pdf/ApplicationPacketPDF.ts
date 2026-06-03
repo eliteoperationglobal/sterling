@@ -7929,10 +7929,32 @@ export function mapFormDataToPacketData(
 			const val = parts[0] || '1M';
 			return val.includes('$') ? val : `$${val.replace('M', ',000,000').replace('m', ',000,000')}`;
 		})(),
-		fireLegalLimit: formData.fireLegalLimit || '$100,000',
-		medPayLimit: formData.medicalExpenseLimit || '$5,000',
-		selfInsuredRetention: formData.selfInsuredRetention || formData.deductible || '$2,500',
-		excessLiabilityLimit: formData.excessLiabilityLimit ? `$${formData.excessLiabilityLimit}` : undefined,
+		fireLegalLimit: (() => {
+			const val = quote?.limits?.fireLegalLimit || formData.fireLegalLimit || '100000';
+			const str = String(val).replace(/[$,]/g, '');
+			const num = Number(str);
+			return isNaN(num) ? (String(val).includes('$') ? String(val) : `$${val}`) : `$${num.toLocaleString()}`;
+		})(),
+		medPayLimit: (() => {
+			const val = quote?.limits?.medicalExpenseLimit || formData.medicalExpenseLimit || '5000';
+			if (val === 'Not Applicable') return val;
+			const str = String(val).replace(/[$,]/g, '');
+			const num = Number(str);
+			return isNaN(num) ? (String(val).includes('$') ? String(val) : `$${val}`) : `$${num.toLocaleString()}`;
+		})(),
+		selfInsuredRetention: (() => {
+			const val = quote?.limits?.deductible || formData.selfInsuredRetention || formData.deductible || '2500';
+			const str = String(val).replace(/[$,]/g, '');
+			const num = Number(str);
+			return isNaN(num) ? (String(val).includes('$') ? String(val) : `$${val}`) : `$${num.toLocaleString()}`;
+		})(),
+		excessLiabilityLimit: (() => {
+			const val = quote?.limits?.excessLimit || formData.excessLiabilityLimit;
+			if (!val) return undefined;
+			const str = String(val).replace(/[$,]/g, '');
+			const num = Number(str);
+			return isNaN(num) ? (String(val).includes('$') ? String(val) : `$${val}`) : `$${num.toLocaleString()}`;
+		})(),
 
 		// Class Code & Gross Receipts
 		classCode: classCodeDescription || firstClassCode,

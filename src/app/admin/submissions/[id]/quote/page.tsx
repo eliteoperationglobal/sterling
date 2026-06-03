@@ -173,7 +173,7 @@ export default function AdminQuotePage() {
       if (!hasExistingQuotes) {
         // Get limits from form
         if (formData.coverageLimits) {
-          const limitsStr = formData.coverageLimits;
+          const limitsStr = formData.coverageLimits.replace(/\s/g, '');
           setGeneralLiabilityLimit(limitsStr);
           setAggregateLimit(limitsStr);
         }
@@ -266,8 +266,8 @@ export default function AdminQuotePage() {
           fireMarshalTaxPercent: q.fireMarshalTaxPercent?.toString() || "",
           fireMarshalTaxAmountUSD: q.fireMarshalTaxAmountUSD?.toString() || "",
           policyFeeUSD: q.policyFeeUSD?.toString() || "",
-          generalLiabilityLimit: q.limits?.generalLiability || "",
-          aggregateLimit: q.limits?.aggregateLimit || "",
+          generalLiabilityLimit: q.limits?.generalLiability?.replace(/\s/g, '') || "",
+          aggregateLimit: q.limits?.aggregateLimit?.replace(/\s/g, '') || "",
           fireLegalLimit: q.limits?.fireLegalLimit || "",
           medicalExpenseLimit: q.limits?.medicalExpenseLimit || "Not Applicable",
           deductible: q.limits?.deductible || "",
