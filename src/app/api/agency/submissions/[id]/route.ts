@@ -35,6 +35,7 @@ export async function GET(
     await import("@/models/FormTemplate");
     await import("@/models/Carrier");
     const { default: BoundPolicy } = await import("@/models/BoundPolicy");
+    const { default: CancelRequest } = await import("@/models/CancelRequest");
 
     // Find submission — admin can view any submission, agency users only their own
     const userRole = (session.user as any).role;
@@ -56,7 +57,7 @@ export async function GET(
     }
 
     // Fetch related records concurrently to improve load times
-    const [routingLogs, quotes, boundPolicy, activityLogs] = await Promise.all([
+    const [routingLogs, quotes, boundPolicy, activityLogs, pendingCancelRequest] = await Promise.all([
       RoutingLog.find({ submissionId: params.id })
         .populate("carrierId", "name email")
         .sort({ createdAt: -1 })
@@ -70,9 +71,11 @@ export async function GET(
         .sort({ createdAt: -1 })
         .limit(100)
         .lean(),
+      (CancelRequest as any).findOne({ submissionId: params.id, status: "PENDING" }).lean(),
     ]);
 
     return NextResponse.json({
+      cancelRequested: !!pendingCancelRequest,
       submission: {
         ...submission,
         _id: submission._id.toString(),

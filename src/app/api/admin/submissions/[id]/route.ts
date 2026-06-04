@@ -55,9 +55,10 @@ export async function GET(
 
     const ActivityLog = (await import("@/models/ActivityLog")).default;
     const BoundPolicy = (await import("@/models/BoundPolicy")).default;
+    const CancelRequest = (await import("@/models/CancelRequest")).default;
 
     // Fetch routing logs, quotes, bound policy, and activity logs concurrently
-    const [routingLogs, quotes, boundPolicy, activityLogs] = await Promise.all([
+    const [routingLogs, quotes, boundPolicy, activityLogs, pendingCancelRequest] = await Promise.all([
       RoutingLog.find({ submissionId: params.id })
         .populate("carrierId", "name email")
         .sort({ createdAt: -1 })
@@ -71,9 +72,11 @@ export async function GET(
         .sort({ createdAt: -1 })
         .limit(100)
         .lean(),
+      (CancelRequest as any).findOne({ submissionId: params.id, status: "PENDING" }).lean(),
     ]);
 
     return NextResponse.json({
+      cancelRequested: !!pendingCancelRequest,
       submission: {
         ...submission,
         _id: submission._id.toString(),

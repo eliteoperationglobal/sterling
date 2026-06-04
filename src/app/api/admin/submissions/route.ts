@@ -48,10 +48,18 @@ export async function GET(req: NextRequest) {
 
     // Filter by status
     if (status && status !== "ALL") {
+      const CancelRequest = (await import("@/models/CancelRequest")).default;
+      const pendingCancels = await CancelRequest.find({ status: "PENDING" }).select("submissionId").lean();
+      const cancelIds = pendingCancels.map((req: any) => req.submissionId);
+
       if (status === "DECLINED") {
         query.status = { $in: ["DECLINED", "CANCELLED"] };
+        if (cancelIds.length > 0) query._id = { $nin: cancelIds };
+      } else if (status === "PENDING_CANCEL") {
+        query._id = { $in: cancelIds };
       } else {
         query.status = status;
+        if (cancelIds.length > 0) query._id = { $nin: cancelIds };
       }
     }
 
@@ -121,6 +129,18 @@ export async function GET(req: NextRequest) {
       }
     }
 
+    // --- Fetch CancelRequests for these submissions ---
+    const CancelRequest = (await import("@/models/CancelRequest")).default;
+    const cancelRequests = await CancelRequest.find({
+      submissionId: { $in: submissionIds },
+      status: "PENDING",
+    }).select("submissionId").lean();
+
+    const pendingCancelMap: Record<string, boolean> = {};
+    for (const req of cancelRequests as any[]) {
+      pendingCancelMap[req.submissionId.toString()] = true;
+    }
+
     const formattedSubmissions = submissions.map((sub: any) => {
       const subId = sub._id.toString();
       const effectiveDate =
@@ -152,6 +172,7 @@ export async function GET(req: NextRequest) {
         submittedToCarrierAt: sub.submittedToCarrierAt || null,
         bindApprovedAt: sub.bindApprovedAt || null,
         effectiveDate,
+        cancelRequested: !!pendingCancelMap[subId],
       };
     });
 

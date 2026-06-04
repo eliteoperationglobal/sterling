@@ -195,6 +195,8 @@ function SubmissionDetailsContent() {
   const [ratingError, setRatingError] = useState("");
 
   const [bindModalOpen, setBindModalOpen] = useState(false);
+  const [cancelModalOpen, setCancelModalOpen] = useState(false);
+  const [isCanceling, setIsCanceling] = useState(false);
   const [bindSelectedCarrierIdGL, setBindSelectedCarrierIdGL] = useState<string | null>(null);
   const [bindSelectedCarrierIdXL, setBindSelectedCarrierIdXL] = useState<string | null>(null);
   const [paymentAuthModalOpen, setPaymentAuthModalOpen] = useState(false);
@@ -358,43 +360,52 @@ function SubmissionDetailsContent() {
 
   const fetchSubmission = () => mutate();
 
-  const handleFileUpload = async (file: File) => {
-    if (!submissionId) return;
+  const handleFileUpload = async (files: FileList | File[]) => {
+    if (!submissionId || !files || files.length === 0) return;
+
+    const MAX_MB = 10;
+    const filesArray = Array.from(files);
 
     // Check file size (10MB max)
-    const MAX_MB = 10;
-    if (file.size > MAX_MB * 1024 * 1024) {
-      toast.error(`File size cannot exceed ${MAX_MB}MB`);
-      return;
+    for (const file of filesArray) {
+      if (file.size > MAX_MB * 1024 * 1024) {
+        toast.error(`File ${file.name} exceeds ${MAX_MB}MB`);
+        return;
+      }
     }
-
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("submissionId", submissionId as string);
 
     try {
       setUploading(true);
+      let successCount = 0;
 
-      const res = await fetch(
-        `/api/upload`,
-        {
-          method: "POST",
-          body: formData,
+      for (const file of filesArray) {
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("submissionId", submissionId as string);
+
+        const res = await fetch(
+          `/api/upload`,
+          {
+            method: "POST",
+            body: formData,
+          }
+        );
+
+        if (!res.ok) {
+          toast.error(`Failed to upload ${file.name}`);
+        } else {
+          successCount++;
         }
-      );
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || "Upload failed");
       }
 
-      toast.success("Document uploaded successfully");
-
-      // 🔁 refresh submission data
-      fetchSubmission();
+      if (successCount > 0) {
+        toast.success(`${successCount} document(s) uploaded successfully`);
+        // 🔁 refresh submission data
+        fetchSubmission();
+      }
     } catch (err: any) {
       console.error(err);
-      toast.error(err.message || "Failed to upload document");
+      toast.error(err.message || "Failed to upload documents");
     } finally {
       setUploading(false);
     }
@@ -422,7 +433,7 @@ function SubmissionDetailsContent() {
   const handleCancelRequest = async () => {
     if (!submissionId) return;
 
-    if (!confirm("Send cancel request?")) return;
+    setIsCanceling(true);
 
     try {
       const res = await fetch("/api/agency/cancel-request", {
@@ -440,9 +451,12 @@ function SubmissionDetailsContent() {
       }
 
       toast.success("Cancel request sent");
+      setCancelModalOpen(false);
       fetchSubmission(); // ⭐ refresh page data
     } catch (err: any) {
       toast.error(err.message);
+    } finally {
+      setIsCanceling(false);
     }
   };
   // ================= ISC BUTTON STYLES =================
@@ -760,7 +774,7 @@ function SubmissionDetailsContent() {
     );
   }
 
-  const { submission, routingLogs, quotes, boundPolicy } = data;
+  const { submission, routingLogs, quotes, boundPolicy, cancelRequested } = data;
 
 
   // ✅ STATUS FLAGS
@@ -836,6 +850,35 @@ function SubmissionDetailsContent() {
 
   return (
     <DashboardLayout>
+      {/* Cancel Confirmation Modal */}
+      {cancelModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 animate-in fade-in zoom-in duration-200">
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Cancel Quote</h3>
+            <p className="text-gray-500 text-sm mb-6">Are you sure you want to cancel this quote? This action cannot be undone.</p>
+
+            <div className="flex justify-end gap-3 mt-4">
+              <button
+                onClick={() => setCancelModalOpen(false)}
+                disabled={isCanceling}
+                className="px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-xl transition-colors disabled:opacity-50"
+              >
+                Go Back
+              </button>
+              <button
+                onClick={handleCancelRequest}
+                disabled={isCanceling}
+                className={`px-5 py-2.5 text-sm font-medium text-white rounded-xl transition-all ${
+                  isCanceling ? "bg-red-400 cursor-not-allowed" : "bg-red-600 hover:bg-red-700 shadow-md"
+                }`}
+              >
+                {isCanceling ? "Canceling..." : "Confirm Cancel"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Carrier Selection Modal for Request Bind */}
       {bindModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm">
@@ -1000,11 +1043,13 @@ function SubmissionDetailsContent() {
                   <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3">
                     {(submission?.payload?.companyName || submission?.clientContact?.name || "???")}
                     <span className={`inline-flex items-center rounded-md px-3 py-[4px] text-[13px] font-bold border transition-all w-fit ${(() => {
+                      if (cancelRequested) return "bg-orange-100 text-orange-700 border-orange-200";
                       const isBound = submission?.status === "BOUND" || (quotes || []).some((q: any) => q.status === "BOUND");
                       return isBound ? "bg-green-100 text-green-700 border-green-200" : "bg-gray-100 text-gray-700 border-gray-200";
                     })()
                       }`}>
                       {(() => {
+                        if (cancelRequested) return "PENDING CANCEL";
                         const isBound = submission?.status === "BOUND" || (quotes || []).some((q: any) => q.status === "BOUND");
                         return isBound ? "BOUND" : (submission?.status || "").replace(/_/g, " ");
                       })()}
@@ -1085,13 +1130,14 @@ function SubmissionDetailsContent() {
           </div>
         )}
 
-        <div className="bg-white px-4 md:px-6 py-4 md:h-[64px] md:py-0 border-t border-gray-100">
-          <div className="flex flex-col md:flex-row md:items-center justify-between w-full h-full gap-4 md:gap-0">
+        <div className="bg-white px-4 md:px-6 py-4 md:py-3 min-h-[64px] border-t border-gray-100">
+          <div className="flex flex-col md:flex-row md:items-center justify-between w-full gap-4 md:gap-3">
             {/* LEFT */}
             <div className="flex items-center gap-4">
               <h2 className="text-[16px] font-semibold text-gray-900">App Info</h2>
-              <span className="px-3 py-[4px] rounded-md bg-gray-100 text-[13px] text-gray-700">
+              <span className={`px-3 py-[4px] rounded-md text-[13px] font-bold border ${cancelRequested ? "bg-orange-100 text-orange-700 border-orange-200" : "bg-gray-100 text-gray-700 border-transparent"}`}>
                 {(() => {
+                  if (cancelRequested) return "PENDING CANCEL";
                   const isBound = submission?.status === "BOUND" || (data?.quotes || []).some((q: any) => q.status === "BOUND");
                   return isBound ? "BOUND" : (submission?.status || "").replace(/_/g, " ");
                 })()}
@@ -1099,7 +1145,7 @@ function SubmissionDetailsContent() {
             </div>
 
             {/* RIGHT BUTTONS */}
-            <div className="flex flex-wrap items-center gap-2 md:gap-3">
+            <div className="flex flex-wrap items-center justify-end gap-2 md:gap-3">
 
               {/* ================= SUBMITTED (IN PROGRESS) ================= */}
               {isSubmitted && (
@@ -1143,10 +1189,11 @@ function SubmissionDetailsContent() {
                   </button>
 
                   <button
-                    onClick={handleCancelRequest}
-                    className={iscOutlineBtn}
+                    onClick={() => setCancelModalOpen(true)}
+                    disabled={cancelRequested}
+                    className={`${iscOutlineBtn} ${cancelRequested ? "opacity-60 cursor-not-allowed bg-gray-100" : ""}`}
                   >
-                    Cancel Quote
+                    {cancelRequested ? "Cancel Requested" : "Cancel Quote"}
                   </button>
                 </>
               )}
@@ -1200,10 +1247,11 @@ function SubmissionDetailsContent() {
                   </button>
 
                   <button
-                    onClick={handleCancelRequest}
-                    className={iscOutlineBtn}
+                    onClick={() => setCancelModalOpen(true)}
+                    disabled={cancelRequested}
+                    className={`${iscOutlineBtn} ${cancelRequested ? "opacity-60 cursor-not-allowed bg-gray-100" : ""}`}
                   >
-                    Cancel Quote
+                    {cancelRequested ? "Cancel Requested" : "Cancel Quote"}
                   </button>
                 </>
               )}
@@ -1316,10 +1364,11 @@ function SubmissionDetailsContent() {
                     Modify
                   </button>
                   <button
-                    onClick={handleCancelRequest}
-                    className={iscOutlineBtn}
+                    onClick={() => setCancelModalOpen(true)}
+                    disabled={cancelRequested}
+                    className={`${iscOutlineBtn} ${cancelRequested ? "opacity-60 cursor-not-allowed bg-gray-100" : ""}`}
                   >
-                    Cancel Quote
+                    {cancelRequested ? "Cancel Requested" : "Cancel Quote"}
                   </button>
 
                 </>
@@ -1340,10 +1389,11 @@ function SubmissionDetailsContent() {
                     View
                   </button>
                   <button
-                    onClick={handleCancelRequest}
-                    className={iscOutlineBtn}
+                    onClick={() => setCancelModalOpen(true)}
+                    disabled={cancelRequested}
+                    className={`${iscOutlineBtn} ${cancelRequested ? "opacity-60 cursor-not-allowed bg-gray-100" : ""}`}
                   >
-                    Cancel Quote
+                    {cancelRequested ? "Cancel Requested" : "Cancel Quote"}
                   </button>
                 </>
               )} */}
@@ -1436,10 +1486,11 @@ function SubmissionDetailsContent() {
                     Modify
                   </button>
                   <button
-                    onClick={handleCancelRequest}
-                    className={iscOutlineBtn}
+                    onClick={() => setCancelModalOpen(true)}
+                    disabled={cancelRequested}
+                    className={`${iscOutlineBtn} ${cancelRequested ? "opacity-60 cursor-not-allowed bg-gray-100" : ""}`}
                   >
-                    Cancel Quote
+                    {cancelRequested ? "Cancel Requested" : "Cancel Quote"}
                   </button>
                   {/* Request Bind for new policies added to an already-bound submission */}
                   {(() => {
@@ -1665,9 +1716,8 @@ function SubmissionDetailsContent() {
               onDrop={(e) => {
                 e.preventDefault();
                 setIsDragging(false);
-                const file = e.dataTransfer.files?.[0];
-                if (file) {
-                  handleFileUpload(file);
+                if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                  handleFileUpload(e.dataTransfer.files);
                 }
               }}
               className={`relative group cursor-pointer transition-all duration-300 ${isDragging
@@ -1679,10 +1729,11 @@ function SubmissionDetailsContent() {
               <input
                 id="agency-file-upload"
                 type="file"
+                multiple
                 className="hidden"
                 onChange={(e) => {
-                  if (e.target.files?.[0]) {
-                    handleFileUpload(e.target.files[0]);
+                  if (e.target.files && e.target.files.length > 0) {
+                    handleFileUpload(e.target.files);
                   }
                 }}
               />
@@ -1951,7 +2002,7 @@ function SubmissionDetailsContent() {
                   key={item._id}
                   className="px-4 py-3 grid grid-cols-4 min-w-[600px] text-sm border-t"
                 >
-                  <span>{item.program}</span>
+                  <span>{item.program === "Advantage Contractor GL" ? "Construction" : (item.program === "Construction Equipment" ? "Contractors Equipment" : item.program)}</span>
                   <span>{new Date(item.changedAt).toLocaleDateString('en-US', { timeZone: 'UTC', month: '2-digit', day: '2-digit', year: 'numeric' })}</span>
                   <span>{item.user}</span>
                   <span>{item.status}</span>

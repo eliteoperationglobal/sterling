@@ -4,7 +4,7 @@
 import BrokerSidebar from "@/components/layout/BrokerSidebar";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 export const dynamic = 'force-dynamic';
-import { Clock, Bell, CheckCircle, CircleSmall, XCircle } from "lucide-react";
+import { Clock, Bell, CheckCircle, CircleSmall, XCircle, AlertCircle } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -33,6 +33,7 @@ interface Submission {
   hasGeneral?: boolean;
   hasExcess?: boolean;
   effectiveDate?: string | null;
+  cancelRequested?: boolean;
 }
 
 interface DashboardStats {
@@ -131,6 +132,7 @@ function AgencyDashboardContent() {
     "BOUND": "BOUND",
     "UNDERWRITING_DECLINED": "DECLINED",
     "CANCELLED": ["CANCELLED", "DECLINED"],
+    "PENDING_CANCEL": "PENDING_CANCEL",
   };
 
   // Pipeline stages matching ISC (counts will be updated from real data)
@@ -145,6 +147,7 @@ function AgencyDashboardContent() {
     // { id: "INCOMPLETE_BIND", label: "Incomplete Bind", count: 0 },
     // { id: "READY_TO_BIND", label: "Ready To Bind", count: 0 },
     { id: "BOUND", label: "Bound", count: 0 },
+    { id: "PENDING_CANCEL", label: "Pending Cancel", count: 0 },
     { id: "CANCELLED", label: "Cancelled", count: 0 },
     // { id: "UNDERWRITING_DECLINED", label: "Underwriting Declined", count: 0 },
   ]);
@@ -329,10 +332,13 @@ function AgencyDashboardContent() {
         "BOUND": 0,
         "CANCELLED": 0,
         "DECLINED": 0,
+        "PENDING_CANCEL": 0,
       };
 
       fetchedSubmissions.forEach((sub: Submission) => {
-        if (counts[sub.status] !== undefined) {
+        if (sub.cancelRequested) {
+          counts["PENDING_CANCEL"] = (counts["PENDING_CANCEL"] || 0) + 1;
+        } else if (counts[sub.status] !== undefined) {
           counts[sub.status]++;
         } else {
           counts[sub.status] = 1;
@@ -351,6 +357,7 @@ function AgencyDashboardContent() {
         // { id: "INCOMPLETE_BIND", label: "Incomplete Bind", count: 0 },
         // { id: "READY_TO_BIND", label: "Ready To Bind", count: counts.BIND_REQUESTED || 0 },
         { id: "BOUND", label: "Bound", count: counts.BOUND || 0 },
+        { id: "PENDING_CANCEL", label: "Pending Cancel", count: counts.PENDING_CANCEL || 0 },
         { id: "CANCELLED", label: "Cancelled", count: (counts.CANCELLED || 0) + (counts.DECLINED || 0) },
         // { id: "UNDERWRITING_DECLINED", label: "Underwriting Declined", count: 0 },
       ]);
@@ -371,15 +378,17 @@ function AgencyDashboardContent() {
     let filtered = data;
 
     // Filter by selected stage
-    const stageStatus = stageToStatusMap[selectedStage];
     if (selectedStage !== "ALL") {
-      const stageStatus = stageToStatusMap[selectedStage];
-
-      if (stageStatus) {
-        if (Array.isArray(stageStatus)) {
-          filtered = filtered.filter(sub => stageStatus.includes(sub.status));
-        } else {
-          filtered = filtered.filter(sub => sub.status === stageStatus);
+      if (selectedStage === "PENDING_CANCEL") {
+        filtered = filtered.filter(sub => sub.cancelRequested);
+      } else {
+        const stageStatus = stageToStatusMap[selectedStage];
+        if (stageStatus) {
+          if (Array.isArray(stageStatus)) {
+            filtered = filtered.filter(sub => !sub.cancelRequested && stageStatus.includes(sub.status));
+          } else {
+            filtered = filtered.filter(sub => !sub.cancelRequested && sub.status === stageStatus);
+          }
         }
       }
     }
@@ -637,6 +646,7 @@ function AgencyDashboardContent() {
               const isInProgress = stage.id === "IN_PROGRESS";
               const isApproved = stage.id === "APPROVED_QUOTE";
               const isBound = stage.id === "BOUND";
+              const isPendingCancel = stage.id === "PENDING_CANCEL";
               const iscansel = stage.id === "CANCELLED";
 
               return (
@@ -652,6 +662,7 @@ function AgencyDashboardContent() {
           ${isInProgress && isActive ? "ring-2 ring-[#9A8B7A]" : ""}
           ${isApproved && isActive ? "ring-2 ring-[#9A8B7A]" : ""}
           ${isBound && isActive ? "ring-2 ring-[#9A8B7A]" : ""}
+          ${isPendingCancel && isActive ? "ring-2 ring-[#9A8B7A]" : ""}
           ${iscansel && isActive ? "ring-2 ring-[#9A8B7A]" : ""}
           ${isAll && isActive ? "ring-2 ring-[#9A8B7A]" : ""}
         `}
@@ -675,6 +686,10 @@ function AgencyDashboardContent() {
                         <CheckCircle className="w-4 h-4 text-[#9A8B7A]" />
                       )}
 
+                      {isPendingCancel && (
+                        <AlertCircle className="w-4 h-4 text-[#9A8B7A]" />
+                      )}
+
                       {iscansel && (
                         <XCircle className="w-4 h-4 text-[#9A8B7A]" />
                       )}
@@ -685,6 +700,7 @@ function AgencyDashboardContent() {
               ${isInProgress ? "text-[#9A8B7A]" : ""}
               ${isApproved ? "text-[#9A8B7A]" : ""}
               ${isBound ? "text-[#9A8B7A]" : ""}
+              ${isPendingCancel ? "text-[#9A8B7A]" : ""}
               ${iscansel ? "text-[#9A8B7A]" : ""}
             `}
                       >
@@ -701,6 +717,7 @@ function AgencyDashboardContent() {
             ${isInProgress ? "bg-[#EFEAE5] text-[#9A8B7A]" : ""}
             ${isApproved ? "bg-[#EFEAE5] text-[#9A8B7A]" : ""}
             ${isBound ? "bg-[#EFEAE5] text-[#9A8B7A]" : ""}
+            ${isPendingCancel ? "bg-[#EFEAE5] text-[#9A8B7A]" : ""}
             ${iscansel ? "bg-[#EFEAE5] text-[#9A8B7A]" : ""}
           `}
                     >

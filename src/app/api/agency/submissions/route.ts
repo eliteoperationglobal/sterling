@@ -52,7 +52,16 @@ export async function GET(req: NextRequest) {
     };
 
     if (status && status !== "ALL") {
-      query.status = status;
+      const CancelRequest = (await import("@/models/CancelRequest")).default;
+      const pendingCancels = await CancelRequest.find({ status: "PENDING" }).select("submissionId").lean();
+      const cancelIds = pendingCancels.map((req: any) => req.submissionId);
+
+      if (status === "PENDING_CANCEL") {
+        query._id = { $in: cancelIds };
+      } else {
+        query.status = status;
+        if (cancelIds.length > 0) query._id = { $nin: cancelIds };
+      }
     }
 
     if (startDate || endDate) {
@@ -144,6 +153,18 @@ export async function GET(req: NextRequest) {
       };
     });
 
+    // --- Fetch CancelRequests for these submissions ---
+    const CancelRequest = (await import("@/models/CancelRequest")).default;
+    const cancelRequests = await CancelRequest.find({
+      submissionId: { $in: submissionIds },
+      status: "PENDING",
+    }).select("submissionId").lean();
+
+    const pendingCancelMap: Record<string, boolean> = {};
+    for (const req of cancelRequests as any[]) {
+      pendingCancelMap[req.submissionId.toString()] = true;
+    }
+
     const formattedSubmissions = submissions.map((sub) => {
       const totals = quoteMap[sub._id.toString()] || { 
         richmondTotal: null, 
@@ -175,6 +196,7 @@ export async function GET(req: NextRequest) {
         agentName: sub.agentName || sub.payload?.agentName || null,
         agentId: sub.agentId ? sub.agentId.toString() : null,
         effectiveDate: totals.quoteEffectiveDate || sub.payload?.effectiveDate || null,
+        cancelRequested: !!pendingCancelMap[sub._id.toString()],
       };
     });
 

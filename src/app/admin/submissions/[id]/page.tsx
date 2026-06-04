@@ -246,6 +246,8 @@ export default function AdminSubmissionDetailsPage() {
   const [editingNotes, setEditingNotes] = useState(false);
   const [savingNotes, setSavingNotes] = useState(false);
   const [stats, setStats] = useState({ quoteRequests: 0, bindRequests: 0 });
+  const [cancelModalOpen, setCancelModalOpen] = useState(false);
+  const [isCanceling, setIsCanceling] = useState(false);
 
   // New state for refactored tabs and notes
   const [activeTab, setActiveTab] = useState("Admin Notes");
@@ -286,6 +288,29 @@ export default function AdminSubmissionDetailsPage() {
   };
 
 
+  const handleCancelRequest = async () => {
+    try {
+      setIsCanceling(true);
+      const res = await fetch("/api/agency/cancel-request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ submissionId: params.id }),
+      });
+      const result = await res.json();
+      if (result.success) {
+        toast.success("Cancel request submitted.");
+        mutate(status === "authenticated" && submissionId ? `/api/admin/submissions/${submissionId}` : null);
+        setCancelModalOpen(false);
+      } else {
+        toast.error(result.message || "Failed to submit request.");
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Something went wrong.");
+    } finally {
+      setIsCanceling(false);
+    }
+  };
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -318,7 +343,7 @@ export default function AdminSubmissionDetailsPage() {
   );
 
   const data = rawData?.submission ? rawData : null;
-  const { submission, routingLogs, quotes } = data || {};
+  const { submission, routingLogs, quotes, cancelRequested } = data || {};
   const loading = isLoading;
   const error = swrError ? "Failed to load submission" : rawData?.error || "";
 
@@ -495,27 +520,45 @@ export default function AdminSubmissionDetailsPage() {
     }
   };
 
-  const handleFileUpload = async (file: File) => {
-    if (!submissionId) return;
+  const handleFileUpload = async (files: FileList | File[]) => {
+    if (!submissionId || !files || files.length === 0) return;
+    
     const MAX_MB = 10;
-    if (file.size > MAX_MB * 1024 * 1024) {
-      toast.error(`File size cannot exceed ${MAX_MB}MB`);
-      return;
+    const filesArray = Array.from(files);
+    
+    for (const file of filesArray) {
+      if (file.size > MAX_MB * 1024 * 1024) {
+        toast.error(`File ${file.name} exceeds ${MAX_MB}MB`);
+        return;
+      }
     }
-    const formData = new FormData();
-    formData.append("file", file);
 
     try {
       setUploading(true);
-      const res = await fetch(`/api/admin/submissions/${submissionId}/upload`, {
-        method: "POST",
-        body: formData,
-      });
-      if (!res.ok) throw new Error("Upload failed");
-      toast.success("Document uploaded successfully");
-      mutate(`/api/admin/submissions/${submissionId}`);
+      let successCount = 0;
+      
+      for (const file of filesArray) {
+        const formData = new FormData();
+        formData.append("file", file);
+        
+        const res = await fetch(`/api/admin/submissions/${submissionId}/upload`, {
+          method: "POST",
+          body: formData,
+        });
+        
+        if (!res.ok) {
+          toast.error(`Failed to upload ${file.name}`);
+        } else {
+          successCount++;
+        }
+      }
+      
+      if (successCount > 0) {
+        toast.success(`${successCount} document(s) uploaded successfully`);
+        mutate(`/api/admin/submissions/${submissionId}`);
+      }
     } catch (err: any) {
-      toast.error(err.message || "Failed to upload document");
+      toast.error(err.message || "Failed to upload documents");
     } finally {
       setUploading(false);
     }
@@ -716,6 +759,55 @@ export default function AdminSubmissionDetailsPage() {
     <div className="min-h-screen bg-[#f5f1eb]">
       <MobileNav isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} />
 
+      {/* Cancel Confirmation Modal */}
+      {cancelModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="p-6">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+                  <svg className="w-6 h-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900">Cancel Request</h3>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Are you sure you want to request cancellation for this submission?
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="bg-gray-50 px-6 py-4 flex items-center justify-end gap-3 border-t border-gray-100">
+              <button
+                onClick={() => setCancelModalOpen(false)}
+                disabled={isCanceling}
+                className="px-4 py-2 text-sm font-semibold text-gray-600 hover:text-gray-800 transition-colors"
+              >
+                Go Back
+              </button>
+              <button
+                onClick={handleCancelRequest}
+                disabled={isCanceling}
+                className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg shadow-sm transition-colors flex items-center gap-2"
+              >
+                {isCanceling ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Confirming...
+                  </>
+                ) : (
+                  "Confirm Cancel"
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Payment Auth Modal */}
       {paymentAuthModalOpen && (
         <div className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm overflow-y-auto">
@@ -892,11 +984,13 @@ export default function AdminSubmissionDetailsPage() {
                   <div>
                     {(submission?.clientContact?.name || "???")}
                     <span className={`ml-3 inline-flex items-center rounded-md px-3 py-[4px] text-[13px] font-bold border transition-all ${(() => {
+                      if (cancelRequested) return "bg-orange-100 text-orange-700 border-orange-200";
                       const isBound = submission?.status === "BOUND" || (quotes || []).some((q: any) => q.status === "BOUND");
                       return isBound ? "bg-green-100 text-green-700 border-green-200" : "bg-gray-100 text-gray-700 border-gray-200";
                     })()
                       }`}>
                       {(() => {
+                        if (cancelRequested) return "PENDING CANCEL";
                         const isBound = submission?.status === "BOUND" || (quotes || []).some((q: any) => q.status === "BOUND");
                         return isBound ? "BOUND" : (submission?.status || "").replace(/_/g, " ");
                       })()}
@@ -975,19 +1069,20 @@ export default function AdminSubmissionDetailsPage() {
         )}
 
         {/* Action Row */}
-        <div className="bg-white px-6 h-[64px] border-t border-gray-100 shadow-sm">
-          <div className="flex items-center justify-between w-full h-full px-8">
+        <div className="bg-white px-6 py-4 md:py-3 min-h-[64px] border-t border-gray-100 shadow-sm">
+          <div className="flex flex-col md:flex-row md:items-center justify-between w-full gap-4 md:gap-6 px-8">
             <div className="flex items-center gap-4">
               <h2 className="text-[16px] font-semibold text-gray-900">App Info</h2>
-              <span className="px-3 py-[4px] rounded-md bg-gray-100 text-[13px] text-gray-700">
+              <span className={`px-3 py-[4px] rounded-md text-[13px] font-bold border ${cancelRequested ? "bg-orange-100 text-orange-700 border-orange-200" : "bg-gray-100 text-gray-700 border-transparent"}`}>
                 {(() => {
+                  if (cancelRequested) return "PENDING CANCEL";
                   const isBound = submission?.status === "BOUND" || (quotes || []).some((q: any) => q.status === "BOUND");
                   return isBound ? "BOUND" : (submission?.status || "").replace(/_/g, " ");
                 })()}
               </span>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center justify-end gap-2 md:gap-3">
               {submission.status !== "SUBMITTED" && submission.status !== "BOUND" && (
                 <>
                   <button
@@ -1130,23 +1225,11 @@ export default function AdminSubmissionDetailsPage() {
                 App Packet
               </button>
               <button
-                onClick={async () => {
-                  if (window.confirm("Are you sure you want to cancel this submission? This will also cancel any associated bound policies.")) {
-                    try {
-                      const res = await fetch(`/api/admin/submissions/${submissionId}/cancel`, {
-                        method: "POST",
-                      });
-                      if (!res.ok) throw new Error("Failed to cancel");
-                      toast.success("Submission cancelled successfully");
-                      router.push("/admin/submissions");
-                    } catch (err: any) {
-                      toast.error(err.message || "Failed to cancel submission");
-                    }
-                  }
-                }}
-                className={iscOutlineBtn}
+                onClick={() => setCancelModalOpen(true)}
+                disabled={cancelRequested}
+                className={`${iscOutlineBtn} ${cancelRequested ? "opacity-60 cursor-not-allowed bg-gray-100" : ""}`}
               >
-                Cancel
+                {cancelRequested ? "Cancel Requested" : "Cancel"}
               </button>
             </div>
           </div>
@@ -1355,9 +1438,8 @@ export default function AdminSubmissionDetailsPage() {
               onDrop={(e) => {
                 e.preventDefault();
                 setIsDragging(false);
-                const file = e.dataTransfer.files?.[0];
-                if (file) {
-                  handleFileUpload(file);
+                if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                  handleFileUpload(e.dataTransfer.files);
                 }
               }}
               className={`relative group cursor-pointer transition-all duration-300 ${isDragging
@@ -1369,10 +1451,11 @@ export default function AdminSubmissionDetailsPage() {
               <input
                 id="admin-file-upload"
                 type="file"
+                multiple
                 className="hidden"
                 onChange={(e) => {
-                  if (e.target.files?.[0]) {
-                    handleFileUpload(e.target.files[0]);
+                  if (e.target.files && e.target.files.length > 0) {
+                    handleFileUpload(e.target.files);
                   }
                 }}
               />
@@ -1613,7 +1696,7 @@ export default function AdminSubmissionDetailsPage() {
                     key={item._id}
                     className="px-4 py-3 grid grid-cols-4 text-[14px] text-gray-900 border-b border-gray-100 last:border-0"
                   >
-                    <span>{item.program}</span>
+                    <span>{item.program === "Advantage Contractor GL" ? "Construction" : (item.program === "Construction Equipment" ? "Contractors Equipment" : item.program)}</span>
                     <span>{new Date(item.changedAt).toLocaleDateString('en-US', { timeZone: 'UTC', month: '2-digit', day: '2-digit', year: 'numeric' })}</span>
                     <span>{item.user}</span>
                     <span>{item.status}</span>

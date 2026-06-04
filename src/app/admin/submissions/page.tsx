@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Clock, Bell, CheckCircle, CircleSmall, XCircle, Info, LogOut, Layout, ChevronRight, Trash2, Menu } from "lucide-react";
+import { Clock, Bell, CheckCircle, CircleSmall, XCircle, Info, LogOut, Layout, ChevronRight, Trash2, Menu, AlertCircle } from "lucide-react";
 import MobileNav from "@/components/layout/MobileNav";
 interface Submission {
   _id: string;
@@ -23,6 +23,7 @@ interface Submission {
   submittedToCarrierAt?: string;
   bindApprovedAt?: string;
   effectiveDate?: string | null;
+  cancelRequested?: boolean;
 }
 
 interface PipelineStage {
@@ -159,13 +160,15 @@ export default function AdminSubmissionsPage() {
     { id: "QUOTED", label: "Quoted" },
     { id: "BIND_REQUESTED", label: "Bind Requested" },
     { id: "BOUND", label: "Bound" },
-    { id: "DECLINED", label: "Declined" },
+    { id: "PENDING_CANCEL", label: "Pending Cancel" },
+    { id: "DECLINED", label: "Cancelled" },
   ];
 
   const getStageCount = (id: string) => {
     if (id === "ALL") return allSubmissions.length;
-    if (id === "DECLINED") return allSubmissions.filter(s => s.status === "DECLINED" || s.status === "CANCELLED").length;
-    return allSubmissions.filter(s => s.status === id).length;
+    if (id === "DECLINED") return allSubmissions.filter(s => !s.cancelRequested && (s.status === "DECLINED" || s.status === "CANCELLED")).length;
+    if (id === "PENDING_CANCEL") return allSubmissions.filter(s => s.cancelRequested).length;
+    return allSubmissions.filter(s => !s.cancelRequested && s.status === id).length;
   };
 
   const filteredSubmissions = searchQuery.trim()
@@ -279,6 +282,7 @@ export default function AdminSubmissionsPage() {
                     {stage.id === "BIND_REQUESTED" && <CircleSmall className="w-4 h-4" />}
                     {stage.id === "BOUND" && <CheckCircle className="w-4 h-4" />}
                     {stage.id === "DECLINED" && <XCircle className="w-4 h-4" />}
+                    {stage.id === "PENDING_CANCEL" && <AlertCircle className="w-4 h-4" />}
                     <span>{stage.label}</span>
                   </div>
 
@@ -394,8 +398,8 @@ export default function AdminSubmissionsPage() {
                         </div>
                       </td>
                       <td className="px-6 py-5">
-                        <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] font-bold uppercase tracking-tighter ${getStatusBadgeColor(sub.status)}`}>
-                          {sub.status.replace("_", " ")}
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] font-bold uppercase tracking-tighter ${sub.cancelRequested ? "bg-orange-100 text-orange-700 border border-orange-200" : getStatusBadgeColor(sub.status)}`}>
+                          {sub.cancelRequested ? "PENDING CANCEL" : sub.status.replace("_", " ")}
                         </span>
                       </td>
                       <td className="px-6 py-5">
