@@ -129,6 +129,8 @@ export interface ISubmission extends Document {
   notes: INote[];
   adminNotes?: string;
 
+  effectiveCancellationDate?: Date;
+
   createdAt: Date;
   updatedAt: Date;
 }
@@ -369,6 +371,7 @@ const SubmissionSchema: Schema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "Carrier",
     },
+    effectiveCancellationDate: Date,
   },
   {
     timestamps: true,

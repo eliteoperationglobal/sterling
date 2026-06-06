@@ -1083,7 +1083,9 @@ export default function AdminSubmissionDetailsPage() {
             </div>
 
             <div className="flex flex-wrap items-center justify-end gap-2 md:gap-3">
-              {submission.status !== "SUBMITTED" && submission.status !== "BOUND" && (
+              {submission.status !== "CANCELLED" && (
+                <>
+                  {submission.status !== "SUBMITTED" && submission.status !== "BOUND" && (
                 <>
                   <button
                     onClick={() => {
@@ -1101,7 +1103,7 @@ export default function AdminSubmissionDetailsPage() {
                     Payment Auth
                   </button>
                   <button
-                    onClick={() => window.open(`/api/admin/submissions/${submissionId}/proposal?quoteId=${currentQuote?._id || ""}`, "_blank")}
+                    onClick={() => window.open(`/api/admin/submissions/${submissionId}/proposal?quoteId=${currentQuote?._id || ""}&policyType=${currentPolicyType || ''}`, "_blank")}
                     className={iscOutlineBtn}
                   >
                     Proposal
@@ -1224,13 +1226,15 @@ export default function AdminSubmissionDetailsPage() {
               >
                 App Packet
               </button>
-              <button
-                onClick={() => setCancelModalOpen(true)}
-                disabled={cancelRequested}
-                className={`${iscOutlineBtn} ${cancelRequested ? "opacity-60 cursor-not-allowed bg-gray-100" : ""}`}
-              >
-                {cancelRequested ? "Cancel Requested" : "Cancel"}
-              </button>
+                  <button
+                    onClick={() => setCancelModalOpen(true)}
+                    disabled={cancelRequested}
+                    className={`${iscOutlineBtn} ${cancelRequested ? "opacity-60 cursor-not-allowed bg-gray-100" : ""}`}
+                  >
+                    {cancelRequested ? "Cancel Requested" : "Cancel"}
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>

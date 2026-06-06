@@ -156,6 +156,7 @@ export async function GET(
     const user = session.user as any;
     const url = new URL(req.url);
     const quoteId = url.searchParams.get("quoteId");
+    const policyTypeParams = url.searchParams.get("policyType");
     if (user.role !== "system_admin") {
       return NextResponse.json({ error: "Forbidden - Admin access required" }, { status: 403 });
     }
@@ -275,7 +276,7 @@ export async function GET(
         (formData.classCodeWork ? Object.values(formData.classCodeWork).map((item: any) => item.description).join(", ") : "") ||
         "",
       // Excess Liability
-      addExcessLiability: formData.addExcessLiability === true,
+      addExcessLiability: policyTypeParams ? policyTypeParams === "EXCESS_LIABILITY" : formData.addExcessLiability === true,
       excessLiabilityAmount: xsQuote?.finalAmountUSD ?? undefined,
       excessLiabilityLimit: (xsQuote?.limits?.excessLimit || formData.excessLiabilityLimit) ? extractLimits(xsQuote?.limits?.excessLimit || formData.excessLiabilityLimit)[0] : undefined,
     };

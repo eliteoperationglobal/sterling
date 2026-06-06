@@ -183,6 +183,7 @@ export async function GET(
 
     const url = new URL(req.url);
     const quoteId = url.searchParams.get("quoteId");
+    const policyTypeParams = url.searchParams.get("policyType");
 
     // 🚀 PARALLEL: Fetch agency + GL quote + XS quote simultaneously
     const defaultAgency = {
@@ -355,7 +356,7 @@ export async function GET(
           .map((item: any) => item.description)
           .join(", "),
       // Excess Liability
-      addExcessLiability: formData.addExcessLiability === true,
+      addExcessLiability: policyTypeParams ? policyTypeParams === "EXCESS_LIABILITY" : formData.addExcessLiability === true,
       // excessLiabilityAmount and carrierNameXL handled below
       carrierNameXL,
       excessLiabilityAmount: xsQuote?.finalAmountUSD ?? undefined,

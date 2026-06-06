@@ -52,9 +52,19 @@ export async function GET(req: NextRequest) {
     };
 
     if (status && status !== "ALL") {
-      const CancelRequest = (await import("@/models/CancelRequest")).default;
+      const CancelRequest: any = (await import("@/models/CancelRequest")).default;
+      const BoundPolicy: any = (await import("@/models/BoundPolicy")).default;
+
       const pendingCancels = await CancelRequest.find({ status: "PENDING" }).select("submissionId").lean();
-      const cancelIds = pendingCancels.map((req: any) => req.submissionId);
+      const scheduledPolicies = await BoundPolicy.find({ effectiveCancellationDate: { $exists: true }, status: { $ne: "CANCELLED" } }).select("submissionId").lean();
+      const SubmissionModel: any = (await import("@/models/Submission")).default;
+      const scheduledSubmissions = await SubmissionModel.find({ effectiveCancellationDate: { $exists: true }, status: { $ne: "CANCELLED" } }).select("_id").lean();
+      
+      const cancelIds = [
+        ...pendingCancels.map((req: any) => req.submissionId.toString()),
+        ...scheduledPolicies.map((pol: any) => pol.submissionId.toString()),
+        ...scheduledSubmissions.map((sub: any) => sub._id.toString())
+      ];
 
       if (status === "PENDING_CANCEL") {
         query._id = { $in: cancelIds };
@@ -79,7 +89,7 @@ export async function GET(req: NextRequest) {
     };
 
     const submissions = await Submission.find(query)
-      .select("submissionNumber status createdAt updatedAt state agentName agentId payload.agentName payload.effectiveDate clientContact templateId files programName")
+      .select("submissionNumber status createdAt updatedAt state agentName agentId payload.agentName payload.effectiveDate clientContact templateId files programName effectiveCancellationDate")
       .populate("templateId", "industry subtype title")
       .sort({ createdAt: -1 })
       .skip(skip)
@@ -153,16 +163,32 @@ export async function GET(req: NextRequest) {
       };
     });
 
-    // --- Fetch CancelRequests for these submissions ---
-    const CancelRequest = (await import("@/models/CancelRequest")).default;
+    // --- Fetch CancelRequests and Scheduled Cancellations ---
+    const CancelRequest: any = (await import("@/models/CancelRequest")).default;
+    const BoundPolicy: any = (await import("@/models/BoundPolicy")).default;
+    
     const cancelRequests = await CancelRequest.find({
       submissionId: { $in: submissionIds },
       status: "PENDING",
     }).select("submissionId").lean();
 
+    const scheduledPolicies = await BoundPolicy.find({
+      submissionId: { $in: submissionIds },
+      effectiveCancellationDate: { $exists: true },
+      status: { $ne: "CANCELLED" }
+    }).select("submissionId").lean();
+
     const pendingCancelMap: Record<string, boolean> = {};
     for (const req of cancelRequests as any[]) {
       pendingCancelMap[req.submissionId.toString()] = true;
+    }
+    for (const pol of scheduledPolicies as any[]) {
+      pendingCancelMap[pol.submissionId.toString()] = true;
+    }
+    for (const sub of submissions) {
+      if ((sub as any).effectiveCancellationDate && sub.status !== "CANCELLED") {
+        pendingCancelMap[sub._id.toString()] = true;
+      }
     }
 
     const formattedSubmissions = submissions.map((sub) => {
@@ -196,6 +222,7 @@ export async function GET(req: NextRequest) {
         agentName: sub.agentName || sub.payload?.agentName || null,
         agentId: sub.agentId ? sub.agentId.toString() : null,
         effectiveDate: totals.quoteEffectiveDate || sub.payload?.effectiveDate || null,
+        effectiveCancellationDate: (sub as any).effectiveCancellationDate || null,
         cancelRequested: !!pendingCancelMap[sub._id.toString()],
       };
     });

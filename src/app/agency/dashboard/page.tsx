@@ -33,6 +33,7 @@ interface Submission {
   hasGeneral?: boolean;
   hasExcess?: boolean;
   effectiveDate?: string | null;
+  effectiveCancellationDate?: string | null;
   cancelRequested?: boolean;
 }
 
@@ -797,7 +798,9 @@ function AgencyDashboardContent() {
                     <th className="px-4 lg:px-6 py-4 text-left">App ID</th>
                     <th className="px-4 lg:px-6 py-4 text-left">Applicant Company</th>
                     <th className="px-4 lg:px-6 py-4 text-left">Program</th>
-                    <th className="px-4 lg:px-6 py-4 text-left whitespace-nowrap">Effective Date</th>
+                    <th className="px-4 lg:px-6 py-4 text-left whitespace-nowrap">
+                      {selectedStage === "PENDING_CANCEL" ? "Effective Cancel Date" : "Effective Date"}
+                    </th>
                     {/* <th className="px-6 py-4 text-center">Richmond</th>
                     <th className="px-6 py-4 text-center">Kinsale</th> */}
                   </tr>
@@ -833,7 +836,9 @@ function AgencyDashboardContent() {
                         {sub.industry === "Construction Equipment" ? "Contractors Equipment" : sub.industry}
                       </td>
                       <td className="px-6 py-4">
-                        {sub.effectiveDate ? new Date(sub.effectiveDate).toLocaleDateString('en-US', { timeZone: 'UTC', month: '2-digit', day: '2-digit', year: 'numeric' }) : "—"}
+                        {selectedStage === "PENDING_CANCEL" 
+                          ? (sub.effectiveCancellationDate ? new Date(sub.effectiveCancellationDate).toLocaleDateString('en-US', { timeZone: 'UTC', month: '2-digit', day: '2-digit', year: 'numeric' }) : "—")
+                          : (sub.effectiveDate ? new Date(sub.effectiveDate).toLocaleDateString('en-US', { timeZone: 'UTC', month: '2-digit', day: '2-digit', year: 'numeric' }) : "—")}
                       </td>
 
                       {/* <td className="px-6 py-4 text-center">

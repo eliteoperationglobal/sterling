@@ -15,6 +15,11 @@ export default function CancelRequestsPage() {
   const [loading, setLoading] = useState(true);
   const [profileOpen, setProfileOpen] = useState(false);
 
+  // Modal State
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
+  const [cancellationDate, setCancellationDate] = useState("");
+
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/signin");
@@ -40,15 +45,31 @@ export default function CancelRequestsPage() {
     }
   };
 
-  const approve = async (id: string) => {
+  const handleApproveClick = (request: any) => {
+    setSelectedRequestId(request._id);
+    
+    let defaultDate = new Date().toISOString().split("T")[0];
+    if (request.scheduledDate) {
+      defaultDate = new Date(request.scheduledDate).toISOString().split("T")[0];
+    }
+    
+    setCancellationDate(defaultDate);
+    setModalOpen(true);
+  };
+
+  const submitApprove = async () => {
+    if (!selectedRequestId) return;
     try {
       const res = await fetch("/api/admin/cancel-approve", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ requestId: id }),
+        body: JSON.stringify({ requestId: selectedRequestId, cancellationDate }),
       });
 
       const data = await res.json();
+      setModalOpen(false);
+      setSelectedRequestId(null);
+      setCancellationDate("");
       fetchRequests();
     } catch (err) {
       console.error(err);
@@ -167,6 +188,7 @@ export default function CancelRequestsPage() {
                 <th className="p-4 font-bold">Submission</th>
                 <th className="p-4 font-bold">Requested At</th>
                 <th className="p-4 font-bold">Status</th>
+                <th className="p-4 font-bold">Scheduled Date</th>
                 <th className="p-4 text-right font-bold">Action</th>
               </tr>
             </thead>
@@ -191,9 +213,19 @@ export default function CancelRequestsPage() {
                   </td>
 
                   <td className="p-4">
-                    <span className="px-3 py-1 text-xs font-bold rounded-full bg-amber-50 text-amber-700 border border-amber-100">
+                    <span className={`px-3 py-1 text-xs font-bold rounded-full border ${
+                      r.status === "APPROVED" 
+                        ? "bg-green-50 text-green-700 border-green-200" 
+                        : "bg-amber-50 text-amber-700 border-amber-200"
+                    }`}>
                       {r.status}
                     </span>
+                  </td>
+
+                  <td className="p-4 text-gray-600 font-medium">
+                    {r.scheduledDate 
+                      ? new Date(r.scheduledDate).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric', timeZone: 'UTC' }) 
+                      : "—"}
                   </td>
 
                   <td className="p-4 text-right">
@@ -201,11 +233,11 @@ export default function CancelRequestsPage() {
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
-                        approve(r._id);
+                        handleApproveClick(r);
                       }}
                       className="bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg shadow-rose-200 transition-all active:scale-95"
                     >
-                      Approve Cancel
+                      {r.status === "APPROVED" ? "Update Date" : "Approve Cancel"}
                     </button>
                   </td>
                 </tr>
@@ -213,6 +245,47 @@ export default function CancelRequestsPage() {
             </tbody>
           </table>
         </div>
+
+        {/* Modal */}
+        {modalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm animate-[fadeIn_0.2s_ease-out]">
+            <div className="bg-white rounded-2xl shadow-xl border border-[#e5ddd5] w-full max-w-md overflow-hidden animate-[slideUp_0.3s_ease-out]">
+              <div className="px-6 py-4 border-b border-[#e5ddd5] bg-[#f5f1eb]">
+                <h3 className="text-lg font-bold text-[#2d2a26]">Approve Cancellation</h3>
+              </div>
+              <div className="p-6">
+                <label className="block text-sm font-semibold text-[#6b5e52] mb-2">
+                  Effective Cancellation Date
+                </label>
+                <input
+                  type="date"
+                  value={cancellationDate}
+                  onChange={(e) => setCancellationDate(e.target.value)}
+                  className="w-full px-4 py-2 border border-[#e5ddd5] rounded-xl focus:ring-2 focus:ring-[#9A8B7A] focus:border-[#9A8B7A] outline-none transition-all text-[#2d2a26]"
+                />
+                <p className="mt-2 text-xs text-gray-500">
+                  If you select a future date, the policy will remain active and will automatically be cancelled on that date.
+                </p>
+              </div>
+              <div className="px-6 py-4 bg-gray-50 border-t border-[#e5ddd5] flex justify-end gap-3">
+                <button
+                  onClick={() => setModalOpen(false)}
+                  className="px-4 py-2 text-sm font-bold text-gray-600 hover:bg-gray-200 rounded-xl transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={submitApprove}
+                  disabled={!cancellationDate}
+                  className="px-4 py-2 text-sm font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-xl transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Confirm Approval
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
       </main>
     </div>
   );

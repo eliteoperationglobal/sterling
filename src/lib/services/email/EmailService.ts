@@ -344,21 +344,6 @@ Sterling Wholesale Insurance Team
 }
 
 /**
- * Send quote email to client
- */
-// export async function sendQuoteEmail(data: QuoteEmailData): Promise<boolean> {
-//   const html = generateQuoteEmailHTML(data);
-//   const text = generateQuoteEmailText(data);
-
-//   return await sendEmail({
-//     to: data.recipientEmail,
-//     subject: `Your Insurance Quote ${data.quoteNumber} - $${data.premium.toLocaleString()}/year`,
-//     html,
-//     text,
-//   });
-// }
-
-/**
  * Application Email Data
  */
 interface ApplicationEmailData {

@@ -74,8 +74,11 @@ export async function GET(
       (CancelRequest as any).findOne({ submissionId: params.id, status: "PENDING" }).lean(),
     ]);
 
+    const isScheduledCancel = (submission as any).effectiveCancellationDate && submission.status !== "CANCELLED";
+    const isPolicyScheduledCancel = boundPolicy && (boundPolicy as any).effectiveCancellationDate && boundPolicy.status !== "CANCELLED";
+
     return NextResponse.json({
-      cancelRequested: !!pendingCancelRequest,
+      cancelRequested: !!pendingCancelRequest || isScheduledCancel || isPolicyScheduledCancel,
       submission: {
         ...submission,
         _id: submission._id.toString(),

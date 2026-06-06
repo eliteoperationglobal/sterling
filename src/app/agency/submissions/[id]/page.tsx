@@ -1278,7 +1278,7 @@ function SubmissionDetailsContent() {
                   <button
                     onClick={() =>
                       window.open(
-                        `/api/agency/applications/${submissionId}/proposal?quoteId=${currentQuote?._id || ''}&t=${Date.now()}`,
+                        `/api/agency/applications/${submissionId}/proposal?quoteId=${currentQuote?._id || ''}&policyType=${currentPolicyType || ''}&t=${Date.now()}`,
                         "_blank"
                       )
                     }

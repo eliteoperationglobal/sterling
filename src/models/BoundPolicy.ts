@@ -4,6 +4,7 @@ const BoundPolicySchema = new Schema(
   {
     submissionId: String,
     status: String,
+    effectiveCancellationDate: Date,
   },
   { timestamps: true }
 );

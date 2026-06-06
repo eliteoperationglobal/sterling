@@ -632,45 +632,60 @@ export function generateProposalHTML(data: ProposalData): string {
 				<div class="pdf24new_01" style="left:20.0458em;top:4.8494em;"><span
 						class="pdf24new_18 pdf24new_08 pdf24new_09" style="word-spacing:0.0002em;">Coverage Summary
 						&nbsp;</span></div>
-				<div class="pdf24new_01" style="left:14.7761em;top:9.4031em;"><span
-						class="pdf24new_16 pdf24new_11 pdf24new_09" style="word-spacing:0.0002em;">Coverage Type
-						&nbsp;</span></div>
-				<div class="pdf24new_01" style="left:37.5059em;top:9.4031em;"><span
-						class="pdf24new_16 pdf24new_11 pdf24new_09">Limit &nbsp;</span></div>
-				<div class="pdf24new_01" style="left:13.6232em;top:11.6849em;"><span
-						class="pdf24new_19 pdf24new_11 pdf24new_09" style="word-spacing:0.0001em;">Each Occurrence Limit
-						&nbsp;</span></div>
-				<div class="pdf24new_01" style="left:10.1676em;top:14.0471em;"><span
-						class="pdf24new_19 pdf24new_11 pdf24new_09" style="word-spacing:0.0002em;">Damages to Premises
-						Rented to You Limit &nbsp;</span></div>
-				<div class="pdf24new_01" style="left:13.6707em;top:16.4093em;"><span
-						class="pdf24new_19 pdf24new_11 pdf24new_09" style="word-spacing:0.0002em;">Medical Expense Limit
-						&nbsp;</span></div>
-				<div class="pdf24new_01" style="left:36.4175em;top:11.6849em;"><span
-						class="pdf24new_19 pdf24new_11 pdf24new_09">${data.occurrenceLimit || ""} &nbsp;</span></div>
-				<div class="pdf24new_01" style="left:36.9638em;top:14.0471em;"><span
-						class="pdf24new_19 pdf24new_11 pdf24new_09">${data.fireLegalLimit || ""} &nbsp;</span></div>
-				<div class="pdf24new_01" style="left:37.9455em;top:16.4093em;"><span
-						class="pdf24new_19 pdf24new_11 pdf24new_20">${data.medPayLimit || "Not Applicable"} &nbsp;</span></div>
-				<div class="pdf24new_01" style="left:11.6163em;top:18.7715em;"><span
-						class="pdf24new_19 pdf24new_11 pdf24new_09" style="word-spacing:0.0002em;">Personal &amp;
-						Advertising Injury Limit &nbsp;</span></div>
-				<div class="pdf24new_01" style="left:13.3461em;top:21.1337em;"><span
-						class="pdf24new_19 pdf24new_11 pdf24new_09" style="word-spacing:0.0002em;">General Aggregate
-						Limit &nbsp;</span></div>
-				<div class="pdf24new_01" style="left:36.4175em;top:18.7715em;"><span
-						class="pdf24new_19 pdf24new_11 pdf24new_09">${data.personalAdvertisingInjuryLimit || ""} &nbsp;</span></div>
-				<div class="pdf24new_01" style="left:36.4175em;top:21.1337em;"><span
-						class="pdf24new_19 pdf24new_11 pdf24new_09">${data.aggregateLimit || ""} &nbsp;</span></div>
-				<div class="pdf24new_01" style="left:36.4175em;top:23.4959em;"><span
-						class="pdf24new_19 pdf24new_11 pdf24new_09">${data.productsCompletedOpsLimit || ""} &nbsp;</span></div>
-				<div class="pdf24new_01" style="left:37.1815em;top:25.8581em;"><span
-						class="pdf24new_19 pdf24new_11 pdf24new_09">${data.selfInsuredRetention || "Not Applicable"} &nbsp;</span></div>
-				<div class="pdf24new_01" style="left:8.9247em;top:23.4959em;"><span
-						class="pdf24new_19 pdf24new_11 pdf24new_09" style="word-spacing:0.0003em;">Products / Completed
-						Operations Aggregate Limit &nbsp;</span></div>
-				<div class="pdf24new_01" style="left:15.7488em;top:25.8581em;"><span
-						class="pdf24new_19 pdf24new_11 pdf24new_09">Deductible &nbsp;</span></div>
+
+				<!-- White overlay: covers the entire background image table area exactly -->
+				<div style="position:absolute; left:4.5em; top:8.3em; width:42em; min-height:19.2em; background:#fff; z-index:1; box-sizing:border-box;">
+
+					<!-- Coverage Summary HTML Table — matches background image table style -->
+					<table style="width:100%; border-collapse:collapse; table-layout:fixed; font-family:'FMLOAL+Arial',Arial,sans-serif; font-size:0.833333em; color:#1E1E1E; line-height:1.3;">
+						<colgroup>
+							<col style="width:60%;">
+							<col style="width:40%;">
+						</colgroup>
+						<thead>
+							<tr>
+								<th style="background:#D5E3F0; border:1px solid #9AAFC5; padding:0.45em 0.5em; text-align:center; font-weight:normal;">Coverage Type</th>
+								<th style="background:#D5E3F0; border:1px solid #9AAFC5; border-left:none; padding:0.45em 0.5em; text-align:center; font-weight:normal;">Limit</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td style="border:1px solid #9AAFC5; border-top:none; padding:0.52em 0.5em; text-align:center;">Each Occurrence Limit</td>
+								<td style="border:1px solid #9AAFC5; border-top:none; border-left:none; padding:0.52em 0.5em; text-align:center;">${data.occurrenceLimit || ""}</td>
+							</tr>
+							<tr>
+								<td style="border:1px solid #9AAFC5; border-top:none; padding:0.52em 0.5em; text-align:center;">Damages to Premises Rented to You Limit</td>
+								<td style="border:1px solid #9AAFC5; border-top:none; border-left:none; padding:0.52em 0.5em; text-align:center;">${data.fireLegalLimit || ""}</td>
+							</tr>
+							<tr>
+								<td style="border:1px solid #9AAFC5; border-top:none; padding:0.52em 0.5em; text-align:center;">Medical Expense Limit</td>
+								<td style="border:1px solid #9AAFC5; border-top:none; border-left:none; padding:0.52em 0.5em; text-align:center;">${data.medPayLimit || "Not Applicable"}</td>
+							</tr>
+							<tr>
+								<td style="border:1px solid #9AAFC5; border-top:none; padding:0.52em 0.5em; text-align:center;">Personal &amp; Advertising Injury Limit</td>
+								<td style="border:1px solid #9AAFC5; border-top:none; border-left:none; padding:0.52em 0.5em; text-align:center;">${data.personalAdvertisingInjuryLimit || ""}</td>
+							</tr>
+							<tr>
+								<td style="border:1px solid #9AAFC5; border-top:none; padding:0.52em 0.5em; text-align:center;">General Aggregate Limit</td>
+								<td style="border:1px solid #9AAFC5; border-top:none; border-left:none; padding:0.52em 0.5em; text-align:center;">${data.aggregateLimit || ""}</td>
+							</tr>
+							<tr>
+								<td style="border:1px solid #9AAFC5; border-top:none; padding:0.52em 0.5em; text-align:center;">Products / Completed Operations Aggregate Limit</td>
+								<td style="border:1px solid #9AAFC5; border-top:none; border-left:none; padding:0.52em 0.5em; text-align:center;">${data.productsCompletedOpsLimit || ""}</td>
+							</tr>
+							<tr>
+								<td style="border:1px solid #9AAFC5; border-top:none; padding:0.52em 0.5em; text-align:center;">Deductible</td>
+								<td style="border:1px solid #9AAFC5; border-top:none; border-left:none; padding:0.52em 0.5em; text-align:center;">${data.selfInsuredRetention || "Not Applicable"}</td>
+							</tr>
+							${(data?.addExcessLiability === true && (data?.excessLiabilityAmount !== undefined || data?.excessLiabilityLimit !== undefined)) ? `
+							<tr>
+								<td style="border:1px solid #9AAFC5; border-top:none; padding:0.52em 0.5em; text-align:center;">Excess Liability</td>
+								<td style="border:1px solid #9AAFC5; border-top:none; border-left:none; padding:0.52em 0.5em; text-align:center;">${data.excessLiabilityLimit || (data.excessLiabilityAmount ? `$${Number(data.excessLiabilityAmount).toLocaleString()}` : "")}</td>
+							</tr>
+							` : ""}
+						</tbody>
+					</table>
+				</div>
 				<div class="pdf24new_01" style="left:21.9954em;top:28.7831em;"><span
 						class="pdf24new_15 pdf24new_11 pdf24new_12" style="word-spacing:0em;">Policy Details
 						&nbsp;</span></div>

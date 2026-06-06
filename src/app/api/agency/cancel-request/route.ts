@@ -1,9 +1,17 @@
 import { NextResponse } from "next/server";
 import connectDB from "@/lib/mongodb";
 import CancelRequest from "@/models/CancelRequest";
+import Submission from "@/models/Submission";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/authOptions";
 
 export async function POST(req: Request) {
     try {
+        const session = await getServerSession(authOptions);
+        if (!session || !session.user || (session.user as any).role !== "AGENCY") {
+            return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+        }
+
         await connectDB();
 
         const body = await req.json();
@@ -11,6 +19,15 @@ export async function POST(req: Request) {
 
         if (!submissionId) {
             return NextResponse.json({ success: false, message: "No submissionId" });
+        }
+
+        const submission = await Submission.findById(submissionId);
+        if (!submission) {
+            return NextResponse.json({ success: false, message: "Submission not found" }, { status: 404 });
+        }
+
+        if (submission.agencyId?.toString() !== (session.user as any).agencyId) {
+            return NextResponse.json({ success: false, message: "Forbidden" }, { status: 403 });
         }
 
         // ⭐ already request check
