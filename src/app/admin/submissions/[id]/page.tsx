@@ -1152,6 +1152,20 @@ export default function AdminSubmissionDetailsPage() {
                       </button>
                     )}
                   {(() => {
+                    const isCurrentQuoteUnboundXL = currentQuote && 
+                      currentPolicyType === "EXCESS_LIABILITY" && 
+                      ["POSTED", "ENTERED", "QUOTED", "BIND_REQUESTED"].includes(currentQuote.status);
+                    
+                    return isCurrentQuoteUnboundXL ? (
+                      <button
+                        onClick={() => window.open(`/api/admin/submissions/${submissionId}/proposal?quoteId=${currentQuote?._id || ""}&policyType=${currentPolicyType || ''}&isExcessOnly=true`, "_blank")}
+                        className={iscOutlineBtn}
+                      >
+                        Excess Proposal
+                      </button>
+                    ) : null;
+                  })()}
+                  {(() => {
                     let binderUrl = currentQuote?.binderUrl;
                     let policyDocsUrl = currentQuote?.policyDocsUrl;
 

@@ -12,7 +12,7 @@ import { authOptions } from "@/lib/authOptions";
 export async function POST(req: Request) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session || !session.user || (session.user as any).role !== "ADMIN") {
+    if (!session || !session.user || (session.user as any).role !== "system_admin") {
       return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
     }
 
@@ -55,13 +55,13 @@ export async function POST(req: Request) {
       }
       policy.effectiveCancellationDate = effectiveDate;
       await policy.save();
-    } else {
-      const updateData: any = { effectiveCancellationDate: effectiveDate };
-      if (!isFutureDate) {
-        updateData.status = "CANCELLED";
-      }
-      await Submission.findByIdAndUpdate(request.submissionId, updateData);
     }
+    
+    const updateData: any = { effectiveCancellationDate: effectiveDate };
+    if (!isFutureDate) {
+      updateData.status = "CANCELLED";
+    }
+    await Submission.findByIdAndUpdate(request.submissionId, updateData);
 
     // ⭐ approve cancel request
     request.status = "APPROVED";

@@ -92,6 +92,7 @@ export async function GET(
         programId: (submission as any).programId || null,
         programName: (submission as any).programName || null,
         adminNotes: (submission as any).adminNotes || null,
+        effectiveCancellationDate: boundPolicy && (boundPolicy as any).effectiveCancellationDate ? (boundPolicy as any).effectiveCancellationDate : (submission as any).effectiveCancellationDate || null,
       },
       routingLogs: routingLogs.map((log: any) => ({
         ...log,

@@ -10,8 +10,11 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(req: Request) {
   try {
+    const url = new URL(req.url);
+    const secret = url.searchParams.get("secret");
     const authHeader = req.headers.get("authorization");
-    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    
+    if (authHeader !== `Bearer ${process.env.CRON_SECRET}` && secret !== process.env.CRON_SECRET) {
       // Return 401 Unauthorized if secret is missing or incorrect
       return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
     }
@@ -30,6 +33,7 @@ export async function GET(req: Request) {
     for (const policy of policiesToCancel) {
       policy.status = "CANCELLED";
       await policy.save();
+      await Submission.findByIdAndUpdate(policy.submissionId, { status: "CANCELLED" });
     }
 
     // 2. Process scheduled cancellations for Submissions without bound policies

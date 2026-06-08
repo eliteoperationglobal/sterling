@@ -65,6 +65,7 @@ export type ProposalData = {
   addExcessLiability?: boolean;
   excessLiabilityAmount?: number;
   excessLiabilityLimit?: string;
+  isExcessOnlyProposal?: boolean;
   policyFeeUSD: number;
   brokerFeeAmountUSD: number;
   finalAmountUSD: number;
@@ -277,6 +278,7 @@ export async function GET(
         "",
       // Excess Liability
       addExcessLiability: policyTypeParams ? policyTypeParams === "EXCESS_LIABILITY" : formData.addExcessLiability === true,
+      isExcessOnlyProposal: url.searchParams.get("isExcessOnly") === "true",
       excessLiabilityAmount: xsQuote?.finalAmountUSD ?? undefined,
       excessLiabilityLimit: (xsQuote?.limits?.excessLimit || formData.excessLiabilityLimit) ? extractLimits(xsQuote?.limits?.excessLimit || formData.excessLiabilityLimit)[0] : undefined,
     };

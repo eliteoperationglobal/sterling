@@ -8,7 +8,8 @@ import { authOptions } from "@/lib/authOptions";
 export async function POST(req: Request) {
     try {
         const session = await getServerSession(authOptions);
-        if (!session || !session.user || (session.user as any).role !== "AGENCY") {
+        const userRole = (session?.user as any)?.role;
+        if (!session || !session.user || (userRole !== "agency_admin" && userRole !== "agency_user")) {
             return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
         }
 

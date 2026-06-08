@@ -868,9 +868,8 @@ function SubmissionDetailsContent() {
               <button
                 onClick={handleCancelRequest}
                 disabled={isCanceling}
-                className={`px-5 py-2.5 text-sm font-medium text-white rounded-xl transition-all ${
-                  isCanceling ? "bg-red-400 cursor-not-allowed" : "bg-red-600 hover:bg-red-700 shadow-md"
-                }`}
+                className={`px-5 py-2.5 text-sm font-medium text-white rounded-xl transition-all ${isCanceling ? "bg-red-400 cursor-not-allowed" : "bg-red-600 hover:bg-red-700 shadow-md"
+                  }`}
               >
                 {isCanceling ? "Canceling..." : "Confirm Cancel"}
               </button>
@@ -1492,7 +1491,7 @@ function SubmissionDetailsContent() {
                   >
                     {cancelRequested ? "Cancel Requested" : "Cancel Quote"}
                   </button>
-                  {/* Request Bind for new policies added to an already-bound submission */}
+                  {/* Actions for new policies added to an already-bound submission */}
                   {(() => {
                     // Check if there are any quotes that are currently in a bind-requested state
                     const hasBindRequestedQuotes = (data?.quotes || []).some((q: any) => q.status === "BIND_REQUESTED");
@@ -1500,8 +1499,26 @@ function SubmissionDetailsContent() {
                     // Check if there are any quotes that are ready to be bound (unbounded and not requested yet)
                     const hasBindableQuotes = (data?.quotes || []).some((q: any) => ["POSTED", "ENTERED", "QUOTED"].includes(q.status));
 
+                    // Check if the current quote is an unbound Excess Liability quote
+                    const isCurrentQuoteUnboundXL = currentQuote &&
+                      currentPolicyType === "EXCESS_LIABILITY" &&
+                      ["POSTED", "ENTERED", "QUOTED", "BIND_REQUESTED"].includes(currentQuote.status);
+
                     return (
                       <>
+                        {isCurrentQuoteUnboundXL && (
+                          <button
+                            onClick={() =>
+                              window.open(
+                                `/api/agency/applications/${submissionId}/proposal?quoteId=${currentQuote?._id || ''}&policyType=${currentPolicyType || ''}&isExcessOnly=true&t=${Date.now()}`,
+                                "_blank"
+                              )
+                            }
+                            className={iscOutlineBtn}
+                          >
+                            Excess Proposal
+                          </button>
+                        )}
                         {hasBindRequestedQuotes && !hasBindableQuotes && (
                           <button
                             disabled
@@ -1549,6 +1566,16 @@ function SubmissionDetailsContent() {
                   : (submission?.createdAt ? new Date(submission.createdAt) : new Date()).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}
               </p>
             </div>
+
+            {/* Cancel Date (If scheduled)
+            {submission?.effectiveCancellationDate && (
+              <div>
+                <p className="text-gray-500 mb-1">Cancel Date:</p>
+                <p className="font-semibold text-gray-900">
+                  {new Date(submission.effectiveCancellationDate).toLocaleDateString('en-US', { timeZone: 'UTC', month: '2-digit', day: '2-digit', year: 'numeric' })}
+                </p>
+              </div>
+            )} */}
 
             {/* Agency */}
             <div>

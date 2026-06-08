@@ -176,14 +176,18 @@ export async function GET(req: NextRequest) {
       submissionId: { $in: submissionIds },
       effectiveCancellationDate: { $exists: true },
       status: { $ne: "CANCELLED" }
-    }).select("submissionId").lean();
+    }).select("submissionId effectiveCancellationDate").lean();
 
     const pendingCancelMap: Record<string, boolean> = {};
+    const policyCancellationDates: Record<string, string> = {};
     for (const req of cancelRequests as any[]) {
       pendingCancelMap[req.submissionId.toString()] = true;
     }
     for (const pol of scheduledPolicies as any[]) {
       pendingCancelMap[pol.submissionId.toString()] = true;
+      if (pol.effectiveCancellationDate) {
+        policyCancellationDates[pol.submissionId.toString()] = pol.effectiveCancellationDate;
+      }
     }
     for (const sub of submissions) {
       if ((sub as any).effectiveCancellationDate && sub.status !== "CANCELLED") {
@@ -222,7 +226,7 @@ export async function GET(req: NextRequest) {
         agentName: sub.agentName || sub.payload?.agentName || null,
         agentId: sub.agentId ? sub.agentId.toString() : null,
         effectiveDate: totals.quoteEffectiveDate || sub.payload?.effectiveDate || null,
-        effectiveCancellationDate: (sub as any).effectiveCancellationDate || null,
+        effectiveCancellationDate: policyCancellationDates[sub._id.toString()] || (sub as any).effectiveCancellationDate || null,
         cancelRequested: !!pendingCancelMap[sub._id.toString()],
       };
     });
