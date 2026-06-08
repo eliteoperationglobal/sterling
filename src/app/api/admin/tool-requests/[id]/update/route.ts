@@ -70,34 +70,26 @@ export async function PATCH(
 
     console.log(`✅ Tool request ${params.id} updated to status: ${status}`);
 
-    // Send email notification to agency
-    try {
-      const requestTypeLabels: Record<string, string> = {
-        LOSS_RUNS: "Loss Runs",
-        BOR: "Broker of Record",
-        MVR: "MVR Report",
-        CREDIT_REPORT: "Credit Report",
-        OTHER_REPORT: "Other Report",
-      };
-
-      await sendEmail({
-        to: (request.agencyId as any).email,
-        subject: `Tool Request Update: ${requestTypeLabels[request.requestType] || "Tool Request"}`,
-        html: `
-          <h2>Your Tool Request Has Been Updated</h2>
-          <p><strong>Request Type:</strong> ${requestTypeLabels[request.requestType] || request.requestType}</p>
-          <p><strong>Client:</strong> ${request.clientName}</p>
-          <p><strong>New Status:</strong> ${status}</p>
-          ${adminNotes ? `<p><strong>Admin Notes:</strong> ${adminNotes}</p>` : ""}
-          <p>Please log in to your agency portal to view the full details.</p>
-        `,
-        text: `Your tool request for ${request.clientName} has been updated to: ${status}`,
-      });
-      console.log("📧 Email notification sent to agency");
-    } catch (emailError) {
-      console.error("Email notification error:", emailError);
-      // Don't fail the request if email fails
-    }
+    // ❌ DISABLED: Agency email stopped per business decision
+    // Only broker (#4 sendQuoteToBroker) and 2FA (#7) emails are active.
+    // try {
+    //   await sendEmail({
+    //     to: (request.agencyId as any).email,
+    //     subject: `Tool Request Update: ${requestTypeLabels[request.requestType] || "Tool Request"}`,
+    //     html: `
+    //       <h2>Your Tool Request Has Been Updated</h2>
+    //       <p><strong>Request Type:</strong> ${requestTypeLabels[request.requestType] || request.requestType}</p>
+    //       <p><strong>Client:</strong> ${request.clientName}</p>
+    //       <p><strong>New Status:</strong> ${status}</p>
+    //       ${adminNotes ? `<p><strong>Admin Notes:</strong> ${adminNotes}</p>` : ""}
+    //       <p>Please log in to your agency portal to view the full details.</p>
+    //     `,
+    //     text: `Your tool request for ${request.clientName} has been updated to: ${status}`,
+    //   });
+    //   console.log("📧 Email notification sent to agency");
+    // } catch (emailError) {
+    //   console.error("Email notification error:", emailError);
+    // }
 
     return NextResponse.json({
       success: true,

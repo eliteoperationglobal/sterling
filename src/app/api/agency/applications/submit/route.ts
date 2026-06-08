@@ -217,17 +217,18 @@ export async function POST(req: NextRequest) {
       )
     );
 
-    // ✅ THIS IS CORRECT
-    await sendEmail({
-      to: "example@example.com", // Or you can use: submission.carrierEmail
-      subject: "🔥 Application Submitted Successfully",
-      html: `
-    <h2>Application Submitted</h2>
-    <p>Application #: ${applicationNumber}</p>
-    <p>Company: ${formData.companyName || formData.applicantName || "Unknown"}</p>
-  `,
-      text: `Application ${applicationNumber} submitted successfully`,
-    });
+    // ❌ DISABLED: Placeholder submission email stopped per business decision
+    // Only broker (#4 sendQuoteToBroker) and 2FA (#7) emails are active.
+    // await sendEmail({
+    //   to: "example@example.com",
+    //   subject: "🔥 Application Submitted Successfully",
+    //   html: `
+    //     <h2>Application Submitted</h2>
+    //     <p>Application #: ${applicationNumber}</p>
+    //     <p>Company: ${formData.companyName || formData.applicantName || "Unknown"}</p>
+    //   `,
+    //   text: `Application ${applicationNumber} submitted successfully`,
+    // });
 
 
 

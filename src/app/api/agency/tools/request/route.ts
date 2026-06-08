@@ -69,35 +69,27 @@ export async function POST(req: NextRequest) {
     console.log(`   Type: ${requestType}`);
     console.log(`   Client: ${clientName}`);
 
-    // Send email notification to admin (mock mode)
-    try {
-      const requestTypeLabels: Record<string, string> = {
-        LOSS_RUNS: "Loss Runs",
-        BOR: "Broker of Record",
-        MVR: "MVR Report",
-        CREDIT_REPORT: "Credit Report",
-        OTHER_REPORT: "Other Report",
-      };
-
-      await sendEmail({
-        to: process.env.ADMIN_EMAIL || "admin@sterlingwholesale.com",
-        subject: `New ${requestTypeLabels[requestType] || "Tool"} Request`,
-        html: `
-          <h2>New Tool Request Received</h2>
-          <p><strong>Request Type:</strong> ${requestTypeLabels[requestType] || requestType}</p>
-          <p><strong>Client:</strong> ${clientName}</p>
-          ${clientEmail ? `<p><strong>Email:</strong> ${clientEmail}</p>` : ""}
-          ${clientPhone ? `<p><strong>Phone:</strong> ${clientPhone}</p>` : ""}
-          <p><strong>Request ID:</strong> ${toolRequest._id}</p>
-          <p>Please log in to the admin portal to process this request.</p>
-        `,
-        text: `New ${requestTypeLabels[requestType] || "Tool"} Request from ${clientName}`,
-      });
-      console.log("📧 Email notification sent to admin");
-    } catch (emailError) {
-      console.error("Email notification error:", emailError);
-      // Don't fail the request if email fails
-    }
+    // ❌ DISABLED: Admin notification email stopped per business decision
+    // Only broker (#4 sendQuoteToBroker) and 2FA (#7) emails are active.
+    // try {
+    //   await sendEmail({
+    //     to: process.env.ADMIN_EMAIL || "admin@sterlingwholesale.com",
+    //     subject: `New ${requestTypeLabels[requestType] || "Tool"} Request`,
+    //     html: `
+    //       <h2>New Tool Request Received</h2>
+    //       <p><strong>Request Type:</strong> ${requestTypeLabels[requestType] || requestType}</p>
+    //       <p><strong>Client:</strong> ${clientName}</p>
+    //       ${clientEmail ? `<p><strong>Email:</strong> ${clientEmail}</p>` : ""}
+    //       ${clientPhone ? `<p><strong>Phone:</strong> ${clientPhone}</p>` : ""}
+    //       <p><strong>Request ID:</strong> ${toolRequest._id}</p>
+    //       <p>Please log in to the admin portal to process this request.</p>
+    //     `,
+    //     text: `New ${requestTypeLabels[requestType] || "Tool"} Request from ${clientName}`,
+    //   });
+    //   console.log("📧 Email notification sent to admin");
+    // } catch (emailError) {
+    //   console.error("Email notification error:", emailError);
+    // }
 
     return NextResponse.json({
       success: true,

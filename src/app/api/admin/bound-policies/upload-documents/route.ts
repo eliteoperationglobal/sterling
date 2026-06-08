@@ -160,29 +160,29 @@ export async function POST(req: NextRequest) {
     console.log(`   Binder URL:`, quote.binderUrl);
     console.log(`   Policy URL:`, quote.policyDocsUrl);
 
-    // Send email notification to agency (mock mode)
-    try {
-      await sendEmail({
-        to: submission.clientContact.email,
-        subject: `Final Policy Documents Available - ${submission.clientContact.name}`,
-        html: `
-          <h2>Final Policy Documents Available</h2>
-          <p>Dear ${submission.clientContact.name},</p>
-          <p>Your final policy documents have been uploaded and are now available for download.</p>
-          <p><strong>Documents uploaded:</strong></p>
-          <ul>
-            ${uploadedFiles.map(file => `<li>${file}</li>`).join("")}
-          </ul>
-          <p>Please log in to your portal to download the documents.</p>
-          <p>Best regards,<br>Sterling Wholesale Insurance</p>
-        `,
-        text: `Final policy documents are now available for ${submission.clientContact.name}. Documents: ${uploadedFiles.join(", ")}`,
-      });
-      console.log("📧 Email notification sent to agency");
-    } catch (emailError) {
-      console.error("Email notification error:", emailError);
-      // Don't fail the request if email fails
-    }
+    // ❌ DISABLED: Direct client email stopped per business decision
+    // Only broker (#4 sendQuoteToBroker) and 2FA (#7) emails are active.
+    // try {
+    //   await sendEmail({
+    //     to: submission.clientContact.email,
+    //     subject: `Final Policy Documents Available - ${submission.clientContact.name}`,
+    //     html: `
+    //       <h2>Final Policy Documents Available</h2>
+    //       <p>Dear ${submission.clientContact.name},</p>
+    //       <p>Your final policy documents have been uploaded and are now available for download.</p>
+    //       <p><strong>Documents uploaded:</strong></p>
+    //       <ul>
+    //         ${uploadedFiles.map(file => `<li>${file}</li>`).join("")}
+    //       </ul>
+    //       <p>Please log in to your portal to download the documents.</p>
+    //       <p>Best regards,<br>Sterling Wholesale Insurance</p>
+    //     `,
+    //     text: `Final policy documents are now available for ${submission.clientContact.name}. Documents: ${uploadedFiles.join(", ")}`,
+    //   });
+    //   console.log("📧 Email notification sent to agency");
+    // } catch (emailError) {
+    //   console.error("Email notification error:", emailError);
+    // }
 
     return NextResponse.json({
       success: true,
