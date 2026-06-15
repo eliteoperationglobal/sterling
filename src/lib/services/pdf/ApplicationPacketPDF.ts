@@ -3688,7 +3688,7 @@ function generatePage2(data: ApplicationPacketData): string {
 		selectedLogo = blueAngelLogoSVG;
 	}
 
-	if (email === "office@sjinsuranceservices.com") {
+	if (email === "info@sjjinsurance.com") {
 		selectedLogo = sjjLogoSVG;
 	}
 
@@ -4748,7 +4748,7 @@ function generatePage11b(data: ApplicationPacketData): string {
 					<div class="pdf11b_01" style="left:6.002em;top:23.7155em;"><span class="pdf11b_12 pdf11b_08 pdf11b_20" style="word-spacing:0.0527em;">circumstances, occurrences, claims, suits or other events for which a claim for coverage under &nbsp;</span></div>
 					<div class="pdf11b_01" style="left:6.002em;top:24.7755em;"><span class="pdf11b_12 pdf11b_08 pdf11b_21" style="word-spacing:0.1326em;">the Policy referenced above could be made that occurred, or was made, during or within the &nbsp;</span></div>
 					<div class="pdf11b_01" style="left:6.002em;top:25.8155em;"><span class="pdf11b_12 pdf11b_08 pdf11b_22" style="word-spacing:0.0145em;">following dates: &nbsp;</span></div>
-					<div class="pdf11b_01" style="left:13.1242em;top:27.9355em;"><span class="pdf11b_12 pdf11b_08 pdf11b_23" style="word-spacing:0.0123em;"> _______________ - _______________  &nbsp;</span></div>
+					<div class="pdf11b_01" style="left:13.1242em;top:27.9355em;"><span class="pdf11b_12 pdf11b_08 pdf11b_23" style="word-spacing:0.0123em;"> _______________ - _______________  &nbsp;</span></div>          
 					<div class="pdf11b_01" style="left:6.002em;top:30.0355em;"><span class="pdf11b_12 pdf11b_08 pdf11b_16" style="word-spacing:0.0017em;">The undersigned further states and understands that if any such loss, circumstance, occurrence, &nbsp;</span></div>
 					<div class="pdf11b_01" style="left:6.002em;top:31.0972em;"><span class="pdf11b_12 pdf11b_08 pdf11b_24" style="word-spacing:0.0496em;">claim, suit or other event occurred or was made during or within the dates set forth above, that &nbsp;</span></div>
 					<div class="pdf11b_01" style="left:6.002em;top:32.1572em;"><span class="pdf11b_12 pdf11b_08 pdf11b_16" style="word-spacing:-0.0257em;">the execution and submission of this acknowledgment may result in the cancellation or rescission &nbsp;</span></div>

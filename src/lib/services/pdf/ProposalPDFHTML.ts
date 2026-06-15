@@ -142,7 +142,7 @@ export function generateProposalHTML(data: ProposalData): string {
 		selectedLogo = blueAngelLogo;
 	}
 
-	if (email === "office@sjinsuranceservices.com") {
+	if (email === "info@sjjinsurance.com") {
 		selectedLogo = sjiLogo;
 	}
 
