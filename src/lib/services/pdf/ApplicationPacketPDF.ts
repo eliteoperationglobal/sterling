@@ -4508,7 +4508,7 @@ function generatePage11(data: ApplicationPacketData): string {
 		selectedLogo = blueAngelLogoSVG;
 	}
 
-	if (email === "office@sjinsuranceservices.com") {
+	if (email === "info@sjjinsurance.com") {
 		selectedLogo = sjjLogoSVG;
 	}
 
