@@ -365,6 +365,44 @@ export async function PATCH(
           }
         };
       }
+
+      // Sync remaining address fields from payload → clientContact.businessAddress
+      if (body.payload.streetAddress) {
+        submission.clientContact = {
+          ...submission.clientContact,
+          businessAddress: {
+            ...submission.clientContact.businessAddress,
+            street: body.payload.streetAddress,
+          }
+        };
+      }
+      if (body.payload.city) {
+        submission.clientContact = {
+          ...submission.clientContact,
+          businessAddress: {
+            ...submission.clientContact.businessAddress,
+            city: body.payload.city,
+          }
+        };
+      }
+      if (body.payload.state) {
+        submission.clientContact = {
+          ...submission.clientContact,
+          businessAddress: {
+            ...submission.clientContact.businessAddress,
+            state: body.payload.state,
+          }
+        };
+      }
+      if (body.payload.zip || body.payload.zipCode) {
+        submission.clientContact = {
+          ...submission.clientContact,
+          businessAddress: {
+            ...submission.clientContact.businessAddress,
+            zip: body.payload.zip || body.payload.zipCode,
+          }
+        };
+      }
     }
 
     // Save submission (timestamps auto update updatedAt)
