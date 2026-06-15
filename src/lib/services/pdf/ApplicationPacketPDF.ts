@@ -7320,7 +7320,7 @@ function generateCaliforniaFormPage3(data: ApplicationPacketData): string {
 			  <div class="ca-sl2-table-cell"><span class="ca-sl2-cell-label">FULL NAME OF ADMITTED INSURER</span><span class="ca-sl2-input">&nbsp;&nbsp;Safeco Ins Co of Amer</span></div>
 			</div>
 			<div class="ca-sl2-table-row">
-			  <div class="ca-sl2-table-cell"><span class="ca-sl2-cell-label">CONTACT INFORMATION</span><span class="ca-sl2-input ca-sl2-input-sub">FULL NAME : Marry White </span><span class="ca-sl2-input ca-sl2-input-sub">PHONE / EMAIL : 761-859-2451 </span><span class="ca-sl2-input ca-sl2-input-sub">OR WEBSITE : www.travelers.com </span></div>
+			  <div class="ca-sl2-table-cell"><span class="ca-sl2-cell-label">CONTACT INFORMATION</span><span class="ca-sl2-input ca-sl2-input-sub">FULL NAME : Courtney Kinney </span><span class="ca-sl2-input ca-sl2-input-sub">PHONE / EMAIL : 761-859-2451 </span><span class="ca-sl2-input ca-sl2-input-sub">OR WEBSITE : www.travelers.com </span></div>
 			  <div class="ca-sl2-table-cell"><span class="ca-sl2-cell-label">CONTACT INFORMATION</span><span class="ca-sl2-input ca-sl2-input-sub">FULL NAME : Robert Harris </span><span class="ca-sl2-input ca-sl2-input-sub">PHONE / EMAIL : 894-216-7421 </span><span class="ca-sl2-input ca-sl2-input-sub">OR WEBSITE : www.thehartford.com </span></div>
 			  <div class="ca-sl2-table-cell"><span class="ca-sl2-cell-label">CONTACT INFORMATION</span><span class="ca-sl2-input ca-sl2-input-sub">FULL NAME : Marry White </span><span class="ca-sl2-input ca-sl2-input-sub">PHONE / EMAIL : 761-859-2451 </span><span class="ca-sl2-input ca-sl2-input-sub">OR WEBSITE : www.safeco.com </span></div>
 			</div>
