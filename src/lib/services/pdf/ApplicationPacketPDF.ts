@@ -3816,7 +3816,7 @@ function generatePage2(data: ApplicationPacketData): string {
 				</table>
 			</div>
 
-			${data.excessLiabilityLimit ? `
+			${(String(data.addExcessLiability) === 'true') && data.excessLiabilityLimit ? `
 			<div>
 				<div class="section-title-underline-page2">EXCESS LIABILITY COVERAGE</div>
 				<table class="coverages-table-page2">
@@ -4299,7 +4299,7 @@ function generatePage7(data: ApplicationPacketData): string {
 		  
 			<div class="signature-field-page7" style="flex: 1;">
 			  <div class="signature-label-page7">Date</div>
-			  <div class="signature-line-page7">${data.applicantSignatureDate || ' '}</div>
+			  <div class="signature-line-page7"></div>
 			</div>
 		  </div>
 
@@ -4478,12 +4478,12 @@ function generatePage10(data: ApplicationPacketData): string {
 		  </div>
 		  <div class="signature-field-page10">
 			<div class="signature-label-page10">Signature of Licensed Retail/Producing Agent/Broker</div>
-			<div class="signature-line-page10">${data.surplusLinesSignature || ' '}</div>
+			<div class="signature-line-page10"></div>
 		  </div>
 		  <div class="signature-field-page10" style="display: flex; gap: 0.3in; align-items: flex-end;">
 			<div style="flex: 1;">
 			  <div class="signature-label-page10">Date</div>
-			  <div class="signature-line-page10">${data.surplusLinesDate}</div>
+			  <div class="signature-line-page10"></div>
 			</div>
 		  </div>
 		</div>
@@ -7933,39 +7933,39 @@ export function mapFormDataToPacketData(
 			const val = quote?.limits?.fireLegalLimit || formData.fireLegalLimit || '100000';
 			const str = String(val).replace(/[$,]/g, '');
 			const num = Number(str);
-			return isNaN(num) ? (String(val).includes('$') ? String(val) : `$${val}`) : `$${num.toLocaleString()}`;
+			return isNaN(num) ? (String(val).includes('$') ? String(val) : `$${val}`) : `$${num.toLocaleString('en-US')}`;
 		})(),
 		medPayLimit: (() => {
 			const val = quote?.limits?.medicalExpenseLimit || formData.medicalExpenseLimit || '5000';
 			if (val === 'Not Applicable') return val;
 			const str = String(val).replace(/[$,]/g, '');
 			const num = Number(str);
-			return isNaN(num) ? (String(val).includes('$') ? String(val) : `$${val}`) : `$${num.toLocaleString()}`;
+			return isNaN(num) ? (String(val).includes('$') ? String(val) : `$${val}`) : `$${num.toLocaleString('en-US')}`;
 		})(),
 		selfInsuredRetention: (() => {
 			const val = quote?.limits?.deductible || formData.selfInsuredRetention || formData.deductible || '2500';
 			const str = String(val).replace(/[$,]/g, '');
 			const num = Number(str);
-			return isNaN(num) ? (String(val).includes('$') ? String(val) : `$${val}`) : `$${num.toLocaleString()}`;
+			return isNaN(num) ? (String(val).includes('$') ? String(val) : `$${val}`) : `$${num.toLocaleString('en-US')}`;
 		})(),
 		excessLiabilityLimit: (() => {
 			const val = quote?.limits?.excessLimit || formData.excessLiabilityLimit;
 			if (!val) return undefined;
 			const str = String(val).replace(/[$,]/g, '');
 			const num = Number(str);
-			return isNaN(num) ? (String(val).includes('$') ? String(val) : `$${val}`) : `$${num.toLocaleString()}`;
+			return isNaN(num) ? (String(val).includes('$') ? String(val) : `$${val}`) : `$${num.toLocaleString('en-US')}`;
 		})(),
 
 		// Class Code & Gross Receipts
 		classCode: classCodeDescription || firstClassCode,
 		classCodeName: classCodes.join(', ') || firstClassCode,
-		grossReceipts: formData.estimatedGrossReceipts ? `$${parseInt(formData.estimatedGrossReceipts).toLocaleString()}` : '$0',
+		grossReceipts: formData.estimatedGrossReceipts ? `$${parseInt(formData.estimatedGrossReceipts).toLocaleString('en-US')}` : '$0',
 
 		// Current Exposures
-		estimatedTotalGrossReceipts: formData.estimatedGrossReceipts ? `$${parseInt(formData.estimatedGrossReceipts).toLocaleString()}` : '$0',
-		estimatedSubContractingCosts: formData.estimatedSubcontractingCosts ? `$${parseInt(formData.estimatedSubcontractingCosts).toLocaleString()}` : '$0',
-		estimatedMaterialCosts: formData.estimatedMaterialCosts ? `$${parseInt(formData.estimatedMaterialCosts).toLocaleString()}` : '$0',
-		estimatedTotalPayroll: formData.totalPayroll ? `$${parseInt(String(formData.totalPayroll).replace(/[^0-9]/g, '')).toLocaleString()}` : (formData.totalPayrollAmount ? `$${parseInt(String(formData.totalPayrollAmount).replace(/[^0-9]/g, '')).toLocaleString()}` : '$0'),
+		estimatedTotalGrossReceipts: formData.estimatedGrossReceipts ? `$${parseInt(formData.estimatedGrossReceipts).toLocaleString('en-US')}` : '$0',
+		estimatedSubContractingCosts: formData.estimatedSubcontractingCosts ? `$${parseInt(formData.estimatedSubcontractingCosts).toLocaleString('en-US')}` : '$0',
+		estimatedMaterialCosts: formData.estimatedMaterialCosts ? `$${parseInt(formData.estimatedMaterialCosts).toLocaleString('en-US')}` : '$0',
+		estimatedTotalPayroll: formData.totalPayroll ? `$${parseInt(String(formData.totalPayroll).replace(/[^0-9]/g, '')).toLocaleString('en-US')}` : (formData.totalPayrollAmount ? `$${parseInt(String(formData.totalPayrollAmount).replace(/[^0-9]/g, '')).toLocaleString('en-US')}` : '$0'),
 		numberOfFieldEmployees: numberOfFieldEmployees,
 
 		// Work Performed

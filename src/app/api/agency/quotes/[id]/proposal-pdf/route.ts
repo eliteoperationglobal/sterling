@@ -154,6 +154,7 @@ export async function GET(
       subcontractorCosts: (function (val: any) { if (!val) return "$0"; const s = String(val); return s.includes("$") ? s : "$" + Number(s.replace(/[^0-9.-]+/g, "")).toLocaleString(); })(formData.estimatedSubcontractingCosts || "0"),
       employeePayroll: (function (val: any) { if (!val) return "$0"; const s = String(val); return s.includes("$") ? s : "$" + Number(s.replace(/[^0-9.-]+/g, "")).toLocaleString(); })(formData.totalPayroll || formData.totalPayrollAmount || "0"),
       descriptionOfOperations: formData.carrierApprovedDescription || formData.classCodeWork?.description || formData.descriptionOfOperations || "",
+      addExcessLiability: formData.addExcessLiability === true,
     };
 
     // Generate HTML

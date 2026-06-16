@@ -277,7 +277,7 @@ export async function GET(
         (formData.classCodeWork ? Object.values(formData.classCodeWork).map((item: any) => item.description).join(", ") : "") ||
         "",
       // Excess Liability
-      addExcessLiability: policyTypeParams ? policyTypeParams === "EXCESS_LIABILITY" : formData.addExcessLiability === true,
+      addExcessLiability: formData.addExcessLiability === true,
       isExcessOnlyProposal: url.searchParams.get("isExcessOnly") === "true",
       excessLiabilityAmount: xsQuote?.finalAmountUSD ?? undefined,
       excessLiabilityLimit: (xsQuote?.limits?.excessLimit || formData.excessLiabilityLimit) ? extractLimits(xsQuote?.limits?.excessLimit || formData.excessLiabilityLimit)[0] : undefined,

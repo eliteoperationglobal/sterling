@@ -172,7 +172,7 @@ function formatUSD(amount: any): string {
     if (amount === undefined || amount === null || amount === "") return "$0.00";
     const num = typeof amount === "string" ? parseFloat(amount.replace(/[\$,]/g, "")) : amount;
     if (isNaN(num)) return "$0.00";
-    return `$${num.toLocaleString(undefined, {
+    return `$${num.toLocaleString('en-US', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
     })}`;

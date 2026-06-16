@@ -680,10 +680,10 @@ export function generateProposalHTML(data: ProposalData): string {
 								<td style="border:1px solid #9AAFC5; border-top:none; border-left:none; padding:0.52em 0.5em; text-align:center;">${data.selfInsuredRetention || "Not Applicable"}</td>
 							</tr>
 								` : ""}
-							${(data?.excessLiabilityAmount !== undefined || data?.excessLiabilityLimit !== undefined) ? `
+							${((String(data?.addExcessLiability) === 'true' || data?.isExcessOnlyProposal) && (data?.excessLiabilityAmount !== undefined || data?.excessLiabilityLimit !== undefined)) ? `
 							<tr>
 								<td style="border:1px solid #9AAFC5; border-top:none; padding:0.52em 0.5em; text-align:center;">Excess Liability</td>
-								<td style="border:1px solid #9AAFC5; border-top:none; border-left:none; padding:0.52em 0.5em; text-align:center;">${data.excessLiabilityLimit || (data.excessLiabilityAmount ? `$${Number(data.excessLiabilityAmount).toLocaleString()}` : "")}</td>
+								<td style="border:1px solid #9AAFC5; border-top:none; border-left:none; padding:0.52em 0.5em; text-align:center;">${data.excessLiabilityLimit || (data.excessLiabilityAmount ? `$${Number(data.excessLiabilityAmount).toLocaleString('en-US')}` : "")}</td>
 							</tr>
 							` : ""}
 						</tbody>
@@ -701,7 +701,7 @@ export function generateProposalHTML(data: ProposalData): string {
 							</tr>
 							<tr>
 								<td style="width:1%;white-space:nowrap;text-align:left;padding:0.22em 0.6em 0.22em 0;vertical-align:top;"><span class="pdf24new_21 pdf24new_11 pdf24new_12" style="word-spacing:-0.0075em;">Policy Form:</span></td>
-								<td style="text-align:left;padding:0.22em 0 0.22em 0.6em;vertical-align:top;"><span class="pdf24new_22 pdf24new_11 pdf24new_09">${data.isExcessOnlyProposal ? "Excess Liability" : `General Liability ${(data.addExcessLiability === true || data.excessLiabilityAmount !== undefined || data.excessLiabilityLimit !== undefined) ? "&amp; Excess Liability" : ""}`}</span></td>
+								<td style="text-align:left;padding:0.22em 0 0.22em 0.6em;vertical-align:top;"><span class="pdf24new_22 pdf24new_11 pdf24new_09">${data.isExcessOnlyProposal ? "Excess Liability" : `General Liability ${String(data?.addExcessLiability) === 'true' ? "&amp; Excess Liability" : ""}`}</span></td>
 							</tr>
 							<tr>
 								<td style="width:1%;white-space:nowrap;text-align:left;padding:0.22em 0.6em 0.22em 0;vertical-align:top;"><span class="pdf24new_21 pdf24new_11 pdf24new_12" style="word-spacing:-0.0139em;">Active Owners:</span></td>

@@ -262,16 +262,17 @@ export const PDFService = {
             deductible: formData.deductible || "$2,500",
             selfInsuredRetention: formData.selfInsuredRetention || formData.deductible || "$2,500",
             employeePayroll: formData.totalPayroll
-              ? `$${parseInt(String(formData.totalPayroll).replace(/[^0-9]/g, "") || "0").toLocaleString()}`
-              : (formData.totalPayrollAmount ? `$${parseInt(String(formData.totalPayrollAmount).replace(/[^0-9]/g, "") || "0").toLocaleString()}` : "$0"),
+              ? `$${parseInt(String(formData.totalPayroll).replace(/[^0-9]/g, "") || "0").toLocaleString('en-US')}`
+              : (formData.totalPayrollAmount ? `$${parseInt(String(formData.totalPayrollAmount).replace(/[^0-9]/g, "") || "0").toLocaleString('en-US')}` : "$0"),
             grossReceipts: formData.estimatedGrossReceipts
-              ? `$${parseInt(formData.estimatedGrossReceipts).toLocaleString()}`
+              ? `$${parseInt(formData.estimatedGrossReceipts).toLocaleString('en-US')}`
               : "$0",
             subcontractorCosts: formData.estimatedSubcontractingCosts
-              ? `$${parseInt(formData.estimatedSubcontractingCosts).toLocaleString()}`
+              ? `$${parseInt(formData.estimatedSubcontractingCosts).toLocaleString('en-US')}`
               : "$0",
             classCode: formData.carrierApprovedDescription || "General Contractor",
             descriptionOfOperations: formData.carrierApprovedDescription || "",
+            addExcessLiability: formData.addExcessLiability === true,
           };
           htmlContent = generateProposalHTML(proposalData);
           documentName = `proposal-${quote._id.toString()}.pdf`;

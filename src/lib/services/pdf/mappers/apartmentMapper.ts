@@ -265,7 +265,7 @@ function formatUSD(amount: any): string {
     if (amount === undefined || amount === null || amount === "") return "$0.00";
     const num = typeof amount === "string" ? parseFloat(amount.replace(/[\$,]/g, "")) : amount;
     if (isNaN(num)) return "$0.00";
-    return `$${num.toLocaleString(undefined, {
+    return `$${num.toLocaleString('en-US', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
     })}`;
@@ -385,7 +385,7 @@ export function mapApartmentDataToPacketData(
                 .filter((i: any) => i && i.subject)
                 .map((i: any) => {
                     const cleanSubject = i.subject.replace(/\s*\([^)]+\)/, "").trim();
-                    return i.limit ? `${cleanSubject} ($${parseInt(i.limit).toLocaleString()})` : cleanSubject;
+                    return i.limit ? `${cleanSubject} ($${parseInt(i.limit).toLocaleString('en-US')})` : cleanSubject;
                 })
                 .join(", ")
             : (formData.subjectOfInsurance || "").replace(/\s*\([^)]+\)/, "").trim(),
@@ -396,7 +396,7 @@ export function mapApartmentDataToPacketData(
         propertyLimit: Array.isArray(formData.subjectsOfInsurance)
             ? formData.subjectsOfInsurance
                 .filter((i: any) => i && i.limit)
-                .map((i: any) => `$${parseInt(i.limit).toLocaleString()}`)
+                .map((i: any) => `$${parseInt(i.limit).toLocaleString('en-US')}`)
                 .join(", ") || "-"
             : (formData.propertyLimit || "-"),
         propertyCoinsurance: formData.propertyCoinsurance || formData.subjectsOfInsurance?.[0]?.coinsurance || "-",
@@ -423,7 +423,7 @@ export function mapApartmentDataToPacketData(
                 .filter((i: any) => i && i.subject)
                 .map((i: any) => ({
                     subject: i.subject.replace(/\s*\([^)]+\)/, "").trim(),
-                    limit: i.limit ? `$${parseInt(i.limit).toLocaleString()}` : "-",
+                    limit: i.limit ? `$${parseInt(i.limit).toLocaleString('en-US')}` : "-",
                     coinsurance: i.coinsurance || formData.propertyCoinsurance || "",
                     valuation: (i.valuation || formData.propertyValuation) === "Actual Cash Value (ACV)" ? "ACV" : ((i.valuation || formData.propertyValuation) === "Replacement Cost (RC)" ? "RC" : ""),
                     causesOfLoss: i.causesOfLoss || formData.propertyCausesOfLoss || "",
@@ -561,12 +561,12 @@ export function mapApartmentDataToPacketData(
         policyEndorsements: quote?.endorsements ? quote.endorsements.join(", ") : "-",
 
         // Limits mapping from quote metadata
-        occurrenceLimit: quote?.metadata?.limits?.occurrence ? `$${quote.metadata.limits.occurrence.toLocaleString()}` : undefined,
-        aggregateLimit: quote?.metadata?.limits?.aggregate ? `$${quote.metadata.limits.aggregate.toLocaleString()}` : undefined,
-        productsCompletedOpsLimit: quote?.metadata?.limits?.productsCompletedOps ? `$${quote.metadata.limits.productsCompletedOps.toLocaleString()}` : undefined,
-        personalAdvertisingInjuryLimit: quote?.metadata?.limits?.personalAdvertisingInjury ? `$${quote.metadata.limits.personalAdvertisingInjury.toLocaleString()}` : undefined,
-        fireLegalLimit: quote?.metadata?.limits?.fireLegal ? `$${quote.metadata.limits.fireLegal.toLocaleString()}` : undefined,
-        medPayLimit: quote?.metadata?.limits?.medicalExpense ? `$${quote.metadata.limits.medicalExpense.toLocaleString()}` : undefined,
+        occurrenceLimit: quote?.metadata?.limits?.occurrence ? `$${quote.metadata.limits.occurrence.toLocaleString('en-US')}` : undefined,
+        aggregateLimit: quote?.metadata?.limits?.aggregate ? `$${quote.metadata.limits.aggregate.toLocaleString('en-US')}` : undefined,
+        productsCompletedOpsLimit: quote?.metadata?.limits?.productsCompletedOps ? `$${quote.metadata.limits.productsCompletedOps.toLocaleString('en-US')}` : undefined,
+        personalAdvertisingInjuryLimit: quote?.metadata?.limits?.personalAdvertisingInjury ? `$${quote.metadata.limits.personalAdvertisingInjury.toLocaleString('en-US')}` : undefined,
+        fireLegalLimit: quote?.metadata?.limits?.fireLegal ? `$${quote.metadata.limits.fireLegal.toLocaleString('en-US')}` : undefined,
+        medPayLimit: quote?.metadata?.limits?.medicalExpense ? `$${quote.metadata.limits.medicalExpense.toLocaleString('en-US')}` : undefined,
 
         // New Coverage & Metadata
         mineSubsidenceSelected: formData.mineSubsidenceSelected || "None",

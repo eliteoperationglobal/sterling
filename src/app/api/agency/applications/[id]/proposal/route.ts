@@ -357,7 +357,7 @@ export async function GET(
           .map((item: any) => item.description)
           .join(", "),
       // Excess Liability
-      addExcessLiability: policyTypeParams ? policyTypeParams === "EXCESS_LIABILITY" : formData.addExcessLiability === true,
+      addExcessLiability: formData.addExcessLiability === true,
       isExcessOnlyProposal: url.searchParams.get("isExcessOnly") === "true",
       // excessLiabilityAmount and carrierNameXL handled below
       carrierNameXL,

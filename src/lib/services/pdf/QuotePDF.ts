@@ -291,7 +291,7 @@ export function generateQuoteHTML(quoteData: QuoteData): string {
 
   <div class="premium-box">
     <div class="premium-label">Your Quoted Premium</div>
-    <div class="premium-amount">$${quoteData.premium.toLocaleString()}</div>
+    <div class="premium-amount">$${quoteData.premium.toLocaleString('en-US')}</div>
     <div class="premium-period">per year</div>
   </div>
 
@@ -312,7 +312,7 @@ export function generateQuoteHTML(quoteData: QuoteData): string {
       </div>
       <div class="info-item">
         <div class="info-label">Gross Receipts</div>
-        <div class="info-value">$${parseFloat(quoteData.grossReceipts).toLocaleString()}</div>
+        <div class="info-value">$${parseFloat(quoteData.grossReceipts).toLocaleString('en-US')}</div>
       </div>
       <div class="info-item">
         <div class="info-label">Effective Date</div>
