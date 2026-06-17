@@ -30,6 +30,7 @@ export default function AdminQuotesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [filter, setFilter] = useState<string>("ALL");
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -113,8 +114,17 @@ export default function AdminQuotesPage() {
   };
 
   const filteredQuotes = quotes.filter((quote) => {
-    if (filter === "ALL") return true;
-    return quote.status === filter;
+    const matchesFilter = filter === "ALL" || quote.status === filter;
+    if (!matchesFilter) return false;
+
+    if (!searchQuery) return true;
+    const q = searchQuery.toLowerCase().trim();
+    
+    const clientName = String(quote.clientName || "").toLowerCase();
+    const carrierName = String(quote.carrierName || "").toLowerCase();
+    const subId = String(quote.submissionId || "").toLowerCase();
+
+    return clientName.includes(q) || carrierName.includes(q) || subId.includes(q);
   });
 
   if (status === "loading" || loading) {
@@ -237,6 +247,22 @@ export default function AdminQuotesPage() {
               <p className="text-sm text-gray-600 font-medium mt-0.5">Review and manage all insurance quotes</p>
             </div>
           </div>
+
+          {/* Search Bar */}
+          <div className="mt-6 relative max-w-2xl">
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+              <svg className="h-5 w-5 text-[#9A8B7A]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+            <input
+              type="text"
+              placeholder="Search by Client Name, Carrier, or App ID..."
+              className="block w-full pl-11 pr-4 py-3 border border-[#e5ddd5] rounded-xl bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#9A8B7A] focus:border-transparent sm:text-sm shadow-sm transition-all duration-300"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
         </div>
 
         {/* Filter Tabs */}
@@ -274,17 +300,25 @@ export default function AdminQuotesPage() {
         )}
 
         {/* Quotes Grid */}
-        {filteredQuotes.length === 0 ? (
-          <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-sm border border-gray-200/60 p-12 text-center">
+        {quotes.length === 0 ? (
+          <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-sm border border-[#e5ddd5] p-12 text-center">
             <div className="w-16 h-16 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center mx-auto mb-4">
               <svg className="w-8 h-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
             </div>
             <p className="text-lg font-semibold text-gray-900 mb-1">No quotes found</p>
-            <p className="text-sm text-gray-600">
-              {filter === "ALL" ? "No quotes have been created yet" : `No ${filter.replace("_", " ").toLowerCase()} quotes`}
-            </p>
+            <p className="text-sm text-gray-600">No quotes have been created yet.</p>
+          </div>
+        ) : filteredQuotes.length === 0 ? (
+          <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-sm border border-[#e5ddd5] p-12 text-center">
+            <div className="w-16 h-16 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+            <p className="text-lg font-semibold text-gray-900 mb-1">No Results Found</p>
+            <p className="text-sm text-gray-600">No quotes match your search or filter criteria.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-4">
