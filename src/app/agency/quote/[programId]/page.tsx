@@ -8,6 +8,9 @@ import Link from "next/link";
 import { useEffect, useState, useMemo, useRef } from "react";
 import { toast } from "sonner";
 import { formatCurrency, formatCurrencyInput, parseCurrency } from "@/lib/utils/currencyFormatter";
+import {
+    ArrowLeft,
+} from "lucide-react";
 
 // Helper component for Yes/No radio buttons
 const YesNoRadio = ({
@@ -1339,7 +1342,7 @@ export default function QuoteFormPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Top Bar */}
-      <div className="bg-[#2F3338] text-white px-4 md:px-6 py-3 flex flex-wrap items-center justify-between gap-2">
+      {/* <div className="bg-[#fafaf9] text-white px-4 md:px-6 py-3 flex flex-wrap items-center justify-between gap-2">
         <Link
           href={submissionId ? `/agency/submissions/${submissionId}` : "/agency/marketplace"}
           className="flex items-center gap-2 text-gray-300 hover:text-white"
@@ -1352,24 +1355,19 @@ export default function QuoteFormPage() {
         <button type="button" onClick={() => setFormData(initialFormData)} className="px-3 md:px-4 py-1.5 md:py-2 bg-gray-700 hover:bg-gray-600 rounded text-xs md:text-sm">
           Clear
         </button>
+      </div> */}
+      <div className="bg-white md:bg-[#fafaf9] p-4 md:p-8 font-sans text-gray-800 overflow-x-hidden">
+        <button
+          onClick={() => router.back()}
+          className="flex items-center text-gray-500 hover:text-[#9A8B7A] transition-colors mb-4 font-medium text-sm w-fit"
+        >
+          <ArrowLeft className="w-4 h-4 mr-1.5" /> Back
+        </button>
       </div>
 
-      {/* Fixed Logo & Header Section */}
-      <div className="sticky top-0 z-40 bg-gray-50 border-b border-gray-200 shadow-sm">
-        <div className="max-w-[950px] mx-auto px-4 md:px-8 h-16">
-          <div className="relative h-full">
-            {/* Centered Logo with Premium Internal Spinner - Positioned at absolute bottom */}
-            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 scale-75 md:scale-100">
-              <div className="relative">
-                {/* Logo content remains same */}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
 
       {/* Main Content */}
-      <div className="max-w-[950px] mx-auto px-4 md:px-8 py-6 md:py-8 mt-8 md:mt-12">
+      <div className="max-w-[950px] mx-auto px-2 md:px-6 py-4 md:py-8 mt-2 md:mt-4">
 
         <form onSubmit={handleSubmit} className="space-y-8 md:space-y-10">
           <fieldset disabled={isViewMode} className={isViewMode ? "opacity-90 pointer-events-none" : ""}>

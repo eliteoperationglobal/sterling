@@ -10,6 +10,7 @@ import { getStateCode } from "@/lib/utils/stateConverter";
 import { useAutoSave } from "@/hooks/useAutoSave";
 import SaveStatusIndicator from "@/components/forms/SaveStatusIndicator";
 import { formatCurrency, formatCurrencyInput, parseCurrency } from "@/lib/utils/currencyFormatter";
+import { Upload } from "lucide-react";
 
 const RatingRow = ({ label, value }: { label: string; value: string | number }) => (
   <div className="flex justify-between items-center py-3 border-b border-gray-200 last:border-0">
@@ -107,6 +108,7 @@ export default function AdminQuotePage() {
   const [policyStates, setPolicyStates] = useState<Record<string, any>>({});
   const [policiesStatus, setPoliciesStatus] = useState<Record<string, "complete" | "incomplete">>({ "GENERAL_LIABILITY": "incomplete" });
   // Admin document upload
+  const [isDragging, setIsDragging] = useState(false);
   const [uploadingDocs, setUploadingDocs] = useState(false);
   const [uploadError, setUploadError] = useState("");
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
@@ -2063,12 +2065,46 @@ export default function AdminQuotePage() {
               </p>
 
               <div className="space-y-3">
-                <input
-                  type="file"
-                  multiple
-                  onChange={handleFilesSelected}
-                  className="w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-slate-100 file:text-gray-800 hover:file:bg-slate-200 cursor-pointer"
-                />
+                <div
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setIsDragging(true);
+                  }}
+                  onDragLeave={() => setIsDragging(false)}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    setIsDragging(false);
+                    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                      setSelectedFiles(Array.from(e.dataTransfer.files));
+                    }
+                  }}
+                  className={`relative group cursor-pointer transition-all duration-300 ${isDragging
+                      ? "border-[#9A8B7A] bg-[#9A8B7A]/5"
+                      : "border-gray-200 hover:border-[#9A8B7A] bg-gray-50 hover:bg-white"
+                    } border-2 border-dashed rounded-xl p-6 text-center mb-4`}
+                  onClick={() => document.getElementById('support-doc-upload')?.click()}
+                >
+                  <input
+                    id="support-doc-upload"
+                    type="file"
+                    multiple
+                    onChange={handleFilesSelected}
+                    className="hidden"
+                  />
+                  <div className="flex flex-col items-center gap-3">
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 ${isDragging ? "bg-[#9A8B7A] text-white scale-110 shadow-lg" : "bg-white text-[#9A8B7A] shadow-sm group-hover:shadow-md"}`}>
+                      <Upload className={`w-6 h-6 ${isDragging ? "animate-bounce" : "group-hover:scale-110 transition-transform"}`} />
+                    </div>
+                    <div>
+                      <p className="text-[14px] font-bold text-gray-900">
+                        Click or drag files here to select
+                      </p>
+                      <p className="text-[12px] text-gray-500 font-medium mt-1">
+                        Support for PDF, DOC, ZIP
+                      </p>
+                    </div>
+                  </div>
+                </div>
                 {selectedFiles.length > 0 && (
                   <p className="text-xs text-gray-600">
                     Selected:{" "}

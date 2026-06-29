@@ -119,6 +119,17 @@ export default function AdminBindRequestsPage() {
     }));
   };
 
+  const handleExpirationDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const expirationDateStr = e.target.value;
+    setPolicyForms(prev => ({
+      ...prev,
+      [activePolicyTab]: {
+        ...prev[activePolicyTab],
+        expirationDate: expirationDateStr,
+      }
+    }));
+  };
+
   const fetchBindRequests = async () => {
     setLoading(true);
     setError("");
@@ -604,11 +615,20 @@ export default function AdminBindRequestsPage() {
                   <input
                     type="date"
                     value={policyForms[activePolicyTab]?.expirationDate || ""}
-                    readOnly
-                    className="w-full px-4 py-2.5 bg-gray-100 border border-gray-200 rounded-xl text-gray-500 cursor-not-allowed outline-none font-medium"
+                    readOnly={activePolicyTab !== "EXCESS_LIABILITY"}
+                    onChange={activePolicyTab === "EXCESS_LIABILITY" ? handleExpirationDateChange : undefined}
+                    className={
+                      activePolicyTab === "EXCESS_LIABILITY"
+                        ? "w-full px-4 py-2.5 bg-gray-50 border border-[#e5ddd5] rounded-xl text-gray-900 focus:ring-2 focus:ring-[#9A8B7A]/20 focus:border-[#9A8B7A] transition-all outline-none"
+                        : "w-full px-4 py-2.5 bg-gray-100 border border-gray-200 rounded-xl text-gray-500 cursor-not-allowed outline-none font-medium"
+                    }
                     placeholder="Expiration Date"
                   />
-                  <p className="text-[11px] text-gray-400 mt-1 font-medium italic">* Auto-calculated: 1 year from effective date</p>
+                  <p className="text-[11px] text-gray-400 mt-1 font-medium italic">
+                    {activePolicyTab === "EXCESS_LIABILITY"
+                      ? "* Auto-calculated: 1 year from effective date, but can be manually adjusted for Excess Liability"
+                      : "* Auto-calculated: 1 year from effective date"}
+                  </p>
                 </div>
 
                 <div>
@@ -754,7 +774,7 @@ export default function AdminBindRequestsPage() {
                         </div>
                         <div>
                           <p className="text-sm font-bold text-gray-900">Click or drag policy docs here</p>
-                          <p className="text-xs text-gray-500 font-medium mt-1">PDF, DOC, ZIP up to 20MB</p>
+                          <p className="text-xs text-gray-500 font-medium mt-1">PDF, DOC, ZIP up to 10MB</p>
                         </div>
                       </div>
                     </div>

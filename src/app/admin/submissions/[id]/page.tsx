@@ -522,10 +522,10 @@ export default function AdminSubmissionDetailsPage() {
 
   const handleFileUpload = async (files: FileList | File[]) => {
     if (!submissionId || !files || files.length === 0) return;
-    
+
     const MAX_MB = 10;
     const filesArray = Array.from(files);
-    
+
     for (const file of filesArray) {
       if (file.size > MAX_MB * 1024 * 1024) {
         toast.error(`File ${file.name} exceeds ${MAX_MB}MB`);
@@ -536,23 +536,23 @@ export default function AdminSubmissionDetailsPage() {
     try {
       setUploading(true);
       let successCount = 0;
-      
+
       for (const file of filesArray) {
         const formData = new FormData();
         formData.append("file", file);
-        
+
         const res = await fetch(`/api/admin/submissions/${submissionId}/upload`, {
           method: "POST",
           body: formData,
         });
-        
+
         if (!res.ok) {
           toast.error(`Failed to upload ${file.name}`);
         } else {
           successCount++;
         }
       }
-      
+
       if (successCount > 0) {
         toast.success(`${successCount} document(s) uploaded successfully`);
         mutate(`/api/admin/submissions/${submissionId}`);
@@ -979,6 +979,12 @@ export default function AdminSubmissionDetailsPage() {
         <div className="bg-white px-6 pt-5 pb-4 shadow-sm">
           <div className="flex items-start justify-between">
             <div className="bg-white px-8 py-3">
+              <button
+                onClick={() => router.push(`/admin/submissions`)}
+                className="flex items-center text-gray-500 hover:text-[#9A8B7A] transition-colors mb-4 font-medium text-sm w-fit"
+              >
+                <ArrowLeft className="w-4 h-4 mr-1.5" /> Back
+              </button>
               <div>
                 <h1 className="flex items-center gap-3 text-[24px] font-semibold text-gray-900 leading-tight">
                   <div>
@@ -1086,160 +1092,160 @@ export default function AdminSubmissionDetailsPage() {
               {submission.status !== "CANCELLED" && (
                 <>
                   {submission.status !== "SUBMITTED" && submission.status !== "BOUND" && (
-                <>
-                  <button
-                    onClick={() => {
-                      if (paymentAuthConfirmed) {
-                        window.open(
-                          `/api/admin/submissions/${submissionId}/payment-auth?quoteId=${currentQuote?._id || ''}&premiumAmount=${paymentAuthData.premiumAmount || 0}&processingFee=${paymentAuthData.processingFee || 0}&totalDue=${paymentAuthData.totalDue || 0}`,
-                          "_blank"
-                        );
-                      } else {
-                        setPaymentAuthModalOpen(true);
-                      }
-                    }}
-                    className={iscOutlineBtn}
-                  >
-                    Payment Auth
-                  </button>
-                  <button
-                    onClick={() => window.open(`/api/admin/submissions/${submissionId}/proposal?quoteId=${currentQuote?._id || ""}&policyType=${currentPolicyType || ''}`, "_blank")}
-                    className={iscOutlineBtn}
-                  >
-                    Proposal
-                  </button>
-                </>
-              )}
-              {submission.status !== "SUBMITTED" && (
-                <button
-                  onClick={() => window.open(`/api/admin/submissions/${submissionId}/invoice?quoteId=${currentQuote?._id || ""}`, "_blank")}
-                  className={iscOutlineBtn}
-                >
-                  Invoice
-                </button>
-              )}
-              {submission.status === "SUBMITTED" && (
-                <button
-                  onClick={() => window.open(`/admin/submissions/${submissionId}/quote`, "_blank")}
-                  className={iscOutlineBtn}
-                >
-                  Enter Quote
-                </button>
-              )}
-              {["QUOTED", "BIND_REQUESTED"].includes(submission.status) && (
-                <button
-                  onClick={() => window.open(`/admin/submissions/${submissionId}/quote`, "_blank")}
-                  className={iscOutlineBtn}
-                >
-                  Re-enter Quote
-                </button>
-              )}
-              {submission.status === "BOUND" && (
-                <>
-                  {(submission.hasNewEdits || (() => {
-                    const hasExcessInPayload = submission.payload?.addExcessLiability === true;
-                    const hasBoundExcessQuote = quotes?.some(q => q.policyType === "EXCESS_LIABILITY" && q.status === "BOUND");
-                    return hasExcessInPayload && !hasBoundExcessQuote;
-                  })()) && (
+                    <>
                       <button
-                        onClick={() => window.open(`/admin/submissions/${submissionId}/quote`, "_blank")}
-                        className="h-[42px] px-6 rounded-md text-sm font-bold bg-rose-600 text-white transition-all duration-200 hover:bg-rose-700 shadow-lg shadow-rose-200 flex items-center gap-2"
-                      >
-                        <svg className="w-4 h-4 font-bold" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                        </svg>
-                        Re-enter Quote
-                      </button>
-                    )}
-                  {(() => {
-                    const isCurrentQuoteUnboundXL = currentQuote && 
-                      currentPolicyType === "EXCESS_LIABILITY" && 
-                      ["POSTED", "ENTERED", "QUOTED", "BIND_REQUESTED"].includes(currentQuote.status);
-                    
-                    return isCurrentQuoteUnboundXL ? (
-                      <button
-                        onClick={() => window.open(`/api/admin/submissions/${submissionId}/proposal?quoteId=${currentQuote?._id || ""}&policyType=${currentPolicyType || ''}&isExcessOnly=true`, "_blank")}
+                        onClick={() => {
+                          if (paymentAuthConfirmed) {
+                            window.open(
+                              `/api/admin/submissions/${submissionId}/payment-auth?quoteId=${currentQuote?._id || ''}&premiumAmount=${paymentAuthData.premiumAmount || 0}&processingFee=${paymentAuthData.processingFee || 0}&totalDue=${paymentAuthData.totalDue || 0}`,
+                              "_blank"
+                            );
+                          } else {
+                            setPaymentAuthModalOpen(true);
+                          }
+                        }}
                         className={iscOutlineBtn}
                       >
-                        Excess Proposal
+                        Payment Auth
                       </button>
-                    ) : null;
-                  })()}
-                  {(() => {
-                    let binderUrl = currentQuote?.binderUrl;
-                    let policyDocsUrl = currentQuote?.policyDocsUrl;
+                      <button
+                        onClick={() => window.open(`/api/admin/submissions/${submissionId}/proposal?quoteId=${currentQuote?._id || ""}&policyType=${currentPolicyType || ''}`, "_blank")}
+                        className={iscOutlineBtn}
+                      >
+                        Proposal
+                      </button>
+                    </>
+                  )}
+                  {submission.status !== "SUBMITTED" && (
+                    <button
+                      onClick={() => window.open(`/api/admin/submissions/${submissionId}/invoice?quoteId=${currentQuote?._id || ""}`, "_blank")}
+                      className={iscOutlineBtn}
+                    >
+                      Invoice
+                    </button>
+                  )}
+                  {submission.status === "SUBMITTED" && (
+                    <button
+                      onClick={() => router.push(`/admin/submissions/${submissionId}/quote`)}
+                      className={iscOutlineBtn}
+                    >
+                      Enter Quote
+                    </button>
+                  )}
+                  {["QUOTED", "BIND_REQUESTED"].includes(submission.status) && (
+                    <button
+                      onClick={() => router.push(`/admin/submissions/${submissionId}/quote`)}
+                      className={iscOutlineBtn}
+                    >
+                      Re-enter Quote
+                    </button>
+                  )}
+                  {submission.status === "BOUND" && (
+                    <>
+                      {(submission.hasNewEdits || (() => {
+                        const hasExcessInPayload = submission.payload?.addExcessLiability === true;
+                        const hasBoundExcessQuote = quotes?.some(q => q.policyType === "EXCESS_LIABILITY" && q.status === "BOUND");
+                        return hasExcessInPayload && !hasBoundExcessQuote;
+                      })()) && (
+                          <button
+                            onClick={() => router.push(`/admin/submissions/${submissionId}/quote`)}
+                            className="h-[42px] px-6 rounded-md text-sm font-bold bg-rose-600 text-white transition-all duration-200 hover:bg-rose-700 shadow-lg shadow-rose-200 flex items-center gap-2"
+                          >
+                            <svg className="w-4 h-4 font-bold" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                            Re-enter Quote
+                          </button>
+                        )}
+                      {(() => {
+                        const isCurrentQuoteUnboundXL = currentQuote &&
+                          currentPolicyType === "EXCESS_LIABILITY" &&
+                          ["POSTED", "ENTERED", "QUOTED", "BIND_REQUESTED"].includes(currentQuote.status);
 
-                    // Fallback to submission level (legacy GL) only if we are viewing General Liability
-                    if (currentPolicyType === 'GENERAL_LIABILITY' || (currentQuote && !currentQuote.policyType)) {
-                      binderUrl = binderUrl || submission.binderUrl;
-                      policyDocsUrl = policyDocsUrl || submission.policyDocsUrl;
+                        return isCurrentQuoteUnboundXL ? (
+                          <button
+                            onClick={() => window.open(`/api/admin/submissions/${submissionId}/proposal?quoteId=${currentQuote?._id || ""}&policyType=${currentPolicyType || ''}&isExcessOnly=true`, "_blank")}
+                            className={iscOutlineBtn}
+                          >
+                            Excess Proposal
+                          </button>
+                        ) : null;
+                      })()}
+                      {(() => {
+                        let binderUrl = currentQuote?.binderUrl;
+                        let policyDocsUrl = currentQuote?.policyDocsUrl;
+
+                        // Fallback to submission level (legacy GL) only if we are viewing General Liability
+                        if (currentPolicyType === 'GENERAL_LIABILITY' || (currentQuote && !currentQuote.policyType)) {
+                          binderUrl = binderUrl || submission.binderUrl;
+                          policyDocsUrl = policyDocsUrl || submission.policyDocsUrl;
+                        }
+                        // No fallback for EXCESS_LIABILITY as it must have its own EXPLICIT documents uploaded by the admin
+
+                        const handleDownload = (docName: string, url: string | undefined | null) => {
+                          if (!url) {
+                            toast.error(`${docName} has not been uploaded yet.`);
+                            return;
+                          }
+
+                          // Proxy everything through the secure API which enforces correct dynamic file naming based on the policy
+                          const finalUrl = `/api/download?url=${encodeURIComponent(url)}`;
+
+                          // Silently inherit server's Content-Disposition: attachment without flickering a new tab
+                          window.location.href = finalUrl;
+                        };
+
+                        return (
+                          <>
+                            <button
+                              onClick={() => handleDownload('Binder', binderUrl)}
+                              className={iscOutlineBtn}
+                            >
+                              Binder
+                            </button>
+                            <button
+                              onClick={() => handleDownload('Policy Docs', policyDocsUrl)}
+                              className={iscOutlineBtn}
+                            >
+                              Policy Docs
+                            </button>
+                          </>
+                        );
+                      })()}
+                    </>
+                  )}
+                  {/* ✅ VIEW — opens application form in read-only mode */}
+                  <button
+                    onClick={() =>
+                      window.open(
+                        `${baseQuoteUrl}?mode=view&id=${submission._id}`,
+                        "_blank"
+                      )
                     }
-                    // No fallback for EXCESS_LIABILITY as it must have its own EXPLICIT documents uploaded by the admin
+                    className={iscOutlineBtn}
+                  >
+                    View
+                  </button>
 
-                    const handleDownload = (docName: string, url: string | undefined | null) => {
-                      if (!url) {
-                        toast.error(`${docName} has not been uploaded yet.`);
-                        return;
-                      }
+                  {/* ✅ MODIFY — opens application form in edit mode */}
+                  <button
+                    onClick={() =>
+                      window.open(
+                        `${baseQuoteUrl}?mode=edit&id=${submission._id}`,
+                        "_blank"
+                      )
+                    }
+                    className={iscOutlineBtn}
+                  >
+                    Modify
+                  </button>
 
-                      // Proxy everything through the secure API which enforces correct dynamic file naming based on the policy
-                      const finalUrl = `/api/download?url=${encodeURIComponent(url)}`;
-
-                      // Silently inherit server's Content-Disposition: attachment without flickering a new tab
-                      window.location.href = finalUrl;
-                    };
-
-                    return (
-                      <>
-                        <button
-                          onClick={() => handleDownload('Binder', binderUrl)}
-                          className={iscOutlineBtn}
-                        >
-                          Binder
-                        </button>
-                        <button
-                          onClick={() => handleDownload('Policy Docs', policyDocsUrl)}
-                          className={iscOutlineBtn}
-                        >
-                          Policy Docs
-                        </button>
-                      </>
-                    );
-                  })()}
-                </>
-              )}
-              {/* ✅ VIEW — opens application form in read-only mode */}
-              <button
-                onClick={() =>
-                  window.open(
-                    `${baseQuoteUrl}?mode=view&id=${submission._id}`,
-                    "_blank"
-                  )
-                }
-                className={iscOutlineBtn}
-              >
-                View
-              </button>
-
-              {/* ✅ MODIFY — opens application form in edit mode */}
-              <button
-                onClick={() =>
-                  window.open(
-                    `${baseQuoteUrl}?mode=edit&id=${submission._id}`,
-                    "_blank"
-                  )
-                }
-                className={iscOutlineBtn}
-              >
-                Modify
-              </button>
-
-              <button
-                onClick={() => window.open(`/api/admin/submissions/${submissionId}/pdf?quoteId=${currentQuote?._id || ""}`, "_blank")}
-                className={iscOutlineBtn}
-              >
-                App Packet
-              </button>
+                  <button
+                    onClick={() => window.open(`/api/admin/submissions/${submissionId}/pdf?quoteId=${currentQuote?._id || ""}`, "_blank")}
+                    className={iscOutlineBtn}
+                  >
+                    App Packet
+                  </button>
                   <button
                     onClick={() => setCancelModalOpen(true)}
                     disabled={cancelRequested}
