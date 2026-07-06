@@ -378,19 +378,41 @@ export default function AdminSubmissionDetailsPage() {
   }, [carrierGroups, selectedCarrierId, data?.quotes]);
 
   const currentQuote: SubmissionDetails["quotes"][0] | null = useMemo(() => {
+    if (!data?.quotes?.length) return null;
+
+    // IF BOUND: Prefer the ACTUAL bound quote for this policy type
+    if (data?.submission?.status === "BOUND") {
+      const boundQuoteForType = data.quotes.find((q: any) =>
+        q.status === "BOUND" &&
+        (q.policyType === currentPolicyType || (!q.policyType && currentPolicyType === "GENERAL_LIABILITY"))
+      );
+      if (boundQuoteForType) return boundQuoteForType;
+
+      // FALLBACK: If no bound quote exists for this type yet (e.g. newly added Excess), 
+      // fall through to the comparison mode lookup below to show the POSTED quote.
+    }
+
     if (!carrierGroups.length) return null;
 
+    // OTHERWISE (Comparison Mode): Isolate lookup to selected carrier group only
     const group = carrierGroups.find(g => g.carrierId === selectedCarrierId) || carrierGroups[0];
     if (!group) return null;
 
-    // Isolate lookup to selected group only
     const policyQuote = group.quotes.find((q: any) =>
       q.policyType === currentPolicyType ||
       (!q.policyType && currentPolicyType === "GENERAL_LIABILITY")
     );
 
-    return policyQuote || null;
-  }, [carrierGroups, selectedCarrierId, currentPolicyType]);
+    if (policyQuote) return policyQuote;
+
+    // ULTIMATE FALLBACK: Search ALL quotes for this policy type if the active carrier group doesn't have it
+    const globalFallback = data.quotes.find((q: any) =>
+      q.policyType === currentPolicyType ||
+      (!q.policyType && currentPolicyType === "GENERAL_LIABILITY")
+    );
+
+    return globalFallback || null;
+  }, [data, carrierGroups, selectedCarrierId, currentPolicyType]);
 
   useEffect(() => {
     if (data) {
@@ -1057,22 +1079,38 @@ export default function AdminSubmissionDetailsPage() {
         </div>
 
         {/* Global Quote Round Selector */}
-        {submission?.status !== "BOUND" && data?.quotes && data.quotes.length > 0 && carrierGroups.length > 1 && (
-          <div className="bg-white px-8 py-4 border-t border-gray-100 flex items-center justify-end gap-3 shadow-sm rounded-md mb-2">
-            <span className="text-[14px] font-bold text-gray-500 uppercase tracking-wider">SELECT CARRIER:</span>
-            <select
-              value={selectedCarrierId || ""}
-              onChange={(e) => setSelectedCarrierId(e.target.value)}
-              className="bg-gray-50 border border-gray-200 text-gray-900 text-[14px] rounded-lg focus:ring-black focus:border-black block p-2 font-semibold outline-none"
-            >
-              {carrierGroups.map((group: any) => (
-                <option key={group.carrierId} value={group.carrierId}>
-                  {group.carrierName}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
+        {(() => {
+          const availableCarrierGroups = carrierGroups.filter(group => 
+            group.quotes.some(q => 
+              q.policyType === currentPolicyType || 
+              (!q.policyType && currentPolicyType === "GENERAL_LIABILITY")
+            )
+          );
+
+          const isCurrentPolicyBound = data?.quotes?.some(
+            (q: any) =>
+              q.status === "BOUND" &&
+              (q.policyType === currentPolicyType ||
+                (!q.policyType && currentPolicyType === "GENERAL_LIABILITY"))
+          );
+
+          return data?.quotes && data.quotes.length > 0 && availableCarrierGroups.length > 1 && !isCurrentPolicyBound ? (
+            <div className="bg-white px-8 py-4 border-t border-gray-100 flex items-center justify-end gap-3 shadow-sm rounded-md mb-2">
+              <span className="text-[14px] font-bold text-gray-500 uppercase tracking-wider">SELECT CARRIER:</span>
+              <select
+                value={selectedCarrierId || ""}
+                onChange={(e) => setSelectedCarrierId(e.target.value)}
+                className="bg-gray-50 border border-gray-200 text-gray-900 text-[14px] rounded-lg focus:ring-black focus:border-black block p-2 font-semibold outline-none"
+              >
+                {availableCarrierGroups.map((group: any) => (
+                  <option key={group.carrierId} value={group.carrierId}>
+                    {group.carrierName}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ) : null;
+        })()}
 
         {/* Action Row */}
         <div className="bg-white px-6 py-4 md:py-3 min-h-[64px] border-t border-gray-100 shadow-sm">

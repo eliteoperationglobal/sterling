@@ -1112,22 +1112,38 @@ function SubmissionDetailsContent() {
         </div>
         {/* APP INFO ROW – ISC STYLE */}
         {/* Global Quote Round Selector */}
-        {submission?.status !== "BOUND" && carrierGroups.length > 1 && (
-          <div className="bg-white px-8 py-4 border-t border-gray-100 flex items-center justify-end gap-3 shadow-sm rounded-md mb-2">
-            <span className="text-[14px] font-bold text-gray-500 uppercase tracking-wider">SELECT CARRIER:</span>
-            <select
-              value={selectedCarrierId || ""}
-              onChange={(e) => setSelectedCarrierId(e.target.value)}
-              className="bg-gray-50 border border-gray-200 text-gray-900 text-[14px] rounded-lg focus:ring-black focus:border-black block p-2 font-semibold outline-none"
-            >
-              {carrierGroups.map((group: any) => (
-                <option key={group.carrierId} value={group.carrierId}>
-                  {group.carrierName}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
+        {(() => {
+          const availableCarrierGroups = carrierGroups.filter(group => 
+            group.quotes.some(q => 
+              q.policyType === currentPolicyType || 
+              (!q.policyType && currentPolicyType === "GENERAL_LIABILITY")
+            )
+          );
+
+          const isCurrentPolicyBound = data?.quotes?.some(
+            (q: any) =>
+              q.status === "BOUND" &&
+              (q.policyType === currentPolicyType ||
+                (!q.policyType && currentPolicyType === "GENERAL_LIABILITY"))
+          );
+
+          return availableCarrierGroups.length > 1 && !isCurrentPolicyBound ? (
+            <div className="bg-white px-8 py-4 border-t border-gray-100 flex items-center justify-end gap-3 shadow-sm rounded-md mb-2">
+              <span className="text-[14px] font-bold text-gray-500 uppercase tracking-wider">SELECT CARRIER:</span>
+              <select
+                value={selectedCarrierId || ""}
+                onChange={(e) => setSelectedCarrierId(e.target.value)}
+                className="bg-gray-50 border border-gray-200 text-gray-900 text-[14px] rounded-lg focus:ring-black focus:border-black block p-2 font-semibold outline-none"
+              >
+                {availableCarrierGroups.map((group: any) => (
+                  <option key={group.carrierId} value={group.carrierId}>
+                    {group.carrierName}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ) : null;
+        })()}
 
         <div className="bg-white px-4 md:px-6 py-4 md:py-3 min-h-[64px] border-t border-gray-100">
           <div className="flex flex-col md:flex-row md:items-center justify-between w-full gap-4 md:gap-3">
@@ -1493,11 +1509,24 @@ function SubmissionDetailsContent() {
                   </button>
                   {/* Actions for new policies added to an already-bound submission */}
                   {(() => {
+                    // Collect policy types that already have a BOUND quote (e.g., GL bound with Kinsale)
+                    const boundPolicyTypes = (data?.quotes || [])
+                      .filter((q: any) => q.status === "BOUND")
+                      .map((q: any) => q.policyType || "GENERAL_LIABILITY");
+
                     // Check if there are any quotes that are currently in a bind-requested state
-                    const hasBindRequestedQuotes = (data?.quotes || []).some((q: any) => q.status === "BIND_REQUESTED");
+                    // — only for policy types NOT already bound
+                    const hasBindRequestedQuotes = (data?.quotes || []).some((q: any) => {
+                      const pt = q.policyType || "GENERAL_LIABILITY";
+                      return q.status === "BIND_REQUESTED" && !boundPolicyTypes.includes(pt);
+                    });
 
                     // Check if there are any quotes that are ready to be bound (unbounded and not requested yet)
-                    const hasBindableQuotes = (data?.quotes || []).some((q: any) => ["POSTED", "ENTERED", "QUOTED"].includes(q.status));
+                    // — only for policy types NOT already bound
+                    const hasBindableQuotes = (data?.quotes || []).some((q: any) => {
+                      const pt = q.policyType || "GENERAL_LIABILITY";
+                      return ["POSTED", "ENTERED", "QUOTED"].includes(q.status) && !boundPolicyTypes.includes(pt);
+                    });
 
                     // Check if the current quote is an unbound Excess Liability quote
                     const isCurrentQuoteUnboundXL = currentQuote &&
