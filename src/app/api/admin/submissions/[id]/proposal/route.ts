@@ -13,6 +13,7 @@ import { generateApartmentProposalHTML } from "@/lib/services/pdf/ApartmentPacke
 import { mapContractorsDataToPacketData } from "@/lib/services/pdf/mappers/contractorsMapper";
 import { generateContractorsProposalHTML } from "@/lib/services/pdf/ContractorsEquipmentPacketPDF";
 import { loadCapitalCoLogo } from "@/lib/services/pdf/ApplicationPacketPDF";
+
 export type ProposalData = {
   quoteNumber: string;
   proposalDate: string;
@@ -137,6 +138,15 @@ function formatToUSD(value: any) {
   const num = Number(str);
   if (isNaN(num)) return String(value).includes("$") ? String(value) : `$${value}`;
   return `$${num.toLocaleString()}`;
+}
+
+function formatLimit(val: any, fallback: string): string {
+  if (val === undefined || val === null || val === "") return fallback;
+  if (val === 0 || val === "0") return "$0";
+  if (typeof val === "string" && val.includes("$")) return val;
+  const num = typeof val === "string" ? parseFloat(val.replace(/,/g, '')) : val;
+  if (!isNaN(num)) return `$${num.toLocaleString('en-US')}`;
+  return String(val) || fallback;
 }
 
 /**
@@ -283,15 +293,22 @@ export async function GET(
       excessLiabilityLimit: (xsQuote?.limits?.excessLimit || formData.excessLiabilityLimit) ? extractLimits(xsQuote?.limits?.excessLimit || formData.excessLiabilityLimit)[0] : undefined,
     };
 
-    // 🚀 CACHE CHECK: Hash the proposalData JSON for stability
-    const dataHash = crypto.createHash("md5").update(JSON.stringify(proposalData)).digest("hex");
-
     const isApartment = submission.programId === "apartment-buildings" || 
-                        submission.programName?.toLowerCase().includes("apartment building") || 
-                        submission.programName?.toLowerCase().includes("commercial property");
+                        submission.programName?.toLowerCase().includes("apartment building");
+
+    const isCommercialProperty = submission.programId === "commercial-property" || 
+                                 submission.programName?.toLowerCase().includes("commercial property") ||
+                                 (isApartment && quote?.policyType === 'GENERAL_LIABILITY');
+
+    const useApartmentTemplate = isApartment && !isCommercialProperty;
 
     const isContractors = submission.programId === "contractors-equipment" || 
                          submission.programName?.toLowerCase().includes("contractors equipment");
+
+    const templateType = useApartmentTemplate ? "apartment" : isCommercialProperty ? "commercial" : isContractors ? "contractors" : "standard";
+
+    // 🚀 CACHE CHECK: Hash the proposalData JSON for stability
+    const dataHash = crypto.createHash("md5").update(JSON.stringify(proposalData) + templateType).digest("hex");
 
     try {
       const cachedPdf = await PDFCache.findOne({ hash: dataHash }).lean();
@@ -301,8 +318,8 @@ export async function GET(
           ? (quote?.policyType === 'EXCESS_LIABILITY' ? 'General-Liability' : 'Property')
           : isContractors ? 'Equipment' : 'Proposal';
         const filename = isApartment || isContractors
-          ? `${formData.companyName}-${policyLabel}-Proposal.pdf`
-          : `${formData.companyName}-Proposal.pdf`;
+          ? `${proposalData.companyName}-${policyLabel}-Proposal.pdf`
+          : `${proposalData.companyName}-Proposal.pdf`;
 
         return new NextResponse(new Uint8Array(cachedPdf.pdfBuffer as unknown as ArrayBuffer), {
           headers: {
@@ -322,7 +339,7 @@ export async function GET(
     // Generate proposal HTML
     let proposalHTML: string = "";
 
-    if (isApartment) {
+    if (useApartmentTemplate) {
       console.log("📄 [Admin Proposal Download] Generating Apartment Buildings Proposal...");
       const capitalCoLogoSVG = await loadCapitalCoLogo();
       const apartmentData = mapApartmentDataToPacketData(
@@ -334,6 +351,27 @@ export async function GET(
         capitalCoLogoSVG
       );
       proposalHTML = generateApartmentProposalHTML(apartmentData);
+    } else if (isCommercialProperty) {
+      console.log("📄 [Admin Proposal Download] Generating Commercial Property Proposal...");
+      const { generateCommercialPropertyProposalHTML } = await import('@/lib/services/pdf/CommercialPropertyProposalHTML');
+      const q = quote as any;
+      const commData = {
+        ...proposalData,
+        deductible: formatLimit(q?.metadata?.limits?.propertyDeductible ?? q?.limits?.propertyDeductible ?? formData.propertyDeductible ?? formData.deductible, "$1,000"),
+        buildingLimit: formatLimit(q?.metadata?.limits?.propertyBuildingLimit ?? q?.limits?.propertyBuildingLimit ?? formData.propertyBuildingLimit, "Included"),
+        bppLimit: formatLimit(q?.metadata?.limits?.propertyBppLimit ?? q?.limits?.propertyBppLimit ?? formData.propertyBppLimit, "Included"),
+        lossOfIncomeLimit: formatLimit(q?.metadata?.limits?.propertyBusinessIncomeLimit ?? q?.limits?.propertyBusinessIncomeLimit ?? formData.propertyBusinessIncomeLimit, "Included"),
+        coinsurance: q?.metadata?.limits?.propertyCoinsurance || q?.limits?.propertyCoinsurance || formData.propertyCoinsurance || formData.subjectsOfInsurance?.[0]?.coinsurance || "80%",
+        valuation: formData.propertyValuation || formData.subjectsOfInsurance?.[0]?.valuation || formData.valuation || "Replacement Cost",
+        coveredCausesOfLoss: formData.causesOfLoss || formData.subjectsOfInsurance?.[0]?.causesOfLoss || "Special Form",
+        constructionType: formData.constructionType || "",
+        yearBuilt: formData.yearBuilt || "",
+        roofType: formData.roofingType || formData.roofType || "",
+        squareFootage: formData.totalBuildingArea || formData.squareFootage || "",
+        sprinklered: formData.sprinklered || "No",
+        hasGeneralLiability: formData.products?.includes('general-liability') || !!occurrence || !!xsQuote || formData.addGeneralLiability === true || formData.addExcessLiability === true,
+      };
+      proposalHTML = generateCommercialPropertyProposalHTML(commData as any);
     } else if (isContractors) {
       console.log("📄 [Admin Proposal Download] Generating Contractors Equipment Proposal...");
       const capitalCoLogoSVG = await loadCapitalCoLogo();
@@ -374,8 +412,8 @@ export async function GET(
       ? (quote?.policyType === 'EXCESS_LIABILITY' ? 'General-Liability' : 'Property')
       : isContractors ? 'Equipment' : 'Proposal';
     const filename = isApartment || isContractors
-      ? `${formData.companyName}-${policyLabel}-Proposal.pdf`
-      : `${formData.companyName}-Proposal.pdf`;
+      ? `${proposalData.companyName}-${policyLabel}-Proposal.pdf`
+      : `${proposalData.companyName}-Proposal.pdf`;
 
     return new NextResponse(new Uint8Array(pdfBuffer), {
       headers: {

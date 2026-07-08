@@ -17,6 +17,11 @@ export interface ILimits {
   medicalExpenseLimit?: string;
   deductible?: string;
   excessLimit?: string;
+  propertyBuildingLimit?: string;
+  propertyBppLimit?: string;
+  propertyBusinessIncomeLimit?: string;
+  propertyDeductible?: string;
+  propertyCoinsurance?: string;
 }
 
 export interface IQuote extends Document {
@@ -97,6 +102,12 @@ const LimitsSchema: Schema = new Schema({
   fireLegalLimit: String,
   medicalExpenseLimit: String,
   deductible: String,
+  excessLimit: String,
+  propertyBuildingLimit: String,
+  propertyBppLimit: String,
+  propertyBusinessIncomeLimit: String,
+  propertyDeductible: String,
+  propertyCoinsurance: String,
 }, { _id: false });
 
 const QuoteSchema: Schema = new Schema(

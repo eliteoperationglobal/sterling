@@ -6,6 +6,7 @@ export { generateApplicationHTML } from "./ApplicationPDF";
 export { generateApplicationPacketHTML, mapFormDataToPacketData } from "./ApplicationPacketPDF";
 export { generateBinderHTML } from "./BinderPDF";
 export { generateProposalHTML } from "./ProposalPDFHTML";
+export { generateCommercialPropertyProposalHTML } from "./CommercialPropertyProposalHTML";
 // Export the new HTML-based carrier forms generator
 export { generateCarrierFormsHTML } from "./CarrierFormsPDFHTML";
 export { savePDFToStorage } from "./storage";

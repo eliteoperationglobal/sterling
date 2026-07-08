@@ -9,6 +9,7 @@ import Submission from "@/models/Submission";
 import Agency from "@/models/Agency";
 import FinancePlan from "@/models/FinancePlan";
 import { generateProposalHTML } from "./ProposalPDFHTML";
+import { generateCommercialPropertyProposalHTML } from "./CommercialPropertyProposalHTML";
 import { generateCarrierFormsHTML } from "./CarrierFormsPDFHTML";
 import { savePDFToStorage } from "./storage";
 
@@ -211,10 +212,11 @@ export const PDFService = {
       // Generate HTML based on document type
       switch (documentType) {
         case "PROPOSAL": {
+          const isCommercialProperty = submission.programName?.toLowerCase().includes("commercial property");
           const coverageLimits = (formData.coverageLimits || formData.generalLiabilityLimit || "").split("/").map((s: string) => s.trim());
           const formatLimit = (val: string) => val.includes("$") ? val : `$${val.replace("M", ",000,000").replace("m", ",000,000")}`;
 
-          const proposalData = {
+          const baseData = {
             quoteNumber: quote._id.toString().substring(0, 8).toUpperCase(),
             proposalDate: new Date().toLocaleDateString(),
             companyName: formData.companyName || submission.clientContact?.name || "Unknown",
@@ -251,30 +253,52 @@ export const PDFService = {
             limits: quote.limits,
             endorsements: quote.endorsements || [],
             specialNotes: quote.specialNotes,
-
-            // New fields from application packet
-            occurrenceLimit: formatLimit(coverageLimits[0] || "1,000,000"),
-            aggregateLimit: formatLimit(coverageLimits[1] || coverageLimits[0] || "2,000,000"),
-            productsCompletedOpsLimit: formatLimit(coverageLimits[2] || coverageLimits[0] || "2,000,000"),
-            personalAdvertisingInjuryLimit: formatLimit(coverageLimits[0] || "1,000,000"),
-            fireLegalLimit: formData.fireLegalLimit || "$50,000",
-            medPayLimit: formData.medicalExpenseLimit || "$5,000",
-            deductible: formData.deductible || "$2,500",
-            selfInsuredRetention: formData.selfInsuredRetention || formData.deductible || "$2,500",
-            employeePayroll: formData.totalPayroll
-              ? `$${parseInt(String(formData.totalPayroll).replace(/[^0-9]/g, "") || "0").toLocaleString('en-US')}`
-              : (formData.totalPayrollAmount ? `$${parseInt(String(formData.totalPayrollAmount).replace(/[^0-9]/g, "") || "0").toLocaleString('en-US')}` : "$0"),
-            grossReceipts: formData.estimatedGrossReceipts
-              ? `$${parseInt(formData.estimatedGrossReceipts).toLocaleString('en-US')}`
-              : "$0",
-            subcontractorCosts: formData.estimatedSubcontractingCosts
-              ? `$${parseInt(formData.estimatedSubcontractingCosts).toLocaleString('en-US')}`
-              : "$0",
-            classCode: formData.carrierApprovedDescription || "General Contractor",
             descriptionOfOperations: formData.carrierApprovedDescription || "",
-            addExcessLiability: formData.addExcessLiability === true,
           };
-          htmlContent = generateProposalHTML(proposalData);
+
+          if (isCommercialProperty) {
+            const q = quote as any;
+            const proposalData = {
+              ...baseData,
+              deductible: q?.metadata?.limits?.propertyDeductible || q?.limits?.propertyDeductible || formData.propertyDeductible || formData.deductible || "$1,000",
+              buildingLimit: q?.metadata?.limits?.propertyBuildingLimit || q?.limits?.propertyBuildingLimit || formData.propertyBuildingLimit || "Included",
+              bppLimit: q?.metadata?.limits?.propertyBppLimit || q?.limits?.propertyBppLimit || formData.propertyBppLimit || "Included",
+              lossOfIncomeLimit: q?.metadata?.limits?.propertyBusinessIncomeLimit || q?.limits?.propertyBusinessIncomeLimit || formData.propertyBusinessIncomeLimit || "Included",
+              coinsurance: q?.metadata?.limits?.propertyCoinsurance || q?.limits?.propertyCoinsurance || formData.propertyCoinsurance || formData.subjectsOfInsurance?.[0]?.coinsurance || "80%",
+              valuation: formData.propertyValuation || formData.subjectsOfInsurance?.[0]?.valuation || formData.valuation || "Replacement Cost",
+              coveredCausesOfLoss: formData.causesOfLoss || formData.subjectsOfInsurance?.[0]?.causesOfLoss || "Special Form",
+              constructionType: formData.constructionType || "",
+              yearBuilt: formData.yearBuilt || "",
+              roofType: formData.roofType || "",
+              squareFootage: formData.squareFootage || "",
+              sprinklered: formData.sprinklered || "No",
+            };
+            htmlContent = generateCommercialPropertyProposalHTML(proposalData as any);
+          } else {
+            const proposalData = {
+              ...baseData,
+              occurrenceLimit: formatLimit(coverageLimits[0] || "1,000,000"),
+              aggregateLimit: formatLimit(coverageLimits[1] || coverageLimits[0] || "2,000,000"),
+              productsCompletedOpsLimit: formatLimit(coverageLimits[2] || coverageLimits[0] || "2,000,000"),
+              personalAdvertisingInjuryLimit: formatLimit(coverageLimits[0] || "1,000,000"),
+              fireLegalLimit: formData.fireLegalLimit || "$50,000",
+              medPayLimit: formData.medicalExpenseLimit || "$5,000",
+              deductible: formData.deductible || "$2,500",
+              selfInsuredRetention: formData.selfInsuredRetention || formData.deductible || "$2,500",
+              employeePayroll: formData.totalPayroll
+                ? `$${parseInt(String(formData.totalPayroll).replace(/[^0-9]/g, "") || "0").toLocaleString('en-US')}`
+                : (formData.totalPayrollAmount ? `$${parseInt(String(formData.totalPayrollAmount).replace(/[^0-9]/g, "") || "0").toLocaleString('en-US')}` : "$0"),
+              grossReceipts: formData.estimatedGrossReceipts
+                ? `$${parseInt(formData.estimatedGrossReceipts).toLocaleString('en-US')}`
+                : "$0",
+              subcontractorCosts: formData.estimatedSubcontractingCosts
+                ? `$${parseInt(formData.estimatedSubcontractingCosts).toLocaleString('en-US')}`
+                : "$0",
+              classCode: formData.carrierApprovedDescription || "General Contractor",
+              addExcessLiability: formData.addExcessLiability === true,
+            };
+            htmlContent = generateProposalHTML(proposalData as any);
+          }
           documentName = `proposal-${quote._id.toString()}.pdf`;
           break;
         }

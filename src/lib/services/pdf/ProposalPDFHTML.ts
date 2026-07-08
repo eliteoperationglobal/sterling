@@ -277,7 +277,7 @@ export function generateProposalHTML(data: ProposalData): string {
 
 		.pdf24new_07 {
 			font-size: 2.333333em;
-			font-family: "FMLOAL+Arial";
+			font-family: "FMLOAL+Arial", Arial, sans-serif; font-weight: normal;
 			color: #2C5AA0;
 		}
 
@@ -295,7 +295,7 @@ export function generateProposalHTML(data: ProposalData): string {
 
 		.pdf24new_10 {
 			font-size: 0.916667em;
-			font-family: "FMLOAL+Arial";
+			font-family: "FMLOAL+Arial", Arial, sans-serif; font-weight: normal;
 			color: #1E1E1E;
 		}
 
@@ -318,43 +318,43 @@ export function generateProposalHTML(data: ProposalData): string {
 
 		.pdf24new_13 {
 			font-size: 0.916667em;
-			font-family: "VMCLAJ+Arial Bold";
+			font-family: "VMCLAJ+Arial Bold", Arial, sans-serif; font-weight: bold;
 			color: #1E1E1E;
 		}
 
 		.pdf24new_14 {
 			font-size: 0.916667em;
-			font-family: "VMCLAJ+Arial Bold";
+			font-family: "VMCLAJ+Arial Bold", Arial, sans-serif; font-weight: bold;
 			color: #FFFFFF;
 		}
 
 		.pdf24new_15 {
 			font-size: 1.083333em;
-			font-family: "VMCLAJ+Arial Bold";
+			font-family: "VMCLAJ+Arial Bold", Arial, sans-serif; font-weight: bold;
 			color: #2C5AA0;
 		}
 
 		.pdf24new_16 {
 			font-size: 0.833333em;
-			font-family: "FMLOAL+Arial";
+			font-family: "FMLOAL+Arial", Arial, sans-serif; font-weight: normal;
 			color: #1E1E1E;
 		}
 
 		.pdf24new_17 {
 			font-size: 1.666667em;
-			font-family: "VMCLAJ+Arial Bold";
+			font-family: "VMCLAJ+Arial Bold", Arial, sans-serif; font-weight: bold;
 			color: #648CB4;
 		}
 
 		.pdf24new_18 {
 			font-size: 1.166667em;
-			font-family: "VMCLAJ+Arial Bold";
+			font-family: "VMCLAJ+Arial Bold", Arial, sans-serif; font-weight: bold;
 			color: #2C5AA0;
 		}
 
 		.pdf24new_19 {
 			font-size: 0.791667em;
-			font-family: "FMLOAL+Arial";
+			font-family: "FMLOAL+Arial", Arial, sans-serif; font-weight: normal;
 			color: #1E1E1E;
 		}
 
@@ -368,13 +368,13 @@ export function generateProposalHTML(data: ProposalData): string {
 
 		.pdf24new_21 {
 			font-size: 0.875em;
-			font-family: "VMCLAJ+Arial Bold";
+			font-family: "VMCLAJ+Arial Bold", Arial, sans-serif; font-weight: bold;
 			color: #2C5AA0;
 		}
 
 		.pdf24new_22 {
 			font-size: 0.875em;
-			font-family: "FMLOAL+Arial";
+			font-family: "FMLOAL+Arial", Arial, sans-serif; font-weight: normal;
 			color: #1E1E1E;
 		}
 
@@ -388,37 +388,37 @@ export function generateProposalHTML(data: ProposalData): string {
 
 		.pdf24new_24 {
 			font-size: 1em;
-			font-family: "VMCLAJ+Arial Bold";
+			font-family: "VMCLAJ+Arial Bold", Arial, sans-serif; font-weight: bold;
 			color: #2C5AA0;
 		}
 
 		.pdf24new_25 {
 			font-size: 0.833333em;
-			font-family: "VMCLAJ+Arial Bold";
+			font-family: "VMCLAJ+Arial Bold", Arial, sans-serif; font-weight: bold;
 			color: #1E1E1E;
 		}
 
 		.pdf24new_26 {
 			font-size: 0.75em;
-			font-family: "VMCLAJ+Arial Bold";
+			font-family: "VMCLAJ+Arial Bold", Arial, sans-serif; font-weight: bold;
 			color: #2C5AA0;
 		}
 
 		.pdf24new_27 {
 			font-size: 0.75em;
-			font-family: "VMCLAJ+Arial Bold";
+			font-family: "VMCLAJ+Arial Bold", Arial, sans-serif; font-weight: bold;
 			color: #1E1E1E;
 		}
 
 		.pdf24new_28 {
 			font-size: 0.75em;
-			font-family: "FMLOAL+Arial";
+			font-family: "FMLOAL+Arial", Arial, sans-serif; font-weight: normal;
 			color: #1E1E1E;
 		}
 
 		.pdf24new_29 {
 			font-size: 1.333333em;
-			font-family: "VMCLAJ+Arial Bold";
+			font-family: "VMCLAJ+Arial Bold", Arial, sans-serif; font-weight: bold;
 			color: #2C5AA0;
 		}
 
@@ -483,7 +483,7 @@ export function generateProposalHTML(data: ProposalData): string {
 }
 .pdf24_07 {
 	font-size: 0.916667em;
-	font-family: "GAHFTE+Arial Bold";
+	font-family: "GAHFTE+Arial Bold", Arial, sans-serif; font-weight: bold;
 	color: #FFFFFF;
 }
 .pdf24_08 {
@@ -502,7 +502,7 @@ export function generateProposalHTML(data: ProposalData): string {
 }
 .pdf24_10 {
 	font-size: 0.833333em;
-	font-family: "DLNQIJ+Arial";
+	font-family: "DLNQIJ+Arial", Arial, sans-serif; font-weight: normal;
 	color: #1E1E1E;
 }
 .pdf24_11 {
@@ -514,7 +514,7 @@ export function generateProposalHTML(data: ProposalData): string {
 }
 .pdf24_12 {
 	font-size: 1.083333em;
-	font-family: "GAHFTE+Arial Bold";
+	font-family: "GAHFTE+Arial Bold", Arial, sans-serif; font-weight: bold;
 	color: #1E1E1E;
 }
 @font-face {
@@ -523,32 +523,32 @@ export function generateProposalHTML(data: ProposalData): string {
 }
 .pdf24_13 {
 	font-size: 0.833333em;
-	font-family: "TSTQEI+Arial Italic";
+	font-family: "TSTQEI+Arial Italic", Arial, sans-serif; font-style: italic;
 	color: #8C8C8C;
 }
 .pdf24_14 {
 	font-size: 0.833333em;
-	font-family: "GAHFTE+Arial Bold";
+	font-family: "GAHFTE+Arial Bold", Arial, sans-serif; font-weight: bold;
 	color: #1E1E1E;
 }
 .pdf24_15 {
 	font-size: 0.666667em;
-	font-family: "DLNQIJ+Arial";
+	font-family: "DLNQIJ+Arial", Arial, sans-serif; font-weight: normal;
 	color: #1E1E1E;
 }
 .pdf24_16 {
 	font-size: 0.75em;
-	font-family: "DLNQIJ+Arial";
+	font-family: "DLNQIJ+Arial", Arial, sans-serif; font-weight: normal;
 	color: #8C8C8C;
 }
 .pdf24_17 {
 	font-size: 1em;
-	font-family: "GAHFTE+Arial Bold";
+	font-family: "GAHFTE+Arial Bold", Arial, sans-serif; font-weight: bold;
 	color: #1E1E1E;
 }
 .pdf24_18 {
 	font-size: 0.791667em;
-	font-family: "GAHFTE+Arial Bold";
+	font-family: "GAHFTE+Arial Bold", Arial, sans-serif; font-weight: bold;
 	color: #2C5AA0;
 }
 .pdf24_19 {
@@ -560,7 +560,7 @@ export function generateProposalHTML(data: ProposalData): string {
 }
 .pdf24_20 {
 	font-size: 0.791667em;
-	font-family: "DLNQIJ+Arial";
+	font-family: "DLNQIJ+Arial", Arial, sans-serif; font-weight: normal;
 	color: #1E1E1E;
 }
 

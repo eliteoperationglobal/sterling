@@ -5604,6 +5604,28 @@ function generateProposalPage(data: ApartmentPacketData): string {
 				<div class="section-header">LIMITS OF LIABILITY</div>
 				<hr class="section-divider" />
 				<div class="question-list">
+					${data.quoteType === "Commercial Property" ? `
+					<div class="question-row">
+						<div class="question-text">Building Limit</div>
+						<div class="field-value">${data.propertyBuildingLimit ? (String(data.propertyBuildingLimit).includes('$') ? data.propertyBuildingLimit : '$' + Number(String(data.propertyBuildingLimit).replace(/[^0-9.-]+/g, "")).toLocaleString('en-US')) : "$0"}</div>
+					</div>
+					<div class="question-row">
+						<div class="question-text">Business Personal Property (BPP) Limit</div>
+						<div class="field-value">${data.propertyBppLimit ? (String(data.propertyBppLimit).includes('$') ? data.propertyBppLimit : '$' + Number(String(data.propertyBppLimit).replace(/[^0-9.-]+/g, "")).toLocaleString('en-US')) : "$0"}</div>
+					</div>
+					<div class="question-row">
+						<div class="question-text">Business Income Limit</div>
+						<div class="field-value">${data.propertyBusinessIncomeLimit ? (String(data.propertyBusinessIncomeLimit).includes('$') ? data.propertyBusinessIncomeLimit : '$' + Number(String(data.propertyBusinessIncomeLimit).replace(/[^0-9.-]+/g, "")).toLocaleString('en-US')) : "$0"}</div>
+					</div>
+					<div class="question-row">
+						<div class="question-text">Property Deductible</div>
+						<div class="field-value">${data.propertyPolicyDeductible ? (String(data.propertyPolicyDeductible).includes('$') ? data.propertyPolicyDeductible : '$' + Number(String(data.propertyPolicyDeductible).replace(/[^0-9.-]+/g, "")).toLocaleString('en-US')) : "$0"}</div>
+					</div>
+					<div class="question-row">
+						<div class="question-text">Coinsurance</div>
+						<div class="field-value">${data.propertyCoinsurance ? (String(data.propertyCoinsurance).includes('%') ? data.propertyCoinsurance : data.propertyCoinsurance + '%') : "80%"}</div>
+					</div>
+					` : `
 					<div class="question-row">
 						<div class="question-text">Each Occurrence Limit</div>
 						<div class="field-value">${data.occurrenceLimit || "$1,000,000"}</div>
@@ -5628,6 +5650,7 @@ function generateProposalPage(data: ApartmentPacketData): string {
 						<div class="question-text">Medical Expense Limit</div>
 						<div class="field-value">${data.medPayLimit || "$5,000"}</div>
 					</div>
+					`}
 				</div>
 			</div>
 
@@ -5689,14 +5712,15 @@ function generateInvoicePage(data: ApartmentPacketData): string {
 			<div class="invoice-field-page12">${data.applicantCity}, ${data.applicantState} ${data.applicantZip}</div>
 			<div class="invoice-field-page12">${data.applicantPhone}</div>
 			<div class="invoice-field-page12">Email: ${data.applicantEmail}</div>
-			<div class="invoice-field-page12">${data.submissionNumber}</div>
+			<div class="invoice-field-page12">App ID: ${data.submissionNumber}</div>
+			${data.policyNumberBound ? `<div class="invoice-field-page12">${data.policyNumberBound}</div>` : ''}
 		  </div>
 		  <div>
-			<strong>Sterling Insurance Services</strong>
-			<p>292 S La Cienega Blvd Ste 206<br>Beverly Hills CA 90211</p>
-			<p>(310) 492-2007</p>
-			<p>info@SterlingInsurancePartners.com</p>
-			<p>License Number: 6015632</p>
+			<div class="invoice-field-page12" style="font-weight: bold; max-width: 300px;">${data.agencyName}</div>
+			<div class="invoice-field-page12">${data.agencyAddress}</div>
+			<div class="invoice-field-page12">${data.agencyCity}, ${data.agencyState} ${data.agencyZip}</div>
+			<div class="invoice-field-page12">${data.agencyPhone}</div>
+			<div class="invoice-field-page12">${data.agencyEmail}</div>
 		  </div>
 		</div>
 		<div style="text-align: center;">
@@ -5821,6 +5845,15 @@ function generateInvoicePage(data: ApartmentPacketData): string {
 			<div class="invoice-value-page12">${data.totalToFinanceCompany || '$0.00'}</div>
 		  </div>
 		</div>
+
+		<div style="text-align: center; margin-top: 62px;">
+			<strong style="font-size: 20px;">Sterling Insurance Services</strong>
+			<p>5455 Wilshire Blvd. #1816,<br>Los Angeles, CA 90036</p>
+			<p>(310) 492-2007</p>
+			<p>info@SterlingInsurancePartners.com</p>
+			<p>License Number: 6015632</p>
+		</div>
+
 	  </div>
 	</div>
 	`;

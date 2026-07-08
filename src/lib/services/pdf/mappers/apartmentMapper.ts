@@ -18,6 +18,7 @@ export interface ApartmentPacketData {
     agencyZip: string;
     agencyPhone: string;
     agencyEmail: string;
+    policyNumberBound?: string;
 
     // 1. Apartment Application (General Info)
     applicantName: string;
@@ -106,7 +107,7 @@ export interface ApartmentPacketData {
     // Property Insurance Details
     subjectOfInsurance: string;
     propertyLimit: string;
-    propertyCoinsurance: string;
+    propertyCoinsurance?: string;
     propertyValuation: string;
     propertyCausesOfLoss: string;
     propertyDeductible: string;
@@ -228,6 +229,12 @@ export interface ApartmentPacketData {
     fireLegalLimit?: string;
     medPayLimit?: string;
 
+    // Property Limits for Commercial Property
+    propertyBuildingLimit?: string;
+    propertyBppLimit?: string;
+    propertyBusinessIncomeLimit?: string;
+    propertyPolicyDeductible?: string;
+
     // Coverages & Additional Info
     mineSubsidenceSelected: "Accept" | "Reject" | "None";
     mineSubsidenceLimit: string;
@@ -294,6 +301,7 @@ export function mapApartmentDataToPacketData(
         agencyZip: agency?.address?.zip || "90211",
         agencyPhone: agency?.phone || "(310) 492-2007",
         agencyEmail: agency?.email || "info@sterlinginsurancepartners.com",
+        policyNumberBound: quote?.policyNumber || submission.policyNumber || formData.policyNumber,
 
         // 1. Apartment Application (General Info)
         applicantName: formData.applicantName || "-",
@@ -399,7 +407,6 @@ export function mapApartmentDataToPacketData(
                 .map((i: any) => `$${parseInt(i.limit).toLocaleString('en-US')}`)
                 .join(", ") || "-"
             : (formData.propertyLimit || "-"),
-        propertyCoinsurance: formData.propertyCoinsurance || formData.subjectsOfInsurance?.[0]?.coinsurance || "-",
         propertyValuation: (() => {
             const v = formData.propertyValuation || formData.subjectsOfInsurance?.[0]?.valuation || "-";
             if (v === "Actual Cash Value (ACV)") return "ACV";
@@ -567,6 +574,12 @@ export function mapApartmentDataToPacketData(
         personalAdvertisingInjuryLimit: quote?.metadata?.limits?.personalAdvertisingInjury ? `$${quote.metadata.limits.personalAdvertisingInjury.toLocaleString('en-US')}` : undefined,
         fireLegalLimit: quote?.metadata?.limits?.fireLegal ? `$${quote.metadata.limits.fireLegal.toLocaleString('en-US')}` : undefined,
         medPayLimit: quote?.metadata?.limits?.medicalExpense ? `$${quote.metadata.limits.medicalExpense.toLocaleString('en-US')}` : undefined,
+
+        propertyBuildingLimit: quote?.metadata?.limits?.propertyBuildingLimit || quote?.limits?.propertyBuildingLimit || formData.propertyBuildingLimit || undefined,
+        propertyBppLimit: quote?.metadata?.limits?.propertyBppLimit || quote?.limits?.propertyBppLimit || formData.propertyBppLimit || undefined,
+        propertyBusinessIncomeLimit: quote?.metadata?.limits?.propertyBusinessIncomeLimit || quote?.limits?.propertyBusinessIncomeLimit || formData.propertyBusinessIncomeLimit || undefined,
+        propertyPolicyDeductible: quote?.metadata?.limits?.propertyDeductible || quote?.limits?.propertyDeductible || formData.propertyDeductible || undefined,
+        propertyCoinsurance: quote?.metadata?.limits?.propertyCoinsurance || quote?.limits?.propertyCoinsurance || formData.propertyCoinsurance || formData.subjectsOfInsurance?.[0]?.coinsurance || undefined,
 
         // New Coverage & Metadata
         mineSubsidenceSelected: formData.mineSubsidenceSelected || "None",

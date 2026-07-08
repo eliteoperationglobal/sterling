@@ -79,6 +79,12 @@ export default function AdminQuotePage() {
   const [deductible, setDeductible] = useState("");
   const [excessLimit, setExcessLimit] = useState(""); // New: Excess limits
 
+  // Property details
+  const [propertyBuildingLimit, setPropertyBuildingLimit] = useState("");
+  const [propertyBppLimit, setPropertyBppLimit] = useState("");
+  const [propertyBusinessIncomeLimit, setPropertyBusinessIncomeLimit] = useState("");
+  const [propertyDeductible, setPropertyDeductible] = useState("");
+
   // Endorsements (will be auto-populated from application form)
   const [selectedEndorsements, setSelectedEndorsements] = useState<string[]>([]);
 
@@ -274,6 +280,10 @@ export default function AdminQuotePage() {
           medicalExpenseLimit: q.limits?.medicalExpenseLimit || "Not Applicable",
           deductible: q.limits?.deductible || "",
           excessLimit: q.limits?.excessLimit || "",
+          propertyBuildingLimit: q.limits?.propertyBuildingLimit || "",
+          propertyBppLimit: q.limits?.propertyBppLimit || "",
+          propertyBusinessIncomeLimit: q.limits?.propertyBusinessIncomeLimit || "",
+          propertyDeductible: q.limits?.propertyDeductible || "",
           selectedEndorsements: q.endorsements || [],
           effectiveDate: q.effectiveDate ? new Date(q.effectiveDate).toISOString().split("T")[0] : "",
           expirationDate: q.expirationDate ? new Date(q.expirationDate).toISOString().split("T")[0] : "",
@@ -318,6 +328,10 @@ export default function AdminQuotePage() {
           setMedicalExpenseLimit(s.medicalExpenseLimit);
           setDeductible(s.deductible);
           setExcessLimit(s.excessLimit);
+          setPropertyBuildingLimit(s.propertyBuildingLimit);
+          setPropertyBppLimit(s.propertyBppLimit);
+          setPropertyBusinessIncomeLimit(s.propertyBusinessIncomeLimit);
+          setPropertyDeductible(s.propertyDeductible);
           setSelectedEndorsements(s.selectedEndorsements);
           setEffectiveDate(s.effectiveDate);
           setExpirationDate(s.expirationDate);
@@ -666,6 +680,10 @@ export default function AdminQuotePage() {
     medicalExpenseLimit,
     deductible,
     excessLimit,
+    propertyBuildingLimit,
+    propertyBppLimit,
+    propertyBusinessIncomeLimit,
+    propertyDeductible,
     selectedEndorsements,
     effectiveDate,
     expirationDate,
@@ -694,6 +712,10 @@ export default function AdminQuotePage() {
     medicalExpenseLimit,
     deductible,
     excessLimit,
+    propertyBuildingLimit,
+    propertyBppLimit,
+    propertyBusinessIncomeLimit,
+    propertyDeductible,
     selectedEndorsements,
     effectiveDate,
     expirationDate,
@@ -798,6 +820,18 @@ export default function AdminQuotePage() {
           if (draftData.deductible !== undefined && draftData.deductible !== null && draftData.deductible !== "") {
             setDeductible(String(draftData.deductible));
           }
+          if (draftData.propertyBuildingLimit !== undefined && draftData.propertyBuildingLimit !== null && draftData.propertyBuildingLimit !== "") {
+            setPropertyBuildingLimit(String(draftData.propertyBuildingLimit));
+          }
+          if (draftData.propertyBppLimit !== undefined && draftData.propertyBppLimit !== null && draftData.propertyBppLimit !== "") {
+            setPropertyBppLimit(String(draftData.propertyBppLimit));
+          }
+          if (draftData.propertyBusinessIncomeLimit !== undefined && draftData.propertyBusinessIncomeLimit !== null && draftData.propertyBusinessIncomeLimit !== "") {
+            setPropertyBusinessIncomeLimit(String(draftData.propertyBusinessIncomeLimit));
+          }
+          if (draftData.propertyDeductible !== undefined && draftData.propertyDeductible !== null && draftData.propertyDeductible !== "") {
+            setPropertyDeductible(String(draftData.propertyDeductible));
+          }
           if (draftData.excessLimit !== undefined && draftData.excessLimit !== null && draftData.excessLimit !== "") {
             setExcessLimit(String(draftData.excessLimit));
           }
@@ -844,6 +878,10 @@ export default function AdminQuotePage() {
       medicalExpenseLimit: state.medicalExpenseLimit || undefined,
       deductible: state.deductible || undefined,
       excessLimit: state.excessLimit || undefined,
+      propertyBuildingLimit: state.propertyBuildingLimit || undefined,
+      propertyBppLimit: state.propertyBppLimit || undefined,
+      propertyBusinessIncomeLimit: state.propertyBusinessIncomeLimit || undefined,
+      propertyDeductible: state.propertyDeductible || undefined,
     };
 
     const quoteAmt = parseCurrency(state.carrierQuoteUSD);
@@ -915,6 +953,10 @@ export default function AdminQuotePage() {
         medicalExpenseLimit,
         deductible,
         excessLimit,
+        propertyBuildingLimit,
+        propertyBppLimit,
+        propertyBusinessIncomeLimit,
+        propertyDeductible,
         selectedEndorsements,
         effectiveDate,
         expirationDate,
@@ -1045,6 +1087,10 @@ export default function AdminQuotePage() {
       medicalExpenseLimit,
       deductible,
       excessLimit,
+      propertyBuildingLimit,
+      propertyBppLimit,
+      propertyBusinessIncomeLimit,
+      propertyDeductible,
       selectedEndorsements,
       effectiveDate,
       expirationDate,
@@ -1077,6 +1123,10 @@ export default function AdminQuotePage() {
     setMedicalExpenseLimit(nextState.medicalExpenseLimit || (submission?.payload?.medicalExpenseLimit || "Not Applicable"));
     setDeductible(nextState.deductible || (submission?.payload?.deductible || ""));
     setExcessLimit(nextState.excessLimit || (submission?.payload?.excessLiabilityLimit || ""));
+    setPropertyBuildingLimit(nextState.propertyBuildingLimit || (submission?.payload?.propertyLimit || ""));
+    setPropertyBppLimit(nextState.propertyBppLimit || (submission?.payload?.propertyBppLimit || ""));
+    setPropertyBusinessIncomeLimit(nextState.propertyBusinessIncomeLimit || (submission?.payload?.propertyBusinessIncomeLimit || ""));
+    setPropertyDeductible(nextState.propertyDeductible || (submission?.payload?.propertyDeductible || ""));
     setSelectedEndorsements(nextState.selectedEndorsements || []);
     setEffectiveDate(nextState.effectiveDate || "");
     setExpirationDate(nextState.expirationDate || "");
@@ -1104,6 +1154,11 @@ export default function AdminQuotePage() {
   };
   const isReadyToSubmit = availablePolicies.some(isPolicyReady);
   const missingPolicies = availablePolicies.filter(type => !isPolicyReady(type));
+
+  const isCommercialProperty = (submission?.programId === 'apartment-buildings' || submission?.programName === 'Commercial Property' || submission?.programName === 'Apartment Building');
+  const isPropertyPolicy = currentPolicyType === "GENERAL_LIABILITY" && isCommercialProperty;
+  const showGLLimits = (currentPolicyType === "GENERAL_LIABILITY" && !isCommercialProperty) || (currentPolicyType === "EXCESS_LIABILITY" && isCommercialProperty);
+  const showExcessLimits = currentPolicyType === "EXCESS_LIABILITY" && !isCommercialProperty;
 
   return (
     <div className="min-h-screen bg-[#f5f1eb]">
@@ -1716,7 +1771,7 @@ export default function AdminQuotePage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                   </svg>
                 </div>
-                Policy Limits
+                {isPropertyPolicy ? "Coverage Limits" : "Policy Limits"}
               </h3>
 
               <div className="mb-4 p-3 bg-amber-100/50 rounded-lg border border-amber-200">
@@ -1724,12 +1779,107 @@ export default function AdminQuotePage() {
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  Policy limits and endorsements are pre-filled from the application form. You can edit if needed.
+                  {isPropertyPolicy 
+                    ? "Coverage limits are pre-filled from the application form. You can edit if needed."
+                    : "Policy limits and endorsements are pre-filled from the application form. You can edit if needed."}
                 </p>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {isPropertyPolicy && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-900 mb-2">
+                        Building Limit
+                      </label>
+                      <div className="relative">
+                        <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-600 font-semibold">$</span>
+                        <input
+                          type="text"
+                          value={propertyBuildingLimit ? formatCurrencyInput(propertyBuildingLimit) : ''}
+                          onChange={(e) => setPropertyBuildingLimit(formatCurrencyInput(e.target.value))}
+                          onBlur={(e) => {
+                            if (e.target.value.trim() === '') {
+                              setPropertyBuildingLimit('');
+                              return;
+                            }
+                            const parsed = parseCurrency(e.target.value);
+                            setPropertyBuildingLimit(!isNaN(parsed) && parsed >= 0 ? parsed.toString() : '');
+                          }}
+                          className="w-full pl-10 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-900 font-semibold focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all hover:border-gray-300 !text-gray-900"
+                          placeholder="0"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-900 mb-2">
+                        Business Personal Property (BPP) Limit
+                      </label>
+                      <div className="relative">
+                        <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-600 font-semibold">$</span>
+                        <input
+                          type="text"
+                          value={propertyBppLimit ? formatCurrencyInput(propertyBppLimit) : ''}
+                          onChange={(e) => setPropertyBppLimit(formatCurrencyInput(e.target.value))}
+                          onBlur={(e) => {
+                            if (e.target.value.trim() === '') {
+                              setPropertyBppLimit('');
+                              return;
+                            }
+                            const parsed = parseCurrency(e.target.value);
+                            setPropertyBppLimit(!isNaN(parsed) && parsed >= 0 ? parsed.toString() : '');
+                          }}
+                          className="w-full pl-10 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-900 font-semibold focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all hover:border-gray-300 !text-gray-900"
+                          placeholder="0"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-900 mb-2">
+                        Business Income Limit
+                      </label>
+                      <div className="relative">
+                        <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-600 font-semibold">$</span>
+                        <input
+                          type="text"
+                          value={propertyBusinessIncomeLimit ? formatCurrencyInput(propertyBusinessIncomeLimit) : ''}
+                          onChange={(e) => setPropertyBusinessIncomeLimit(formatCurrencyInput(e.target.value))}
+                          onBlur={(e) => {
+                            if (e.target.value.trim() === '') {
+                              setPropertyBusinessIncomeLimit('');
+                              return;
+                            }
+                            const parsed = parseCurrency(e.target.value);
+                            setPropertyBusinessIncomeLimit(!isNaN(parsed) && parsed >= 0 ? parsed.toString() : '');
+                          }}
+                          className="w-full pl-10 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-900 font-semibold focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all hover:border-gray-300 !text-gray-900"
+                          placeholder="0"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-900 mb-2">
+                        Deductible
+                      </label>
+                      <div className="relative">
+                        <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-600 font-semibold">$</span>
+                        <input
+                          type="text"
+                          value={propertyDeductible ? formatCurrencyInput(propertyDeductible) : ''}
+                          onChange={(e) => setPropertyDeductible(formatCurrencyInput(e.target.value))}
+                          onBlur={(e) => {
+                            const parsed = parseCurrency(e.target.value);
+                            setPropertyDeductible(parsed > 0 ? parsed.toString() : '');
+                          }}
+                          className="w-full pl-10 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-900 font-semibold focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all hover:border-gray-300 !text-gray-900"
+                          placeholder="0"
+                        />
+                      </div>
+                    </div>
+                  </>
+                )}
+
                 {/* Change 2: General Liability Limit - Dropdown (GL only) */}
-                {currentPolicyType === "GENERAL_LIABILITY" && (
+                {showGLLimits && (
                   <div>
                     <label className="block text-sm font-semibold text-gray-900 mb-2">
                       General Liability Limit <span className="text-xs text-gray-500 font-normal">(from application)</span>
@@ -1760,7 +1910,7 @@ export default function AdminQuotePage() {
                 </div> */}
 
                 {/* Change 4: Fire Legal Limit / Med Pay / Deductible - GL only */}
-                {currentPolicyType === "GENERAL_LIABILITY" && (
+                {showGLLimits && (
                   <div>
                     <label className="block text-sm font-semibold text-gray-900 mb-2">
                       Fire Legal Limit <span className="text-xs text-gray-500 font-normal">(from application)</span>
@@ -1777,7 +1927,7 @@ export default function AdminQuotePage() {
                   </div>
                 )}
 
-                {currentPolicyType === "GENERAL_LIABILITY" && (
+                {showGLLimits && (
                   <div>
                     <label className="block text-sm font-semibold text-gray-900 mb-2">
                       Med Pay Limit <span className="text-xs text-gray-500 font-normal">(from application)</span>
@@ -1795,7 +1945,7 @@ export default function AdminQuotePage() {
                   </div>
                 )}
 
-                {currentPolicyType === "GENERAL_LIABILITY" && (
+                {showGLLimits && (
                   <div>
                     <label className="block text-sm font-semibold text-gray-900 mb-2">
                       Deductible
@@ -1815,7 +1965,7 @@ export default function AdminQuotePage() {
                 )}
 
                 {/* Excess Limits - XS tab only */}
-                {currentPolicyType === "EXCESS_LIABILITY" && (
+                {showExcessLimits && (
                   <div>
                     <label className="block text-sm font-semibold text-gray-900 mb-2">
                       Excess Limits
@@ -1835,7 +1985,7 @@ export default function AdminQuotePage() {
                   </div>
                 )}
                 {/* ACORD 131 Button for Excess Liability */}
-                {currentPolicyType === "EXCESS_LIABILITY" && (
+                {showExcessLimits && (
                   <div className="md:col-span-2 pt-2">
                     <button
                       type="button"
@@ -1853,6 +2003,7 @@ export default function AdminQuotePage() {
             </div>
 
             {/* Endorsements Section */}
+            {!isPropertyPolicy && (
             <div className="bg-gradient-to-br from-indigo-50 to-blue-50 rounded-xl p-6 border border-indigo-200/60">
               <h3 className="text-lg font-bold text-gray-900 mb-2 flex items-center gap-2">
                 <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-blue-500 rounded-lg flex items-center justify-center">
@@ -1885,6 +2036,7 @@ export default function AdminQuotePage() {
                 ))}
               </div>
             </div>
+            )}
 
             {/* Policy Details Section */}
             <div className="bg-gradient-to-br from-teal-50 to-cyan-50 rounded-xl p-6 border border-teal-200/60">
@@ -2244,7 +2396,10 @@ export default function AdminQuotePage() {
                     {missingPolicies.map(type => (
                       <div key={type} className="flex items-center justify-between text-xs">
                         <span className="text-gray-600 font-medium">
-                          {type === "GENERAL_LIABILITY" ? "General Liability" : "Excess Liability"}
+                          {type === "GENERAL_LIABILITY"
+                            ? (isCommercialProperty ? "Property" : "General Liability")
+                            : (isCommercialProperty ? "General Liability" : "Excess Liability")
+                          }
                         </span>
                         <span className="font-semibold uppercase tracking-wider text-blue-500">
                           Pending / Optional
