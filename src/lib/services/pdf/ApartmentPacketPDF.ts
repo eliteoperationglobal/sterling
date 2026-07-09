@@ -5708,7 +5708,7 @@ function generateInvoicePage(data: ApartmentPacketData): string {
 		<div class="invoice-header-page12">
 		  <div>
 			<div class="invoice-field-page12">${data.companyName}</div>
-			<div class="invoice-field-page12">${data.applicantAddress}</div>
+			<div class="invoice-field-page12">${data.applicantAddress ? data.applicantAddress.split(',')[0].trim() : ''}</div>
 			<div class="invoice-field-page12">${data.applicantCity}, ${data.applicantState} ${data.applicantZip}</div>
 			<div class="invoice-field-page12">${data.applicantPhone}</div>
 			<div class="invoice-field-page12">Email: ${data.applicantEmail}</div>
