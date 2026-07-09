@@ -47,6 +47,7 @@ export type ProposalData = {
   grossReceipts: string;
 
   carrierName: string;
+  carrierNameXL?: string;
 
   programName: string;
   effectiveDate: string;
@@ -204,6 +205,10 @@ export async function GET(
     const formData = submission.payload || {};
 
     // Prepare proposal data (copied logic from agency API)
+    const allExcessQuotesForSubmission = await Quote.find({ submissionId: submission._id, policyType: "EXCESS_LIABILITY" }).populate("carrierId", "name").lean();
+    const uniqueExcessCarrierNames = Array.from(new Set(allExcessQuotesForSubmission.map((q: any) => q.carrierId?.name).filter(Boolean))) as string[];
+    const allExcessCarriersStr = uniqueExcessCarrierNames.join(" & ");
+
     const populatedQuote = quote as unknown as IPopulatedQuote | null;
     let carrierName = populatedQuote?.carrierId?.name || "Unknown Carrier";
     let quoteNumber = populatedQuote ? String(populatedQuote._id).substring(0, 8).toUpperCase() : "TBD";
@@ -289,6 +294,7 @@ export async function GET(
       // Excess Liability
       addExcessLiability: formData.addExcessLiability === true,
       isExcessOnlyProposal: url.searchParams.get("isExcessOnly") === "true",
+      carrierNameXL: url.searchParams.get("isExcessOnly") === "true" ? (allExcessCarriersStr || undefined) : undefined,
       excessLiabilityAmount: xsQuote?.finalAmountUSD ?? undefined,
       excessLiabilityLimit: (xsQuote?.limits?.excessLimit || formData.excessLiabilityLimit) ? extractLimits(xsQuote?.limits?.excessLimit || formData.excessLiabilityLimit)[0] : undefined,
     };

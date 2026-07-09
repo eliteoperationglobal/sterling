@@ -1514,6 +1514,11 @@ function SubmissionDetailsContent() {
                       .filter((q: any) => q.status === "BOUND")
                       .map((q: any) => q.policyType || "GENERAL_LIABILITY");
 
+                    // Collect policy types that already have a BIND_REQUESTED quote
+                    const bindRequestedPolicyTypes = (data?.quotes || [])
+                      .filter((q: any) => q.status === "BIND_REQUESTED")
+                      .map((q: any) => q.policyType || "GENERAL_LIABILITY");
+
                     // Check if there are any quotes that are currently in a bind-requested state
                     // — only for policy types NOT already bound
                     const hasBindRequestedQuotes = (data?.quotes || []).some((q: any) => {
@@ -1522,10 +1527,12 @@ function SubmissionDetailsContent() {
                     });
 
                     // Check if there are any quotes that are ready to be bound (unbounded and not requested yet)
-                    // — only for policy types NOT already bound
+                    // — only for policy types NOT already bound AND NOT already bind-requested
                     const hasBindableQuotes = (data?.quotes || []).some((q: any) => {
                       const pt = q.policyType || "GENERAL_LIABILITY";
-                      return ["POSTED", "ENTERED", "QUOTED"].includes(q.status) && !boundPolicyTypes.includes(pt);
+                      return ["POSTED", "ENTERED", "QUOTED"].includes(q.status) && 
+                             !boundPolicyTypes.includes(pt) && 
+                             !bindRequestedPolicyTypes.includes(pt);
                     });
 
                     // Check if the current quote is an unbound Excess Liability quote

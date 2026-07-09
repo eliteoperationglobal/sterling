@@ -697,7 +697,7 @@ export function generateProposalHTML(data: ProposalData): string {
 						<tbody>
 							<tr>
 								<td style="width:1%;white-space:nowrap;text-align:left;padding:0.22em 0.6em 0.22em 0;vertical-align:top;"><span class="pdf24new_21 pdf24new_11 pdf24new_09" style="word-spacing:-0.0096em;">Carrier:</span></td>
-								<td style="text-align:left;padding:0.22em 0 0.22em 0.6em;vertical-align:top;"><span class="pdf24new_22 pdf24new_11 pdf24new_09">${data.carrierName}${data.carrierNameXL && data.carrierNameXL !== data.carrierName ? ` &amp; ${data.carrierNameXL}` : ""}</span></td>
+								<td style="text-align:left;padding:0.22em 0 0.22em 0.6em;vertical-align:top;"><span class="pdf24new_22 pdf24new_11 pdf24new_09">${data.isExcessOnlyProposal ? (data.carrierNameXL || data.carrierName) : `${data.carrierName}${data.carrierNameXL && data.carrierNameXL !== data.carrierName ? ` &amp; ${data.carrierNameXL}` : ""}`}</span></td>
 							</tr>
 							<tr>
 								<td style="width:1%;white-space:nowrap;text-align:left;padding:0.22em 0.6em 0.22em 0;vertical-align:top;"><span class="pdf24new_21 pdf24new_11 pdf24new_12" style="word-spacing:-0.0075em;">Policy Form:</span></td>

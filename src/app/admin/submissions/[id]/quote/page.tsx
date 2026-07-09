@@ -209,9 +209,9 @@ export default function AdminQuotePage() {
         if (formData.blanketWaiverOfSubrogation) formEndorsements.push("Blanket Waiver of Subrogation");
         if (formData.blanketPrimaryWording) formEndorsements.push("Blanket Primary Wording");
         if (formData.blanketPerProjectAggregate) formEndorsements.push("Blanket Per Project Aggregate");
-        if (formData.blanketCompletedOpsAggregate) formEndorsements.push("Blanket Completed Operations Aggregate");
+        if (formData.blanketCompletedOperations || formData.blanketCompletedOpsAggregate) formEndorsements.push("Blanket Completed Operations Aggregate");
         if (formData.actsOfTerrorism) formEndorsements.push("Acts of Terrorism");
-        if (formData.noticeOfCancellationToThirdParties) formEndorsements.push("Notice of Cancellation to Third Parties");
+        if (formData.noticeOfCancellationThirdParties || formData.noticeOfCancellationToThirdParties) formEndorsements.push("Notice of Cancellation to Third Parties");
 
         if (formEndorsements.length > 0) {
           setSelectedEndorsements(formEndorsements);

@@ -7772,30 +7772,34 @@ export function mapFormDataToPacketData(
 	const agencyZip = agency?.address?.zip || '';
 
 	// endorsements
-	const endorsements: string[] = [];
+	let endorsements: string[] = [];
 
-	if (formData.blanketAdditionalInsured) {
-		endorsements.push("Blanket Additional Insured");
-	}
-
-	if (formData.blanketWaiverOfSubrogation) {
-		endorsements.push("Blanket Waiver of Subrogation");
-	}
-
-	if (formData.blanketPrimaryWording) {
-		endorsements.push("Blanket Primary Wording");
-	}
-
-	if (formData.blanketPerProjectAggregate) {
-		endorsements.push("Blanket Per Project Aggregate");
-	}
-
-	if (formData.blanketCompletedOperations) {
-		endorsements.push("Blanket Completed Operations");
-	}
-
-	if (formData.noticeOfCancellationThirdParties) {
-		endorsements.push("Notice of Cancellation to Third Parties");
+	if (quote && quote.endorsements && Array.isArray(quote.endorsements)) {
+		// Use the endorsements selected by the Admin
+		endorsements = [...quote.endorsements];
+	} else {
+		// Fallback to initial form data if no quote exists yet
+		if (formData.blanketAdditionalInsured) {
+			endorsements.push("Blanket Additional Insured");
+		}
+		if (formData.blanketWaiverOfSubrogation) {
+			endorsements.push("Blanket Waiver of Subrogation");
+		}
+		if (formData.blanketPrimaryWording) {
+			endorsements.push("Blanket Primary Wording");
+		}
+		if (formData.blanketPerProjectAggregate) {
+			endorsements.push("Blanket Per Project Aggregate");
+		}
+		if (formData.blanketCompletedOperations || formData.blanketCompletedOpsAggregate) {
+			endorsements.push("Blanket Completed Operations Aggregate");
+		}
+		if (formData.actsOfTerrorism) {
+			endorsements.push("Acts of Terrorism");
+		}
+		if (formData.noticeOfCancellationThirdParties || formData.noticeOfCancellationToThirdParties) {
+			endorsements.push("Notice of Cancellation to Third Parties");
+		}
 	}
 
 

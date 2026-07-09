@@ -270,6 +270,8 @@ export async function GET(
     // and use them for the Carrier display fields to ensure consistency.
     const allQuotesForSubmission = await Quote.find({ submissionId: submission._id }).populate("carrierId", "name").lean();
     const uniqueCarrierNames = Array.from(new Set(allQuotesForSubmission.map((q: any) => q.carrierId?.name).filter(Boolean))) as string[];
+    const uniqueExcessCarrierNames = Array.from(new Set(allQuotesForSubmission.filter((q: any) => q.policyType === "EXCESS_LIABILITY").map((q: any) => q.carrierId?.name).filter(Boolean))) as string[];
+    const allExcessCarriersStr = uniqueExcessCarrierNames.join(" & ");
     
     let carrierName = uniqueCarrierNames[0] || populatedQuote?.carrierId?.name || "Unknown Carrier";
     let carrierNameXL = uniqueCarrierNames.length > 1 ? uniqueCarrierNames[1] : undefined;
@@ -369,7 +371,7 @@ export async function GET(
       addExcessLiability: formData.addExcessLiability === true,
       isExcessOnlyProposal: url.searchParams.get("isExcessOnly") === "true",
       // excessLiabilityAmount and carrierNameXL handled below
-      carrierNameXL,
+      carrierNameXL: url.searchParams.get("isExcessOnly") === "true" ? (allExcessCarriersStr || carrierNameXL) : carrierNameXL,
       excessLiabilityAmount: xsQuote?.finalAmountUSD ?? undefined,
       excessLiabilityLimit: (xsQuote?.limits?.excessLimit || formData.excessLiabilityLimit) ? extractLimits(xsQuote?.limits?.excessLimit || formData.excessLiabilityLimit)[0] : undefined,
     };

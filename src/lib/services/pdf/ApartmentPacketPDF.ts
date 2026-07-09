@@ -3364,7 +3364,7 @@ function generatePage1(data: ApartmentPacketData): string {
 
 				<!-- Application ID -->
 				<div class="application-id-large-page2">
-					Property Liability & General Liability Application ID: ${data.submissionNumber || data.applicationId || "Pending"}
+					Commercial Property Application ID: ${data.submissionNumber || data.applicationId || "Pending"}
 				</div>
 
 				<!-- 3 Column Layout -->
@@ -3390,7 +3390,7 @@ function generatePage1(data: ApartmentPacketData): string {
 					<!-- Quote Information -->
 					<div>
 						<div class="section-title-page2">Quote Information</div>
-						<div class="quote-detail-page2">PROPERTY${data.addGeneralLiability ? " & General Liability" : ""}</div>
+						<div class="quote-detail-page2">Property${data.addGeneralLiability ? " & General Liability" : ""}</div>
 						<div class="quote-detail-page2">${data.coverageType || "General Liability"}</div>
 						<div class="quote-detail-page2">
 							Desired Coverage Dates: ${data.desiredCoverageDates || "-"}
