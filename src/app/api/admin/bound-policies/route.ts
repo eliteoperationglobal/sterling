@@ -92,9 +92,9 @@ export async function GET(req: NextRequest) {
         paymentMethod: submission.paymentMethod,
         quote: quote
           ? {
-              _id: quote._id.toString(),
-              carrierId: quote.carrierId._id.toString(),
-              carrierName: quote.carrierId.name,
+              _id: quote._id?.toString(),
+              carrierId: quote.carrierId ? (quote.carrierId._id ? quote.carrierId._id.toString() : quote.carrierId.toString()) : "",
+              carrierName: quote.carrierId?.name || "Unknown Carrier",
               carrierQuoteUSD: quote.carrierQuoteUSD,
               premiumTaxAmountUSD: quote.premiumTaxAmountUSD,
               policyFeeUSD: quote.policyFeeUSD,
