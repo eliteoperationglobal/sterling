@@ -34,7 +34,8 @@ export async function GET(req: NextRequest) {
         const hardcodedAgentsMap: Record<string, string[]> = {
             "admin@agency1.com": ["Eidan Gamaty", "Moshe Gamaty", "Michael Gamaty", "Yoav Anatian", "Jake Weiner", "Benjamin Solender", "Michal Kraut", "Jonathan Akwa"],
             "admin@blueangel.com": ["Max Mintz"],
-            "admin@sjjinsurance.com": ["Sam Joffe", "Nathan Gawronsky", "Jack Douek", "Will Feldsher", "Joel Gabai", "Dean Halleluyan", "Harel Fedida"]
+            "admin@sjjinsurance.com": ["Sam Joffe", "Nathan Gawronsky", "Jack Douek", "Will Feldsher", "Joel Gabai", "Dean Halleluyan", "Harel Fedida"],
+            "titan@solutions.com": ["Judah Cohen"]
         };
 
         const currentUserEmail = session.user?.email || "";

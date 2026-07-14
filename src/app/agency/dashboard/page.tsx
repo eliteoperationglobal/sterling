@@ -84,13 +84,15 @@ function AgencyDashboardContent() {
   const isCapco = email === "admin@agency1.com";
   const isBlueAngel = email === "admin@blueangel.com";
   const isSJJ = email === "admin@sjjinsurance.com";
+  const isTitan = email === "titan@solutions.com";
 
   // ── Hardcoded agent lists per agency ──
   const CAPCO_AGENTS = ["Eidan Gamaty", "Moshe Gamaty", "Michael Gamaty", "Yoav Anatian", "Jake Weiner", "Benjamin Solender", "Michal Kraut", "Jonathan Akwa"];
   const BLUE_ANGEL_AGENTS = ["Max Mintz"];
   const SJJ_AGENTS = ["Sam Joffe", "Nathan Gawronsky", "Jack Douek", "Will Feldsher", "Joel Gabai", "Dean Halleluyan", "Harel Fedida"];
+  const TITAN_AGENTS = ["Judah Cohen"];
 
-  const agentOptions = isCapco ? CAPCO_AGENTS : isBlueAngel ? BLUE_ANGEL_AGENTS : isSJJ ? SJJ_AGENTS : [];
+  const agentOptions = isCapco ? CAPCO_AGENTS : isBlueAngel ? BLUE_ANGEL_AGENTS : isSJJ ? SJJ_AGENTS : isTitan ? TITAN_AGENTS : [];
 
   const router = useRouter();
   const searchParams = useSearchParams();
