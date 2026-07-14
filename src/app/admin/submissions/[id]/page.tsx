@@ -735,7 +735,7 @@ export default function AdminSubmissionDetailsPage() {
     "h-[42px] px-6 rounded-md text-sm font-semibold bg-[#7A6F64] text-white transition-all duration-200 hover:bg-[#7A6F64] flex items-center justify-center";
 
   // ✅ STATUS FLAGS
-  const isBound = submission?.status === "BOUND" || (quotes || []).some((q: any) => q.status === "BOUND");
+  const isBound = submission?.status === "BOUND" || (submission?.status !== "CANCELLED" && (quotes || []).some((q: any) => q.status === "BOUND"));
   const isSubmitted = !isBound && submission?.status === "SUBMITTED";
   const isQuoted = !isBound && submission?.status === "QUOTED";
   const isBindRequested = !isBound && submission?.status === "BIND_REQUESTED";
@@ -1012,14 +1012,16 @@ export default function AdminSubmissionDetailsPage() {
                   <div>
                     {(submission?.clientContact?.name || "???")}
                     <span className={`ml-3 inline-flex items-center rounded-md px-3 py-[4px] text-[13px] font-bold border transition-all ${(() => {
+                      if (submission?.status === "CANCELLED") return "bg-red-100 text-red-700 border-red-200";
                       if (cancelRequested) return "bg-orange-100 text-orange-700 border-orange-200";
-                      const isBound = submission?.status === "BOUND" || (quotes || []).some((q: any) => q.status === "BOUND");
+                      const isBound = submission?.status === "BOUND" || (submission?.status !== "CANCELLED" && (quotes || []).some((q: any) => q.status === "BOUND"));
                       return isBound ? "bg-green-100 text-green-700 border-green-200" : "bg-gray-100 text-gray-700 border-gray-200";
                     })()
                       }`}>
                       {(() => {
+                        if (submission?.status === "CANCELLED") return "CANCELLED";
                         if (cancelRequested) return "PENDING CANCEL";
-                        const isBound = submission?.status === "BOUND" || (quotes || []).some((q: any) => q.status === "BOUND");
+                        const isBound = submission?.status === "BOUND" || (submission?.status !== "CANCELLED" && (quotes || []).some((q: any) => q.status === "BOUND"));
                         return isBound ? "BOUND" : (submission?.status || "").replace(/_/g, " ");
                       })()}
                     </span>
@@ -1117,10 +1119,15 @@ export default function AdminSubmissionDetailsPage() {
           <div className="flex flex-col md:flex-row md:items-center justify-between w-full gap-4 md:gap-6 px-8">
             <div className="flex items-center gap-4">
               <h2 className="text-[16px] font-semibold text-gray-900">App Info</h2>
-              <span className={`px-3 py-[4px] rounded-md text-[13px] font-bold border ${cancelRequested ? "bg-orange-100 text-orange-700 border-orange-200" : "bg-gray-100 text-gray-700 border-transparent"}`}>
+              <span className={`px-3 py-[4px] rounded-md text-[13px] font-bold border ${(() => {
+                if (submission?.status === "CANCELLED") return "bg-red-100 text-red-700 border-red-200";
+                if (cancelRequested) return "bg-orange-100 text-orange-700 border-orange-200";
+                return "bg-gray-100 text-gray-700 border-transparent";
+              })()}`}>
                 {(() => {
+                  if (submission?.status === "CANCELLED") return "CANCELLED";
                   if (cancelRequested) return "PENDING CANCEL";
-                  const isBound = submission?.status === "BOUND" || (quotes || []).some((q: any) => q.status === "BOUND");
+                  const isBound = submission?.status === "BOUND" || (submission?.status !== "CANCELLED" && (quotes || []).some((q: any) => q.status === "BOUND"));
                   return isBound ? "BOUND" : (submission?.status || "").replace(/_/g, " ");
                 })()}
               </span>

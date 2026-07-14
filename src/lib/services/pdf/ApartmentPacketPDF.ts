@@ -3379,7 +3379,7 @@ function generatePage1(data: ApartmentPacketData): string {
 					<div>
 						<div class="section-title-page2">Insured Information</div>
 						<div class="insured-detail-page2"><strong>${data.applicantName || ""}</strong></div>
-						<div class="insured-detail-page2">${data.applicantAddress || ""}</div>
+						<div class="invoice-field-page12">${data.applicantAddress ? data.applicantAddress.split(',')[0].trim() : ''}</div>
 						<div class="insured-detail-page2">
 							${data.applicantCity || ""}, ${data.applicantState || ""} ${data.applicantZip || ""}
 						</div>

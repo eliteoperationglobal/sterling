@@ -778,7 +778,7 @@ function SubmissionDetailsContent() {
 
 
   // ✅ STATUS FLAGS
-  const isBound = submission?.status === "BOUND" || (quotes || []).some((q: any) => q.status === "BOUND");
+  const isBound = submission?.status === "BOUND" || (submission?.status !== "CANCELLED" && (quotes || []).some((q: any) => q.status === "BOUND"));
   const isSubmitted = !isBound && submission?.status === "SUBMITTED";
   const isApprovalRequested = !isBound && submission?.status === "APPROVAL_REQUESTED";
   const isQuoted = !isBound && submission?.status === "QUOTED";
@@ -885,16 +885,18 @@ function SubmissionDetailsContent() {
             <h3 className="text-xl font-bold text-gray-900 mb-2">Request Bind</h3>
             <p className="text-gray-500 text-sm mb-6">Select the carriers you wish to bind with for each policy.</p>
 
-            {/* Only show GL selector if GL is NOT already bound */}
-            {availablePolicies.includes("GENERAL_LIABILITY") && !data.quotes?.some(q => (q.policyType === "GENERAL_LIABILITY" || !q.policyType) && q.status === "BOUND") && data.quotes?.some(q => q.policyType === "GENERAL_LIABILITY" || !q.policyType) && (
+            {/* Only show GL selector if GL is NOT already bound or requested */}
+            {availablePolicies.includes("GENERAL_LIABILITY") && !data.quotes?.some(q => (q.policyType === "GENERAL_LIABILITY" || !q.policyType) && (q.status === "BOUND" || q.status === "BIND_REQUESTED")) && data.quotes?.some(q => q.policyType === "GENERAL_LIABILITY" || !q.policyType) && (
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">General Liability Carrier</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {submission?.programId === 'apartment-buildings' || submission?.programName === 'Commercial Property' || submission?.programName === 'Apartment Building' ? "Property" : "General Liability"} Carrier
+                </label>
                 <select
                   value={bindSelectedCarrierIdGL || ""}
                   onChange={(e) => setBindSelectedCarrierIdGL(e.target.value)}
                   className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-black focus:border-black block p-3 outline-none transition-all"
                 >
-                  <option value="">Do not bind GL...</option>
+                  <option value="">Do not bind {submission?.programId === 'apartment-buildings' || submission?.programName === 'Commercial Property' || submission?.programName === 'Apartment Building' ? "Property" : "GL"}...</option>
                   {data.quotes?.filter(q => (q.policyType === "GENERAL_LIABILITY" || !q.policyType) && q.status !== "BOUND").map((quote) => (
                     <option key={quote._id} value={quote.carrierId?._id}>
                       {quote.carrierId?.name || "Unknown Carrier"}
@@ -905,16 +907,18 @@ function SubmissionDetailsContent() {
             )}
 
 
-            {/* Only show XL selector if XL is NOT already bound */}
-            {availablePolicies.includes("EXCESS_LIABILITY") && !data.quotes?.some(q => q.policyType === "EXCESS_LIABILITY" && q.status === "BOUND") && data.quotes?.some(q => q.policyType === "EXCESS_LIABILITY") && (
+            {/* Only show XL selector if XL is NOT already bound or requested */}
+            {availablePolicies.includes("EXCESS_LIABILITY") && !data.quotes?.some(q => q.policyType === "EXCESS_LIABILITY" && (q.status === "BOUND" || q.status === "BIND_REQUESTED")) && data.quotes?.some(q => q.policyType === "EXCESS_LIABILITY") && (
               <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Excess Liability Carrier</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {submission?.programId === 'apartment-buildings' || submission?.programName === 'Commercial Property' || submission?.programName === 'Apartment Building' ? "General Liability" : "Excess Liability"} Carrier
+                </label>
                 <select
                   value={bindSelectedCarrierIdXL || ""}
                   onChange={(e) => setBindSelectedCarrierIdXL(e.target.value)}
                   className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-black focus:border-black block p-3 outline-none transition-all"
                 >
-                  <option value="">Do not bind XL...</option>
+                  <option value="">Do not bind {submission?.programId === 'apartment-buildings' || submission?.programName === 'Commercial Property' || submission?.programName === 'Apartment Building' ? "GL" : "XL"}...</option>
                   {data.quotes?.filter(q => q.policyType === "EXCESS_LIABILITY" && q.status !== "BOUND").map((quote) => (
                     <option key={quote._id} value={quote.carrierId?._id}>
                       {quote.carrierId?.name || "Unknown Carrier"}
@@ -1042,14 +1046,16 @@ function SubmissionDetailsContent() {
                   <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3">
                     {(submission?.payload?.companyName || submission?.clientContact?.name || "???")}
                     <span className={`inline-flex items-center rounded-md px-3 py-[4px] text-[13px] font-bold border transition-all w-fit ${(() => {
+                      if (submission?.status === "CANCELLED") return "bg-red-100 text-red-700 border-red-200";
                       if (cancelRequested) return "bg-orange-100 text-orange-700 border-orange-200";
-                      const isBound = submission?.status === "BOUND" || (quotes || []).some((q: any) => q.status === "BOUND");
+                      const isBound = submission?.status === "BOUND" || (submission?.status !== "CANCELLED" && (quotes || []).some((q: any) => q.status === "BOUND"));
                       return isBound ? "bg-green-100 text-green-700 border-green-200" : "bg-gray-100 text-gray-700 border-gray-200";
                     })()
                       }`}>
                       {(() => {
+                        if (submission?.status === "CANCELLED") return "CANCELLED";
                         if (cancelRequested) return "PENDING CANCEL";
-                        const isBound = submission?.status === "BOUND" || (quotes || []).some((q: any) => q.status === "BOUND");
+                        const isBound = submission?.status === "BOUND" || (submission?.status !== "CANCELLED" && (quotes || []).some((q: any) => q.status === "BOUND"));
                         return isBound ? "BOUND" : (submission?.status || "").replace(/_/g, " ");
                       })()}
                     </span>
@@ -1150,10 +1156,15 @@ function SubmissionDetailsContent() {
             {/* LEFT */}
             <div className="flex items-center gap-4">
               <h2 className="text-[16px] font-semibold text-gray-900">App Info</h2>
-              <span className={`px-3 py-[4px] rounded-md text-[13px] font-bold border ${cancelRequested ? "bg-orange-100 text-orange-700 border-orange-200" : "bg-gray-100 text-gray-700 border-transparent"}`}>
+              <span className={`px-3 py-[4px] rounded-md text-[13px] font-bold border ${(() => {
+                if (submission?.status === "CANCELLED") return "bg-red-100 text-red-700 border-red-200";
+                if (cancelRequested) return "bg-orange-100 text-orange-700 border-orange-200";
+                return "bg-gray-100 text-gray-700 border-transparent";
+              })()}`}>
                 {(() => {
+                  if (submission?.status === "CANCELLED") return "CANCELLED";
                   if (cancelRequested) return "PENDING CANCEL";
-                  const isBound = submission?.status === "BOUND" || (data?.quotes || []).some((q: any) => q.status === "BOUND");
+                  const isBound = submission?.status === "BOUND" || (submission?.status !== "CANCELLED" && (data?.quotes || []).some((q: any) => q.status === "BOUND"));
                   return isBound ? "BOUND" : (submission?.status || "").replace(/_/g, " ");
                 })()}
               </span>
@@ -1161,6 +1172,23 @@ function SubmissionDetailsContent() {
 
             {/* RIGHT BUTTONS */}
             <div className="flex flex-wrap items-center justify-end gap-2 md:gap-3">
+
+              {/* ================= CANCELLED ================= */}
+              {submission?.status === "CANCELLED" && (
+                <>
+                  <button
+                    onClick={() =>
+                      window.open(
+                        `${baseQuoteUrl}?mode=view&id=${currentQuote?._id || submission._id}`,
+                        "_blank"
+                      )
+                    }
+                    className={iscOutlineBtn}
+                  >
+                    View
+                  </button>
+                </>
+              )}
 
               {/* ================= SUBMITTED (IN PROGRESS) ================= */}
               {isSubmitted && (
@@ -1338,35 +1366,46 @@ function SubmissionDetailsContent() {
                     View
                   </button>
 
-                  {/* Request Bind Button - Show if the CURRENT policy is not bound yet */}
+                  {/* Request Bind / Bind Requested Buttons */}
                   {(() => {
                     const status = currentQuote?.status;
                     const isBound = status === "BOUND";
-                    // Show if not bound AND (account is quoted OR quote is ready to bind)
-                    const canRequestBind = !isBound && (
+                    
+                    // Check if ANY quote for this specific policy type is already requested for bind
+                    const isAnyQuoteBindRequestedForThisPolicy = data?.quotes?.some((q: any) => 
+                      (q.policyType === currentPolicyType || (!q.policyType && currentPolicyType === "GENERAL_LIABILITY")) &&
+                      q.status === "BIND_REQUESTED"
+                    );
+
+                    // Show if not bound AND (account is quoted OR quote is ready to bind) AND no other carrier is requested for bind
+                    const canRequestBind = !isBound && !isAnyQuoteBindRequestedForThisPolicy && status !== "BIND_REQUESTED" && (
                       data?.submission?.status === "QUOTED" ||
                       status === "POSTED" ||
                       status === "ENTERED"
                     );
 
-                    return canRequestBind && (
-                      <button
-                        onClick={() => setBindModalOpen(true)}
-                        className={iscPrimaryBtn}
-                      >
-                        Request Bind
-                      </button>
+                    return (
+                      <>
+                        {canRequestBind && (
+                          <button
+                            onClick={() => setBindModalOpen(true)}
+                            className={iscPrimaryBtn}
+                          >
+                            Request Bind
+                          </button>
+                        )}
+
+                        {!isBound && (currentQuote?.status === "BIND_REQUESTED" || (!currentQuote && isBindRequested) || isAnyQuoteBindRequestedForThisPolicy) && (
+                          <button
+                            disabled
+                            className={`${iscPrimaryBtn} opacity-60 cursor-not-allowed`}
+                          >
+                            Bind Requested
+                          </button>
+                        )}
+                      </>
                     );
                   })()}
-
-                  {isBindRequested && (
-                    <button
-                      disabled
-                      className={`${iscPrimaryBtn} opacity-60 cursor-not-allowed`}
-                    >
-                      Bind Requested
-                    </button>
-                  )}
 
                   <button
                     className={iscOutlineBtn}
