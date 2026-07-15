@@ -127,7 +127,7 @@ function extractLimits(value: string) {
     if (v.includes("$") || v.length > 5) return v;
     const num = parseFloat(v) * 1000000;
     if (isNaN(num)) return v;
-    return "$" + num.toLocaleString();
+    return "$" + num.toLocaleString('en-US');
   });
 }
 function formatToUSD(value: any) {
@@ -138,7 +138,7 @@ function formatToUSD(value: any) {
   const str = String(value).replace(/[$,]/g, "");
   const num = Number(str);
   if (isNaN(num)) return String(value).includes("$") ? String(value) : `$${value}`;
-  return `$${num.toLocaleString()}`;
+  return `$${num.toLocaleString('en-US')}`;
 }
 
 function formatLimit(val: any, fallback: string): string {

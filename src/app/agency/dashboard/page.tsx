@@ -84,7 +84,7 @@ function AgencyDashboardContent() {
   const isCapco = email === "admin@agency1.com";
   const isBlueAngel = email === "admin@blueangel.com";
   const isSJJ = email === "admin@sjjinsurance.com";
-  const isTitan = email === "titan@solutions.com";
+  const isTitan = email === "solutions@titaninssolutions.com";
 
   // ── Hardcoded agent lists per agency ──
   const CAPCO_AGENTS = ["Eidan Gamaty", "Moshe Gamaty", "Michael Gamaty", "Yoav Anatian", "Jake Weiner", "Benjamin Solender", "Michal Kraut", "Jonathan Akwa"];

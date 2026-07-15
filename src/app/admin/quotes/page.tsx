@@ -354,7 +354,7 @@ export default function AdminQuotesPage() {
                     <div className="text-left sm:text-right">
                       <p className="text-sm text-[#6b5e52] font-medium mb-1">Final Amount</p>
                       <p className="text-2xl font-bold text-[#9A8B7A]">
-                        ${quote.finalAmountUSD.toLocaleString()}
+                        ${quote.finalAmountUSD.toLocaleString('en-US')}
                       </p>
                     </div>
                   </div>
@@ -363,11 +363,11 @@ export default function AdminQuotesPage() {
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-gradient-to-br from-gray-50 to-gray-100/50 rounded-xl border border-gray-200/60 mb-4">
                     <div>
                       <p className="text-xs text-gray-500 font-medium mb-1">Carrier Quote</p>
-                      <p className="text-sm font-bold text-gray-900">${quote.carrierQuoteUSD.toLocaleString()}</p>
+                      <p className="text-sm font-bold text-gray-900">${quote.carrierQuoteUSD.toLocaleString('en-US')}</p>
                     </div>
                     <div>
                       <p className="text-xs text-gray-500 font-medium mb-1">Broker Fee</p>
-                      <p className="text-sm font-bold text-gray-900">${quote.brokerFeeAmountUSD.toLocaleString()}</p>
+                      <p className="text-sm font-bold text-gray-900">${quote.brokerFeeAmountUSD.toLocaleString('en-US')}</p>
                     </div>
                     <div className="md:col-span-2">
                       <p className="text-xs text-gray-500 font-medium mb-1">Submission ID</p>

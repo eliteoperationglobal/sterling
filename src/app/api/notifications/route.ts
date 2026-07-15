@@ -217,7 +217,7 @@ export async function GET(req: NextRequest) {
             id: activity._id.toString(),
             type: "NEW_QUOTE",
             title: "New Quote Posted",
-            description: `Quote posted for ${submission?.clientContact?.name || "Unknown"}: $${quote?.carrierQuoteUSD?.toLocaleString() || "0"}`,
+            description: `Quote posted for ${submission?.clientContact?.name || "Unknown"}: $${quote?.carrierQuoteUSD?.toLocaleString('en-US') || "0"}`,
             submissionId: submission?._id?.toString(),
             submissionNumber: submission?.submissionNumber,
             quoteId: quote?._id?.toString(),

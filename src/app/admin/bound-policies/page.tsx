@@ -326,7 +326,7 @@ export default function AdminBoundPoliciesPage() {
                       <div className="text-left sm:text-right">
                         <p className="text-sm text-[#6b5e52] font-medium mb-1">Premium</p>
                         <p className="text-2xl font-bold text-[#9A8B7A]">
-                          ${policy.quote.finalAmountUSD.toLocaleString()}
+                          ${policy.quote.finalAmountUSD.toLocaleString('en-US')}
                         </p>
                       </div>
                     )}
@@ -343,7 +343,7 @@ export default function AdminBoundPoliciesPage() {
                       )}
                       <div>
                         <p className="text-xs text-gray-500 font-medium mb-1">Carrier Quote</p>
-                        <p className="text-sm font-bold text-gray-900">${policy.quote.carrierQuoteUSD.toLocaleString()}</p>
+                        <p className="text-sm font-bold text-gray-900">${policy.quote.carrierQuoteUSD.toLocaleString('en-US')}</p>
                       </div>
                       {policy.quote.premiumTaxAmountUSD && (
                         <div>
@@ -359,7 +359,7 @@ export default function AdminBoundPoliciesPage() {
                       )}
                       <div>
                         <p className="text-xs text-gray-500 font-medium mb-1">Broker Fee</p>
-                        <p className="text-sm font-bold text-gray-900">${policy.quote.brokerFeeAmountUSD.toLocaleString()}</p>
+                        <p className="text-sm font-bold text-gray-900">${policy.quote.brokerFeeAmountUSD.toLocaleString('en-US')}</p>
                       </div>
                       {policy.paymentStatus === "PAID" && policy.paymentDate && (
                         <div>

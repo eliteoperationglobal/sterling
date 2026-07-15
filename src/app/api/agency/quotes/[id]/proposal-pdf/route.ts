@@ -30,7 +30,7 @@ function extractLimits(value: string) {
     if (v.includes("$") || v.length > 5) return v;
     const num = parseFloat(v) * 1000000;
     if (isNaN(num)) return v;
-    return "$" + num.toLocaleString();
+    return "$" + num.toLocaleString('en-US');
   });
 }
 function formatToUSD(value: any) {
@@ -41,7 +41,7 @@ function formatToUSD(value: any) {
   const str = String(value).replace(/[$,]/g, "");
   const num = Number(str);
   if (isNaN(num)) return String(value).includes("$") ? String(value) : `$${value}`;
-  return `$${num.toLocaleString()}`;
+  return `$${num.toLocaleString('en-US')}`;
 }
 
 /**
@@ -150,9 +150,9 @@ export async function GET(
       productsCompletedOpsLimit: extractLimits(quote.limits?.generalLiability || formData?.coverageLimits)[2],
       deductible: formatToUSD(quote.limits?.deductible || formData?.deductible || formData?.selfInsuredRetention || "2500"),
       selfInsuredRetention: formatToUSD(quote.limits?.deductible || formData?.selfInsuredRetention || formData?.deductible || "2500"),
-      grossReceipts: (function (val: any) { if (!val) return "$0"; const s = String(val); return s.includes("$") ? s : "$" + Number(s.replace(/[^0-9.-]+/g, "")).toLocaleString(); })(formData.estimatedGrossReceipts || formData.classCodes?.[0]?.grossReceipts || formData.classCode?.[0]?.grossReceipts || "0"),
-      subcontractorCosts: (function (val: any) { if (!val) return "$0"; const s = String(val); return s.includes("$") ? s : "$" + Number(s.replace(/[^0-9.-]+/g, "")).toLocaleString(); })(formData.estimatedSubcontractingCosts || "0"),
-      employeePayroll: (function (val: any) { if (!val) return "$0"; const s = String(val); return s.includes("$") ? s : "$" + Number(s.replace(/[^0-9.-]+/g, "")).toLocaleString(); })(formData.totalPayroll || formData.totalPayrollAmount || "0"),
+      grossReceipts: (function (val: any) { if (!val) return "$0"; const s = String(val); return s.includes("$") ? s : "$" + Number(s.replace(/[^0-9.-]+/g, "")).toLocaleString('en-US'); })(formData.estimatedGrossReceipts || formData.classCodes?.[0]?.grossReceipts || formData.classCode?.[0]?.grossReceipts || "0"),
+      subcontractorCosts: (function (val: any) { if (!val) return "$0"; const s = String(val); return s.includes("$") ? s : "$" + Number(s.replace(/[^0-9.-]+/g, "")).toLocaleString('en-US'); })(formData.estimatedSubcontractingCosts || "0"),
+      employeePayroll: (function (val: any) { if (!val) return "$0"; const s = String(val); return s.includes("$") ? s : "$" + Number(s.replace(/[^0-9.-]+/g, "")).toLocaleString('en-US'); })(formData.totalPayroll || formData.totalPayrollAmount || "0"),
       descriptionOfOperations: formData.carrierApprovedDescription || formData.classCodeWork?.description || formData.descriptionOfOperations || "",
       addExcessLiability: formData.addExcessLiability === true,
     };

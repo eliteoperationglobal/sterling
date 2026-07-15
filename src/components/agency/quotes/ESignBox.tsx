@@ -63,7 +63,7 @@ export default function ESignBox({
             <p className={`font-semibold ${status.color}`}>STATUS → {status.text}</p>
             {esignCompleted && esignCompletedAt && (
               <p className="text-sm text-gray-600 mt-1">
-                Completed: {new Date(esignCompletedAt).toLocaleString()}
+                Completed: {new Date(esignCompletedAt).toLocaleString('en-US')}
               </p>
             )}
           </div>

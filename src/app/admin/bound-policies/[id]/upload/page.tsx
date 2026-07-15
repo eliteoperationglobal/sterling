@@ -776,7 +776,7 @@ export default function UploadFinalDocumentsPage() {
                       <p className="text-sm font-bold text-gray-900">Certificate of Insurance</p>
                       {submission.finalPolicyDocuments.certificateUploadedAt && (
                         <p className="text-xs text-gray-600">
-                          Uploaded: {new Date(submission.finalPolicyDocuments.certificateUploadedAt).toLocaleString()}
+                          Uploaded: {new Date(submission.finalPolicyDocuments.certificateUploadedAt).toLocaleString('en-US')}
                         </p>
                       )}
                     </div>

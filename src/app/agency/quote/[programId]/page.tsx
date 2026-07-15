@@ -230,7 +230,7 @@ export default function QuoteFormPage() {
     agencyName.includes("Patrick Arias") || email.includes("patrickariasinsurance");
 
   const isTitan =
-    agencyName.toLowerCase().includes("titan") || email.includes("titan@solutions.com");
+    agencyName.toLowerCase().includes("titan") || email.includes("solutions@titaninssolutions.com");
 
   const CAPCO_AGENTS = ["Eidan Gamaty", "Moshe Gamaty", "Michael Gamaty", "Yoav Anatian", "Jake Weiner", "Benjamin Solender", "Michal Kraut", "Jonathan Akwa"];
   const BLUE_ANGEL_AGENTS = ["Max Mintz"];
@@ -3806,7 +3806,7 @@ export default function QuoteFormPage() {
 
               <div className="bg-gradient-to-br from-[#9A8B7A] to-[#0097A7] rounded-2xl p-6 md:p-8 text-center text-white shadow-2xl mb-6">
                 <p className="text-base md:text-lg font-semibold mb-2 opacity-90">As Low As</p>
-                <p className="text-4xl md:text-6xl font-bold mb-2">${calculatedPremium.toLocaleString()}</p>
+                <p className="text-4xl md:text-6xl font-bold mb-2">${calculatedPremium.toLocaleString('en-US')}</p>
                 <p className="text-xs md:text-sm opacity-75">per year</p>
               </div>
 

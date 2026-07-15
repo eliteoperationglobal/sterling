@@ -52,7 +52,7 @@ export default function PaymentBox({
               <div className="flex justify-between">
                 <span className="text-gray-600">Date:</span>
                 <span className="text-gray-900 font-medium">
-                  {new Date(paymentDate).toLocaleString()}
+                  {new Date(paymentDate).toLocaleString('en-US')}
                 </span>
               </div>
             )}

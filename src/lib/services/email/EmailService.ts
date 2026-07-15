@@ -234,7 +234,7 @@ export function generateQuoteEmailHTML(data: QuoteEmailData): string {
       
       <div class="premium-box">
         <div class="premium-label">Your Quoted Premium</div>
-        <div class="premium-amount">$${data.premium.toLocaleString()}</div>
+        <div class="premium-amount">$${data.premium.toLocaleString('en-US')}</div>
         <div class="premium-period">per year</div>
       </div>
       
@@ -314,7 +314,7 @@ Hi ${data.recipientName},
 
 Thank you for choosing Sterling Wholesale Insurance! We're pleased to provide you with your ${data.programName} insurance quote for ${data.companyName}.
 
-YOUR QUOTED PREMIUM: $${data.premium.toLocaleString()} per year
+YOUR QUOTED PREMIUM: $${data.premium.toLocaleString('en-US')} per year
 
 QUOTE DETAILS:
 - Quote Number: ${data.quoteNumber}

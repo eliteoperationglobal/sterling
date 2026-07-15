@@ -365,7 +365,7 @@ function AgencyESignSignContent() {
                   E-Signature completed successfully
                   {status?.esignCompletedAt && (
                     <span className="block mt-1">
-                      Completed on: {new Date(status.esignCompletedAt).toLocaleString()}
+                      Completed on: {new Date(status.esignCompletedAt).toLocaleString('en-US')}
                     </span>
                   )}
                 </p>

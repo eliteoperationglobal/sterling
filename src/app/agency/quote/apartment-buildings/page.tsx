@@ -107,7 +107,7 @@ function ApartmentBuildingsContent() {
         agencyName.includes("Patrick Arias") || email.includes("patrickariasinsurance");
 
     const isTitan =
-        agencyName.toLowerCase().includes("titan") || email.includes("titan@solutions.com");
+        agencyName.toLowerCase().includes("titan") || email.includes("solutions@titaninssolutions.com");
 
     const CAPCO_AGENTS = ["Eidan Gamaty", "Moshe Gamaty", "Michael Gamaty", "Yoav Anatian", "Jake Weiner", "Benjamin Solender", "Michal Kraut", "Jonathan Akwa"];
     const BLUE_ANGEL_AGENTS = ["Max Mintz"];

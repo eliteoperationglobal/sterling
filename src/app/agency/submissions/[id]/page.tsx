@@ -841,7 +841,7 @@ function SubmissionDetailsContent() {
     ...quotes.map((quote) => ({
       date: quote.createdAt,
       title: `Quote Received from ${quote.carrierId?.name || "Carrier"}`,
-      description: `Amount: $${quote.finalAmountUSD.toLocaleString()}`,
+      description: `Amount: $${quote.finalAmountUSD.toLocaleString('en-US')}`,
       icon: "💰",
       color: "purple",
     })),
@@ -1628,7 +1628,7 @@ function SubmissionDetailsContent() {
             <div>
               <p className="text-gray-500 mb-1">Total Cost:</p>
               <p className="font-semibold text-gray-900">
-                {currentRoundTotal > 0 ? `$${currentRoundTotal.toLocaleString()}` : "Not Quoted"}
+                {currentRoundTotal > 0 ? `$${currentRoundTotal.toLocaleString('en-US')}` : "Not Quoted"}
               </p>
             </div>
 
@@ -1745,7 +1745,7 @@ function SubmissionDetailsContent() {
                 <span className="w-28 text-gray-500">Cost:</span>
                 <span className="font-medium text-gray-900 leading-[18px] tracking-tight">
                   {currentQuote?.finalAmountUSD
-                    ? `$${currentQuote.finalAmountUSD.toLocaleString()}`
+                    ? `$${currentQuote.finalAmountUSD.toLocaleString('en-US')}`
                     : "Not Quoted"}
                 </span>
               </div>

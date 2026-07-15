@@ -105,7 +105,7 @@ export default function DocumentsList({
                   <p className="text-xs text-gray-500 mt-1">{doc.documentType}</p>
                   {doc.generatedAt && (
                     <p className="text-xs text-gray-400 mt-1">
-                      Generated: {new Date(doc.generatedAt).toLocaleString()}
+                      Generated: {new Date(doc.generatedAt).toLocaleString('en-US')}
                     </p>
                   )}
                 </div>

@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
     await logActivity(
       createActivityLogData(
         "PAYMENT_RECEIVED",
-        `Payment received: $${amount.toLocaleString()} via ${method}`,
+        `Payment received: $${amount.toLocaleString('en-US')} via ${method}`,
         {
           submissionId: submissionId,
           quoteId: quoteId,

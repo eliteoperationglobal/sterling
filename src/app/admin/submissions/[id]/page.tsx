@@ -1328,14 +1328,14 @@ export default function AdminSubmissionDetailsPage() {
               </p>
               <p className="font-semibold text-gray-900">
                 {submission.programId === 'apartment-buildings'
-                  ? (submission?.payload?.propertyOccupancy?.totalInsuredValue ? `$${Number(String(submission.payload.propertyOccupancy.totalInsuredValue).replace(/[^0-9.]/g, '')).toLocaleString()}` : "—")
+                  ? (submission?.payload?.propertyOccupancy?.totalInsuredValue ? `$${Number(String(submission.payload.propertyOccupancy.totalInsuredValue).replace(/[^0-9.]/g, '')).toLocaleString('en-US')}` : "—")
                   : submission.programId === 'contractors-equipment'
                     ? (() => {
                       const h = Number(String(submission?.payload?.heavyLimit || 0).replace(/[^0-9.]/g, ''));
                       const l = Number(String(submission?.payload?.lightMedLimit || 0).replace(/[^0-9.]/g, ''));
-                      return (h + l) > 0 ? `$${(h + l).toLocaleString()}` : "—";
+                      return (h + l) > 0 ? `$${(h + l).toLocaleString('en-US')}` : "—";
                     })()
-                    : (submission?.payload?.estimatedGrossReceipts ? `$${Number(String(submission.payload.estimatedGrossReceipts).replace(/[^0-9.]/g, '')).toLocaleString()}` : "—")
+                    : (submission?.payload?.estimatedGrossReceipts ? `$${Number(String(submission.payload.estimatedGrossReceipts).replace(/[^0-9.]/g, '')).toLocaleString('en-US')}` : "—")
                 }
               </p>
             </div> */}
@@ -1439,7 +1439,7 @@ export default function AdminSubmissionDetailsPage() {
                 <span className="w-28 text-gray-500">Cost:</span>
                 <span className="font-medium text-gray-900 leading-[18px] tracking-tight">
                   {currentQuote?.finalAmountUSD
-                    ? `$${currentQuote.finalAmountUSD.toLocaleString()}`
+                    ? `$${currentQuote.finalAmountUSD.toLocaleString('en-US')}`
                     : "Not Quoted"}
                 </span>
               </div>
