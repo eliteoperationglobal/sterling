@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/authOptions";
 import connectDB from "@/lib/mongodb";
 import Submission from "@/models/Submission";
+import Agency from "@/models/Agency";
 import { logActivity, createActivityLogData } from "@/utils/activityLogger";
 
 /**
@@ -151,6 +152,50 @@ export async function POST(
     );
 
     await logActivity(logData);
+
+    // ==========================================
+    // EMAIL NOTIFICATION BLOCK
+    // Wrapped in a try-catch to ensure 101% safety
+    // ==========================================
+    try {
+      const { sendAdminNoteToBroker } = await import("@/lib/services/email/EmailService");
+      
+      const agency = await Agency.findById(submission.agencyId);
+      const agentName = submission.agentName || "";
+      let resolvedBrokerEmail = agency?.email || submission.clientContact?.email || "";
+      
+      // Capco exact mapping
+      const capcoAgentEmails: Record<string, string> = {
+        "Eidan Gamaty": "Eidan@capcoinsurance.com",
+        "Moshe Gamaty": "Moshe.g@capcoinsurance.com",
+        "Michael Gamaty": "Michael@capcoinsurance.com",
+        "Yoav Anatian": "Joe@capcoinsurance.com",
+        "Jake Weiner": "Jake@capcoinsurance.com",
+        "Benjamin Solender": "Ben@capcoinsurance.com",
+        "Michal Kraut": "Michal@capcoinsurance.com",
+        "Jonathan Akwa": "Jonathan@capcoinsurance.com",
+      };
+
+      if (agentName && capcoAgentEmails[agentName]) {
+        resolvedBrokerEmail = capcoAgentEmails[agentName];
+      }
+
+      if (resolvedBrokerEmail) {
+        await sendAdminNoteToBroker({
+          brokerEmail: resolvedBrokerEmail,
+          brokerName: agentName || agency?.name || "Broker",
+          companyName: submission.payload?.companyName || submission.clientContact?.name || "Unknown Company",
+          adminName: userName,
+          noteContent: note,
+          submissionId: submission._id.toString()
+        });
+        console.log(`✅ Note email sent to broker/agent: ${resolvedBrokerEmail}`);
+      }
+    } catch (emailError: any) {
+      console.error("❌ Note email send error:", emailError);
+      // We explicitly swallow this error so the route still succeeds
+    }
+    // ==========================================
 
     return NextResponse.json({
       success: true,

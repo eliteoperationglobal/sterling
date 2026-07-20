@@ -1012,3 +1012,134 @@ export async function send2FAEmail(to: string, otp: string): Promise<boolean> {
   });
 }
 
+/**
+ * Admin Note Email Data
+ */
+export interface AdminNoteEmailData {
+  brokerEmail: string;
+  brokerName: string;
+  companyName: string;
+  adminName: string;
+  noteContent: string;
+  submissionId: string;
+}
+
+/**
+ * Generate admin note email HTML
+ */
+export function generateAdminNoteEmailHTML(data: AdminNoteEmailData): string {
+  return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>New Admin Note</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      background-color: #f5f5f5;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background-color: #ffffff;
+    }
+    .header {
+      background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
+      color: #ffffff;
+      padding: 30px;
+      text-align: center;
+    }
+    .header h1 {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 600;
+    }
+    .content {
+      padding: 30px;
+    }
+    .info-section {
+      background-color: #f8f9fa;
+      border-left: 4px solid #FF9800;
+      padding: 20px;
+      margin: 20px 0;
+    }
+    .note-box {
+      background-color: #FFF3E0;
+      border: 1px solid #FFE0B2;
+      border-radius: 5px;
+      padding: 20px;
+      margin: 20px 0;
+      font-style: italic;
+      color: #333;
+      white-space: pre-wrap;
+    }
+    .footer {
+      background-color: #f8f9fa;
+      padding: 20px;
+      text-align: center;
+      color: #666;
+      font-size: 12px;
+    }
+    .cta-button {
+      display: inline-block;
+      background-color: #FF9800;
+      color: white;
+      padding: 14px 32px;
+      text-decoration: none;
+      border-radius: 5px;
+      font-weight: 600;
+      margin: 20px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>📝 New Note Added</h1>
+    </div>
+    <div class="content">
+      <p>Dear ${data.brokerName},</p>
+      
+      <p>An admin has added a new note to the submission for <strong>${data.companyName}</strong>.</p>
+      
+      <div class="info-section">
+        <strong>Admin:</strong> ${data.adminName}
+      </div>
+      
+      <div class="note-box">"${data.noteContent}"</div>
+      
+      <div style="text-align: center;">
+        <a href="${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/agency/submissions/${data.submissionId}" class="cta-button">
+          View Submission in Portal
+        </a>
+      </div>
+      
+      <p>Best regards,<br>Sterling Wholesale Insurance</p>
+    </div>
+    <div class="footer">
+      <p>This is an automated email from Sterling Wholesale Insurance Portal.</p>
+      <p>Submission ID: ${data.submissionId}</p>
+    </div>
+  </div>
+</body>
+</html>
+  `;
+}
+
+/**
+ * Send admin note email to broker
+ */
+export async function sendAdminNoteToBroker(data: AdminNoteEmailData): Promise<boolean> {
+  const html = generateAdminNoteEmailHTML(data);
+
+  return await sendEmail({
+    to: data.brokerEmail,
+    subject: `New Note: ${data.companyName}`,
+    html,
+    text: `A new note was added by ${data.adminName} for ${data.companyName}: "${data.noteContent}"`,
+  });
+}

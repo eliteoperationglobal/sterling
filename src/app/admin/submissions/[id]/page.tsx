@@ -267,6 +267,12 @@ export default function AdminSubmissionDetailsPage() {
   const [ratingLoading, setRatingLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // Subjective Lines State
+  const [localCustomDocs, setLocalCustomDocs] = useState<string[]>([]);
+  const [newDocText, setNewDocText] = useState("");
+  const [isAddingDoc, setIsAddingDoc] = useState(false);
+  const [isUpdatingDocs, setIsUpdatingDocs] = useState(false);
+
   const [paymentAuthModalOpen, setPaymentAuthModalOpen] = useState(false);
   const [paymentAuthConfirmed, setPaymentAuthConfirmed] = useState(false);
   const [paymentAuthData, setPaymentAuthData] = useState({
@@ -638,6 +644,57 @@ export default function AdminSubmissionDetailsPage() {
   };
 
   const requiredDocs: string[] = currentQuote?.customDocuments ?? [];
+
+  useEffect(() => {
+    if (currentQuote?.customDocuments) {
+      setLocalCustomDocs(currentQuote.customDocuments);
+    }
+  }, [currentQuote?.customDocuments]);
+
+  const handleUpdateCustomDocs = async (newDocsList: string[]) => {
+    if (!currentQuote?._id) {
+      toast.error("You must enter a quote first before adding subjective lines.");
+      return;
+    }
+    try {
+      setIsUpdatingDocs(true);
+      const res = await fetch(`/api/admin/quotes/${currentQuote._id}/custom-documents`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ customDocuments: newDocsList })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setLocalCustomDocs(data.customDocuments);
+        mutate(`/api/admin/submissions/${submissionId}`);
+        toast.success("Subjective lines updated.");
+      } else {
+        toast.error(data.error || "Failed to update subjective lines");
+      }
+    } catch (err) {
+      console.error("Failed to update custom docs", err);
+      toast.error("A network error occurred.");
+    } finally {
+      setIsUpdatingDocs(false);
+    }
+  };
+
+  const handleAddCustomDocSubmit = () => {
+    if (!newDocText.trim()) return;
+    if (!currentQuote?._id) {
+      toast.error("You must enter a quote first before adding subjective lines.");
+      return;
+    }
+    const newList = [...localCustomDocs, newDocText.trim()];
+    handleUpdateCustomDocs(newList);
+    setNewDocText("");
+    setIsAddingDoc(false);
+  };
+
+  const handleRemoveCustomDoc = (docToRemove: string) => {
+    const newList = localCustomDocs.filter(d => d !== docToRemove);
+    handleUpdateCustomDocs(newList);
+  };
 
   useEffect(() => {
     if (!currentQuote) return;
@@ -1572,50 +1629,112 @@ export default function AdminSubmissionDetailsPage() {
           </div>
           {/* RIGHT – SUBJECTIVE LINES */}
           <div>
-            <h3 className="text-[14px] font-semibold text-gray-900 mb-5 tracking-tight">
-              Subjective Lines
-            </h3>
-            <div className="space-y-6 text-[14px]">
-              {requiredDocs.length === 0 ? (
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="text-[14px] font-semibold text-gray-900 tracking-tight">
+                Subjective Lines
+              </h3>
+              {isUpdatingDocs && <span className="text-xs text-teal-600 animate-pulse">Saving...</span>}
+            </div>
+            
+            <div className="space-y-4 text-[14px]">
+              {localCustomDocs.length === 0 ? (
                 <p className="text-gray-400 text-sm">
                   No subjective lines specified by admin
                 </p>
               ) : (
-                requiredDocs.map((doc) => {
+                localCustomDocs.map((doc) => {
                   const checked = checkedDocs[doc];
                   return (
                     <div
                       key={doc}
-                      onClick={() => toggleDoc(doc)}
-                      className="flex items-center gap-4 cursor-pointer"
+                      className="flex items-center justify-between group"
                     >
-                      {/* CIRCLE */}
-                      <div
-                        className={`w-[18px] h-[18px] rounded-full border flex items-center justify-center transition-all
-                        ${checked
-                            ? "bg-[#9A8B7A] border-[#9A8B7A]"
-                            : "border-gray-300"
-                          }`}>
-                        {checked && (
-                          <svg
-                            className="w-3 h-3 text-white"
-                            viewBox="0 0 20 20"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth={3}
-                          >
-                            <path d="M5 10l3 3 7-7" />
-                          </svg>
-                        )}
-                      </div>
+                      <div 
+                        className="flex items-center gap-4 cursor-pointer flex-1"
+                        onClick={() => toggleDoc(doc)}
+                      >
+                        {/* CIRCLE */}
+                        <div
+                          className={`w-[18px] h-[18px] rounded-full border flex items-center justify-center transition-all shrink-0
+                          ${checked
+                              ? "bg-[#9A8B7A] border-[#9A8B7A]"
+                              : "border-gray-300"
+                            }`}>
+                          {checked && (
+                            <svg
+                              className="w-3 h-3 text-white"
+                              viewBox="0 0 20 20"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth={3}
+                            >
+                              <path d="M5 10l3 3 7-7" />
+                            </svg>
+                          )}
+                        </div>
 
-                      <span className="text-gray-800 leading-tight">
-                        {doc}
-                      </span>
+                        <span className="text-gray-800 leading-tight">
+                          {doc}
+                        </span>
+                      </div>
+                      
+                      {/* REMOVE BUTTON */}
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); handleRemoveCustomDoc(doc); }}
+                        className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-600 p-1 transition-opacity"
+                        title="Remove subjective line"
+                      >
+                        ✕
+                      </button>
                     </div>
                   );
                 })
               )}
+
+              {/* ADD NEW SUBJECTIVE LINE UI */}
+              {currentQuote?._id && (
+                <div className="pt-4 border-t border-gray-100">
+                  {!isAddingDoc ? (
+                    <button 
+                      onClick={() => setIsAddingDoc(true)}
+                      className="text-xs font-semibold text-teal-600 hover:text-teal-700 flex items-center gap-1"
+                    >
+                      <span className="text-sm">＋</span> Add Subjective Line
+                    </button>
+                  ) : (
+                    <div className="flex flex-col gap-2">
+                      <input 
+                        type="text" 
+                        value={newDocText}
+                        onChange={(e) => setNewDocText(e.target.value)}
+                        placeholder="Enter new requirement..."
+                        className="w-full text-sm px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-100 focus:border-teal-400"
+                        autoFocus
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') handleAddCustomDocSubmit();
+                          if (e.key === 'Escape') { setIsAddingDoc(false); setNewDocText(""); }
+                        }}
+                      />
+                      <div className="flex gap-2 justify-end">
+                        <button 
+                          onClick={() => { setIsAddingDoc(false); setNewDocText(""); }}
+                          className="text-xs text-gray-500 hover:text-gray-700 px-2 py-1 font-medium"
+                        >
+                          Cancel
+                        </button>
+                        <button 
+                          onClick={handleAddCustomDocSubmit}
+                          disabled={!newDocText.trim() || isUpdatingDocs}
+                          className="text-xs bg-teal-600 hover:bg-teal-700 text-white px-3 py-1 rounded-md font-medium disabled:opacity-50"
+                        >
+                          Save
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
             </div>
           </div>
         </div>
