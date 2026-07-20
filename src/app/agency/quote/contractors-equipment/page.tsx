@@ -308,10 +308,39 @@ function ContractorsEquipmentContent() {
     const isViewMode = mode === 'view'
     const isEditMode = mode === 'edit'
 
-    const { data: session } = useSession()
+    const { data: session, status } = useSession()
     const userName = session?.user?.name || ""
     const userEmail = (session?.user as any)?.email || ""
     const agencyName = (session?.user as any)?.agencyName || ""
+
+    const publicToken = searchParams.get("token");
+    const [isPublicLink, setIsPublicLink] = useState(false);
+    const [isVerifyingLink, setIsVerifyingLink] = useState(false);
+    const [linkError, setLinkError] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (publicToken) {
+            setIsVerifyingLink(true);
+            fetch(`/api/public/links/verify?token=${publicToken}&expectedProgramId=contractors-equipment`)
+                .then((res) => res.json())
+                .then((data) => {
+                    if (data.valid) {
+                        setIsPublicLink(true);
+                        setAgentName(data.payload.agentName || "");
+                    } else {
+                        setLinkError(data.error || "Invalid link");
+                    }
+                })
+                .catch(() => setLinkError("Failed to verify link"))
+                .finally(() => setIsVerifyingLink(false));
+        }
+    }, [publicToken]);
+
+    useEffect(() => {
+        if (status === "unauthenticated" && !publicToken) {
+            router.push("/signin");
+        }
+    }, [status, router, publicToken]);
 
     const isCapco = agencyName.includes("Capital & Co") || agencyName.includes("Capco") || userEmail.includes("capcoinsurance") || userEmail === "admin@agency1.com" || userName.includes("Gamaty")
     const isBlueAngel = agencyName.includes("Blue Angel") || userEmail === "admin@blueangel.com"
@@ -769,7 +798,18 @@ function ContractorsEquipmentContent() {
             }
 
             let response;
-            if (isEditMode && submissionId) {
+            if (isPublicLink) {
+                response = await fetch("/api/public/applications/submit", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        programId: "contractors-equipment",
+                        programName: "Contractors Equipment",
+                        formData: payload,
+                        token: publicToken,
+                    }),
+                });
+            } else if (isEditMode && submissionId) {
                 response = await fetch(`/api/agency/submissions/${submissionId}`, {
                     method: "PATCH",
                     headers: { "Content-Type": "application/json" },
@@ -798,14 +838,17 @@ function ContractorsEquipmentContent() {
             toast.success(isEditMode ? "Application updated successfully!" : "Application submitted successfully!")
 
             setTimeout(() => {
-                router.refresh()
-                if (isEditMode && submissionId) {
+                if (isPublicLink) {
+                    window.location.href = "/application-success";
+                } else if (isEditMode && submissionId) {
+                    router.refresh()
                     if ((session?.user as any)?.role === "system_admin") {
                         router.push(`/admin/submissions/${submissionId}?updated=true`);
                     } else {
                         router.push(`/agency/submissions/${submissionId}?updated=true`);
                     }
                 } else {
+                    router.refresh()
                     router.push("/agency/dashboard")
                 }
             }, 1500)
@@ -817,6 +860,31 @@ function ContractorsEquipmentContent() {
             setIsSubmitting(false)
         }
     }
+
+    if (status === "loading" || isVerifyingLink) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="inline-block w-8 h-8 border-4 border-[#7A6F64] border-t-transparent rounded-full animate-spin mb-4"></div>
+                    <p className="text-gray-500 font-medium text-sm">Loading...</p>
+                </div>
+            </div>
+        )
+    }
+
+    if (publicToken && linkError) {
+        return (
+            <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
+                <div className="bg-white p-8 rounded shadow text-center max-w-md border border-gray-200">
+                    <h2 className="text-2xl font-semibold text-red-600 mb-2">Link Invalid</h2>
+                    <p className="text-gray-600 mb-6">{linkError}</p>
+                    <p className="text-sm text-gray-400">Please contact your agent for a new link.</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (status === "unauthenticated" && !publicToken) return null;
 
     return (
         <div className="min-h-screen bg-gray-100 pb-24">

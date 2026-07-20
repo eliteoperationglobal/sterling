@@ -47,12 +47,12 @@ export default function CancelRequestsPage() {
 
   const handleApproveClick = (request: any) => {
     setSelectedRequestId(request._id);
-    
+
     let defaultDate = new Date().toISOString().split("T")[0];
     if (request.scheduledDate) {
       defaultDate = new Date(request.scheduledDate).toISOString().split("T")[0];
     }
-    
+
     setCancellationDate(defaultDate);
     setModalOpen(true);
   };
@@ -98,7 +98,7 @@ export default function CancelRequestsPage() {
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
             <div className="flex items-center gap-4 md:gap-10">
-              <button 
+              <button
                 onClick={() => setIsMobileMenuOpen(true)}
                 className="lg:hidden p-2 -ml-2 rounded-lg hover:bg-gray-100 transition-colors"
               >
@@ -116,6 +116,9 @@ export default function CancelRequestsPage() {
               <nav className="hidden lg:flex items-center gap-1">
                 <Link href="/admin/dashboard" className="px-4 py-2 text-sm font-medium text-[#9A8B7A] hover:text-[#9A8B7A] hover:bg-[#f5f1eb] rounded-lg transition">
                   Dashboard
+                </Link>
+                <Link href="/admin/things-to-do" className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition">
+                  Things To Do
                 </Link>
                 <Link href="/admin/quotes" className="px-4 py-2 text-sm font-medium text-[#9A8B7A] hover:text-[#9A8B7A] hover:bg-[#f5f1eb] rounded-lg transition">
                   Quotes
@@ -213,18 +216,17 @@ export default function CancelRequestsPage() {
                   </td>
 
                   <td className="p-4">
-                    <span className={`px-3 py-1 text-xs font-bold rounded-full border ${
-                      r.status === "APPROVED" 
-                        ? "bg-green-50 text-green-700 border-green-200" 
+                    <span className={`px-3 py-1 text-xs font-bold rounded-full border ${r.status === "APPROVED"
+                        ? "bg-green-50 text-green-700 border-green-200"
                         : "bg-amber-50 text-amber-700 border-amber-200"
-                    }`}>
+                      }`}>
                       {r.status}
                     </span>
                   </td>
 
                   <td className="p-4 text-gray-600 font-medium">
-                    {r.scheduledDate 
-                      ? new Date(r.scheduledDate).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric', timeZone: 'UTC' }) 
+                    {r.scheduledDate
+                      ? new Date(r.scheduledDate).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric', timeZone: 'UTC' })
                       : "—"}
                   </td>
 
@@ -289,4 +291,4 @@ export default function CancelRequestsPage() {
       </main>
     </div>
   );
-}
+}

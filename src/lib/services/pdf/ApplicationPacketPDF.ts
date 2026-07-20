@@ -112,7 +112,7 @@ interface ApplicationPacketData {
 	hazardousWorkExplanation?: string;
 	performMedicalFacilitiesWork?: boolean;
 	medicalFacilitiesExplanation?: string;
-	performStructuralWork?: boolean;
+	willPerformStructuralWork?: boolean;
 	performTractHomeWork?: boolean;
 	tractHomeExplanation?: string;
 	workCondoConstruction?: boolean;
@@ -3931,7 +3931,7 @@ function generatePage3(data: ApplicationPacketData): string {
 		  
 		  <div class="question-item-page3">
 			<div class="question-text-page3">Will you perform structural work?</div>
-			<div class="yes-no-options-page3">${formatYesNo(data.performStructuralWork)}</div>
+			<div class="yes-no-options-page3">${formatYesNo(data.willPerformStructuralWork)}</div>
 		  </div>
 		  
 		  <div class="question-item-page3">
@@ -8003,7 +8003,7 @@ export function mapFormDataToPacketData(
 		hazardousWorkExplanation: formData.hazardousWorkExplanation,
 		performMedicalFacilitiesWork: formData.performMedicalFacilities,
 		medicalFacilitiesExplanation: formData.medicalFacilitiesExplanation,
-		performStructuralWork: formData.performStructuralWork || false,
+		willPerformStructuralWork: formData.willPerformStructuralWork || false,
 		performTractHomeWork: formData.workNewTractHomes,
 		tractHomeExplanation: formData.tractHomeExplanation || formData.tractHomesExplanation,
 		workCondoConstruction: formData.workCondoConstruction,

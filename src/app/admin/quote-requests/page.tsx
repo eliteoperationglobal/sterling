@@ -75,7 +75,7 @@ export default function AdminQuoteRequestsPage() {
       setLoading(false);
     }
   };
-  
+
   const filteredSubmissions = submissions.filter((sub) => {
     if (!searchQuery) return true;
     const q = searchQuery.toLowerCase().trim();
@@ -144,6 +144,9 @@ export default function AdminQuoteRequestsPage() {
                 <nav className="hidden lg:flex items-center gap-1">
                   <Link href="/admin/dashboard" className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition">
                     Dashboard
+                  </Link>
+                  <Link href="/admin/things-to-do" className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition">
+                    Things To Do
                   </Link>
                   <Link href="/admin/quotes" className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition">
                     Quotes

@@ -119,7 +119,7 @@ export default function AdminQuotesPage() {
 
     if (!searchQuery) return true;
     const q = searchQuery.toLowerCase().trim();
-    
+
     const clientName = String(quote.clientName || "").toLowerCase();
     const carrierName = String(quote.carrierName || "").toLowerCase();
     const subId = String(quote.submissionId || "").toLowerCase();
@@ -154,63 +154,66 @@ export default function AdminQuotesPage() {
           <div className="flex flex-col lg:flex-row lg:items-center justify-between py-4 lg:py-0 lg:h-16 gap-4 lg:gap-0">
             <div className="flex items-center justify-between w-full lg:w-auto">
               <div className="flex items-center gap-4 md:gap-10">
-                <button 
+                <button
                   onClick={() => setIsMobileMenuOpen(true)}
                   className="lg:hidden p-2 -ml-2 rounded-lg hover:bg-gray-100 transition-colors"
                 >
                   <Menu className="w-6 h-6 text-[#9A8B7A]" />
                 </button>
-              <Link href="/admin/dashboard" className="flex items-center gap-4 group">
-                <div className="relative">
-                  <div className="absolute inset-0 bg-gradient-to-br from-rose-500 via-pink-500 to-orange-500 rounded-2xl blur-md opacity-50 group-hover:opacity-75 animate-pulse transition-all duration-500"></div>
-                  <div className="relative w-12 h-12 bg-gradient-to-br from-rose-600 via-rose-700 to-pink-700 rounded-2xl flex items-center justify-center shadow-2xl shadow-rose-600/40 group-hover:shadow-rose-600/60 transition-all duration-500 group-hover:scale-110 group-hover:rotate-3">
-                    <div className="absolute inset-1 bg-gradient-to-br from-white/20 to-transparent rounded-xl"></div>
-                    <div className="relative">
-                      <span className="text-white font-black text-lg tracking-tighter drop-shadow-lg">SP</span>
+                <Link href="/admin/dashboard" className="flex items-center gap-4 group">
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-gradient-to-br from-rose-500 via-pink-500 to-orange-500 rounded-2xl blur-md opacity-50 group-hover:opacity-75 animate-pulse transition-all duration-500"></div>
+                    <div className="relative w-12 h-12 bg-gradient-to-br from-rose-600 via-rose-700 to-pink-700 rounded-2xl flex items-center justify-center shadow-2xl shadow-rose-600/40 group-hover:shadow-rose-600/60 transition-all duration-500 group-hover:scale-110 group-hover:rotate-3">
+                      <div className="absolute inset-1 bg-gradient-to-br from-white/20 to-transparent rounded-xl"></div>
+                      <div className="relative">
+                        <span className="text-white font-black text-lg tracking-tighter drop-shadow-lg">SP</span>
+                      </div>
+                      <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-yellow-300 rounded-full opacity-0 group-hover:opacity-100 animate-ping"></div>
+                      <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-yellow-400 rounded-full opacity-0 group-hover:opacity-100"></div>
                     </div>
-                    <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-yellow-300 rounded-full opacity-0 group-hover:opacity-100 animate-ping"></div>
-                    <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-yellow-400 rounded-full opacity-0 group-hover:opacity-100"></div>
-                  </div>
-                  <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full flex items-center justify-center shadow-lg border-2 border-white">
-                    <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                    </svg>
-                  </div>
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-gray-900 font-bold text-lg tracking-tight bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text">Sterling Portal</span>
-                    <div className="px-2 py-0.5 bg-gradient-to-r from-rose-50 to-pink-50 border border-rose-200 rounded-md">
-                      <span className="text-[10px] font-black text-rose-600 tracking-wider">ADMIN</span>
+                    <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full flex items-center justify-center shadow-lg border-2 border-white">
+                      <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                      </svg>
                     </div>
                   </div>
-                  <p className="text-xs text-gray-500 font-semibold -mt-0.5 tracking-wide">Control Center</p>
-                </div>
-              </Link>
-              <nav className="hidden lg:flex items-center gap-1">
-                <Link href="/admin/dashboard" className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition">
-                  Dashboard
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-900 font-bold text-lg tracking-tight bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text">Sterling Portal</span>
+                      <div className="px-2 py-0.5 bg-gradient-to-r from-rose-50 to-pink-50 border border-rose-200 rounded-md">
+                        <span className="text-[10px] font-black text-rose-600 tracking-wider">ADMIN</span>
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-500 font-semibold -mt-0.5 tracking-wide">Control Center</p>
+                  </div>
                 </Link>
-                <Link href="/admin/quotes" className="relative px-4 py-2 text-sm font-semibold text-[#9A8B7A]">
-                  Quotes
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#9A8B7A] rounded-full"></div>
-                </Link>
-                <Link href="/admin/quote-requests" className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition">
-                  Quote Request
-                </Link>
-                <Link href="/admin/bind-requests" className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition">
-                  Bind Requests
-                </Link>
-                <Link href="/admin/bound-policies" className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition">
-                  Policies
-                </Link>
-                <Link href="/admin/tool-requests" className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition">
-                  Tool Requests
-                </Link>
-              </nav>
+                <nav className="hidden lg:flex items-center gap-1">
+                  <Link href="/admin/dashboard" className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition">
+                    Dashboard
+                  </Link>
+                  <Link href="/admin/things-to-do" className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition">
+                    Things To Do
+                  </Link>
+                  <Link href="/admin/quotes" className="relative px-4 py-2 text-sm font-semibold text-[#9A8B7A]">
+                    Quotes
+                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#9A8B7A] rounded-full"></div>
+                  </Link>
+                  <Link href="/admin/quote-requests" className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition">
+                    Quote Request
+                  </Link>
+                  <Link href="/admin/bind-requests" className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition">
+                    Bind Requests
+                  </Link>
+                  <Link href="/admin/bound-policies" className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition">
+                    Policies
+                  </Link>
+                  <Link href="/admin/tool-requests" className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition">
+                    Tool Requests
+                  </Link>
+                </nav>
+              </div>
             </div>
-            </div>
-            
+
             <div className="hidden lg:flex items-center gap-3">
               <div className="hidden sm:flex flex-col items-end">
                 <p className="text-sm font-semibold text-gray-900">{(session?.user as any)?.name || "Admin"}</p>
@@ -272,11 +275,10 @@ export default function AdminQuotesPage() {
               <button
                 key={status}
                 onClick={() => setFilter(status)}
-                className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-300 ${
-                  filter === status
+                className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-300 ${filter === status
                     ? "bg-[#9A8B7A] text-white shadow-lg shadow-gray-200/30"
                     : "text-[#6b5e52] hover:bg-[#f5f1eb]"
-                }`}
+                  }`}
               >
                 {status.replace("_", " ")}
                 <span className="ml-2 text-xs opacity-80">

@@ -11,6 +11,7 @@ import {
   Shield, 
   Wrench, 
   AlertCircle,
+  CheckSquare,
   LogOut
 } from "lucide-react";
 import { signOut } from "next-auth/react";
@@ -22,6 +23,7 @@ interface MobileNavProps {
 
 const navItems = [
   { label: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
+  { label: "Things To Do", href: "/admin/things-to-do", icon: CheckSquare },
   { label: "Quotes", href: "/admin/quotes", icon: FileText },
   { label: "Quote Request", href: "/admin/quote-requests", icon: ClipboardList },
   { label: "Bind Requests", href: "/admin/bind-requests", icon: CheckCircle },

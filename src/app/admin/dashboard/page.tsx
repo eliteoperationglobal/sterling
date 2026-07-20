@@ -197,7 +197,7 @@ export default function AdminDashboard() {
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
             <div className="flex items-center gap-4 md:gap-10">
-              <button 
+              <button
                 onClick={() => setIsMobileMenuOpen(true)}
                 className="lg:hidden p-2 -ml-2 rounded-lg hover:bg-gray-100 transition-colors"
               >
@@ -217,6 +217,9 @@ export default function AdminDashboard() {
                 <Link href="/admin/dashboard" className="relative px-4 py-2 text-sm font-semibold text-[#9A8B7A]">
                   Dashboard
                   <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#9A8B7A] rounded-full"></div>
+                </Link>
+                <Link href="/admin/things-to-do" className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition">
+                  Things To Do
                 </Link>
                 <Link href="/admin/quotes" className="px-4 py-2 text-sm font-medium text-[#9A8B7A] hover:text-[#9A8B7A] hover:bg-[#f5f1eb] rounded-lg transition">
                   Quotes
@@ -434,6 +437,7 @@ export default function AdminDashboard() {
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Administrative Actions</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {[
+                { title: "Things To Do", desc: "Organized pending tasks & overdue subjectives", href: "/admin/things-to-do", icon: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2M9 14l2 2 4-4", gradient: "from-[#9A8B7A] to-[#7A6F64]", badge: null },
                 { title: "All Submissions", desc: "View and manage all submissions", href: "/admin/submissions", icon: "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z", gradient: "from-blue-600 to-blue-700", badge: stats.totalSubmissions },
                 { title: "Quote Requests", desc: "Applications waiting for quotes", href: "/admin/quote-requests", icon: "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z", gradient: "from-sky-600 to-sky-700", badge: stats.quoteRequests, urgent: stats.quoteRequests > 0 },
                 { title: "Quotes Management", desc: "Review and approve quotes", href: "/admin/quotes", icon: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2", gradient: "from-purple-600 to-purple-700", badge: stats.pendingQuotes },

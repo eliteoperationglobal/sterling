@@ -9,7 +9,7 @@ import { useEffect, useState, useMemo, useRef } from "react";
 import { toast } from "sonner";
 import { formatCurrency, formatCurrencyInput, parseCurrency } from "@/lib/utils/currencyFormatter";
 import {
-    ArrowLeft,
+  ArrowLeft,
 } from "lucide-react";
 
 // Helper component for Yes/No radio buttons
@@ -100,6 +100,7 @@ const initialFormData = {
   totalPayroll: "",
   yearsInBusiness: "",
   classCodeWork: {},
+  willPerformStructuralWork: false,
   coverageLimits: "1M / 2M / 2M",
   fireLegalLimit: "$100,000",
   medicalExpenseLimit: "Not Applicable",
@@ -248,7 +249,31 @@ export default function QuoteFormPage() {
   const isEditMode = mode === "edit";
   const submissionId = searchParams.get("id");
 
+  const publicToken = searchParams.get("token");
+  const [isPublicLink, setIsPublicLink] = useState(false);
+  const [isVerifyingLink, setIsVerifyingLink] = useState(false);
+  const [linkError, setLinkError] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (publicToken) {
+      setIsVerifyingLink(true);
+      fetch(`/api/public/links/verify?token=${publicToken}&expectedProgramId=${programId}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.valid) {
+            setIsPublicLink(true);
+            setFormData((prev: any) => ({
+              ...prev,
+              agentName: data.payload.agentName,
+            }));
+          } else {
+            setLinkError(data.error || "Invalid link");
+          }
+        })
+        .catch(() => setLinkError("Failed to verify link"))
+        .finally(() => setIsVerifyingLink(false));
+    }
+  }, [publicToken]);
 
 
   const [isProcessing, setIsProcessing] = useState(false);
@@ -529,10 +554,10 @@ export default function QuoteFormPage() {
   const [isDescriptionEdited, setIsDescriptionEdited] = useState(false);
 
   useEffect(() => {
-    if (status === "unauthenticated") {
+    if (status === "unauthenticated" && !publicToken) {
       router.push("/signin");
     }
-  }, [status, router]);
+  }, [status, router, publicToken]);
 
   useEffect(() => {
     const fetchSubmissionData = async () => {
@@ -1094,7 +1119,18 @@ export default function QuoteFormPage() {
 
       let response;
 
-      if (isEditMode && submissionId) {
+      if (isPublicLink) {
+        response = await fetch("/api/public/applications/submit", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            programId,
+            programName: "Advantage Contractor GL",
+            formData,
+            token: publicToken,
+          }),
+        });
+      } else if (isEditMode && submissionId) {
         response = await fetch(`/api/agency/submissions/${submissionId}`, {
           method: "PATCH",
           headers: {
@@ -1131,7 +1167,9 @@ export default function QuoteFormPage() {
       );
 
       setTimeout(() => {
-        if (isEditMode && submissionId) {
+        if (isPublicLink) {
+          window.location.href = "/application-success";
+        } else if (isEditMode && submissionId) {
           if ((session?.user as any)?.role === "system_admin") {
             window.location.href = `/admin/submissions/${submissionId}?updated=true`;
           } else {
@@ -1335,15 +1373,27 @@ export default function QuoteFormPage() {
     "Texas", "Utah", "Vermont", "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming"
   ];
 
-  if (status === "loading") {
+  if (status === "loading" || isVerifyingLink) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#9A8B7A]"></div>
       </div>
     );
   }
-  if (status === "unauthenticated") return null;
 
+  if (publicToken && linkError) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
+        <div className="bg-white p-8 rounded shadow text-center max-w-md border border-gray-200">
+          <h2 className="text-2xl font-semibold text-red-600 mb-2">Link Invalid</h2>
+          <p className="text-gray-600 mb-6">{linkError}</p>
+          <p className="text-sm text-gray-400">Please contact your agent for a new link.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (status === "unauthenticated" && !publicToken) return null;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -1938,12 +1988,12 @@ export default function QuoteFormPage() {
 
 
 
-                  {/* <YesNoRadio
-                  label="Will you perform structural work?"
-                  value={formData.willPerformStructuralWork}
-                  onChange={(val) => handleInputChange('willPerformStructuralWork', val)}
-                  onInteraction={triggerAnimation}
-                /> */}
+                  <YesNoRadio
+                    label="Will you perform structural work?"
+                    value={formData.willPerformStructuralWork}
+                    onChange={(val) => handleInputChange('willPerformStructuralWork', val)}
+                    onInteraction={triggerAnimation}
+                  />
 
                 </div>
               </div>

@@ -63,7 +63,7 @@ export default function AdminToolRequestsPage() {
 
       const data = await res.json();
       setRequests(data.requests || []);
-      
+
       const pending = (data.requests || []).filter((r: ToolRequest) => r.status === "PENDING").length;
       setPendingCount(pending);
     } catch (error: any) {
@@ -124,7 +124,7 @@ export default function AdminToolRequestsPage() {
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-4 md:gap-10">
-              <button 
+              <button
                 onClick={() => setIsMobileMenuOpen(true)}
                 className="lg:hidden p-2 -ml-2 rounded-lg hover:bg-gray-100 transition-colors"
               >
@@ -161,6 +161,9 @@ export default function AdminToolRequestsPage() {
                 <Link href="/admin/dashboard" className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition">
                   Dashboard
                 </Link>
+                <Link href="/admin/things-to-do" className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition">
+                  Things To Do
+                </Link>
                 <Link href="/admin/quotes" className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition">
                   Quotes
                 </Link>
@@ -179,7 +182,7 @@ export default function AdminToolRequestsPage() {
                 </Link>
               </nav>
             </div>
-            
+
             <div className="flex items-center gap-3">
               <div className="hidden sm:flex flex-col items-end">
                 <p className="text-sm font-semibold text-gray-900">{(session?.user as any)?.name || "Admin"}</p>
@@ -245,11 +248,10 @@ export default function AdminToolRequestsPage() {
               <button
                 key={statusFilter}
                 onClick={() => setFilter(statusFilter)}
-                className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-300 ${
-                  filter === statusFilter
-                    ? "bg-[#9A8B7A] text-white shadow-lg shadow-gray-200/30"
-                    : "text-[#6b5e52] hover:bg-[#f5f1eb]"
-                }`}
+                className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-300 ${filter === statusFilter
+                  ? "bg-[#9A8B7A] text-white shadow-lg shadow-gray-200/30"
+                  : "text-[#6b5e52] hover:bg-[#f5f1eb]"
+                  }`}
               >
                 {statusFilter.replace("_", " ")}
                 <span className="ml-2 text-xs opacity-80">

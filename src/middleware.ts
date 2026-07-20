@@ -39,6 +39,11 @@ export default withAuth(
 
     // Agency routes - any authenticated user
     if (path.startsWith("/agency")) {
+      // Allow public access to quote pages with a token
+      if (path.startsWith("/agency/quote/") && req.nextUrl.searchParams.has("token")) {
+        return NextResponse.next();
+      }
+
       if (!token) {
         return NextResponse.redirect(new URL("/signin", req.url));
       }
@@ -51,6 +56,11 @@ export default withAuth(
       authorized: ({ token, req }) => {
         // Allow access to public routes
         if (req.nextUrl.pathname.startsWith("/api/auth")) {
+          return true;
+        }
+
+        // Allow public access to quote pages with a token
+        if (req.nextUrl.pathname.startsWith("/agency/quote/") && req.nextUrl.searchParams.has("token")) {
           return true;
         }
 
