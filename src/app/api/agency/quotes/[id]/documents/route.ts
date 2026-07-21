@@ -39,7 +39,8 @@ export async function POST(
     }
 
     // update map
-    quote.checkedDocuments.set(doc, value);
+    const safeKey = doc.replace(/\./g, '___dot___').replace(/\$/g, '___dollar___');
+    quote.checkedDocuments.set(safeKey, value);
 
     await quote.save();
 

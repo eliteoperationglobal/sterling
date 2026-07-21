@@ -98,7 +98,7 @@ export default function AdminSubmissionsPage() {
 
   const fetchAllSubmissionsForCounts = async () => {
     try {
-      const response = await fetch("/api/admin/submissions");
+      const response = await fetch(`/api/admin/submissions?t=${Date.now()}`);
       const data = await response.json();
       if (data.submissions) {
         setAllSubmissions(data.submissions);
@@ -113,8 +113,8 @@ export default function AdminSubmissionsPage() {
     setError("");
     try {
       const url = statusFilter !== "ALL"
-        ? `/api/admin/submissions?status=${statusFilter}`
-        : "/api/admin/submissions";
+        ? `/api/admin/submissions?status=${statusFilter}&t=${Date.now()}`
+        : `/api/admin/submissions?t=${Date.now()}`;
       const response = await fetch(url);
       const data = await response.json();
       console.log("Admin submissions API response:", data);
@@ -173,11 +173,15 @@ export default function AdminSubmissionsPage() {
   };
 
   const filteredSubmissions = searchQuery.trim()
-    ? submissions.filter(s =>
-      s.clientName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      s.agencyName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      s.submissionId?.toLowerCase().includes(searchQuery.toLowerCase())
-    )
+    ? submissions.filter((s: any) => {
+        const query = searchQuery.toLowerCase().trim();
+        return (
+          s.clientName?.toLowerCase().includes(query) ||
+          s.agencyName?.toLowerCase().includes(query) ||
+          s.submissionId?.toLowerCase().includes(query) ||
+          s.policyNumber?.toLowerCase().includes(query)
+        );
+      })
     : submissions;
 
   if (status === "loading" || (loading && submissions.length === 0)) {
@@ -314,7 +318,7 @@ export default function AdminSubmissionsPage() {
               <div className="relative flex-1 max-w-md">
                 <input
                   type="text"
-                  placeholder="Search Agency, Client or ID"
+                  placeholder="Search Agency, Client, ID, or Policy #"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10 pr-4 py-2 w-full border border-[#e5ddd5] rounded-xl text-sm bg-[#fdfaf7] focus:outline-none focus:ring-2 focus:ring-[#9A8B7A]/50 transition-all"

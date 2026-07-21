@@ -536,7 +536,7 @@ function SubmissionDetailsContent() {
     setCheckedDocs((prev) => ({
       ...saved,
     }));
-  }, [currentQuote?._id]);
+  }, [JSON.stringify(currentQuote?.checkedDocuments)]);
 
   useEffect(() => {
     if (!requiredDocs.length) return;
@@ -545,8 +545,9 @@ function SubmissionDetailsContent() {
       const updated = { ...prev };
 
       requiredDocs.forEach((doc) => {
-        if (!(doc in updated)) {
-          updated[doc] = false;
+        const safeKey = doc.replace(/\./g, '___dot___').replace(/\$/g, '___dollar___');
+        if (!(safeKey in updated)) {
+          updated[safeKey] = false;
         }
       });
 
@@ -558,12 +559,13 @@ function SubmissionDetailsContent() {
   const toggleDoc = async (doc: string) => {
     if (!currentQuote?._id) return;
 
-    const newValue = !checkedDocs[doc];
+    const safeKey = doc.replace(/\./g, '___dot___').replace(/\$/g, '___dollar___');
+    const newValue = !checkedDocs[safeKey];
 
     // optimistic UI
     setCheckedDocs((prev) => ({
       ...prev,
-      [doc]: newValue,
+      [safeKey]: newValue,
     }));
 
     try {
@@ -591,7 +593,7 @@ function SubmissionDetailsContent() {
       // ❗ rollback if API fails
       setCheckedDocs((prev) => ({
         ...prev,
-        [doc]: !newValue,
+        [safeKey]: !newValue,
       }));
     }
   };
@@ -1922,17 +1924,18 @@ function SubmissionDetailsContent() {
                 </p>
               ) : (
                 requiredDocs.map((doc) => {
-                  const checked = checkedDocs[doc];
+                  const safeKey = doc.replace(/\./g, '___dot___').replace(/\$/g, '___dollar___');
+                  const checked = checkedDocs[safeKey];
 
                   return (
                     <div
                       key={doc}
                       onClick={() => toggleDoc(doc)}
-                      className="flex items-center gap-4 cursor-pointer"
+                      className="flex items-start gap-4 cursor-pointer"
                     >
                       {/* CIRCLE */}
                       <div
-                        className={`w-[18px] h-[18px] rounded-full border flex items-center justify-center transition-all
+                        className={`w-[18px] h-[18px] rounded-full border flex items-center justify-center transition-all shrink-0 mt-[2px]
                         ${checked
                             ? "bg-[#9A8B7A] border-[#9A8B7A]"
                             : "border-gray-300"

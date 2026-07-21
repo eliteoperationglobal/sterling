@@ -127,15 +127,22 @@ export async function GET(req: NextRequest) {
       submissionId: { $in: submissionIds },
       status: { $in: ["POSTED", "APPROVED", "BOUND"] },
     })
-      .select("submissionId effectiveDate")
+      .select("submissionId effectiveDate policyNumber")
       .sort({ createdAt: 1 })
       .lean();
 
-    // Build submissionId → effectiveDate map (last quote with a date wins)
+    // Build submissionId → effectiveDate map and policyNumber map
     const quoteEffectiveDateMap: Record<string, string | null> = {};
+    const quotePolicyNumbersMap: Record<string, string[]> = {};
+    
     for (const q of quotes as any[]) {
+      const subIdStr = q.submissionId.toString();
       if (q.effectiveDate) {
-        quoteEffectiveDateMap[q.submissionId.toString()] = q.effectiveDate;
+        quoteEffectiveDateMap[subIdStr] = q.effectiveDate;
+      }
+      if (q.policyNumber) {
+        if (!quotePolicyNumbersMap[subIdStr]) quotePolicyNumbersMap[subIdStr] = [];
+        quotePolicyNumbersMap[subIdStr].push(q.policyNumber);
       }
     }
 
@@ -200,6 +207,7 @@ export async function GET(req: NextRequest) {
         effectiveDate,
         effectiveCancellationDate: sub.effectiveCancellationDate || null,
         cancelRequested: !!pendingCancelMap[subId],
+        policyNumber: [...(quotePolicyNumbersMap[subId] || []), sub.policyNumber].filter(Boolean).join(' '),
       };
     });
 

@@ -599,9 +599,10 @@ export default function AdminSubmissionDetailsPage() {
   };
 
   const toggleDoc = async (doc: string) => {
-    const newChecked = !checkedDocs[doc];
+    const safeKey = doc.replace(/\./g, '___dot___').replace(/\$/g, '___dollar___');
+    const newChecked = !checkedDocs[safeKey];
 
-    setCheckedDocs((prev) => ({ ...prev, [doc]: newChecked }));
+    setCheckedDocs((prev) => ({ ...prev, [safeKey]: newChecked }));
 
     if (!currentQuote?._id) return;
 
@@ -622,7 +623,7 @@ export default function AdminSubmissionDetailsPage() {
     } catch (err) {
       console.error("Error updating checked documents:", err);
       // Revert optimistic update on error
-      setCheckedDocs((prev) => ({ ...prev, [doc]: !newChecked }));
+      setCheckedDocs((prev) => ({ ...prev, [safeKey]: !newChecked }));
     }
   };
 
@@ -704,7 +705,7 @@ export default function AdminSubmissionDetailsPage() {
     setCheckedDocs((prev) => ({
       ...saved,
     }));
-  }, [currentQuote?._id]);
+  }, [JSON.stringify(currentQuote?.checkedDocuments)]);
 
   useEffect(() => {
     if (!requiredDocs.length) return;
@@ -713,8 +714,9 @@ export default function AdminSubmissionDetailsPage() {
       const updated = { ...prev };
 
       requiredDocs.forEach((doc) => {
-        if (!(doc in updated)) {
-          updated[doc] = false;
+        const safeKey = doc.replace(/\./g, '___dot___').replace(/\$/g, '___dollar___');
+        if (!(safeKey in updated)) {
+          updated[safeKey] = false;
         }
       });
 
@@ -1643,19 +1645,20 @@ export default function AdminSubmissionDetailsPage() {
                 </p>
               ) : (
                 localCustomDocs.map((doc) => {
-                  const checked = checkedDocs[doc];
+                  const safeKey = doc.replace(/\./g, '___dot___').replace(/\$/g, '___dollar___');
+                  const checked = checkedDocs[safeKey];
                   return (
                     <div
                       key={doc}
-                      className="flex items-center justify-between group"
+                      className="flex items-start justify-between group"
                     >
                       <div 
-                        className="flex items-center gap-4 cursor-pointer flex-1"
+                        className="flex items-start gap-4 cursor-pointer flex-1"
                         onClick={() => toggleDoc(doc)}
                       >
                         {/* CIRCLE */}
                         <div
-                          className={`w-[18px] h-[18px] rounded-full border flex items-center justify-center transition-all shrink-0
+                          className={`w-[18px] h-[18px] rounded-full border flex items-center justify-center transition-all shrink-0 mt-[2px]
                           ${checked
                               ? "bg-[#9A8B7A] border-[#9A8B7A]"
                               : "border-gray-300"

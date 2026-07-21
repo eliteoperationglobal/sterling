@@ -35,6 +35,7 @@ interface Submission {
   effectiveDate?: string | null;
   effectiveCancellationDate?: string | null;
   cancelRequested?: boolean;
+  policyNumber?: string | null;
 }
 
 interface DashboardStats {
@@ -317,6 +318,7 @@ function AgencyDashboardContent() {
       const params = new URLSearchParams();
       if (filterStartDate) params.append("startDate", filterStartDate);
       if (filterEndDate) params.append("endDate", filterEndDate);
+      params.append("t", Date.now().toString());
 
       const response = await fetch(`/api/agency/submissions?${params.toString()}`);
       if (!response.ok) throw new Error("Failed to fetch submissions");
@@ -413,13 +415,14 @@ function AgencyDashboardContent() {
 
     // Filter by search query
     if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
+      const query = searchQuery.toLowerCase().trim();
       filtered = filtered.filter(sub =>
-        sub.clientName.toLowerCase().includes(query) ||
-        String(sub.submissionNumber).includes(query) ||
-        sub.clientEmail.toLowerCase().includes(query) ||
-        sub.industry.toLowerCase().includes(query) ||
-        sub.subtype.toLowerCase().includes(query)
+        (sub.clientName && sub.clientName.toLowerCase().includes(query)) ||
+        (sub.submissionNumber && String(sub.submissionNumber).includes(query)) ||
+        (sub.clientEmail && sub.clientEmail.toLowerCase().includes(query)) ||
+        (sub.industry && sub.industry.toLowerCase().includes(query)) ||
+        (sub.subtype && sub.subtype.toLowerCase().includes(query)) ||
+        (sub.policyNumber && sub.policyNumber.toLowerCase().includes(query))
       );
     }
 

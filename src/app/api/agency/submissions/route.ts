@@ -84,12 +84,12 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    type AgencySubmissionLean = Pick<ISubmission, "_id" | "submissionNumber" | "status" | "createdAt" | "updatedAt" | "state" | "agentName" | "agentId" | "payload" | "clientContact" | "templateId" | "files" | "programName"> & {
+    type AgencySubmissionLean = Pick<ISubmission, "_id" | "submissionNumber" | "status" | "createdAt" | "updatedAt" | "state" | "agentName" | "agentId" | "payload" | "clientContact" | "templateId" | "files" | "programName" | "policyNumber"> & {
       templateId?: { industry?: string; subtype?: string; title?: string };
     };
 
     const submissions = await Submission.find(query)
-      .select("submissionNumber status createdAt updatedAt state agentName agentId payload.agentName payload.effectiveDate clientContact templateId files programName effectiveCancellationDate")
+      .select("submissionNumber policyNumber status createdAt updatedAt state agentName agentId payload.agentName payload.effectiveDate clientContact templateId files programName effectiveCancellationDate")
       .populate("templateId", "industry subtype title")
       .sort({ createdAt: -1 })
       .skip(skip)
@@ -104,7 +104,7 @@ export async function GET(req: NextRequest) {
       submissionId: { $in: submissionIds },
       status: { $in: ["POSTED", "APPROVED", "BOUND"] },
     })
-      .select("submissionId finalAmountUSD policyType createdAt carrierId effectiveDate")
+      .select("submissionId finalAmountUSD policyType createdAt carrierId effectiveDate policyNumber")
       .populate("carrierId", "name")
       .sort({ createdAt: 1 })
       .lean();
@@ -117,6 +117,7 @@ export async function GET(req: NextRequest) {
       hasGeneral: boolean;
       hasExcess: boolean;
       quoteEffectiveDate: string | null;
+      quotePolicyNumber: string | null;
     }> = {};
     
     // Group quotes by submission
@@ -133,6 +134,9 @@ export async function GET(req: NextRequest) {
       let hasGeneral = false;
       let hasExcess = false;
       let quoteEffectiveDate: string | null = null;
+      let quotePolicyNumber: string | null = null;
+
+      let allQuotePolicyNumbers: string[] = [];
 
       subQuotes.forEach((q: any) => {
         const amount = q.finalAmountUSD || 0;
@@ -151,7 +155,14 @@ export async function GET(req: NextRequest) {
         if (q.effectiveDate) {
           quoteEffectiveDate = q.effectiveDate;
         }
+        if (q.policyNumber) {
+          allQuotePolicyNumbers.push(q.policyNumber);
+        }
       });
+      
+      if (allQuotePolicyNumbers.length > 0) {
+        quotePolicyNumber = allQuotePolicyNumbers.join(' ');
+      }
 
       quoteMap[subId] = {
         richmondTotal: richmondTotal > 0 ? richmondTotal : null,
@@ -159,7 +170,8 @@ export async function GET(req: NextRequest) {
         estimatedPremium: richmondTotal || kinsaleTotal || null,
         hasGeneral,
         hasExcess,
-        quoteEffectiveDate
+        quoteEffectiveDate,
+        quotePolicyNumber
       };
     });
 
@@ -202,7 +214,8 @@ export async function GET(req: NextRequest) {
         estimatedPremium: null,
         hasGeneral: false,
         hasExcess: false,
-        quoteEffectiveDate: null
+        quoteEffectiveDate: null,
+        quotePolicyNumber: null
       };
       return {
         _id: sub._id.toString(),
@@ -228,6 +241,7 @@ export async function GET(req: NextRequest) {
         effectiveDate: totals.quoteEffectiveDate || sub.payload?.effectiveDate || null,
         effectiveCancellationDate: policyCancellationDates[sub._id.toString()] || (sub as any).effectiveCancellationDate || null,
         cancelRequested: !!pendingCancelMap[sub._id.toString()],
+        policyNumber: [totals.quotePolicyNumber, sub.policyNumber].filter(Boolean).join(' '),
       };
     });
 

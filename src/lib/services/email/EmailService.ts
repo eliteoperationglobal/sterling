@@ -1048,7 +1048,7 @@ export function generateAdminNoteEmailHTML(data: AdminNoteEmailData): string {
       background-color: #ffffff;
     }
     .header {
-      background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
+      background: linear-gradient(135deg, #9A8B7A 0%, #9A8B7A 100%);
       color: #ffffff;
       padding: 30px;
       text-align: center;
@@ -1063,13 +1063,13 @@ export function generateAdminNoteEmailHTML(data: AdminNoteEmailData): string {
     }
     .info-section {
       background-color: #f8f9fa;
-      border-left: 4px solid #FF9800;
+      border-left: 4px solid #9A8B7A;
       padding: 20px;
       margin: 20px 0;
     }
     .note-box {
-      background-color: #FFF3E0;
-      border: 1px solid #FFE0B2;
+      background-color: #dbcfbf;
+      border: 1px solid #c4ad8f;
       border-radius: 5px;
       padding: 20px;
       margin: 20px 0;
@@ -1086,7 +1086,7 @@ export function generateAdminNoteEmailHTML(data: AdminNoteEmailData): string {
     }
     .cta-button {
       display: inline-block;
-      background-color: #FF9800;
+      background-color: #817567;
       color: white;
       padding: 14px 32px;
       text-decoration: none;
