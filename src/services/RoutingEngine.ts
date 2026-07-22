@@ -1,3 +1,4 @@
+import { getBaseUrl } from "@/lib/utils/url";
 import connectDB from "@/lib/mongodb";
 import Submission from "@/models/Submission";
 import FormTemplate from "@/models/FormTemplate";
@@ -106,8 +107,8 @@ class RoutingEngine {
         }
 
         try {
-          // Mock email sending (in production, use actual email service)
-          const submissionLink = `${process.env.NEXTAUTH_URL || "http://localhost:3000"}/admin/submissions/${submissionId}`;
+          const baseUrl = getBaseUrl();
+          const submissionLink = `${baseUrl}/admin/submissions/${submissionId}`;
           
           console.log(
             `[RoutingEngine] 📧 Sending email to ${carrier.email} for submission ${submissionId}`

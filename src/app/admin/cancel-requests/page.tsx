@@ -163,7 +163,7 @@ export default function CancelRequestsPage() {
                       <p className="text-xs text-[#6b5e52] mt-0.5">Admin Panel</p>
                     </div>
                     <button
-                      onClick={() => signOut()}
+                      onClick={() => signOut({ callbackUrl: "/signin" })}
                       className="w-full text-left px-4 py-3 text-sm font-medium text-[#2d2a26] hover:bg-[#f5f1eb] hover:text-[#9A8B7A] transition-colors"
                     >
                       Logout

@@ -1,4 +1,5 @@
 import { Resend } from "resend";
+import { getBaseUrl } from "@/lib/utils/url";
 
 /**
  * Email Service
@@ -734,7 +735,7 @@ export function generateBrokerQuoteEmailHTML(data: BrokerQuoteEmailData): string
       </ol>
       
       <div style="text-align: center; margin: 30px 0;">
-        <a href="${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/agency/submissions/${data.submissionId}" class="cta-button">
+        <a href="${getBaseUrl()}/agency/submissions/${data.submissionId}" class="cta-button">
           View Quote in Portal
         </a>
       </div>
@@ -1113,7 +1114,7 @@ export function generateAdminNoteEmailHTML(data: AdminNoteEmailData): string {
       <div class="note-box">"${data.noteContent}"</div>
       
       <div style="text-align: center;">
-        <a href="${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/agency/submissions/${data.submissionId}" class="cta-button">
+        <a href="${getBaseUrl()}/agency/submissions/${data.submissionId}" class="cta-button">
           View Submission in Portal
         </a>
       </div>

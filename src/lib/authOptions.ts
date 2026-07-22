@@ -184,18 +184,26 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
     async redirect({ url, baseUrl }) {
-      // After signin, redirect based on user role
-      // Note: We can't access token here, so we'll redirect to a default
-      // The actual role-based redirect happens in the signin page
-      if (url === `${baseUrl}/signin` || url === baseUrl) {
-        // Default redirect - will be handled by signin page based on session
-        return `${baseUrl}/agency/dashboard`;
+      // 1. If url is relative, return it directly so the client remains on current origin
+      if (url.startsWith("/")) {
+        return url;
       }
-      // Allow relative callback URLs
-      if (url.startsWith("/")) return `${baseUrl}${url}`;
-      // Allow callback URLs on the same origin
-      if (new URL(url).origin === baseUrl) return url;
-      return baseUrl;
+      try {
+        const parsed = new URL(url);
+        // 2. If url host is localhost or 127.0.0.1, strip origin and return relative pathname
+        if (parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1") {
+          return parsed.pathname && parsed.pathname !== "/" ? parsed.pathname : "/signin";
+        }
+        // 3. Allow callback URLs matching the current baseUrl origin
+        if (parsed.origin === baseUrl) {
+          return url;
+        }
+        // 4. Fallback to relative pathname
+        return parsed.pathname || "/signin";
+      } catch (e) {
+        // Ignore URL parsing errors
+      }
+      return "/signin";
     },
   },
   pages: {

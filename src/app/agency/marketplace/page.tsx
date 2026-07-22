@@ -264,7 +264,7 @@ export default function MarketplacePage() {
 
                 <button
                   type="button"
-                  onClick={() => signOut()}
+                  onClick={() => signOut({ callbackUrl: "/signin" })}
                   className="w-full text-left px-4 py-2 text-sm hover:bg-[#f5f1eb] transition"
                 >
                   Logout

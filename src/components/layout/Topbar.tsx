@@ -353,7 +353,7 @@ export default function Topbar() {
           <div className="p-2">
             <button
               type="button"
-              onClick={() => signOut()}
+              onClick={() => signOut({ callbackUrl: "/signin" })}
               className="w-full text-left px-3 py-2 text-sm font-medium text-[#2d2a26] hover:bg-[#f5f1eb] hover:text-[#9A8B7A] rounded-lg transition-colors"
             >
               Logout

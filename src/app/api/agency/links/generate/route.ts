@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getBaseUrl } from "@/lib/utils/url";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/authOptions";
 import connectDB from "@/lib/mongodb";
@@ -62,7 +63,7 @@ export async function POST(req: NextRequest) {
       { expiresIn: `${expiresInDays}d` }
     );
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || (req.headers.get("origin") || "http://localhost:3000");
+    const appUrl = req.headers.get("origin") || getBaseUrl();
     const generatedUrl = `${appUrl}/agency/quote/${programId}?token=${token}`;
 
     return NextResponse.json({

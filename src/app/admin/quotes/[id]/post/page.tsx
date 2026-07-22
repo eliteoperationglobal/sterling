@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
 
 interface Quote {
@@ -174,12 +174,13 @@ export default function PostQuotePage() {
               <span className="text-sm text-[#6B6B6B]">
                 {session?.user?.name || session?.user?.email}
               </span>
-              <Link
-                href="/api/auth/signout"
+              <button
+                type="button"
+                onClick={() => signOut({ callbackUrl: "/signin" })}
                 className="text-sm text-[#6B6B6B] hover:text-[#4A4A4A]"
               >
                 Sign Out
-              </Link>
+              </button>
             </div>
           </div>
         </div>

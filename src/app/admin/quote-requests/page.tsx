@@ -179,7 +179,7 @@ export default function AdminQuoteRequestsPage() {
                 <p className="text-xs text-gray-500 font-medium">{(session?.user as any)?.email}</p>
               </div>
               <button
-                onClick={() => signOut()}
+                onClick={() => signOut({ callbackUrl: "/signin" })}
                 className="group relative px-4 py-2 text-sm font-semibold text-[#2d2a26] hover:text-white bg-[#f5f1eb] hover:bg-[#9A8B7A] rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden"
               >
                 <span className="relative z-10 flex items-center gap-2">

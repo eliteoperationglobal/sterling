@@ -100,7 +100,7 @@ export default function MobileNav({ isOpen, onClose }: MobileNavProps) {
             <button
               onClick={() => {
                 onClose();
-                signOut();
+                signOut({ callbackUrl: "/signin" });
               }}
               className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-sm font-semibold text-rose-600 hover:bg-rose-50 transition-all duration-200"
             >

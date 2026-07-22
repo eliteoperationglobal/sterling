@@ -1041,7 +1041,7 @@ export default function AdminSubmissionDetailsPage() {
                         <p className="text-xs text-gray-500">Admin Panel</p>
                       </div>
                       <button
-                        onClick={() => signOut()}
+                        onClick={() => signOut({ callbackUrl: "/signin" })}
                         className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 transition"
                       >
                         Logout

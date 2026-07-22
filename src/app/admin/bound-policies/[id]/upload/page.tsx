@@ -302,7 +302,7 @@ export default function UploadFinalDocumentsPage() {
                 <p className="text-xs text-gray-500 font-medium">{(session?.user as any)?.email}</p>
               </div>
               <button
-                onClick={() => signOut()}
+                onClick={() => signOut({ callbackUrl: "/signin" })}
                 className="group relative px-4 py-2 text-sm font-semibold text-gray-700 hover:text-white bg-gradient-to-r from-gray-100 to-gray-200 hover:from-rose-600 hover:to-pink-600 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden"
               >
                 <span className="relative z-10 flex items-center gap-2">

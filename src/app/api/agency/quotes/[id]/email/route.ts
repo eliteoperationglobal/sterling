@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getBaseUrl } from "@/lib/utils/url";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/authOptions";
 import connectDB from "@/lib/mongodb";
@@ -54,7 +55,7 @@ export async function POST(
       expirationDate: quote.expirationDate,
       programName: getDisplayProgramName(quote.programId.split('-').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')),
       coverageLimits: quote.formData.coverageLimits || "N/A",
-      quotePDFUrl: `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/agency/quotes/${id}/pdf`,
+      quotePDFUrl: `${getBaseUrl()}/api/agency/quotes/${id}/pdf`,
     };
 
     // Send email

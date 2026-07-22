@@ -1,5 +1,6 @@
 export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from "next/server";
+import { getBaseUrl } from "@/lib/utils/url";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/authOptions";
 import connectDB from "@/lib/mongodb";
@@ -228,7 +229,7 @@ export async function POST(req: NextRequest) {
             subtype: template.subtype,
             title: template.title,
           },
-          `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/admin/submissions/${submission._id.toString()}`
+          `${getBaseUrl()}/admin/submissions/${submission._id.toString()}`
         );
 
         // Create routing log entry

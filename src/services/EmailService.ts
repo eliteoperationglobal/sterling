@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import { getBaseUrl } from '@/lib/utils/url';
 
 interface ICarrier {
   _id: string;
@@ -330,7 +331,7 @@ This is an automated message from Sterling Insurance Portal
       
       <p>Please log in to your dashboard to review and approve the quote.</p>
       
-      <a href="${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/agency/quotes?status=POSTED" class="button">
+      <a href="${getBaseUrl()}/agency/quotes?status=POSTED" class="button">
         View Posted Quotes
       </a>
     </div>

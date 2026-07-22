@@ -1,3 +1,5 @@
+import { getBaseUrl } from "@/lib/utils/url";
+
 /**
  * Proposal PDF Generator
  * Generates a professional proposal document for the insured to review and sign
@@ -132,8 +134,7 @@ export function generateAgencyLogoHTML1(logo: string, logoWidth: string = "380px
 export function generateProposalHTML(data: ProposalData): string {
 	console.log("Proposal Data:", data);
 
-	const baseURL =
-		process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+	const baseURL = getBaseUrl();
 
 	const email = data.agencyEmail?.toLowerCase() || "";
 

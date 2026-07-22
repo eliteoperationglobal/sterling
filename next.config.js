@@ -11,14 +11,15 @@ const nextConfig = {
     }
     return config;
   },
-  // Ignore build errors for production deployment
+  // Enable standalone output for Docker/VPS, but use standard serverless bundle for Vercel
+  ...(process.env.VERCEL ? {} : { output: 'standalone' }),
   eslint: {
     ignoreDuringBuilds: true,
   },
   typescript: {
     ignoreBuildErrors: true,
   },
-  // Increase function timeout for PDF generation
+  // External packages for server components (PDF & Chromium generation)
   experimental: {
     serverComponentsExternalPackages: ['puppeteer-core', '@sparticuz/chromium'],
   },

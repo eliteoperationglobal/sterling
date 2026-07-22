@@ -113,7 +113,7 @@ function ProfilePageContent() {
 
                     <div className="self-start md:self-auto">
                         <button
-                            onClick={() => signOut()}
+                            onClick={() => signOut({ callbackUrl: "/signin" })}
                             className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-white border border-red-100 text-red-500 font-bold hover:bg-red-50 hover:border-red-200 transition-all shadow-sm active:scale-95 text-sm"
                         >
                             <LogOut className="w-4 h-4" />
