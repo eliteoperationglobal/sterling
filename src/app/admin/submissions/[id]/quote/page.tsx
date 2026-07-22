@@ -10,7 +10,7 @@ import { getStateCode } from "@/lib/utils/stateConverter";
 import { useAutoSave } from "@/hooks/useAutoSave";
 import SaveStatusIndicator from "@/components/forms/SaveStatusIndicator";
 import { formatCurrency, formatCurrencyInput, parseCurrency } from "@/lib/utils/currencyFormatter";
-import { Upload } from "lucide-react";
+import { Upload, X } from "lucide-react";
 
 const RatingRow = ({ label, value }: { label: string; value: string | number }) => (
   <div className="flex justify-between items-center py-3 border-b border-gray-200 last:border-0">
@@ -2258,10 +2258,27 @@ export default function AdminQuotePage() {
                   </div>
                 </div>
                 {selectedFiles.length > 0 && (
-                  <p className="text-xs text-gray-600">
-                    Selected:{" "}
-                    {selectedFiles.map((f) => f.name).join(", ")}
-                  </p>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {selectedFiles.map((f, i) => (
+                      <div key={i} className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 rounded-lg border border-gray-200">
+                        <span className="text-xs font-medium text-gray-700 truncate max-w-[200px]">
+                          {f.name}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newFiles = [...selectedFiles];
+                            newFiles.splice(i, 1);
+                            setSelectedFiles(newFiles);
+                          }}
+                          className="text-gray-400 hover:text-red-500 transition-colors focus:outline-none"
+                          title="Remove file"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
                 )}
                 {uploadError && (
                   <p className="text-xs text-red-600 font-semibold">

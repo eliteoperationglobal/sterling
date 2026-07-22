@@ -34,3 +34,17 @@ export async function uploadToS3(
     );
     return `${B2_ENDPOINT}/${B2_BUCKET_NAME}/${key}`;
 }
+
+/**
+ * Deletes a file from Backblaze B2 (S3 API).
+ * @param key - The destination key (path) inside the bucket
+ */
+export async function deleteFromS3(key: string): Promise<void> {
+    const { DeleteObjectCommand } = await import("@aws-sdk/client-s3");
+    await s3Client.send(
+        new DeleteObjectCommand({
+            Bucket: B2_BUCKET_NAME,
+            Key: key,
+        })
+    );
+}

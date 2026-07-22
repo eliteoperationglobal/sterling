@@ -20,6 +20,12 @@ export function getBaseUrl(): string {
   if (process.env.NEXTAUTH_URL) {
     return process.env.NEXTAUTH_URL.replace(/\/$/, "");
   }
+  if (process.env.VERCEL_URL) {
+    const url = process.env.VERCEL_URL.startsWith("http")
+      ? process.env.VERCEL_URL
+      : `https://${process.env.VERCEL_URL}`;
+    return url.replace(/\/$/, "");
+  }
   return "http://localhost:3000";
 }
 

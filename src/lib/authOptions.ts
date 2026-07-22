@@ -184,26 +184,31 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
     async redirect({ url, baseUrl }) {
-      // 1. If url is relative, return it directly so the client remains on current origin
+      const cleanBase = baseUrl.endsWith("/") ? baseUrl.slice(0, -1) : baseUrl;
+
+      // 1. If url is relative, construct full URL using cleanBase
       if (url.startsWith("/")) {
-        return url;
+        return `${cleanBase}${url}`;
       }
+
       try {
         const parsed = new URL(url);
-        // 2. If url host is localhost or 127.0.0.1, strip origin and return relative pathname
-        if (parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1") {
-          return parsed.pathname && parsed.pathname !== "/" ? parsed.pathname : "/signin";
-        }
-        // 3. Allow callback URLs matching the current baseUrl origin
-        if (parsed.origin === baseUrl) {
+        
+        // 2. If url has valid http or https protocol
+        if (parsed.protocol === "http:" || parsed.protocol === "https:") {
+          // If the parsed host is localhost or 127.0.0.1, but cleanBase is not localhost, rewrite to cleanBase
+          if ((parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1") && !cleanBase.includes("localhost")) {
+            const path = parsed.pathname && parsed.pathname !== "/" ? parsed.pathname : "";
+            return `${cleanBase}${path}${parsed.search}`;
+          }
+          // Otherwise, return the valid absolute URL
           return url;
         }
-        // 4. Fallback to relative pathname
-        return parsed.pathname || "/signin";
       } catch (e) {
         // Ignore URL parsing errors
       }
-      return "/signin";
+
+      return cleanBase;
     },
   },
   pages: {

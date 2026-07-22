@@ -249,6 +249,30 @@ export default function AdminSubmissionDetailsPage() {
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
   const [isCanceling, setIsCanceling] = useState(false);
 
+  const [documentToDelete, setDocumentToDelete] = useState<{ fileName: string; fileUrl: string } | null>(null);
+  const [isDeletingDoc, setIsDeletingDoc] = useState(false);
+
+  const handleDeleteDocument = async () => {
+    if (!documentToDelete) return;
+    setIsDeletingDoc(true);
+    try {
+      const url = new URL(`/api/submissions/${submissionId}/documents`, window.location.origin);
+      url.searchParams.append("fileUrl", documentToDelete.fileUrl);
+      const res = await fetch(url, { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to delete document");
+      }
+      toast.success("Document deleted successfully");
+      mutate(`/api/admin/submissions/${submissionId}`);
+    } catch (error: any) {
+      toast.error(error.message || "Failed to delete document");
+    } finally {
+      setIsDeletingDoc(false);
+      setDocumentToDelete(null);
+    }
+  };
+
   // New state for refactored tabs and notes
   const [activeTab, setActiveTab] = useState("Admin Notes");
   const [activityLogs, setActivityLogs] = useState<any[]>([]);
@@ -1041,7 +1065,7 @@ export default function AdminSubmissionDetailsPage() {
                         <p className="text-xs text-gray-500">Admin Panel</p>
                       </div>
                       <button
-                        onClick={() => signOut({ callbackUrl: "/signin" })}
+                        onClick={() => signOut()}
                         className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 transition"
                       >
                         Logout
@@ -1624,6 +1648,13 @@ export default function AdminSubmissionDetailsPage() {
                   <div className="flex items-center gap-4">
                     <a href={`/api/download?url=${encodeURIComponent(file.fileUrl)}`} download={file.fileName} className="text-[#9A8B7A] hover:text-[#7A6F64] font-medium hover:underline transition-colors">Download</a>
                     <a href={`/api/download?url=${encodeURIComponent(file.fileUrl)}&view=true`} target="_blank" rel="noopener noreferrer" className="text-[#9A8B7A] hover:text-[#7A6F64] font-medium hover:underline transition-colors">View</a>
+                    <button
+                      onClick={() => setDocumentToDelete({ fileName: file.fileName, fileUrl: file.fileUrl })}
+                      className="text-red-400 hover:text-red-600 transition-colors ml-2"
+                      title="Remove document"
+                    >
+                      <CloseIcon className="w-4 h-4" />
+                    </button>
                   </div>
                 </div>
               ))
@@ -2169,6 +2200,55 @@ export default function AdminSubmissionDetailsPage() {
             )}
           </div>
         </div>
+
+        {/* Delete Document Confirmation Modal */}
+        {documentToDelete && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl relative">
+              <button
+                onClick={() => setDocumentToDelete(null)}
+                className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-all"
+              >
+                <CloseIcon className="w-5 h-5" />
+              </button>
+              
+              <div className="flex flex-col items-center text-center mt-2">
+                <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mb-4">
+                  <CloseIcon className="w-6 h-6 text-red-600" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">Remove Document?</h3>
+                <p className="text-sm text-gray-500 mb-6 px-4">
+                  Are you sure you want to completely remove <strong>{documentToDelete.fileName}</strong>? This action cannot be undone.
+                </p>
+                
+                <div className="flex gap-3 w-full">
+                  <button
+                    onClick={() => setDocumentToDelete(null)}
+                    disabled={isDeletingDoc}
+                    className="flex-1 px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-bold rounded-xl transition-all"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleDeleteDocument}
+                    disabled={isDeletingDoc}
+                    className="flex-1 px-4 py-3 bg-red-600 hover:bg-red-700 text-white text-sm font-bold rounded-xl transition-all disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    {isDeletingDoc ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        Removing...
+                      </>
+                    ) : (
+                      "Yes, Remove"
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
       </main>
     </div>
   );
