@@ -179,16 +179,17 @@ export default function UploadFinalDocumentsPage() {
         body: formData,
       });
 
+      const responseText = await res.text();
       let data: any = null;
       try {
-        data = await res.json();
+        data = JSON.parse(responseText);
       } catch (parseError) {
-        const text = await res.text();
-        throw new Error(`Upload failed: ${res.status} ${res.statusText}. Response body: ${text}`);
+        // Response body is not valid JSON (e.g., Nginx HTML error page)
       }
 
       if (!res.ok) {
-        throw new Error(data.error || `Failed to upload documents (${res.status})`);
+        const errorMsg = data?.error || (responseText ? responseText.replace(/<[^>]*>?/gm, '').trim().slice(0, 150) : `Upload failed (${res.status})`);
+        throw new Error(errorMsg);
       }
 
       toast.success("Documents uploaded successfully!", {
