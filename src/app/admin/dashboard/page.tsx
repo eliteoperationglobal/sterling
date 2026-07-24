@@ -66,54 +66,25 @@ export default function AdminDashboard() {
       if (userRole !== "system_admin") {
         router.push("/agency/dashboard");
       } else {
-        // Single load when dashboard mounts
-        fetchStats();
-        fetchCancelRequests();
+        fetchDashboardData();
       }
     }
-  }, [status, session, router]);
+  }, [status, router]);
 
-  const fetchStats = async () => {
-    setLoading(true);
+  const fetchDashboardData = async () => {
     try {
-      const [submissionsRes, quotesRes, bindRes, boundRes] = await Promise.all([
-        fetch("/api/admin/submissions"),
-        fetch("/api/admin/quotes"),
-        fetch("/api/admin/quote-requests"),
-        fetch("/api/admin/bind-requests"),
-        fetch("/api/admin/bound-policies"),
-      ]);
-
-      const submissionsData = submissionsRes.ok ? await submissionsRes.json() : { submissions: [] };
-      const quotesData = quotesRes.ok ? await quotesRes.json() : { quotes: [] };
-      const quoteRequestsData = await (await fetch("/api/admin/quote-requests")).json();
-      const bindData = bindRes.ok ? await bindRes.json() : { requests: [] };
-      const boundData = boundRes.ok ? await boundRes.json() : { policies: [] };
-
-      setStats({
-        totalSubmissions: submissionsData.submissions?.length || 0,
-        pendingQuotes: quotesData.quotes?.filter((q: any) => q.status === "PENDING")?.length || 0,
-        quoteRequests: quoteRequestsData.submissions?.length || 0,
-        bindRequests: bindData.requests?.length || 0,
-        boundPolicies: boundData.policies?.length || 0,
-        cancelledPolicies: boundData.policies?.filter((p: any) => p.status === "CANCELLED")?.length || 0,
-      });
+      const res = await fetch("/api/admin/dashboard-stats");
+      const data = await res.json();
+      if (data.success) {
+        setStats(data.stats);
+        if (data.cancelRequests) {
+          setCancelRequests(data.cancelRequests);
+        }
+      }
     } catch (error) {
-      console.error("Error fetching stats:", error);
+      console.error("Error fetching dashboard stats:", error);
     } finally {
       setLoading(false);
-    }
-  };
-  const fetchCancelRequests = async () => {
-    try {
-      const res = await fetch("/api/admin/cancel-requests");
-      const data = await res.json();
-
-      if (data.success) {
-        setCancelRequests(data.requests);
-      }
-    } catch (err) {
-      console.error(err);
     }
   };
 

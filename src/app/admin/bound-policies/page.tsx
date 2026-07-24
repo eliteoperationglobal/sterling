@@ -68,18 +68,16 @@ export default function AdminBoundPoliciesPage() {
       const userRole = (session?.user as any)?.role;
       if (userRole !== "system_admin") {
         router.push("/agency/dashboard");
+      } else {
+        fetchBoundPolicies();
       }
     }
-  }, [status, session, router]);
-
-  useEffect(() => {
-    if (status === "authenticated") {
-      fetchBoundPolicies();
-    }
-  }, [status]);
+  }, [status, router]);
 
   const fetchBoundPolicies = async () => {
-    setLoading(true);
+    if (policies.length === 0) {
+      setLoading(true);
+    }
     setError("");
     try {
       const response = await fetch("/api/admin/bound-policies", {
@@ -92,15 +90,10 @@ export default function AdminBoundPoliciesPage() {
       }
 
       const policiesData = data.policies || [];
-      console.log("Fetched bound policies:", policiesData.length);
-      console.log("Policy IDs:", policiesData.map((p: any) => p._id));
       setPolicies(policiesData);
     } catch (err: any) {
       console.error("Fetch bound policies error:", err);
       setError(err.message || "Failed to load bound policies");
-      toast.error("Failed to load bound policies", {
-        description: err.message || "An unexpected error occurred",
-      });
     } finally {
       setLoading(false);
     }

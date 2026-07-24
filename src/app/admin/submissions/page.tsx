@@ -79,52 +79,27 @@ export default function AdminSubmissionsPage() {
       const userRole = (session?.user as any)?.role;
       if (userRole !== "system_admin") {
         router.push("/agency/dashboard");
+      } else {
+        fetchSubmissionsData();
       }
     }
-  }, [status, session, router]);
+  }, [status, router]);
 
-  // Fetch all once for counts
-  useEffect(() => {
-    if (status === "authenticated") {
-      fetchAllSubmissionsForCounts();
+  const fetchSubmissionsData = async () => {
+    if (allSubmissions.length === 0) {
+      setLoading(true);
     }
-  }, [status]);
-
-  useEffect(() => {
-    if (status === "authenticated") {
-      fetchSubmissions();
-    }
-  }, [status, statusFilter]);
-
-  const fetchAllSubmissionsForCounts = async () => {
+    setError("");
     try {
       const response = await fetch(`/api/admin/submissions?t=${Date.now()}`);
       const data = await response.json();
-      if (data.submissions) {
-        setAllSubmissions(data.submissions);
-      }
-    } catch (err) {
-      console.error("Error fetching all submissions for counts:", err);
-    }
-  };
-
-  const fetchSubmissions = async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const url = statusFilter !== "ALL"
-        ? `/api/admin/submissions?status=${statusFilter}&t=${Date.now()}`
-        : `/api/admin/submissions?t=${Date.now()}`;
-      const response = await fetch(url);
-      const data = await response.json();
-      console.log("Admin submissions API response:", data);
 
       if (!response.ok) {
         throw new Error(data.error || `HTTP error! status: ${response.status}`);
       }
 
       if (data.submissions) {
-        setSubmissions(data.submissions);
+        setAllSubmissions(data.submissions);
       } else if (data.error) {
         setError(data.error);
       }
@@ -134,6 +109,28 @@ export default function AdminSubmissionsPage() {
       setLoading(false);
     }
   };
+
+  // Derive filtered submissions in memory for instant switching & zero UI flashing
+  const displaySubmissions = (statusFilter === "ALL" 
+    ? allSubmissions 
+    : allSubmissions.filter(s => {
+        if (statusFilter === "SUBMITTED") return s.status === "SUBMITTED" || s.status === "APPROVAL_REQUESTED";
+        if (statusFilter === "QUOTED") return s.status === "QUOTED";
+        if (statusFilter === "BIND_REQUESTED") return s.status === "BIND_REQUESTED";
+        if (statusFilter === "BOUND") return s.status === "BOUND";
+        if (statusFilter === "DECLINED") return s.status === "DECLINED" || s.status === "CANCELLED";
+        return s.status === statusFilter;
+      })
+  ).filter(s => {
+    if (!searchQuery) return true;
+    const q = searchQuery.toLowerCase();
+    return (
+      (s.clientName || "").toLowerCase().includes(q) ||
+      (s.agencyName || "").toLowerCase().includes(q) ||
+      (s.submissionNumber ? s.submissionNumber.toString() : "").includes(q) ||
+      (s.programName || "").toLowerCase().includes(q)
+    );
+  });
 
   const getStatusBadgeColor = (status: string) => {
     switch (status) {
@@ -172,19 +169,30 @@ export default function AdminSubmissionsPage() {
     return allSubmissions.filter(s => !s.cancelRequested && s.status === id).length;
   };
 
-  const filteredSubmissions = searchQuery.trim()
-    ? submissions.filter((s: any) => {
-        const query = searchQuery.toLowerCase().trim();
-        return (
-          s.clientName?.toLowerCase().includes(query) ||
-          s.agencyName?.toLowerCase().includes(query) ||
-          s.submissionId?.toLowerCase().includes(query) ||
-          s.policyNumber?.toLowerCase().includes(query)
-        );
-      })
-    : submissions;
+  const filteredSubmissions = allSubmissions.filter((s: any) => {
+    if (statusFilter === "PENDING_CANCEL") {
+      if (!s.cancelRequested) return false;
+    } else if (statusFilter === "DECLINED") {
+      if (s.cancelRequested || (s.status !== "DECLINED" && s.status !== "CANCELLED")) return false;
+    } else if (statusFilter !== "ALL") {
+      if (s.cancelRequested || s.status !== statusFilter) return false;
+    }
 
-  if (status === "loading" || (loading && submissions.length === 0)) {
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      return (
+        s.clientName?.toLowerCase().includes(query) ||
+        s.agencyName?.toLowerCase().includes(query) ||
+        s.submissionId?.toLowerCase().includes(query) ||
+        (s.submissionNumber ? s.submissionNumber.toString() : "").includes(query) ||
+        s.policyNumber?.toLowerCase().includes(query)
+      );
+    }
+
+    return true;
+  });
+
+  if (status === "loading" || (loading && allSubmissions.length === 0)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#f5f1eb]">
         <div className="text-center">

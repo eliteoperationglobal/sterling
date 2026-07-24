@@ -73,10 +73,12 @@ export default function ThingsToDoPage() {
         fetchTasks();
       }
     }
-  }, [status, session, router]);
+  }, [status, router]);
 
   const fetchTasks = async () => {
-    setLoading(true);
+    if (tasks.length === 0) {
+      setLoading(true);
+    }
     try {
       const res = await fetch("/api/admin/things-to-do");
       const data = await res.json();

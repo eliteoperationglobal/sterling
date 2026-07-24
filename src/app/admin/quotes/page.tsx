@@ -39,18 +39,16 @@ export default function AdminQuotesPage() {
       const userRole = (session?.user as any)?.role;
       if (userRole !== "system_admin") {
         router.push("/agency/dashboard");
+      } else {
+        fetchQuotes();
       }
     }
-  }, [status, session, router]);
-
-  useEffect(() => {
-    if (status === "authenticated") {
-      fetchQuotes();
-    }
-  }, [status]);
+  }, [status, router]);
 
   const fetchQuotes = async () => {
-    setLoading(true);
+    if (quotes.length === 0) {
+      setLoading(true);
+    }
     setError("");
     try {
       const response = await fetch("/api/admin/quotes");

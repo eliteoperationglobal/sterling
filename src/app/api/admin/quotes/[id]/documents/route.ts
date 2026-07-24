@@ -40,6 +40,7 @@ export async function POST(
 
     const safeKey = doc.replace(/\./g, '___dot___').replace(/\$/g, '___dollar___');
     quote.checkedDocuments.set(safeKey, value);
+    quote.markModified('checkedDocuments');
     await quote.save();
 
     return NextResponse.json({ success: true });

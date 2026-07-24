@@ -122,7 +122,8 @@ export async function GET(req: NextRequest) {
       const daysOverdue = Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)));
 
       customDocs.forEach((docName, idx) => {
-        const isReceived = !!checkedMap[docName];
+        const safeKey = docName.replace(/\./g, '___dot___').replace(/\$/g, '___dollar___');
+        const isReceived = !!checkedMap[docName] || !!checkedMap[safeKey];
         if (!isReceived) {
           pendingSubjectiveTasks.push({
             id: `subj-${quote._id}-${idx}`,

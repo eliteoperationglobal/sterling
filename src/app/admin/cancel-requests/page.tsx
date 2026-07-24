@@ -31,9 +31,12 @@ export default function CancelRequestsPage() {
         fetchRequests();
       }
     }
-  }, [status, session, router]);
+  }, [status, router]);
 
   const fetchRequests = async () => {
+    if (requests.length === 0) {
+      setLoading(true);
+    }
     try {
       const res = await fetch("/api/admin/cancel-requests");
       const data = await res.json();
