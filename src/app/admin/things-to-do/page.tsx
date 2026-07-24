@@ -58,6 +58,7 @@ export default function ThingsToDoPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<"ALL" | "QUOTE_REQUEST" | "PENDING_SUBJECTIVE" | "BIND_REQUEST" | "URGENT">("ALL");
   const [sortBy, setSortBy] = useState<"MOST_OVERDUE" | "NEWEST" | "OLDEST">("MOST_OVERDUE");
+  const [policyStatusFilter, setPolicyStatusFilter] = useState<string>("ALL");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [updatingSubjectiveId, setUpdatingSubjectiveId] = useState<string | null>(null);
 
@@ -134,9 +135,15 @@ export default function ThingsToDoPage() {
     if (!matchesSearch) return false;
 
     // Tab filter
-    if (activeTab === "ALL") return true;
-    if (activeTab === "URGENT") return t.isUrgent || t.daysOverdue > 0;
-    return t.type === activeTab;
+    if (activeTab !== "ALL") {
+      if (activeTab === "URGENT" && !t.isUrgent && t.daysOverdue <= 0) return false;
+      if (activeTab !== "URGENT" && t.type !== activeTab) return false;
+    }
+
+    // Policy Status filter
+    if (policyStatusFilter !== "ALL" && t.status !== policyStatusFilter) return false;
+
+    return true;
   });
 
   // Sort tasks
@@ -410,6 +417,18 @@ export default function ThingsToDoPage() {
                 className="w-full pl-9 pr-4 py-2 bg-[#f5f1eb] text-xs font-medium text-gray-900 border border-[#e5ddd5] rounded-xl outline-none focus:ring-2 focus:ring-[#9A8B7A]/30 focus:border-[#9A8B7A] transition"
               />
             </div>
+
+            <select
+              value={policyStatusFilter}
+              onChange={(e: any) => setPolicyStatusFilter(e.target.value)}
+              className="py-2 px-3 bg-[#f5f1eb] text-xs font-medium text-gray-700 border border-[#e5ddd5] rounded-xl outline-none focus:ring-2 focus:ring-[#9A8B7A]/30 transition"
+            >
+              <option value="ALL">All Statuses</option>
+              <option value="SUBMITTED">Submitted</option>
+              <option value="QUOTED">Quoted</option>
+              <option value="BIND_REQUESTED">Bind Requested</option>
+              <option value="BOUND">Bound</option>
+            </select>
 
             <select
               value={sortBy}

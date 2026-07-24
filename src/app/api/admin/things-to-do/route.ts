@@ -140,7 +140,7 @@ export async function GET(req: NextRequest) {
             requestedAt: requestedDate.toISOString(),
             daysOverdue,
             isUrgent: daysOverdue >= 3, // Overdue when > 3 days (e.g. Monday to following week = 7 days overdue)
-            status: "PENDING_SUBJECTIVE",
+            status: sub.status,
             targetUrl: `/admin/submissions/${sub._id}`,
           });
         }
