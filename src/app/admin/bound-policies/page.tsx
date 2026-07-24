@@ -52,14 +52,22 @@ interface BoundPolicy {
   createdAt: string;
 }
 
+let cachedBoundPolicies: BoundPolicy[] | null = null;
+
 export default function AdminBoundPoliciesPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const [policies, setPolicies] = useState<BoundPolicy[]>([]);
+  const [policies, setPolicies] = useState<BoundPolicy[]>(() => cachedBoundPolicies || []);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<boolean>(() => !cachedBoundPolicies || cachedBoundPolicies.length === 0);
   const [error, setError] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("sterling_admin_back_url", "/admin/bound-policies");
+    }
+  }, []);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -75,7 +83,7 @@ export default function AdminBoundPoliciesPage() {
   }, [status, router]);
 
   const fetchBoundPolicies = async () => {
-    if (policies.length === 0) {
+    if (!cachedBoundPolicies || cachedBoundPolicies.length === 0) {
       setLoading(true);
     }
     setError("");
@@ -90,6 +98,7 @@ export default function AdminBoundPoliciesPage() {
       }
 
       const policiesData = data.policies || [];
+      cachedBoundPolicies = policiesData;
       setPolicies(policiesData);
     } catch (err: any) {
       console.error("Fetch bound policies error:", err);

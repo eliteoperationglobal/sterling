@@ -53,6 +53,10 @@ interface PipelineStage {
   color?: string;
 }
 
+let cachedAgencySubmissions: Submission[] | null = null;
+let cachedAgencyStats: DashboardStats | null = null;
+let cachedNewQuotes: any[] = [];
+
 function AgencyDashboardContent() {
   const [profileOpen, setProfileOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
@@ -100,16 +104,16 @@ function AgencyDashboardContent() {
   const notifRef = useRef<HTMLDivElement>(null);
 
   const [submissions, setSubmissions] = useState<Submission[]>([]);
-  const [allSubmissions, setAllSubmissions] = useState<Submission[]>([]);
+  const [allSubmissions, setAllSubmissions] = useState<Submission[]>(() => cachedAgencySubmissions || []);
   const [notifLoading, setNotifLoading] = useState(false);
-  const [stats, setStats] = useState<DashboardStats>({
+  const [stats, setStats] = useState<DashboardStats>(() => cachedAgencyStats || {
     totalSubmissions: 0,
     activeQuotes: 0,
     postedQuotes: 0,
     boundPolicies: 0,
     cancelledPolicies: 0,
   });
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<boolean>(() => !cachedAgencySubmissions || cachedAgencySubmissions.length === 0);
   const [filterStatus, setFilterStatus] = useState("ALL");
   const [filterStartDate, setFilterStartDate] = useState("");
   const [filterEndDate, setFilterEndDate] = useState("");
@@ -121,7 +125,7 @@ function AgencyDashboardContent() {
   const [filterProgram, setFilterProgram] = useState<string>("ALL");
   const [filterAgent, setFilterAgent] = useState<string>("ALL");
   const [showFilters, setShowFilters] = useState(false);
-  const [newQuotes, setNewQuotes] = useState<any[]>([]);
+  const [newQuotes, setNewQuotes] = useState<any[]>(() => cachedNewQuotes);
 
   // Map ISC pipeline stages to real database statuses
   const stageToStatusMap: Record<string, string | string[]> = {
@@ -143,17 +147,10 @@ function AgencyDashboardContent() {
   const [pipelineStages, setPipelineStages] = useState<PipelineStage[]>([
     { id: "ALL", label: "All Applications", count: 0 },
     { id: "IN_PROGRESS", label: "In Progress", count: 0 },
-    // { id: "REQUIRES_REVIEW", label: "Requires Review", count: 0 },
-    // { id: "APPROVAL_REQUESTED", label: "Approval Requested", count: 0 },
-    // { id: "CONDITIONALLY_APPROVED", label: "Quote Conditionally Approved", count: 0 },
     { id: "APPROVED_QUOTE", label: "Approved Quote", count: 0, color: "teal" },
-    // { id: "PENDING_BIND", label: "Pending Bind", count: 0 },
-    // { id: "INCOMPLETE_BIND", label: "Incomplete Bind", count: 0 },
-    // { id: "READY_TO_BIND", label: "Ready To Bind", count: 0 },
     { id: "BOUND", label: "Bound", count: 0 },
     { id: "PENDING_CANCEL", label: "Pending Cancel", count: 0 },
     { id: "CANCELLED", label: "Cancelled", count: 0 },
-    // { id: "UNDERWRITING_DECLINED", label: "Underwriting Declined", count: 0 },
   ]);
 
   useEffect(() => {
@@ -164,8 +161,7 @@ function AgencyDashboardContent() {
 
   useEffect(() => {
     if (status === "authenticated") {
-      fetchAllSubmissions();
-      fetchStats();
+      fetchAgencyData();
     }
   }, [status, filterStartDate, filterEndDate]);
 
@@ -266,21 +262,28 @@ function AgencyDashboardContent() {
 
   useEffect(() => {
     if (searchParams.get("submitted") === "true") {
-      fetchAllSubmissions();
-      fetchStats();
+      cachedAgencySubmissions = null;
+      cachedAgencyStats = null;
+      fetchAgencyData(true);
       router.replace("/agency/dashboard");
     }
   }, [searchParams, router]);
 
-  const fetchStats = async () => {
+  const fetchAgencyData = async (forceShowLoading = false) => {
+    if (forceShowLoading || !cachedAgencySubmissions || cachedAgencySubmissions.length === 0) {
+      setLoading(true);
+    }
     try {
+      const params = new URLSearchParams();
+      if (filterStartDate) params.append("startDate", filterStartDate);
+      if (filterEndDate) params.append("endDate", filterEndDate);
+      params.append("t", Date.now().toString());
+
       const [submissionsRes, quotesRes, boundRes, cancelRes] = await Promise.all([
-        fetch("/api/agency/submissions"),
+        fetch(`/api/agency/submissions?${params.toString()}`),
         fetch("/api/agency/quotes?status=POSTED"),
         fetch("/api/agency/bound-policies"),
         fetch("/api/agency/cancel-requests"),
-        fetch("/api/admin/cancel-requests"),
-
       ]);
 
       const submissionsData = submissionsRes.ok ? await submissionsRes.json() : { submissions: [] };
@@ -288,7 +291,9 @@ function AgencyDashboardContent() {
       const boundData = boundRes.ok ? await boundRes.json() : { policies: [] };
       const cancelData = cancelRes.ok ? await cancelRes.json() : { requests: [] };
 
-
+      const fetchedSubmissions = submissionsData.submissions || [];
+      cachedAgencySubmissions = fetchedSubmissions;
+      setAllSubmissions(fetchedSubmissions);
 
       // Filter new quotes (POSTED status, created in last 7 days)
       const sevenDaysAgo = new Date();
@@ -297,35 +302,18 @@ function AgencyDashboardContent() {
         const quoteDate = new Date(q.createdAt);
         return q.status === "POSTED" && quoteDate >= sevenDaysAgo;
       }) || [];
+      cachedNewQuotes = newQuotesList;
       setNewQuotes(newQuotesList);
 
-      setStats({
-        totalSubmissions: submissionsData.submissions?.length || 0,
+      const computedStats: DashboardStats = {
+        totalSubmissions: fetchedSubmissions.length,
         activeQuotes: quotesData.quotes?.length || 0,
         postedQuotes: quotesData.quotes?.length || 0,
         boundPolicies: boundData.policies?.length || 0,
         cancelledPolicies: cancelData.requests?.filter((r: any) => r.status === "APPROVED").length || 0,
-
-      });
-    } catch (error) {
-      console.error("Error fetching stats:", error);
-    }
-  };
-
-  const fetchAllSubmissions = async () => {
-    setLoading(true);
-    try {
-      const params = new URLSearchParams();
-      if (filterStartDate) params.append("startDate", filterStartDate);
-      if (filterEndDate) params.append("endDate", filterEndDate);
-      params.append("t", Date.now().toString());
-
-      const response = await fetch(`/api/agency/submissions?${params.toString()}`);
-      if (!response.ok) throw new Error("Failed to fetch submissions");
-
-      const data = await response.json();
-      const fetchedSubmissions = data.submissions || [];
-      setAllSubmissions(fetchedSubmissions);
+      };
+      cachedAgencyStats = computedStats;
+      setStats(computedStats);
 
       // Calculate counts for each stage
       const counts: Record<string, number> = {
@@ -350,30 +338,18 @@ function AgencyDashboardContent() {
         }
       });
 
-      // Update pipeline stages with real counts
       setPipelineStages([
         { id: "ALL", label: "All Applications", count: fetchedSubmissions.length },
         { id: "IN_PROGRESS", label: "In Progress", count: (counts.SUBMITTED || 0) + (counts.APPROVAL_REQUESTED || 0) + (counts.ROUTED || 0) },
-        // { id: "REQUIRES_REVIEW", label: "Requires Review", count: 0 },
-        // { id: "APPROVAL_REQUESTED", label: "Approval Requested", count: Math.floor((counts.ROUTED || 0) / 3) },
-        // { id: "CONDITIONALLY_APPROVED", label: "Quote Conditionally Approved", count: 0 },
         { id: "APPROVED_QUOTE", label: "Approved Quote", count: (counts.QUOTED || 0) + (counts.BIND_REQUESTED || 0), color: "teal" },
-        // { id: "PENDING_BIND", label: "Pending Bind", count: 0 },
-        // { id: "INCOMPLETE_BIND", label: "Incomplete Bind", count: 0 },
-        // { id: "READY_TO_BIND", label: "Ready To Bind", count: counts.BIND_REQUESTED || 0 },
         { id: "BOUND", label: "Bound", count: counts.BOUND || 0 },
         { id: "PENDING_CANCEL", label: "Pending Cancel", count: counts.PENDING_CANCEL || 0 },
         { id: "CANCELLED", label: "Cancelled", count: (counts.CANCELLED || 0) + (counts.DECLINED || 0) },
-        // { id: "UNDERWRITING_DECLINED", label: "Underwriting Declined", count: 0 },
       ]);
 
-      // Filter by selected stage initially
       filterSubmissionsByStageWithData(fetchedSubmissions);
-
     } catch (error: any) {
-      console.error("Error fetching submissions:", error.message);
-      setAllSubmissions([]);
-      setSubmissions([]);
+      console.error("Error fetching agency dashboard data:", error);
     } finally {
       setLoading(false);
     }

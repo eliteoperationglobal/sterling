@@ -1085,7 +1085,14 @@ export default function AdminSubmissionDetailsPage() {
           <div className="flex items-start justify-between">
             <div className="bg-white px-8 py-3">
               <button
-                onClick={() => router.push(`/admin/submissions`)}
+                onClick={() => {
+                  if (typeof window !== "undefined") {
+                    const lastPage = sessionStorage.getItem("sterling_admin_back_url") || "/admin/submissions";
+                    router.push(lastPage);
+                  } else {
+                    router.push("/admin/submissions");
+                  }
+                }}
                 className="flex items-center text-gray-500 hover:text-[#9A8B7A] transition-colors mb-4 font-medium text-sm w-fit"
               >
                 <ArrowLeft className="w-4 h-4 mr-1.5" /> Back

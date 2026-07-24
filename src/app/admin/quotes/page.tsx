@@ -22,15 +22,23 @@ interface Quote {
   createdAt: string;
 }
 
+let cachedQuotes: Quote[] | null = null;
+
 export default function AdminQuotesPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const [quotes, setQuotes] = useState<Quote[]>([]);
+  const [quotes, setQuotes] = useState<Quote[]>(() => cachedQuotes || []);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<boolean>(() => !cachedQuotes || cachedQuotes.length === 0);
   const [error, setError] = useState("");
   const [filter, setFilter] = useState<string>("ALL");
   const [searchQuery, setSearchQuery] = useState("");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("sterling_admin_back_url", "/admin/quotes");
+    }
+  }, []);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -46,7 +54,7 @@ export default function AdminQuotesPage() {
   }, [status, router]);
 
   const fetchQuotes = async () => {
-    if (quotes.length === 0) {
+    if (!cachedQuotes || cachedQuotes.length === 0) {
       setLoading(true);
     }
     setError("");
@@ -54,6 +62,7 @@ export default function AdminQuotesPage() {
       const response = await fetch("/api/admin/quotes");
       const data = await response.json();
       if (data.quotes) {
+        cachedQuotes = data.quotes;
         setQuotes(data.quotes);
       } else if (data.error) {
         setError(data.error);

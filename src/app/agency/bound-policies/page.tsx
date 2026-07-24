@@ -33,11 +33,13 @@ interface BoundPolicy {
   createdAt: string;
 }
 
+let cachedAgencyBoundPolicies: BoundPolicy[] | null = null;
+
 export default function AgencyBoundPoliciesPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const [policies, setPolicies] = useState<BoundPolicy[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [policies, setPolicies] = useState<BoundPolicy[]>(() => cachedAgencyBoundPolicies || []);
+  const [loading, setLoading] = useState<boolean>(() => !cachedAgencyBoundPolicies || cachedAgencyBoundPolicies.length === 0);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -51,10 +53,12 @@ export default function AgencyBoundPoliciesPage() {
         fetchPolicies();
       }
     }
-  }, [status, session, router]);
+  }, [status, router]);
 
   const fetchPolicies = async () => {
-    setLoading(true);
+    if (!cachedAgencyBoundPolicies || cachedAgencyBoundPolicies.length === 0) {
+      setLoading(true);
+    }
     setError("");
     try {
       const response = await fetch("/api/agency/bound-policies", {
@@ -66,13 +70,12 @@ export default function AgencyBoundPoliciesPage() {
       }
 
       const data = await response.json();
-      setPolicies(data.policies || []);
+      const fetchedPolicies = data.policies || [];
+      cachedAgencyBoundPolicies = fetchedPolicies;
+      setPolicies(fetchedPolicies);
     } catch (err: any) {
       console.error("Fetch policies error:", err);
       setError(err.message || "Failed to load bound policies");
-      toast.error("Failed to load bound policies", {
-        description: err.message || "An error occurred",
-      });
     } finally {
       setLoading(false);
     }

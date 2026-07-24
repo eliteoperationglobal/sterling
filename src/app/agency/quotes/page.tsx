@@ -27,11 +27,13 @@ interface Quote {
   createdAt: string;
 }
 
+let cachedAgencyQuotes: Quote[] | null = null;
+
 export default function AgencyQuotesPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [quotes, setQuotes] = useState<Quote[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<boolean>(() => !cachedAgencyQuotes || cachedAgencyQuotes.length === 0);
   const [editingQuoteId, setEditingQuoteId] = useState<string | null>(null);
   const [brokerFee, setBrokerFee] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -40,7 +42,7 @@ export default function AgencyQuotesPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterCarrier, setFilterCarrier] = useState<string>("ALL");
   const [showFilters, setShowFilters] = useState(false);
-  const [allQuotes, setAllQuotes] = useState<Quote[]>([]);
+  const [allQuotes, setAllQuotes] = useState<Quote[]>(() => cachedAgencyQuotes || []);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -102,7 +104,9 @@ export default function AgencyQuotesPage() {
   }, []);
 
   const fetchQuotes = async (statusFilter?: string) => {
-    setLoading(true);
+    if (!cachedAgencyQuotes || cachedAgencyQuotes.length === 0) {
+      setLoading(true);
+    }
     setError("");
     try {
       const params = new URLSearchParams();
@@ -124,6 +128,7 @@ export default function AgencyQuotesPage() {
       console.log("✅ Quotes fetched:", data.count || 0);
 
       if (data.quotes) {
+        cachedAgencyQuotes = data.quotes;
         setAllQuotes(data.quotes);
         // Apply client-side filtering for search and carrier
         applyFilters(data.quotes);

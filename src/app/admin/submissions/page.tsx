@@ -33,12 +33,14 @@ interface PipelineStage {
   count?: number;
 }
 
+let cachedSubmissions: Submission[] | null = null;
+
 export default function AdminSubmissionsPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [submissions, setSubmissions] = useState<Submission[]>([]);
-  const [allSubmissions, setAllSubmissions] = useState<Submission[]>([]); // To get counts
-  const [loading, setLoading] = useState(true);
+  const [allSubmissions, setAllSubmissions] = useState<Submission[]>(() => cachedSubmissions || []);
+  const [loading, setLoading] = useState<boolean>(() => !cachedSubmissions || cachedSubmissions.length === 0);
   const [error, setError] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [profileOpen, setProfileOpen] = useState(false);
@@ -56,6 +58,7 @@ export default function AdminSubmissionsPage() {
         method: "DELETE"
       });
       if (res.ok) {
+        cachedSubmissions = (cachedSubmissions || []).filter(s => s._id !== submissionToDelete);
         setSubmissions(prev => prev.filter(s => s._id !== submissionToDelete));
         setAllSubmissions(prev => prev.filter(s => s._id !== submissionToDelete));
         setDeleteModalOpen(false);
@@ -73,6 +76,12 @@ export default function AdminSubmissionsPage() {
   };
 
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("sterling_admin_back_url", "/admin/submissions");
+    }
+  }, []);
+
+  useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/signin");
     } else if (status === "authenticated") {
@@ -86,7 +95,7 @@ export default function AdminSubmissionsPage() {
   }, [status, router]);
 
   const fetchSubmissionsData = async () => {
-    if (allSubmissions.length === 0) {
+    if (!cachedSubmissions || cachedSubmissions.length === 0) {
       setLoading(true);
     }
     setError("");
@@ -99,6 +108,7 @@ export default function AdminSubmissionsPage() {
       }
 
       if (data.submissions) {
+        cachedSubmissions = data.submissions;
         setAllSubmissions(data.submissions);
       } else if (data.error) {
         setError(data.error);

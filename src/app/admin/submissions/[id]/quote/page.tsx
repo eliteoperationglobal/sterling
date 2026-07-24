@@ -1259,15 +1259,15 @@ export default function AdminQuotePage() {
       {/* Main Content */}
       <main className="max-w-5xl mx-auto px-6 lg:px-8 py-8">
         <div className="mb-6">
-          <Link
-            href={`/admin/submissions/${submissionId}`}
+          <button
+            onClick={() => router.push(`/admin/submissions/${submissionId}`)}
             className="inline-flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors group"
           >
             <svg className="w-4 h-4 group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
-            Back to Submission
-          </Link>
+            Back
+          </button>
         </div>
 
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200/60 p-8">
@@ -1779,7 +1779,7 @@ export default function AdminQuotePage() {
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  {isPropertyPolicy 
+                  {isPropertyPolicy
                     ? "Coverage limits are pre-filled from the application form. You can edit if needed."
                     : "Policy limits and endorsements are pre-filled from the application form. You can edit if needed."}
                 </p>
@@ -2004,38 +2004,38 @@ export default function AdminQuotePage() {
 
             {/* Endorsements Section */}
             {!isPropertyPolicy && (
-            <div className="bg-gradient-to-br from-indigo-50 to-blue-50 rounded-xl p-6 border border-indigo-200/60">
-              <h3 className="text-lg font-bold text-gray-900 mb-2 flex items-center gap-2">
-                <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-blue-500 rounded-lg flex items-center justify-center">
-                  <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
+              <div className="bg-gradient-to-br from-indigo-50 to-blue-50 rounded-xl p-6 border border-indigo-200/60">
+                <h3 className="text-lg font-bold text-gray-900 mb-2 flex items-center gap-2">
+                  <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-blue-500 rounded-lg flex items-center justify-center">
+                    <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  Included Endorsements
+                </h3>
+                <p className="text-xs text-gray-600 mb-4">
+                  Pre-filled from application form. You can modify if needed.
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {availableEndorsements.map((endorsement) => (
+                    <label key={endorsement} className="flex items-center gap-3 cursor-pointer p-3 bg-white rounded-lg border-2 border-gray-200 hover:border-indigo-300 hover:shadow-md transition-all">
+                      <input
+                        type="checkbox"
+                        checked={selectedEndorsements.includes(endorsement)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedEndorsements([...selectedEndorsements, endorsement]);
+                          } else {
+                            setSelectedEndorsements(selectedEndorsements.filter((e) => e !== endorsement));
+                          }
+                        }}
+                        className="w-5 h-5 text-indigo-600 border-2 border-gray-300 rounded focus:ring-indigo-500 focus:ring-2 transition"
+                      />
+                      <span className="text-sm text-gray-900 font-medium">{endorsement}</span>
+                    </label>
+                  ))}
                 </div>
-                Included Endorsements
-              </h3>
-              <p className="text-xs text-gray-600 mb-4">
-                Pre-filled from application form. You can modify if needed.
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {availableEndorsements.map((endorsement) => (
-                  <label key={endorsement} className="flex items-center gap-3 cursor-pointer p-3 bg-white rounded-lg border-2 border-gray-200 hover:border-indigo-300 hover:shadow-md transition-all">
-                    <input
-                      type="checkbox"
-                      checked={selectedEndorsements.includes(endorsement)}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setSelectedEndorsements([...selectedEndorsements, endorsement]);
-                        } else {
-                          setSelectedEndorsements(selectedEndorsements.filter((e) => e !== endorsement));
-                        }
-                      }}
-                      className="w-5 h-5 text-indigo-600 border-2 border-gray-300 rounded focus:ring-indigo-500 focus:ring-2 transition"
-                    />
-                    <span className="text-sm text-gray-900 font-medium">{endorsement}</span>
-                  </label>
-                ))}
               </div>
-            </div>
             )}
 
             {/* Policy Details Section */}
@@ -2231,8 +2231,8 @@ export default function AdminQuotePage() {
                     }
                   }}
                   className={`relative group cursor-pointer transition-all duration-300 ${isDragging
-                      ? "border-[#9A8B7A] bg-[#9A8B7A]/5"
-                      : "border-gray-200 hover:border-[#9A8B7A] bg-gray-50 hover:bg-white"
+                    ? "border-[#9A8B7A] bg-[#9A8B7A]/5"
+                    : "border-gray-200 hover:border-[#9A8B7A] bg-gray-50 hover:bg-white"
                     } border-2 border-dashed rounded-xl p-6 text-center mb-4`}
                   onClick={() => document.getElementById('support-doc-upload')?.click()}
                 >

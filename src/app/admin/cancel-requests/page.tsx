@@ -21,6 +21,12 @@ export default function CancelRequestsPage() {
   const [cancellationDate, setCancellationDate] = useState("");
 
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("sterling_admin_back_url", "/admin/cancel-requests");
+    }
+  }, []);
+
+  useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/signin");
     } else if (status === "authenticated") {

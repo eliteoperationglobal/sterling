@@ -78,6 +78,12 @@ export default function AdminBindRequestsPage() {
   });
 
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("sterling_admin_back_url", "/admin/bind-requests");
+    }
+  }, []);
+
+  useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/signin");
     } else if (status === "authenticated") {
