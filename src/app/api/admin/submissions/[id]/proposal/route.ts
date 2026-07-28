@@ -219,7 +219,7 @@ export async function GET(
     let policyFeeUSD = quote?.policyFeeUSD || 0;
     let brokerFeeAmountUSD = quote?.brokerFeeAmountUSD || 0;
     let finalAmountUSD = quote?.finalAmountUSD || 0;
-    let effectiveDate = quote?.effectiveDate ? new Date(quote.effectiveDate) : new Date();
+    let effectiveDate = quote?.effectiveDate ? new Date(quote.effectiveDate) : ((formData?.effectiveDate || formData?.proposedEffectiveDateFrom) ? new Date(formData.effectiveDate || formData.proposedEffectiveDateFrom) : new Date());
     let expirationDate = quote?.expirationDate ? new Date(quote.expirationDate) : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
     let limits = quote?.limits || {};
     let endorsements = quote?.endorsements || [];

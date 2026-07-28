@@ -260,7 +260,7 @@ export async function GET(
     let policyFeeUSD = 0;
     let brokerFeeAmountUSD = 0;
     let finalAmountUSD = 0;
-    let effectiveDate = new Date();
+    let effectiveDate = (formData?.effectiveDate || formData?.proposedEffectiveDateFrom) ? new Date(formData.effectiveDate || formData.proposedEffectiveDateFrom) : new Date();
     let expirationDate = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
     let limits: any = undefined;
     let endorsements: string[] = [];

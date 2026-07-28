@@ -21,12 +21,6 @@ export default function CancelRequestsPage() {
   const [cancellationDate, setCancellationDate] = useState("");
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      sessionStorage.setItem("sterling_admin_back_url", "/admin/cancel-requests");
-    }
-  }, []);
-
-  useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/signin");
     } else if (status === "authenticated") {
@@ -226,8 +220,8 @@ export default function CancelRequestsPage() {
 
                   <td className="p-4">
                     <span className={`px-3 py-1 text-xs font-bold rounded-full border ${r.status === "APPROVED"
-                        ? "bg-green-50 text-green-700 border-green-200"
-                        : "bg-amber-50 text-amber-700 border-amber-200"
+                      ? "bg-green-50 text-green-700 border-green-200"
+                      : "bg-amber-50 text-amber-700 border-amber-200"
                       }`}>
                       {r.status}
                     </span>

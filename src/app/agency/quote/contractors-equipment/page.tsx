@@ -348,8 +348,10 @@ function ContractorsEquipmentContent() {
     const isPatrickArias = agencyName.includes("Patrick Arias") || userEmail.includes("patrickariasinsurance")
     const isTitan = agencyName.toLowerCase().includes("titan") || userEmail.includes("solutions@titaninssolutions.com")
 
+    const isTexas = agencyName.toLowerCase().includes("texas commercial") || userEmail.includes("texascomm@services.com")
+
     const TITAN_AGENTS = ["Judah Cohen"];
-    const agentOptions = isCapco ? CAPCO_AGENTS : isBlueAngel ? BLUE_ANGEL_AGENTS : isSJJ ? SJJ_AGENTS : isPatrickArias ? PATRICK_ARIAS_AGENTS : isTitan ? TITAN_AGENTS : []
+    const agentOptions = isCapco ? CAPCO_AGENTS : isBlueAngel ? BLUE_ANGEL_AGENTS : isSJJ ? SJJ_AGENTS : isPatrickArias ? PATRICK_ARIAS_AGENTS : isTitan ? TITAN_AGENTS : isTexas ? CAPCO_AGENTS : []
 
     // State
     const [agentName, setAgentName] = useState('')

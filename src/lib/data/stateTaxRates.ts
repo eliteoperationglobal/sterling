@@ -59,7 +59,7 @@ export const STATE_TAX_RATES: Record<string, StateTaxRate> = {
   FL: { state: "FL", stateName: "Florida", taxRate: 4.94, stampingFee: 0.06 },
 
   // Georgia
-  GA: { state: "GA", stateName: "Georgia", taxRate: 4 },
+  GA: { state: "GA", stateName: "Georgia", taxRate: 4, stampingFee: 0.06 },
 
   // Hawaii
   HI: { state: "HI", stateName: "Hawaii", taxRate: 4.68 },
@@ -128,7 +128,7 @@ export const STATE_TAX_RATES: Record<string, StateTaxRate> = {
   NY: { state: "NY", stateName: "New York", taxRate: 3.6, stampingFee: 0.15 },
 
   // North Carolina
-  NC: { state: "NC", stateName: "North Carolina", taxRate: 5 },
+  NC: { state: "NC", stateName: "North Carolina", taxRate: 5, stampingFee: 0.3 },
 
   // North Dakota
   ND: { state: "ND", stateName: "North Dakota", taxRate: 1.75 },

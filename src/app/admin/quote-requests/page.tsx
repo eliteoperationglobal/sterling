@@ -37,12 +37,6 @@ export default function AdminQuoteRequestsPage() {
   const [profileOpen, setProfileOpen] = useState(false);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      sessionStorage.setItem("sterling_admin_back_url", "/admin/quote-requests");
-    }
-  }, []);
-
-  useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/signin");
     } else if (status === "authenticated") {

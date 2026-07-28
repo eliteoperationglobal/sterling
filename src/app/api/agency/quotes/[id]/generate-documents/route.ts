@@ -123,7 +123,7 @@ export async function POST(
         carrierName: carrier.name,
         carrierReference: quote.carrierReference,
         programName: (submission as any).programName || "Advantage Contractor GL",
-        effectiveDate: quote.effectiveDate ? formatDateMMDDYYYY(quote.effectiveDate) : formatDateMMDDYYYY(new Date()),
+        effectiveDate: quote.effectiveDate ? formatDateMMDDYYYY(quote.effectiveDate) : ((formData?.effectiveDate || formData?.proposedEffectiveDateFrom) ? formatDateMMDDYYYY(formData.effectiveDate || formData.proposedEffectiveDateFrom) : formatDateMMDDYYYY(new Date())),
         expirationDate: quote.expirationDate ? formatDateMMDDYYYY(quote.expirationDate) : formatDateMMDDYYYY(new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)),
         carrierQuoteUSD: quote.carrierQuoteUSD,
         premiumTaxPercent: quote.premiumTaxPercent,
