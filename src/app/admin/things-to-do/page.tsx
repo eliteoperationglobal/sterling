@@ -55,7 +55,7 @@ let cachedCounts = {
 export default function ThingsToDoPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const isMaintenanceMode = true; // Set to false to remove maintenance mode later
+  const isMaintenanceMode = false; // Set to false to remove maintenance mode later
 
   const [tasks, setTasks] = useState<TaskItem[]>(() => cachedTasks || []);
   const [counts, setCounts] = useState(() => cachedCounts);
