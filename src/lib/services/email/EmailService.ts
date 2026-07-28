@@ -1144,3 +1144,175 @@ export async function sendAdminNoteToBroker(data: AdminNoteEmailData): Promise<b
     text: `A new note was added by ${data.adminName} for ${data.companyName}: "${data.noteContent}"`,
   });
 }
+
+export interface AdminNotificationEmailData {
+  type: string;
+  title: string;
+  description: string;
+  submissionId?: string;
+  submissionNumber?: string | number;
+  clientName?: string;
+  performedByName?: string;
+  performedByRole?: string;
+  timestamp?: Date | string;
+}
+
+/**
+ * Generate admin notification email HTML
+ */
+export function generateAdminNotificationEmailHTML(data: AdminNotificationEmailData): string {
+  const portalUrl = getBaseUrl();
+  const submissionLink = data.submissionId ? `${portalUrl}/admin/submissions/${data.submissionId}` : `${portalUrl}/admin/dashboard`;
+
+  return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${data.title}</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background-color: #f5f1eb;
+      color: #2d2a26;
+    }
+    .container {
+      max-width: 600px;
+      margin: 30px auto;
+      background-color: #ffffff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      border: 1px solid #e5ddd5;
+    }
+    .header {
+      background-color: #9A8B7A;
+      color: #ffffff;
+      padding: 24px 30px;
+      text-align: center;
+    }
+    .header h1 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+    .content {
+      padding: 30px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: 20px;
+      background-color: #f5f1eb;
+      color: #9A8B7A;
+      margin-bottom: 16px;
+      text-transform: uppercase;
+    }
+    .title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #2d2a26;
+      margin-bottom: 12px;
+    }
+    .description {
+      font-size: 15px;
+      color: #6b5e52;
+      line-height: 1.6;
+      margin-bottom: 24px;
+      background-color: #fdfbf7;
+      padding: 16px;
+      border-left: 4px solid #9A8B7A;
+      border-radius: 4px;
+    }
+    .details-box {
+      background-color: #f9f7f4;
+      padding: 16px;
+      border-radius: 8px;
+      margin-bottom: 24px;
+      font-size: 14px;
+    }
+    .cta-button {
+      display: inline-block;
+      background-color: #9A8B7A;
+      color: #ffffff !important;
+      text-decoration: none;
+      padding: 14px 28px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 14px;
+      text-align: center;
+    }
+    .footer {
+      background-color: #f9f7f4;
+      padding: 20px 30px;
+      text-align: center;
+      font-size: 12px;
+      color: #8c827a;
+      border-top: 1px solid #e5ddd5;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Sterling Insurance Services</h1>
+    </div>
+    <div class="content">
+      <div class="badge">${data.type.replace(/_/g, " ")}</div>
+      <div class="title">${data.title}</div>
+      <div class="description">${data.description}</div>
+
+      <div class="details-box">
+        ${data.submissionNumber ? `<p style="margin:4px 0;"><strong>Submission #:</strong> ${data.submissionNumber}</p>` : ""}
+        ${data.clientName ? `<p style="margin:4px 0;"><strong>Client:</strong> ${data.clientName}</p>` : ""}
+        ${data.performedByName ? `<p style="margin:4px 0;"><strong>Action By:</strong> ${data.performedByName} (${data.performedByRole || "User"})</p>` : ""}
+        <p style="margin:4px 0;"><strong>Date/Time:</strong> ${new Date(data.timestamp || Date.now()).toLocaleString("en-US", { timeZone: "America/Los_Angeles" })} PST</p>
+      </div>
+
+      <div style="text-align: center; margin-top: 24px;">
+        <a href="${submissionLink}" class="cta-button">
+          Open Admin Control Center
+        </a>
+      </div>
+    </div>
+    <div class="footer">
+      <p>This is an automated administrative alert from Sterling Insurance Portal.</p>
+    </div>
+  </div>
+</body>
+</html>
+  `;
+}
+
+/**
+ * Send notification email to admin email
+ */
+export async function sendAdminNotificationEmail(data: AdminNotificationEmailData): Promise<boolean> {
+  try {
+    // Feature flag to pause/resume admin email notifications.
+    // Set ENABLE_ADMIN_EMAIL_NOTIFICATIONS=true in .env or Vercel when ready to start sending emails.
+    const isEnabled = process.env.ENABLE_ADMIN_EMAIL_NOTIFICATIONS === "true";
+    if (!isEnabled) {
+      return true; // Paused for now
+    }
+
+    const adminEmail = process.env.ADMIN_NOTIFICATION_EMAIL || "info@sterlinginsurancepartners.com";
+    const html = generateAdminNotificationEmailHTML(data);
+
+    return await sendEmail({
+      to: adminEmail,
+      subject: `🔔 Admin Notification: ${data.title}`,
+      html,
+      text: `[Admin Alert] ${data.title}: ${data.description}`,
+    });
+  } catch (error) {
+    console.error("❌ Exception in sendAdminNotificationEmail:", error);
+    return false;
+  }
+}

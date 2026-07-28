@@ -1,5 +1,20 @@
 import ActivityLog, { ActivityType } from "@/models/ActivityLog";
 import connectDB from "@/lib/mongodb";
+import { sendAdminNotificationEmail } from "@/lib/services/email/EmailService";
+
+const ADMIN_NOTIFICATION_TYPES: ActivityType[] = [
+  "SUBMISSION_CREATED",
+  "APPROVAL_REQUESTED",
+  "BIND_REQUESTED",
+  "POLICY_BOUND",
+];
+
+const ADMIN_NOTIFICATION_TITLES: Record<string, string> = {
+  SUBMISSION_CREATED: "New Submission",
+  APPROVAL_REQUESTED: "Approval Requested",
+  BIND_REQUESTED: "Bind Requested",
+  POLICY_BOUND: "Policy Bound",
+};
 
 export interface ActivityLogData {
   submissionId?: string;
@@ -40,6 +55,28 @@ export async function logActivity(data: ActivityLogData): Promise<void> {
     });
 
     console.log(`✅ Activity logged: ${data.activityType} - ${data.description}`);
+
+    // Trigger async admin notification email if this activity is an admin notification type
+    if (ADMIN_NOTIFICATION_TYPES.includes(data.activityType)) {
+      const title = ADMIN_NOTIFICATION_TITLES[data.activityType] || "Admin Alert";
+      const clientName = data.details?.clientName || data.details?.applicantName || data.details?.companyName || "";
+      const submissionNumber = data.details?.applicationNumber || data.details?.submissionNumber || "";
+
+      // Send email asynchronously in background - failure won't affect caller
+      sendAdminNotificationEmail({
+        type: data.activityType,
+        title,
+        description: data.description,
+        submissionId: data.submissionId,
+        submissionNumber,
+        clientName,
+        performedByName: data.performedBy.userName,
+        performedByRole: data.performedBy.userRole,
+        timestamp: new Date(),
+      }).catch((emailErr) => {
+        console.error("❌ Non-blocking admin notification email error:", emailErr);
+      });
+    }
   } catch (error: any) {
     // Log error but don't throw - activity logging should not break main operations
     console.error("❌ Failed to log activity:", error.message);
