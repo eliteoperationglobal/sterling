@@ -618,19 +618,12 @@ export default function AdminBindRequestsPage() {
                   <input
                     type="date"
                     value={policyForms[activePolicyTab]?.expirationDate || ""}
-                    readOnly={activePolicyTab !== "EXCESS_LIABILITY"}
-                    onChange={activePolicyTab === "EXCESS_LIABILITY" ? handleExpirationDateChange : undefined}
-                    className={
-                      activePolicyTab === "EXCESS_LIABILITY"
-                        ? "w-full px-4 py-2.5 bg-gray-50 border border-[#e5ddd5] rounded-xl text-gray-900 focus:ring-2 focus:ring-[#9A8B7A]/20 focus:border-[#9A8B7A] transition-all outline-none"
-                        : "w-full px-4 py-2.5 bg-gray-100 border border-gray-200 rounded-xl text-gray-500 cursor-not-allowed outline-none font-medium"
-                    }
+                    onChange={handleExpirationDateChange}
+                    className="w-full px-4 py-2.5 bg-gray-50 border border-[#e5ddd5] rounded-xl text-gray-900 focus:ring-2 focus:ring-[#9A8B7A]/20 focus:border-[#9A8B7A] transition-all outline-none"
                     placeholder="Expiration Date"
                   />
                   <p className="text-[11px] text-gray-400 mt-1 font-medium italic">
-                    {activePolicyTab === "EXCESS_LIABILITY"
-                      ? "* Auto-calculated: 1 year from effective date, but can be manually adjusted for Excess Liability"
-                      : "* Auto-calculated: 1 year from effective date"}
+                    * Auto-calculated: 1 year from effective date, editable if needed
                   </p>
                 </div>
 

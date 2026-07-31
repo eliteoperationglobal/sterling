@@ -47,6 +47,20 @@ interface BoundPolicy {
     brokerFeeAmountUSD: number;
     finalAmountUSD: number;
     policyNumber?: string;
+    policyType?: string;
+    status: string;
+  } | null;
+  excessQuote: {
+    _id: string;
+    carrierId: string;
+    carrierName: string;
+    carrierQuoteUSD: number;
+    premiumTaxAmountUSD?: number;
+    policyFeeUSD?: number;
+    brokerFeeAmountUSD: number;
+    finalAmountUSD: number;
+    policyNumber?: string;
+    policyType?: string;
     status: string;
   } | null;
   createdAt: string;
@@ -339,39 +353,82 @@ export default function AdminBoundPoliciesPage() {
 
                   {/* Policy Details Grid */}
                   {policy.quote && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-gradient-to-br from-gray-50 to-gray-100/50 rounded-xl border border-gray-200/60 mb-4">
-                      {policy.quote.policyNumber && (
-                        <div>
-                          <p className="text-xs text-gray-500 font-medium mb-1">Policy Number</p>
-                          <p className="text-sm font-bold text-gray-900">{policy.quote.policyNumber}</p>
-                        </div>
-                      )}
+                    <div className="space-y-3 mb-4">
+                      {/* General Liability Row */}
                       <div>
-                        <p className="text-xs text-gray-500 font-medium mb-1">Carrier Quote</p>
-                        <p className="text-sm font-bold text-gray-900">${policy.quote.carrierQuoteUSD.toLocaleString('en-US')}</p>
-                      </div>
-                      {policy.quote.premiumTaxAmountUSD && (
-                        <div>
-                          <p className="text-xs text-gray-500 font-medium mb-1">Premium Tax</p>
-                          <p className="text-sm font-bold text-gray-900">${policy.quote.premiumTaxAmountUSD.toFixed(2)}</p>
+                        {policy.excessQuote && (
+                          <p className="text-xs font-bold text-[#9A8B7A] uppercase tracking-wider mb-1.5">General Liability</p>
+                        )}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-gradient-to-br from-gray-50 to-gray-100/50 rounded-xl border border-gray-200/60">
+                          {policy.quote.policyNumber && (
+                            <div>
+                              <p className="text-xs text-gray-500 font-medium mb-1">Policy Number</p>
+                              <p className="text-sm font-bold text-gray-900">{policy.quote.policyNumber}</p>
+                            </div>
+                          )}
+                          <div>
+                            <p className="text-xs text-gray-500 font-medium mb-1">Carrier Quote</p>
+                            <p className="text-sm font-bold text-gray-900">${policy.quote.carrierQuoteUSD.toLocaleString('en-US')}</p>
+                          </div>
+                          {policy.quote.premiumTaxAmountUSD && (
+                            <div>
+                              <p className="text-xs text-gray-500 font-medium mb-1">Premium Tax</p>
+                              <p className="text-sm font-bold text-gray-900">${policy.quote.premiumTaxAmountUSD.toFixed(2)}</p>
+                            </div>
+                          )}
+                          {policy.quote.policyFeeUSD && (
+                            <div>
+                              <p className="text-xs text-gray-500 font-medium mb-1">Policy Fee</p>
+                              <p className="text-sm font-bold text-gray-900">${policy.quote.policyFeeUSD.toFixed(2)}</p>
+                            </div>
+                          )}
+                          <div>
+                            <p className="text-xs text-gray-500 font-medium mb-1">Broker Fee</p>
+                            <p className="text-sm font-bold text-gray-900">${policy.quote.brokerFeeAmountUSD.toLocaleString('en-US')}</p>
+                          </div>
+                          {policy.paymentStatus === "PAID" && policy.paymentDate && (
+                            <div>
+                              <p className="text-xs text-gray-500 font-medium mb-1">Payment Date</p>
+                              <p className="text-sm font-bold text-green-600">
+                                ✓ {new Date(policy.paymentDate).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}
+                              </p>
+                            </div>
+                          )}
                         </div>
-                      )}
-                      {policy.quote.policyFeeUSD && (
-                        <div>
-                          <p className="text-xs text-gray-500 font-medium mb-1">Policy Fee</p>
-                          <p className="text-sm font-bold text-gray-900">${policy.quote.policyFeeUSD.toFixed(2)}</p>
-                        </div>
-                      )}
-                      <div>
-                        <p className="text-xs text-gray-500 font-medium mb-1">Broker Fee</p>
-                        <p className="text-sm font-bold text-gray-900">${policy.quote.brokerFeeAmountUSD.toLocaleString('en-US')}</p>
                       </div>
-                      {policy.paymentStatus === "PAID" && policy.paymentDate && (
+
+                      {/* Excess Liability Row — only shown when present */}
+                      {policy.excessQuote && (
                         <div>
-                          <p className="text-xs text-gray-500 font-medium mb-1">Payment Date</p>
-                          <p className="text-sm font-bold text-green-600">
-                            ✓ {new Date(policy.paymentDate).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}
-                          </p>
+                          <p className="text-xs font-bold text-[#9A8B7A] uppercase tracking-wider mb-1.5">Excess Liability</p>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-gradient-to-br from-amber-50/60 to-orange-50/40 rounded-xl border border-amber-200/60">
+                            {policy.excessQuote.policyNumber && (
+                              <div>
+                                <p className="text-xs text-gray-500 font-medium mb-1">Policy Number</p>
+                                <p className="text-sm font-bold text-gray-900">{policy.excessQuote.policyNumber}</p>
+                              </div>
+                            )}
+                            <div>
+                              <p className="text-xs text-gray-500 font-medium mb-1">Carrier Quote</p>
+                              <p className="text-sm font-bold text-gray-900">${policy.excessQuote.carrierQuoteUSD.toLocaleString('en-US')}</p>
+                            </div>
+                            {policy.excessQuote.premiumTaxAmountUSD && (
+                              <div>
+                                <p className="text-xs text-gray-500 font-medium mb-1">Premium Tax</p>
+                                <p className="text-sm font-bold text-gray-900">${policy.excessQuote.premiumTaxAmountUSD.toFixed(2)}</p>
+                              </div>
+                            )}
+                            {policy.excessQuote.policyFeeUSD && (
+                              <div>
+                                <p className="text-xs text-gray-500 font-medium mb-1">Policy Fee</p>
+                                <p className="text-sm font-bold text-gray-900">${policy.excessQuote.policyFeeUSD.toFixed(2)}</p>
+                              </div>
+                            )}
+                            <div>
+                              <p className="text-xs text-gray-500 font-medium mb-1">Broker Fee</p>
+                              <p className="text-sm font-bold text-gray-900">${policy.excessQuote.brokerFeeAmountUSD.toLocaleString('en-US')}</p>
+                            </div>
+                          </div>
                         </div>
                       )}
                     </div>

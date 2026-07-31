@@ -33,13 +33,12 @@ export async function POST(request: NextRequest) {
     const userId = (session.user as any).id;
     const userRole = (session.user as any).role || "agency";
 
+    // For admin_quote, draft is shared for the submission across admin sessions; otherwise isolated per userId
+    const queryFilter = formType === "admin_quote" ? { formType, formId } : { formType, formId, userId };
+
     // Upsert draft (create or update)
     const draft = await Draft.findOneAndUpdate(
-      {
-        formType,
-        formId,
-        userId,
-      },
+      queryFilter,
       {
         formType,
         formId,
@@ -101,12 +100,9 @@ export async function GET(request: NextRequest) {
     await connectDB();
 
     const userId = (session.user as any).id;
+    const queryFilter = formType === "admin_quote" ? { formType, formId } : { formType, formId, userId };
 
-    const draft = await Draft.findOne({
-      formType,
-      formId,
-      userId,
-    });
+    const draft = await Draft.findOne(queryFilter);
 
     if (!draft) {
       return NextResponse.json({
@@ -161,13 +157,10 @@ export async function DELETE(request: NextRequest) {
     await connectDB();
 
     const userId = (session.user as any).id;
+    const queryFilter = formType === "admin_quote" ? { formType, formId } : { formType, formId, userId };
 
-    // Delete draft by formType, formId, and userId (for security)
-    const result = await Draft.deleteOne({
-      formType,
-      formId,
-      userId,
-    });
+    // Delete draft by formType and formId
+    const result = await Draft.deleteOne(queryFilter);
 
     if (result.deletedCount === 0) {
       return NextResponse.json({

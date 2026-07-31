@@ -53,30 +53,48 @@ export async function GET(req: NextRequest) {
       .populate("carrierId", "name")
       .lean();
 
-    // Create a map of submissionId -> quote for easy lookup
-    const quoteMap = new Map();
+    // Create a map of submissionId -> quotes array for easy lookup
+    const quoteMap = new Map<string, any[]>();
     quotes.forEach((quote: any) => {
-      quoteMap.set(quote.submissionId.toString(), quote);
+      const key = quote.submissionId.toString();
+      if (!quoteMap.has(key)) quoteMap.set(key, []);
+      quoteMap.get(key)!.push(quote);
     });
+
+    const mapQuote = (q: any) => q ? {
+      _id: q._id?.toString(),
+      carrierId: q.carrierId ? (q.carrierId._id ? q.carrierId._id.toString() : q.carrierId.toString()) : "",
+      carrierName: q.carrierId?.name || "Unknown Carrier",
+      carrierQuoteUSD: q.carrierQuoteUSD,
+      premiumTaxAmountUSD: q.premiumTaxAmountUSD,
+      policyFeeUSD: q.policyFeeUSD,
+      brokerFeeAmountUSD: q.brokerFeeAmountUSD,
+      finalAmountUSD: q.finalAmountUSD,
+      policyNumber: q.policyNumber,
+      policyType: q.policyType,
+      status: q.status,
+    } : null;
 
     // Combine submission and quote data
     const boundPolicies = submissions.map((submission: any) => {
-      const quote = quoteMap.get(submission._id.toString());
+      const submissionQuotes = quoteMap.get(submission._id.toString()) || [];
+      const glQuote = submissionQuotes.find((q: any) => q.policyType === 'GENERAL_LIABILITY') || submissionQuotes.find((q: any) => !q.policyType) || submissionQuotes[0] || null;
+      const xlQuote = submissionQuotes.find((q: any) => q.policyType === 'EXCESS_LIABILITY') || null;
       return {
         _id: submission._id.toString(),
         clientContact: submission.clientContact,
         agencyId: submission.agencyId
           ? {
-              _id: submission.agencyId._id.toString(),
-              name: submission.agencyId.name,
-            }
+            _id: submission.agencyId._id.toString(),
+            name: submission.agencyId.name,
+          }
           : null,
         templateId: submission.templateId
           ? {
-              _id: submission.templateId._id.toString(),
-              industry: submission.templateId.industry,
-              subcategory: submission.templateId.subcategory,
-            }
+            _id: submission.templateId._id.toString(),
+            industry: submission.templateId.industry,
+            subcategory: submission.templateId.subcategory,
+          }
           : null,
         status: submission.status,
         bindRequested: submission.bindRequested,
@@ -90,20 +108,8 @@ export async function GET(req: NextRequest) {
         paymentDate: submission.paymentDate,
         paymentAmount: submission.paymentAmount,
         paymentMethod: submission.paymentMethod,
-        quote: quote
-          ? {
-              _id: quote._id?.toString(),
-              carrierId: quote.carrierId ? (quote.carrierId._id ? quote.carrierId._id.toString() : quote.carrierId.toString()) : "",
-              carrierName: quote.carrierId?.name || "Unknown Carrier",
-              carrierQuoteUSD: quote.carrierQuoteUSD,
-              premiumTaxAmountUSD: quote.premiumTaxAmountUSD,
-              policyFeeUSD: quote.policyFeeUSD,
-              brokerFeeAmountUSD: quote.brokerFeeAmountUSD,
-              finalAmountUSD: quote.finalAmountUSD,
-              policyNumber: quote.policyNumber,
-              status: quote.status,
-            }
-          : null,
+        quote: mapQuote(glQuote),
+        excessQuote: mapQuote(xlQuote),
         createdAt: submission.createdAt,
       };
     });
@@ -124,4 +130,3 @@ export async function GET(req: NextRequest) {
     );
   }
 }
-

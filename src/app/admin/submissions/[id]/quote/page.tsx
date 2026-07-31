@@ -10,7 +10,7 @@ import { getStateCode } from "@/lib/utils/stateConverter";
 import { useAutoSave } from "@/hooks/useAutoSave";
 import SaveStatusIndicator from "@/components/forms/SaveStatusIndicator";
 import { formatCurrency, formatCurrencyInput, parseCurrency } from "@/lib/utils/currencyFormatter";
-import { Upload, X } from "lucide-react";
+import { Upload, X, Save } from "lucide-react";
 
 const RatingRow = ({ label, value }: { label: string; value: string | number }) => (
   <div className="flex justify-between items-center py-3 border-b border-gray-200 last:border-0">
@@ -105,6 +105,7 @@ export default function AdminQuotePage() {
 
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [manualSaving, setManualSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
@@ -912,6 +913,77 @@ export default function AdminQuotePage() {
       policyType,
       customDocuments: (state.customDocuments || []).filter((d: string) => d.trim() !== ""),
     };
+  };
+
+  const handleManualSaveDraft = async () => {
+    setManualSaving(true);
+    try {
+      // Snapshot live state of the currently-active policy tab
+      const liveState = {
+        selectedCarrierId,
+        carrierQuoteUSD,
+        carrierFeesUSD,
+        sterlingFeesUSD,
+        premiumTaxPercent,
+        premiumTaxAmountUSD,
+        stampingFeePercent,
+        stampingFeeAmountUSD,
+        fireMarshalTaxPercent,
+        fireMarshalTaxAmountUSD,
+        fireMarshalFlatFeeUSD,
+        policyFeeUSD,
+        generalLiabilityLimit,
+        aggregateLimit,
+        fireLegalLimit,
+        medicalExpenseLimit,
+        deductible,
+        excessLimit,
+        propertyBuildingLimit,
+        propertyBppLimit,
+        propertyBusinessIncomeLimit,
+        propertyDeductible,
+        selectedEndorsements,
+        effectiveDate,
+        expirationDate,
+        policyDuration,
+        policyNumber,
+        carrierReference,
+        specialNotes,
+        customDocuments,
+      };
+
+      const allStates = {
+        ...policyStates,
+        [currentPolicyType]: liveState,
+      };
+
+      const payload = {
+        ...formData,
+        policyStates: allStates,
+      };
+
+      const response = await fetch("/api/drafts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          formType: "admin_quote",
+          formId: submissionId,
+          data: payload,
+        }),
+      });
+
+      if (response.ok) {
+        toast.success("Draft saved successfully! Other admins can now resume work on this quote.");
+      } else {
+        const data = await response.json();
+        toast.error(data.error || "Failed to save draft.");
+      }
+    } catch (err: any) {
+      console.error("Manual save draft error:", err);
+      toast.error("Error saving draft.");
+    } finally {
+      setManualSaving(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -2378,11 +2450,30 @@ export default function AdminQuotePage() {
               </div>
             )}
 
-            {/* Submit Button */}
-            <div className="flex flex-col gap-4 pt-4">
+            {/* Action Buttons: Save Draft & Create Quote */}
+            <div className="flex flex-col sm:flex-row gap-4 pt-4">
+              <button
+                type="button"
+                onClick={handleManualSaveDraft}
+                disabled={manualSaving || submitting}
+                className="flex-1 px-6 py-4 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-xl font-bold text-lg border border-gray-300 shadow-sm hover:shadow-md transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {manualSaving ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-gray-600 border-t-transparent rounded-full animate-spin"></div>
+                    Saving Draft...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-5 h-5 text-gray-700" />
+                    Save Draft
+                  </>
+                )}
+              </button>
+
               <button
                 type="submit"
-                disabled={submitting || carriers.length === 0 || !isPolicyReady(currentPolicyType)}
+                disabled={submitting || manualSaving || carriers.length === 0 || !isPolicyReady(currentPolicyType)}
                 className="flex-1 px-6 py-4 bg-gradient-to-r from-rose-600 to-pink-600 text-white rounded-xl font-bold text-lg hover:shadow-xl hover:scale-[1.02] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-2"
               >
                 {submitting ? (
@@ -2399,37 +2490,39 @@ export default function AdminQuotePage() {
                   </>
                 )}
               </button>
+            </div>
 
-              {/* Info notice about incomplete policies */}
-              {missingPolicies.length > 0 && availablePolicies.length > 1 && (
-                <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
-                  <p className="text-blue-800 text-sm font-bold mb-2 flex items-center gap-2">
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    The following policies are optional and can be completed later:
-                  </p>
-                  <div className="space-y-2">
-                    {missingPolicies.map(type => (
-                      <div key={type} className="flex items-center justify-between text-xs">
-                        <span className="text-gray-600 font-medium">
-                          {type === "GENERAL_LIABILITY"
-                            ? (isCommercialProperty ? "Property" : "General Liability")
-                            : (isCommercialProperty ? "General Liability" : "Excess Liability")
-                          }
-                        </span>
-                        <span className="font-semibold uppercase tracking-wider text-blue-500">
-                          Pending / Optional
-                        </span>
-                      </div>
-                    ))}
-                  </div>
+            {/* Info notice about incomplete policies */}
+            {missingPolicies.length > 0 && availablePolicies.length > 1 && (
+              <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4 mt-4">
+                <p className="text-blue-800 text-sm font-bold mb-2 flex items-center gap-2">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  The following policies are optional and can be completed later:
+                </p>
+                <div className="space-y-2">
+                  {missingPolicies.map(type => (
+                    <div key={type} className="flex items-center justify-between text-xs">
+                      <span className="text-gray-600 font-medium">
+                        {type === "GENERAL_LIABILITY"
+                          ? (isCommercialProperty ? "Property" : "General Liability")
+                          : (isCommercialProperty ? "General Liability" : "Excess Liability")
+                        }
+                      </span>
+                      <span className="font-semibold uppercase tracking-wider text-blue-500">
+                        Pending / Optional
+                      </span>
+                    </div>
+                  ))}
                 </div>
-              )}
+              </div>
+            )}
 
+            <div className="pt-4 flex">
               <Link
                 href={`/admin/submissions/${submissionId}`}
-                className="px-6 py-4 bg-white border-2 border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 hover:border-gray-400 transition-all text-center"
+                className="w-full px-6 py-4 bg-white border-2 border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 hover:border-gray-400 transition-all text-center"
               >
                 Cancel
               </Link>
