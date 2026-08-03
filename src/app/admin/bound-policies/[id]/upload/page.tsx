@@ -196,13 +196,8 @@ export default function UploadFinalDocumentsPage() {
         description: "The agency has been notified",
       });
 
-      // Clear the staged files for the successful quote
-      setStagedFiles(prev => ({
-        ...prev,
-        [globalSelectedQuoteId]: { binder: null, policy: null }
-      }));
-      setCertificateFile(null);
-      fetchSubmission();
+      // Redirect back to Bound Policies page after successful upload
+      router.push("/admin/bound-policies");
     } catch (err: any) {
       console.error("Upload error:", err);
       toast.error("Failed to upload documents", {
