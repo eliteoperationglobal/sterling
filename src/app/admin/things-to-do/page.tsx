@@ -63,7 +63,7 @@ export default function ThingsToDoPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<"ALL" | "QUOTE_REQUEST" | "PENDING_SUBJECTIVE" | "BIND_REQUEST" | "URGENT">("ALL");
   const [sortBy, setSortBy] = useState<"MOST_OVERDUE" | "NEWEST" | "OLDEST">("MOST_OVERDUE");
-  const [policyStatusFilter, setPolicyStatusFilter] = useState<string>("ALL");
+  const [policyStatusFilter, setPolicyStatusFilter] = useState<string>("BOUND");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [updatingSubjectiveId, setUpdatingSubjectiveId] = useState<string | null>(null);
 
