@@ -6,7 +6,7 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { signOut } from "next-auth/react";
-import { Upload, File as FileIcon, X as CloseIcon, Menu } from "lucide-react";
+import { Upload, File as FileIcon, X as CloseIcon, Menu, Trash2 } from "lucide-react";
 import MobileNav from "@/components/layout/MobileNav";
 
 interface Quote {
@@ -59,9 +59,56 @@ export default function UploadFinalDocumentsPage() {
   const [certificateFile, setCertificateFile] = useState<File | null>(null);
 
   const [globalSelectedQuoteId, setGlobalSelectedQuoteId] = useState<string>("");
+  const [deleteModalState, setDeleteModalState] = useState<{
+    isOpen: boolean;
+    documentType: 'binder' | 'policy' | 'certificate' | null;
+  }>({ isOpen: false, documentType: null });
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [hasMadeInitialSelection, setHasMadeInitialSelection] = useState(false);
 
   const boundQuotes = submission?.quotes?.filter(q => q.status === "BOUND") || [];
   const selectedQuote = globalSelectedQuoteId ? boundQuotes.find(q => q._id === globalSelectedQuoteId) : null;
+
+  useEffect(() => {
+    if (submission && boundQuotes.length <= 1 && !hasMadeInitialSelection) {
+      setHasMadeInitialSelection(true);
+    }
+  }, [submission, boundQuotes.length, hasMadeInitialSelection]);
+
+  const handleDeleteDocument = async () => {
+    if (!deleteModalState.documentType) return;
+    
+    setIsDeleting(true);
+    try {
+      const res = await fetch("/api/admin/bound-policies/delete-document", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          submissionId,
+          quoteId: globalSelectedQuoteId,
+          documentType: deleteModalState.documentType,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to delete document");
+      }
+
+      toast.success("Document deleted successfully");
+      await fetchSubmission(); // Refresh the list
+    } catch (err: any) {
+      console.error("Delete error:", err);
+      toast.error("Failed to delete document", {
+        description: err.message || "An error occurred",
+      });
+    } finally {
+      setIsDeleting(false);
+      setDeleteModalState({ isOpen: false, documentType: null });
+    }
+  };
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -341,34 +388,74 @@ export default function UploadFinalDocumentsPage() {
           </div>
         </div>
 
-        {/* Upload Form */}
-        <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-sm border border-gray-200/60 p-6 mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-gray-900">Upload Documents</h2>
+        {/* Upload Form or Initial Selection Screen */}
+        {!hasMadeInitialSelection && boundQuotes.length > 1 ? (
+          <div className="bg-[#faf8f5]/90 backdrop-blur-xl rounded-3xl shadow-sm border border-[#e5ddd5] p-8 mb-6 text-center animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="w-20 h-20 bg-[#9A8B7A]/10 rounded-full flex items-center justify-center mx-auto mb-5 border border-[#9A8B7A]/20 shadow-inner">
+              <FileIcon className="w-10 h-10 text-[#9A8B7A]" />
+            </div>
+            <h2 className="text-3xl font-black text-gray-900 mb-3 tracking-tight">Which policy are you uploading for?</h2>
+            <p className="text-base text-[#6b5e52] font-medium mb-10 max-w-lg mx-auto leading-relaxed">
+              This submission has multiple bound policies. Please select one to begin uploading documents.
+            </p>
+            
+            <div className="grid sm:grid-cols-2 gap-5 max-w-2xl mx-auto">
+              {boundQuotes.map((q) => {
+                const displayName = q.policyType === "EXCESS_LIABILITY" 
+                  ? (submission?.programId === 'apartment-buildings' || submission?.programName?.includes("Property") || submission?.programName?.includes("Apartment") ? "General Liability" : "Excess Liability")
+                  : (submission?.programId === 'apartment-buildings' || submission?.programName?.includes("Property") || submission?.programName?.includes("Apartment") ? "Property" : "General Liability");
 
-            {/* Policy Selector Dropdown */}
-            {boundQuotes.length > 0 && (
-              <div className="flex items-center gap-3">
-                <label className="text-sm font-bold text-gray-500 uppercase tracking-wide">Target Policy:</label>
-                <select
-                  value={globalSelectedQuoteId}
-                  onChange={(e) => setGlobalSelectedQuoteId(e.target.value)}
-                  className="bg-gray-50 border border-gray-200 text-gray-900 text-sm font-semibold rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2 outline-none cursor-pointer"
-                >
-                  {boundQuotes.map((q) => (
-                    <option key={q._id} value={q._id}>
-                      {q.policyType === "EXCESS_LIABILITY" 
-                        ? (submission?.programId === 'apartment-buildings' || submission?.programName?.includes("Property") || submission?.programName?.includes("Apartment") ? "General Liability" : "Excess Liability")
-                        : (submission?.programId === 'apartment-buildings' || submission?.programName?.includes("Property") || submission?.programName?.includes("Apartment") ? "Property" : "General Liability")
-                      } - {q.carrierId?.name || "Carrier"}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
+                return (
+                  <button
+                    key={q._id}
+                    onClick={() => {
+                      setGlobalSelectedQuoteId(q._id);
+                      setHasMadeInitialSelection(true);
+                    }}
+                    className="flex flex-col items-center justify-center p-8 bg-white border-2 border-[#e5ddd5] hover:border-[#9A8B7A] hover:bg-[#fcfaf8] rounded-2xl transition-all duration-300 group shadow-sm hover:shadow-md hover:-translate-y-1"
+                  >
+                    <div className="w-14 h-14 bg-[#f5f1eb] group-hover:bg-[#9A8B7A]/10 rounded-2xl flex items-center justify-center mb-5 transition-colors shadow-sm">
+                      <FileIcon className="w-7 h-7 text-gray-400 group-hover:text-[#9A8B7A] transition-colors" />
+                    </div>
+                    <span className="text-xl font-extrabold text-gray-900 group-hover:text-[#9A8B7A] transition-colors tracking-tight">
+                      {displayName}
+                    </span>
+                    <span className="text-sm font-semibold text-[#6b5e52] mt-2 bg-[#f5f1eb] px-3 py-1 rounded-full">
+                      Carrier: {q.carrierId?.name || "Unknown"}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
+        ) : (
+          <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-sm border border-gray-200/60 p-6 mb-6 animate-in fade-in duration-500">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold text-gray-900">Upload Documents</h2>
 
-          <div className="space-y-6">
+              {/* Policy Selector Dropdown */}
+              {boundQuotes.length > 1 && (
+                <div className="flex items-center gap-3 bg-gray-50 px-3 py-1.5 rounded-xl border border-gray-200">
+                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wide">Target Policy:</label>
+                  <select
+                    value={globalSelectedQuoteId}
+                    onChange={(e) => setGlobalSelectedQuoteId(e.target.value)}
+                    className="bg-transparent text-gray-900 text-sm font-bold focus:outline-none cursor-pointer"
+                  >
+                    {boundQuotes.map((q) => (
+                      <option key={q._id} value={q._id}>
+                        {q.policyType === "EXCESS_LIABILITY" 
+                          ? (submission?.programId === 'apartment-buildings' || submission?.programName?.includes("Property") || submission?.programName?.includes("Apartment") ? "General Liability" : "Excess Liability")
+                          : (submission?.programId === 'apartment-buildings' || submission?.programName?.includes("Property") || submission?.programName?.includes("Apartment") ? "Property" : "General Liability")
+                        } - {q.carrierId?.name || "Carrier"}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-6">
             {/* Final Binder PDF */}
             <div key={`binder-${globalSelectedQuoteId}`}>
               <div className="flex items-center justify-between mb-2">
@@ -414,14 +501,24 @@ export default function UploadFinalDocumentsPage() {
                           Active Document Found
                         </span>
                       </div>
-                      <a
-                        href={`/api/download?view=true&url=${encodeURIComponent(selectedQuote.binderUrl)}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-xs font-bold text-blue-600 hover:text-blue-800 px-3 py-1 bg-white hover:bg-blue-100 border border-blue-200 rounded-md transition-colors shadow-sm"
-                      >
-                        View
-                      </a>
+                      <div className="flex items-center gap-2">
+                        <a
+                          href={`/api/download?view=true&url=${encodeURIComponent(selectedQuote.binderUrl)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs font-bold text-blue-600 hover:text-blue-800 px-3 py-1 bg-white hover:bg-blue-100 border border-blue-200 rounded-md transition-colors shadow-sm"
+                        >
+                          View
+                        </a>
+                        <button
+                          type="button"
+                          onClick={() => setDeleteModalState({ isOpen: true, documentType: 'binder' })}
+                          className="text-xs font-bold text-red-600 hover:text-red-800 px-2 py-1 bg-white hover:bg-red-50 border border-red-200 rounded-md transition-colors shadow-sm flex items-center"
+                          title="Delete Document"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
                   )}
                   
@@ -519,14 +616,24 @@ export default function UploadFinalDocumentsPage() {
                           Active Document Found
                         </span>
                       </div>
-                      <a
-                        href={`/api/download?view=true&url=${encodeURIComponent(selectedQuote.policyDocsUrl)}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-xs font-bold text-blue-600 hover:text-blue-800 px-3 py-1 bg-white hover:bg-blue-100 border border-blue-200 rounded-md transition-colors shadow-sm"
-                      >
-                        View
-                      </a>
+                      <div className="flex items-center gap-2">
+                        <a
+                          href={`/api/download?view=true&url=${encodeURIComponent(selectedQuote.policyDocsUrl)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs font-bold text-blue-600 hover:text-blue-800 px-3 py-1 bg-white hover:bg-blue-100 border border-blue-200 rounded-md transition-colors shadow-sm"
+                        >
+                          View
+                        </a>
+                        <button
+                          type="button"
+                          onClick={() => setDeleteModalState({ isOpen: true, documentType: 'policy' })}
+                          className="text-xs font-bold text-red-600 hover:text-red-800 px-2 py-1 bg-white hover:bg-red-50 border border-red-200 rounded-md transition-colors shadow-sm flex items-center"
+                          title="Delete Document"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
                   )}
 
@@ -621,14 +728,24 @@ export default function UploadFinalDocumentsPage() {
                           Active Document Found
                         </span>
                       </div>
-                      <a
-                        href={`/api/download?view=true&url=${encodeURIComponent(submission.finalPolicyDocuments.certificateOfInsuranceUrl)}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-xs font-bold text-blue-600 hover:text-blue-800 px-3 py-1 bg-white hover:bg-blue-100 border border-blue-200 rounded-md transition-colors shadow-sm"
-                      >
-                        View
-                      </a>
+                      <div className="flex items-center gap-2">
+                        <a
+                          href={`/api/download?view=true&url=${encodeURIComponent(submission.finalPolicyDocuments.certificateOfInsuranceUrl)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs font-bold text-blue-600 hover:text-blue-800 px-3 py-1 bg-white hover:bg-blue-100 border border-blue-200 rounded-md transition-colors shadow-sm"
+                        >
+                          View
+                        </a>
+                        <button
+                          type="button"
+                          onClick={() => setDeleteModalState({ isOpen: true, documentType: 'certificate' })}
+                          className="text-xs font-bold text-red-600 hover:text-red-800 px-2 py-1 bg-white hover:bg-red-50 border border-red-200 rounded-md transition-colors shadow-sm flex items-center"
+                          title="Delete Document"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
                   )}
 
@@ -702,6 +819,47 @@ export default function UploadFinalDocumentsPage() {
             </button>
           </div>
         </div>
+        )}
+
+        {/* Delete Confirmation Modal */}
+        {deleteModalState.isOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#6b5e52]/40 backdrop-blur-sm px-4">
+            <div className="bg-[#faf8f5] rounded-2xl shadow-xl border border-[#e5ddd5] w-full max-w-sm overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+              <div className="p-6 text-center">
+                <div className="w-16 h-16 bg-red-50 border border-red-100 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
+                  <Trash2 className="w-8 h-8 text-red-500" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">Delete Document?</h3>
+                <p className="text-sm text-[#6b5e52] font-medium leading-relaxed">
+                  Are you sure you want to permanently delete this document from cloud storage? This action cannot be undone.
+                </p>
+              </div>
+              <div className="bg-[#f5f1eb] px-6 py-4 flex items-center justify-end gap-3 border-t border-[#e5ddd5]">
+                <button
+                  onClick={() => setDeleteModalState({ isOpen: false, documentType: null })}
+                  disabled={isDeleting}
+                  className="px-4 py-2 text-sm font-bold text-[#6b5e52] hover:text-gray-900 bg-white hover:bg-[#f0ebe1] border border-[#e5ddd5] rounded-xl transition-all shadow-sm disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteDocument}
+                  disabled={isDeleting}
+                  className="px-4 py-2 text-sm font-bold text-white bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 rounded-xl shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all flex items-center gap-2 disabled:opacity-50 disabled:transform-none"
+                >
+                  {isDeleting ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                      Deleting...
+                    </>
+                  ) : (
+                    "Yes, Delete"
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Existing Documents */}
         {/* {boundQuotes.length > 0 && globalSelectedQuoteId && selectedQuote && (
