@@ -184,7 +184,9 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
     async redirect({ url, baseUrl }) {
-      const cleanBase = baseUrl.endsWith("/") ? baseUrl.slice(0, -1) : baseUrl;
+      // Forcefully use the production site URL if available, to prevent localhost redirects
+      const actualBaseUrl = process.env.NEXT_PUBLIC_SITE_URL || baseUrl;
+      const cleanBase = actualBaseUrl.endsWith("/") ? actualBaseUrl.slice(0, -1) : actualBaseUrl;
 
       // 1. If url is relative, construct full URL using cleanBase
       if (url.startsWith("/")) {
