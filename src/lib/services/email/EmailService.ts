@@ -1316,3 +1316,137 @@ export async function sendAdminNotificationEmail(data: AdminNotificationEmailDat
     return false;
   }
 }
+
+/**
+ * Policy Bound Email Data
+ */
+export interface PolicyBoundEmailData {
+  brokerEmail: string;
+  brokerName: string;
+  clientName: string;
+  policyNumber: string;
+  effectiveDate: string;
+  policyType: string;
+  programName: string;
+}
+
+/**
+ * Generate Policy Bound Email HTML
+ */
+export function generatePolicyBoundEmailHTML(data: PolicyBoundEmailData): string {
+  const portalUrl = getBaseUrl();
+  
+  let displayType = data.policyType === "GENERAL_LIABILITY" ? "General Liability" : (data.policyType === "EXCESS_LIABILITY" ? "Excess Liability" : data.policyType);
+  
+  if (data.programName === "Commercial Property" || data.programName === "Apartment Building") {
+    if (data.policyType === "GENERAL_LIABILITY") displayType = "Property";
+    if (data.policyType === "EXCESS_LIABILITY") displayType = "General Liability";
+  }
+
+  return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Policy Bound Successfully</title>
+  <style>
+    body { margin: 0; padding: 0; font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f5f1eb; }
+    .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; }
+    .header { background: linear-gradient(135deg, #9A8B7A 0%, #8a6f4d 100%); padding: 30px; text-align: center; color: white; }
+    .header h1 { margin: 0; font-size: 28px; font-weight: 600; }
+    .content { padding: 40px 30px; }
+    .greeting { font-size: 16px; color: #2d2a26; margin-bottom: 20px; }
+    .info-box { background-color: #f8f9fa; border-left: 4px solid #9A8B7A; padding: 20px; margin: 20px 0; }
+    .info-row { display: flex; padding: 8px 0; border-bottom: 1px solid #e0e0e0; }
+    .info-row:last-child { border-bottom: none; }
+    .info-label { font-weight: 600; color: #6b5e52; width: 150px; }
+    .info-value { color: #2d2a26; flex: 1; }
+    .cta-button { display: inline-block; background-color: #9A8B7A; color: white; padding: 14px 32px; text-decoration: none; border-radius: 5px; font-weight: 600; margin: 20px 0; text-align: center; }
+    .footer { background-color: #f8f9fa; padding: 30px; text-align: center; font-size: 13px; color: #6b5e52; border-top: 1px solid #e0e0e0; }
+    .success-highlight { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; padding: 15px; border-radius: 5px; margin: 20px 0; font-weight: bold; text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🎉 Policy Bound Successfully</h1>
+    </div>
+    
+    <div class="content">
+      <div class="greeting">
+        Dear ${data.brokerName},
+      </div>
+      
+      <p>Great news! The policy for your client has been officially bound by our underwriting team.</p>
+      
+      <div class="success-highlight">
+        ✓ Policy is active and bound
+      </div>
+      
+      <div class="info-box">
+        <div class="info-row">
+          <div class="info-label">Client Name:</div>
+          <div class="info-value"><strong>${data.clientName}</strong></div>
+        </div>
+        <div class="info-row">
+          <div class="info-label">Program:</div>
+          <div class="info-value">${data.programName}</div>
+        </div>
+        <div class="info-row">
+          <div class="info-label">Policy Type:</div>
+          <div class="info-value">${displayType}</div>
+        </div>
+        <div class="info-row">
+          <div class="info-label">Policy Number:</div>
+          <div class="info-value"><strong>${data.policyNumber}</strong></div>
+        </div>
+        <div class="info-row">
+          <div class="info-label">Effective Date:</div>
+          <div class="info-value">${data.effectiveDate}</div>
+        </div>
+      </div>
+      
+      <p>You can view the full policy details and download any finalized documents from your portal dashboard.</p>
+      
+      <div style="text-align: center;">
+        <a href="${portalUrl}/agency/dashboard" class="cta-button">
+          Go to Dashboard
+        </a>
+      </div>
+      
+      <p style="margin-top: 30px;">
+        Best regards,<br/>
+        <strong>Sterling Wholesale Insurance</strong>
+      </p>
+    </div>
+    
+    <div class="footer">
+      <p>This is an automated message from Sterling Wholesale Insurance portal.</p>
+      <p>© ${new Date().getFullYear()} Sterling Wholesale Insurance. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>
+  `.trim();
+}
+
+/**
+ * Send Policy Bound email to broker
+ */
+export async function sendPolicyBoundEmailToBroker(data: PolicyBoundEmailData): Promise<boolean> {
+  const html = generatePolicyBoundEmailHTML(data);
+  
+  let displayType = data.policyType === "GENERAL_LIABILITY" ? "General Liability" : (data.policyType === "EXCESS_LIABILITY" ? "Excess Liability" : data.policyType);
+  if (data.programName === "Commercial Property" || data.programName === "Apartment Building") {
+    if (data.policyType === "GENERAL_LIABILITY") displayType = "Property";
+    if (data.policyType === "EXCESS_LIABILITY") displayType = "General Liability";
+  }
+
+  return await sendEmail({
+    to: data.brokerEmail,
+    subject: `✅ Policy Bound: ${data.clientName} - ${displayType}`,
+    html,
+    text: `The policy for ${data.clientName} has been bound. Policy Number: ${data.policyNumber}. Effective: ${data.effectiveDate}.`,
+  });
+}

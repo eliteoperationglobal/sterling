@@ -4,7 +4,9 @@ import { authOptions } from "@/lib/authOptions";
 import connectDB from "@/lib/mongodb";
 import Submission from "@/models/Submission";
 import Quote from "@/models/Quote";
+import Agency from "@/models/Agency";
 import { logActivity, createActivityLogData } from "@/utils/activityLogger";
+import { getDisplayProgramName } from "@/utils/formatters";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 
 const s3Client = new S3Client({
@@ -185,6 +187,43 @@ export async function POST(req: NextRequest) {
         }
       )
     );
+
+    // --- NEW SAFE EMAIL BLOCK START ---
+    try {
+      const agency = await Agency.findById(submission.agencyId);
+      const agentName = submission.agentName || "";
+      let resolvedBrokerEmail = agency?.email || (submission as any).clientContact?.email || "";
+
+      const capcoAgentEmails: Record<string, string> = {
+        "Eidan Gamaty": "Eidan@capcoinsurance.com",
+        "Moshe Gamaty": "Moshe.g@capcoinsurance.com",
+        "Michael Gamaty": "Michael@capcoinsurance.com",
+        "Yoav Anatian": "Joe@capcoinsurance.com",
+        "Jake Weiner": "Jake@capcoinsurance.com",
+        "Benjamin Solender": "Ben@capcoinsurance.com",
+        "Michal Kraut": "Michal@capcoinsurance.com",
+        "Jonathan Akwa": "Jonathan@capcoinsurance.com",
+      };
+
+      if (agentName && capcoAgentEmails[agentName]) {
+        resolvedBrokerEmail = capcoAgentEmails[agentName];
+      }
+
+      const { sendPolicyBoundEmailToBroker } = await import("@/lib/services/email/EmailService");
+      await sendPolicyBoundEmailToBroker({
+        brokerEmail: resolvedBrokerEmail,
+        brokerName: agentName || agency?.name || "Agent",
+        clientName: (submission as any).clientContact?.name || "Client",
+        policyNumber: policyNumber || "Pending",
+        effectiveDate: effectiveDate || "TBD",
+        policyType: policyType,
+        programName: getDisplayProgramName((submission as any).programName, (submission as any).payload?.industry) || "Insurance Program",
+      });
+      console.log("✅ Policy Bound email sent safely.");
+    } catch (emailError) {
+      console.error("❌ Policy Bound email failed to send, but binding succeeded:", emailError);
+    }
+    // --- NEW SAFE EMAIL BLOCK END ---
 
     return NextResponse.json({
       success: true,
