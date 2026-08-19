@@ -845,6 +845,7 @@ export default function QuoteFormPage() {
   const classCodeDescriptionMap: Record<string, string> = {
     "A/C & Refrigeration": "- Constructs, maintains, services and repairs of refrigerators, refrigerated rooms, air-conditioning units, ducts, blowers, humidity and thermostatic controls.",
     "Appliance & Accessories Installation": "- Installation and/or repair of household and commercial appliances.",
+    "Audio Visual Contractor": "- Installation, service, and repair of audio, video, lighting, home theater, and related low-voltage systems.",
     "Carpentry (Framing)": "- Form work, framing or rough carpentry necessary to construct framed structures as well as Interior/exterior staircases.",
     "Carpentry (Interior/Woodwork/Shop)": "- Fabricate and install cabinets, interior trim work, non-bearing partitions and other items of \"finish carpentry.\"",
     "Carpet Cleaning": "- Carpet, rug, furniture or upholstery cleaning.",
@@ -1268,6 +1269,7 @@ export default function QuoteFormPage() {
   const classCodeOptions = [
     "A/C & Refrigeration",
     "Appliance & Accessories Installation",
+    "Audio Visual Contractor",
     "Carpentry (Framing)",
     "Carpentry (Interior/Woodwork/Shop)",
     "Carpet Cleaning",
