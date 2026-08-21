@@ -920,6 +920,7 @@ export default function QuoteFormPage() {
     "Waterproofing": "- Applies to contractors performing waterproofing, sealing, or moisture-protection work on buildings, roofs, decks, walls, or other structures.",
     "Welding (Non-Structural)": "- Non-Structural welding. No stairs, handrails, trailers, autos, boats, boilers, conveyors, production/manufacturing/industrial facilities, pressurized pipes, oil/gas related, or anything deemed structural.",
     "Welding (Structural)": "- Structural Welding, no bridges, trailers, autos, boats, boilers, conveyors, production/manufacturing/industrial facilities,pressurized pipes, or anything oil/gas related.",
+    "Mold Remediation": "- Removal, treatment, and cleanup of mold-contaminated materials in residential and commercial buildings, including containment, HEPA filtration, demolition of affected materials, antimicrobial treatment, and disposal.",
     "Other": " "
   };
 
