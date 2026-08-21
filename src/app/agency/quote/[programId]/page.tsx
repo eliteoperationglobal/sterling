@@ -877,6 +877,7 @@ export default function QuoteFormPage() {
     "Home Inspection": "- The examination of, and report on the condition and safety of residential real estate property.  This policy does not include professional liability coverage.",
     "Household Furniture or Fixtures Installation": "- Installation of furniture or fixtures in homes or businesses. No recreational or gym equipment.",
     "HVAC": "- Installation of heating, ventilation, or air conditioning systems.",
+    "Mold Remediation": "- Removal, treatment, and cleanup of mold-contaminated materials in residential and commercial buildings, including containment, HEPA filtration, demolition of affected materials, antimicrobial treatment, and disposal.",
     "Insulation": "- Installation or application of acoustical or thermal insulating material in buildings or within building walls.",
     "Janitorial (Commercial - No Floor Waxing)": "- Cleaning services for commercial buildings, excluding floor waxing, kitchen hood cleaning and pressure washing.",
     "Janitorial (Residential - No Floor Waxing)": "- Cleaning services for residential buildings, excluding floor waxing and pressure washing.",
@@ -920,7 +921,6 @@ export default function QuoteFormPage() {
     "Waterproofing": "- Applies to contractors performing waterproofing, sealing, or moisture-protection work on buildings, roofs, decks, walls, or other structures.",
     "Welding (Non-Structural)": "- Non-Structural welding. No stairs, handrails, trailers, autos, boats, boilers, conveyors, production/manufacturing/industrial facilities, pressurized pipes, oil/gas related, or anything deemed structural.",
     "Welding (Structural)": "- Structural Welding, no bridges, trailers, autos, boats, boilers, conveyors, production/manufacturing/industrial facilities,pressurized pipes, or anything oil/gas related.",
-    "Mold Remediation": "- Removal, treatment, and cleanup of mold-contaminated materials in residential and commercial buildings, including containment, HEPA filtration, demolition of affected materials, antimicrobial treatment, and disposal.",
     "Other": " "
   };
 
@@ -1301,6 +1301,7 @@ export default function QuoteFormPage() {
     "Home Inspection",
     "Household Furniture or Fixtures Installation",
     "HVAC",
+    "Mold Remediation",
     "Insulation",
     "Janitorial (Commercial - No Floor Waxing)",
     "Janitorial (Residential - No Floor Waxing)",
