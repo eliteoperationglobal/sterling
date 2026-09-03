@@ -49,6 +49,7 @@ export default function MarketplacePage() {
   const [selectedAgent, setSelectedAgent] = useState("");
   const [generatedLink, setGeneratedLink] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
 
   // Agent Logic
   const userName = session?.user?.name || "Agent";
@@ -445,11 +446,16 @@ export default function MarketplacePage() {
                     <button
                       onClick={() => {
                         navigator.clipboard.writeText(generatedLink);
-                        alert("Link copied to clipboard!");
+                        setIsCopied(true);
+                        setTimeout(() => setIsCopied(false), 2000);
                       }}
-                      className="px-3 py-1.5 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-md text-sm font-medium transition-colors"
+                      className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                        isCopied 
+                          ? "bg-green-100 text-green-700" 
+                          : "bg-gray-200 hover:bg-gray-300 text-gray-800"
+                      }`}
                     >
-                      Copy
+                      {isCopied ? "Copied!" : "Copy"}
                     </button>
                   </div>
                   <p className="text-xs text-gray-500 mt-2">This is a single-use link that expires in 7 days.</p>

@@ -38,6 +38,7 @@ export default function AdminDashboard() {
   const [notifications, setNotifications] = useState<any[]>([]);
   const [notifLoading, setNotifLoading] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
+  const profileRef = useRef<HTMLDivElement>(null);
 
   const getNotificationTag = (type: string) => {
     switch (type) {
@@ -113,6 +114,9 @@ export default function AdminDashboard() {
     function handleClickOutside(event: MouseEvent) {
       if (notifRef.current && !notifRef.current.contains(event.target as Node)) {
         setNotifOpen(false);
+      }
+      if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
+        setProfileOpen(false);
       }
     }
 
@@ -312,7 +316,7 @@ export default function AdminDashboard() {
 
 
                 {/* ⭐ PROFILE */}
-                <div className="relative">
+                <div ref={profileRef} className="relative">
                   <button
                     onClick={() => setProfileOpen(!profileOpen)}
                     className="w-10 h-10 rounded-full bg-[#9A8B7A] text-white flex items-center justify-center font-semibold text-sm shadow-sm hover:shadow-md hover:scale-105 transition-all duration-200"
