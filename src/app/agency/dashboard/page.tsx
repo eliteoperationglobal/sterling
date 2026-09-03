@@ -102,6 +102,7 @@ function AgencyDashboardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const notifRef = useRef<HTMLDivElement>(null);
+  const profileRef = useRef<HTMLDivElement>(null);
 
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [allSubmissions, setAllSubmissions] = useState<Submission[]>(() => cachedAgencySubmissions || []);
@@ -246,6 +247,9 @@ function AgencyDashboardContent() {
     function handleClickOutside(event: MouseEvent) {
       if (notifRef.current && !notifRef.current.contains(event.target as Node)) {
         setNotifOpen(false);
+      }
+      if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
+        setProfileOpen(false);
       }
     }
 
@@ -555,7 +559,7 @@ function AgencyDashboardContent() {
               </div>
 
               {/* ⭐ PROFILE */}
-              <div className="relative">
+              <div ref={profileRef} className="relative">
 
                 <button
                   onClick={() => setProfileOpen(!profileOpen)}

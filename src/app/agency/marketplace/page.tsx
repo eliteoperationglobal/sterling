@@ -3,7 +3,7 @@ import MarketplaceSidebar from "@/components/layout/MarketplaceSidebar";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Image from "next/image";
 import { Home, Search, ArrowLeft } from "lucide-react";
 
@@ -31,6 +31,18 @@ export default function MarketplacePage() {
   const [profileOpen, setProfileOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
+  const profileRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
+        setProfileOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   // Link Generation State
   const [linkModalOpen, setLinkModalOpen] = useState(false);
   const [selectedProgram, setSelectedProgram] = useState("");
@@ -48,14 +60,16 @@ export default function MarketplacePage() {
   const isSJJ = agencyName.includes("SJJ") || email === "admin@sjjinsurance.com";
   const isPatrickArias = agencyName.includes("Patrick Arias") || email.includes("patrickariasinsurance");
   const isTitan = agencyName.toLowerCase().includes("titan") || email.includes("solutions@titaninssolutions.com");
+  const isTexas = agencyName.toLowerCase().includes("texas") || email.toLowerCase().includes("texascomm@services.com");
 
   const CAPCO_AGENTS = ["Eidan Gamaty", "Moshe Gamaty", "Michael Gamaty", "Yoav Anatian", "Jake Weiner", "Benjamin Solender", "Michal Kraut", "Jonathan Akwa"];
   const BLUE_ANGEL_AGENTS = ["Max Mintz"];
   const SJJ_AGENTS = ["Sam Joffe", "Nathan Gawronsky", "Jack Douek", "Will Feldsher", "Joel Gabai", "Dean Halleluyan", "Harel Fedida"];
   const PATRICK_ARIAS_AGENTS = ["Patrick Arias"];
   const TITAN_AGENTS = ["Judah Cohen"];
+  const TEXAS_AGENTS = ["Eidan Gamaty", "Moshe Gamaty", "Michael Gamaty", "Yoav Anatian", "Jake Weiner", "Benjamin Solender", "Michal Kraut", "Jonathan Akwa"];
 
-  const agentOptions = isCapco ? CAPCO_AGENTS : isBlueAngel ? BLUE_ANGEL_AGENTS : isSJJ ? SJJ_AGENTS : isPatrickArias ? PATRICK_ARIAS_AGENTS : isTitan ? TITAN_AGENTS : [];
+  const agentOptions = isCapco ? CAPCO_AGENTS : isBlueAngel ? BLUE_ANGEL_AGENTS : isSJJ ? SJJ_AGENTS : isPatrickArias ? PATRICK_ARIAS_AGENTS : isTitan ? TITAN_AGENTS : isTexas ? TEXAS_AGENTS : [];
 
   const handleGenerateLink = async () => {
     if (!selectedProgram || !selectedAgent) return;
@@ -215,7 +229,7 @@ export default function MarketplacePage() {
               >
                 + Generate Application Link
               </button>
-              
+
               <button
                 type="button"
                 onClick={() => router.push("/agency/dashboard")}
@@ -236,39 +250,41 @@ export default function MarketplacePage() {
               </button>
 
               {/* ⭐ PROFILE */}
-              <button
-                type="button"
-                onClick={() => setProfileOpen(prev => !prev)}
-                className="h-11 w-11 rounded-full bg-[#9A8B7A] text-white flex items-center justify-center font-semibold hover:bg-[#7A6F64] hover:shadow-lg hover:-translate-y-[1px] active:scale-95 transition-all duration-200"
-              >
-                {session?.user?.name?.[0] || "U"}
-              </button>
-
-              {/* ⭐ DROPDOWN */}
-              <div
-                className={`absolute right-0 top-14 w-64 bg-white rounded-full shadow-lg border border-[#E5E7EB] z-50
-          transition-all duration-150 ease-out
-          ${profileOpen
-                    ? "opacity-100 scale-100 translate-y-0"
-                    : "opacity-0 scale-95 translate-y-1 pointer-events-none"
-                  }`}
-              >
-                <div className="px-4 py-3 border-b border-[#E5E7EB]">
-                  <p className="font-medium text-sm text-gray-900">
-                    {session?.user?.name || "User"}
-                  </p>
-                  <p className="text-xs text-gray-600">
-                    {session?.user?.email || "email@example.com"}
-                  </p>
-                </div>
-
+              <div ref={profileRef} className="relative">
                 <button
                   type="button"
-                  onClick={() => signOut({ callbackUrl: "/signin" })}
-                  className="w-full text-left px-4 py-2 text-sm hover:bg-[#f5f1eb] transition"
+                  onClick={() => setProfileOpen(prev => !prev)}
+                  className="h-11 w-11 rounded-full bg-[#9A8B7A] text-white flex items-center justify-center font-semibold hover:bg-[#7A6F64] hover:shadow-lg hover:-translate-y-[1px] active:scale-95 transition-all duration-200"
                 >
-                  Logout
+                  {session?.user?.name?.[0] || "U"}
                 </button>
+
+                {/* ⭐ DROPDOWN */}
+                <div
+                  className={`absolute right-0 top-14 w-64 bg-white rounded-2xl shadow-lg border border-[#E5E7EB] z-50
+            transition-all duration-150 ease-out
+            ${profileOpen
+                      ? "opacity-100 scale-100 translate-y-0"
+                      : "opacity-0 scale-95 translate-y-1 pointer-events-none"
+                    }`}
+                >
+                  <div className="px-4 py-3 border-b border-[#E5E7EB]">
+                    <p className="font-medium text-sm text-gray-900">
+                      {session?.user?.name || "User"}
+                    </p>
+                    <p className="text-xs text-gray-600">
+                      {session?.user?.email || "email@example.com"}
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => signOut({ callbackUrl: "/signin" })}
+                    className="w-full text-left px-4 py-2 text-sm hover:bg-[#f5f1eb] transition"
+                  >
+                    Logout
+                  </button>
+                </div>
               </div>
 
             </div>
