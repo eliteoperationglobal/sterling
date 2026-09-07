@@ -388,6 +388,30 @@ export default function MarketplacePage() {
               Contractors Equipment
             </button>
           </Link>
+          <Link href="/agency/quote/manufacturers" className="w-full md:w-auto">
+            <button
+              className="
+              w-full md:w-[320px] 
+              h-[120px] 
+              rounded-2xl 
+              bg-[#9A8B7A] 
+              text-white 
+              text-2xl 
+              font-semibold
+              flex 
+              items-center 
+              justify-center
+              shadow-md
+              hover:shadow-lg
+              hover:scale-[1.02]
+              active:scale-[0.98]
+              transition-all
+              duration-200
+            "
+            >
+              Manufacturers
+            </button>
+          </Link>
         </div>
       </main>
 
@@ -416,6 +440,7 @@ export default function MarketplacePage() {
                   <option value="advantage-contractor">Construction</option>
                   <option value="apartment-buildings">Commercial Property</option>
                   <option value="contractors-equipment">Contractors Equipment</option>
+                  <option value="manufacturers">Manufacturers</option>
                 </select>
               </div>
 

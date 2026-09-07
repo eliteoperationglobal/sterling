@@ -7,6 +7,7 @@ import jwt from "jsonwebtoken";
 import { generateApplicationPacketHTML, mapFormDataToPacketData, loadCapitalCoLogo } from "@/lib/services/pdf/ApplicationPacketPDF";
 import { generateApartmentPacketHTML } from "@/lib/services/pdf/ApartmentPacketPDF";
 import { generateContractorsPacketHTML } from "@/lib/services/pdf/ContractorsEquipmentPacketPDF";
+import { generateManufacturersPacketHTML } from "@/lib/services/pdf/ManufacturersPacketPDF";
 import { mapApartmentDataToPacketData } from "@/lib/services/pdf/mappers/apartmentMapper";
 import { mapContractorsDataToPacketData } from "@/lib/services/pdf/mappers/contractorsMapper";
 import { savePDFToStorage } from "@/lib/services/pdf/storage";
@@ -110,7 +111,7 @@ export async function POST(req: NextRequest) {
       !formData?.streetAddress ||
       !formData?.city
     ) {
-      if (programId !== "apartment-buildings") {
+      if (programId !== "apartment-buildings" && programId !== "manufacturers") {
         return NextResponse.json(
           {
             error: "Missing required client contact details",
@@ -208,6 +209,9 @@ export async function POST(req: NextRequest) {
       const isContractors = programId === "contractors-equipment" || 
                            programName?.toLowerCase().includes("contractors equipment");
 
+      const isManufacturers = programId === "manufacturers" ||
+                             programName?.toLowerCase().includes("manufacturer");
+
       if (isApartment) {
         const apartmentData = mapApartmentDataToPacketData(
           submission.payload,
@@ -228,6 +232,8 @@ export async function POST(req: NextRequest) {
           capitalCoLogoSVG
         );
         htmlContent = generateContractorsPacketHTML(contractorsData);
+      } else if (isManufacturers) {
+        htmlContent = generateManufacturersPacketHTML(submission.payload);
       } else {
         let packetData = mapFormDataToPacketData(
           submission.payload,
