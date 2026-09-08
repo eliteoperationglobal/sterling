@@ -652,7 +652,7 @@ function ManufacturersContent() {
                     onChange={e => setAgencyAgent(e.target.value)}
                     className={sel}
                   >
-                    <option value="">Select Agent</option>
+                    <option value="">Select a Agent</option>
                     {agentOptions.map(name => (
                       <option key={name} value={name}>{name}</option>
                     ))}
