@@ -188,6 +188,8 @@ export async function GET(req: NextRequest) {
         submissionNumber: sub.submissionNumber ?? null,
         agencyId: sub.agencyId?._id?.toString() || null,
         agencyName: sub.agencyId?.name || "Unknown Agency",
+        agentId: sub.agentId?.toString() || null,
+        agentName: sub.payload?.agentName || sub.agentName || null,
         industry: sub.templateId?.industry || sub.programName || "Unknown",
         subtype: sub.templateId?.subtype || "Unknown",
         templateTitle: sub.templateId?.title || sub.programName || "Unknown",

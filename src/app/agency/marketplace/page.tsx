@@ -412,6 +412,30 @@ export default function MarketplacePage() {
               Manufacturers
             </button>
           </Link>
+          <Link href="/agency/quote/builders-risk" className="w-full md:w-auto">
+            <button
+              className="
+              w-full md:w-[320px] 
+              h-[120px] 
+              rounded-2xl 
+              bg-[#9A8B7A] 
+              text-white 
+              text-2xl 
+              font-semibold
+              flex 
+              items-center 
+              justify-center
+              shadow-md
+              hover:shadow-lg
+              hover:scale-[1.02]
+              active:scale-[0.98]
+              transition-all
+              duration-200
+            "
+            >
+              BUILDERS RISK
+            </button>
+          </Link>
         </div>
       </main>
 
@@ -441,6 +465,7 @@ export default function MarketplacePage() {
                   <option value="apartment-buildings">Commercial Property</option>
                   <option value="contractors-equipment">Contractors Equipment</option>
                   <option value="manufacturers">Manufacturers</option>
+                  <option value="builders-risk">Builders Risk</option>
                 </select>
               </div>
 
@@ -474,11 +499,10 @@ export default function MarketplacePage() {
                         setIsCopied(true);
                         setTimeout(() => setIsCopied(false), 2000);
                       }}
-                      className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                        isCopied 
-                          ? "bg-green-100 text-green-700" 
+                      className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${isCopied
+                          ? "bg-green-100 text-green-700"
                           : "bg-gray-200 hover:bg-gray-300 text-gray-800"
-                      }`}
+                        }`}
                     >
                       {isCopied ? "Copied!" : "Copy"}
                     </button>

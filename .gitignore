@@ -18,3 +18,6 @@ build/
 # Exclude .md documentation from repo (except README)
 *.md
 !README.md
+
+# archive
+_archive/

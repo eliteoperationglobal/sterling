@@ -8,6 +8,7 @@ import { generateApplicationPacketHTML, mapFormDataToPacketData, loadCapitalCoLo
 import { generateApartmentPacketHTML } from "@/lib/services/pdf/ApartmentPacketPDF";
 import { generateContractorsPacketHTML } from "@/lib/services/pdf/ContractorsEquipmentPacketPDF";
 import { generateManufacturersPacketHTML } from "@/lib/services/pdf/ManufacturersPacketPDF";
+import { generateBuildersRiskPacketHTML } from "@/lib/services/pdf/BuildersRiskPacketPDF";
 import { mapApartmentDataToPacketData } from "@/lib/services/pdf/mappers/apartmentMapper";
 import { mapContractorsDataToPacketData } from "@/lib/services/pdf/mappers/contractorsMapper";
 import { savePDFToStorage } from "@/lib/services/pdf/storage";
@@ -111,7 +112,7 @@ export async function POST(req: NextRequest) {
       !formData?.streetAddress ||
       !formData?.city
     ) {
-      if (programId !== "apartment-buildings" && programId !== "manufacturers") {
+      if (programId !== "apartment-buildings" && programId !== "manufacturers" && programId !== "builders-risk") {
         return NextResponse.json(
           {
             error: "Missing required client contact details",
@@ -212,6 +213,9 @@ export async function POST(req: NextRequest) {
       const isManufacturers = programId === "manufacturers" ||
                              programName?.toLowerCase().includes("manufacturer");
 
+      const isBuildersRisk = programId === "builders-risk" ||
+                            programName?.toLowerCase().includes("builders risk");
+
       if (isApartment) {
         const apartmentData = mapApartmentDataToPacketData(
           submission.payload,
@@ -234,6 +238,8 @@ export async function POST(req: NextRequest) {
         htmlContent = generateContractorsPacketHTML(contractorsData);
       } else if (isManufacturers) {
         htmlContent = generateManufacturersPacketHTML(submission.payload);
+      } else if (isBuildersRisk) {
+        htmlContent = generateBuildersRiskPacketHTML(submission.payload);
       } else {
         let packetData = mapFormDataToPacketData(
           submission.payload,

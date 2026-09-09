@@ -17,5 +17,9 @@ export function getDisplayProgramName(programName?: string | null, templateIndus
     return templateIndustry || "Construction";
   }
   
+  if (name === "Builders Risk" || name.toLowerCase() === "builders-risk") {
+    return "Builders Risk";
+  }
+
   return name;
 }

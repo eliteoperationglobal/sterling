@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, Suspense, useMemo } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -10,6 +10,9 @@ interface Submission {
   _id: string;
   submissionId: string;
   submissionNumber?: number;
+  agencyId?: string;
+  agentId?: string;
+  agentName?: string;
   agencyName: string;
   clientName: string;
   clientEmail: string;
@@ -45,6 +48,8 @@ export default function AdminSubmissionsPage() {
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [profileOpen, setProfileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedAgency, setSelectedAgency] = useState("ALL");
+  const [selectedAgent, setSelectedAgent] = useState("ALL");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [submissionToDelete, setSubmissionToDelete] = useState<string | null>(null);
@@ -162,6 +167,29 @@ export default function AdminSubmissionsPage() {
     }
   };
 
+  const availableAgencies = useMemo(() => {
+    const agencies = new Set<string>();
+    allSubmissions.forEach(s => {
+      if (s.agencyName) agencies.add(s.agencyName.trim());
+    });
+    return Array.from(agencies).sort((a, b) => a.localeCompare(b));
+  }, [allSubmissions]);
+
+  useEffect(() => {
+    setSelectedAgent("ALL");
+  }, [selectedAgency]);
+
+  const availableAgents = useMemo(() => {
+    if (selectedAgency === "ALL") return [];
+    const agents = new Set<string>();
+    allSubmissions.forEach(s => {
+      if (s.agencyName && s.agencyName.trim() === selectedAgency && s.agentName) {
+        agents.add(s.agentName.trim());
+      }
+    });
+    return Array.from(agents).sort((a, b) => a.localeCompare(b));
+  }, [allSubmissions, selectedAgency]);
+
   const pipelineStages: PipelineStage[] = [
     { id: "ALL", label: "All Applications" },
     { id: "SUBMITTED", label: "Submitted" },
@@ -180,6 +208,9 @@ export default function AdminSubmissionsPage() {
   };
 
   const filteredSubmissions = allSubmissions.filter((s: any) => {
+    if (selectedAgency !== "ALL" && (!s.agencyName || s.agencyName.trim() !== selectedAgency)) return false;
+    if (selectedAgent !== "ALL" && (!s.agentName || s.agentName.trim() !== selectedAgent)) return false;
+
     if (statusFilter === "PENDING_CANCEL") {
       if (!s.cancelRequested) return false;
     } else if (statusFilter === "DECLINED") {
@@ -332,8 +363,8 @@ export default function AdminSubmissionsPage() {
 
           {/* TOP BAR / FILTERS */}
           <div className="p-4 md:p-6 border-b border-[#e5ddd5] flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 md:gap-4 shrink-0">
-            <div className="flex items-center gap-4 flex-1">
-              <div className="relative flex-1 max-w-md">
+            <div className="flex items-center gap-4 flex-1 flex-wrap">
+              <div className="relative flex-1 min-w-[200px] max-w-md">
                 <input
                   type="text"
                   placeholder="Search Agency, Client, ID, or Policy #"
@@ -345,6 +376,31 @@ export default function AdminSubmissionsPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
               </div>
+
+              {/* Agency Filter */}
+              <select
+                value={selectedAgency}
+                onChange={(e) => setSelectedAgency(e.target.value)}
+                className="py-2 px-3 border border-[#e5ddd5] rounded-xl text-sm bg-[#fdfaf7] text-[#6b5e52] focus:outline-none focus:ring-2 focus:ring-[#9A8B7A]/50 transition-all cursor-pointer w-full md:w-auto"
+              >
+                <option value="ALL">All Agencies</option>
+                {availableAgencies.map((agencyName) => (
+                  <option key={agencyName} value={agencyName}>{agencyName}</option>
+                ))}
+              </select>
+
+              {/* Agent Filter */}
+              <select
+                value={selectedAgent}
+                onChange={(e) => setSelectedAgent(e.target.value)}
+                disabled={selectedAgency === "ALL" || availableAgents.length === 0}
+                className="py-2 px-3 border border-[#e5ddd5] rounded-xl text-sm bg-[#fdfaf7] text-[#6b5e52] focus:outline-none focus:ring-2 focus:ring-[#9A8B7A]/50 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed w-full md:w-auto"
+              >
+                <option value="ALL">All Agents</option>
+                {availableAgents.map((agentName) => (
+                  <option key={agentName} value={agentName}>{agentName}</option>
+                ))}
+              </select>
             </div>
 
             <div className="mt-2 md:mt-0 md:ml-auto text-sm text-gray-500 font-medium whitespace-nowrap">

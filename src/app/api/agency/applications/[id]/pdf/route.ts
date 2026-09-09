@@ -10,6 +10,8 @@ import { mapApartmentDataToPacketData } from "@/lib/services/pdf/mappers/apartme
 import { generateApartmentPacketHTML } from "@/lib/services/pdf/ApartmentPacketPDF";
 import { mapContractorsDataToPacketData } from "@/lib/services/pdf/mappers/contractorsMapper";
 import { generateContractorsPacketHTML } from "@/lib/services/pdf/ContractorsEquipmentPacketPDF";
+import { generateBuildersRiskPacketHTML } from "@/lib/services/pdf/BuildersRiskPacketPDF";
+import { generateManufacturersPacketHTML } from "@/lib/services/pdf/ManufacturersPacketPDF";
 
 /**
  * GET /api/agency/applications/[id]/pdf
@@ -118,6 +120,14 @@ export async function GET(
                          submission.programName?.toLowerCase().includes("contractors equipment") ||
                          submission.programName?.toLowerCase().includes("construction equipment");
 
+    const isBuildersRisk = submission.programId === "builders-risk" || 
+                           submission.programName?.toLowerCase().includes("builders risk") ||
+                           submission.programName?.toLowerCase().includes("builder's risk");
+
+    const isManufacturers = submission.programId === "manufacturers" || 
+                            submission.programName?.toLowerCase().includes("manufacturers") ||
+                            submission.programName?.toLowerCase().includes("distributors");
+
     if (isApartment) {
       console.log("📄 [PDF Download] Generating Apartment Buildings PDF...");
       const apartmentData = mapApartmentDataToPacketData(
@@ -141,6 +151,12 @@ export async function GET(
         quote
       );
       htmlContent = generateContractorsPacketHTML(contractorsData);
+    } else if (isBuildersRisk) {
+      console.log("📄 [PDF Download] Generating Builders Risk PDF...");
+      htmlContent = generateBuildersRiskPacketHTML(formData);
+    } else if (isManufacturers) {
+      console.log("📄 [PDF Download] Generating Manufacturers PDF...");
+      htmlContent = generateManufacturersPacketHTML(formData);
     } else {
       const packetData = mapFormDataToPacketData(
         formData,
@@ -204,7 +220,11 @@ export async function GET(
         ? `${formData.companyName || formData.applicantName || 'Application'}-Property-Application.pdf`
         : isContractors
           ? `${formData.companyName || formData.applicantName || 'Application'}-Equipment-Application.pdf`
-          : `${formData.companyName || formData.applicantName || 'Application'}-Application.pdf`;
+          : isBuildersRisk
+            ? `${formData.companyName || formData.applicantName || 'Application'}-Builders-Risk-Application.pdf`
+            : isManufacturers
+              ? `${formData.companyName || formData.applicantName || 'Application'}-Manufacturers-Application.pdf`
+              : `${formData.companyName || formData.applicantName || 'Application'}-Application.pdf`;
 
       return new NextResponse(new Uint8Array(pdfBuffer), {
         headers: {

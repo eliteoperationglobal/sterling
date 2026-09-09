@@ -8,6 +8,7 @@ import { generateApplicationPacketHTML, mapFormDataToPacketData, loadCapitalCoLo
 import { generateApartmentPacketHTML } from "@/lib/services/pdf/ApartmentPacketPDF";
 import { generateContractorsPacketHTML } from "@/lib/services/pdf/ContractorsEquipmentPacketPDF";
 import { generateManufacturersPacketHTML } from "@/lib/services/pdf/ManufacturersPacketPDF";
+import { generateBuildersRiskPacketHTML } from "@/lib/services/pdf/BuildersRiskPacketPDF";
 import { mapApartmentDataToPacketData } from "@/lib/services/pdf/mappers/apartmentMapper";
 import { mapContractorsDataToPacketData } from "@/lib/services/pdf/mappers/contractorsMapper";
 import { savePDFToStorage } from "@/lib/services/pdf/storage";
@@ -119,7 +120,7 @@ export async function POST(req: NextRequest) {
       !formData?.streetAddress ||
       !formData?.city
     ) {
-      if (programId !== "apartment-buildings" && programId !== "manufacturers") {
+      if (programId !== "apartment-buildings" && programId !== "manufacturers" && programId !== "builders-risk") {
         return NextResponse.json(
           {
             error: "Missing required client contact details",
@@ -255,6 +256,9 @@ export async function POST(req: NextRequest) {
       const isManufacturers = programId === "manufacturers" ||
                              programName?.toLowerCase().includes("manufacturer");
 
+      const isBuildersRisk = programId === "builders-risk" ||
+                            programName?.toLowerCase().includes("builders risk");
+
       if (isApartment) {
         console.log("📄 Generating Commercial Property PDF...");
         const apartmentData = mapApartmentDataToPacketData(
@@ -280,6 +284,9 @@ export async function POST(req: NextRequest) {
       } else if (isManufacturers) {
         console.log("📄 Generating Manufacturers Supplemental PDF...");
         htmlContent = generateManufacturersPacketHTML(submission.payload);
+      } else if (isBuildersRisk) {
+        console.log("📄 Generating Builders Risk Supplemental PDF...");
+        htmlContent = generateBuildersRiskPacketHTML(submission.payload);
       } else {
         // Map form data to packet data format (no quote yet for new submissions)
         let packetData;
