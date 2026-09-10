@@ -220,7 +220,7 @@ export async function GET(req: NextRequest) {
       return {
         _id: sub._id.toString(),
         submissionNumber: sub.submissionNumber ?? 0,
-        industry: (sub.programName === "Equipment" || sub.programName === "Construction Equipment" || sub.programName === "Contractors Equipment") ? "Contractors Equipment" : (sub.programName === "Apartment Building" || sub.programName === "Commercial Property") ? "Commercial Property" : (sub.templateId?.industry || "Construction"),
+        industry: (sub.programName === "Equipment" || sub.programName === "Construction Equipment" || sub.programName === "Contractors Equipment") ? "Contractors Equipment" : (sub.programName === "Apartment Building" || sub.programName === "Commercial Property") ? "Commercial Property" : (sub.programName === "Manufacturers / Distributors" || sub.programName?.includes("Manufacturer")) ? "Manufacturers" : (sub.templateId?.industry || "Construction"),
         subtype: sub.templateId?.subtype || "Unknown",
         templateTitle: sub.templateId?.title || "Unknown",
         clientName: sub.clientContact?.name || "N/A",

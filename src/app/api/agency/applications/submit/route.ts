@@ -11,6 +11,7 @@ import { generateManufacturersPacketHTML } from "@/lib/services/pdf/Manufacturer
 import { generateBuildersRiskPacketHTML } from "@/lib/services/pdf/BuildersRiskPacketPDF";
 import { mapApartmentDataToPacketData } from "@/lib/services/pdf/mappers/apartmentMapper";
 import { mapContractorsDataToPacketData } from "@/lib/services/pdf/mappers/contractorsMapper";
+import { mapManufacturersDataToPacketData } from "@/lib/services/pdf/mappers/manufacturersMapper";
 import { savePDFToStorage } from "@/lib/services/pdf/storage";
 import { sendEmail } from "@/lib/services/email/EmailService";
 import { logActivity, createActivityLogData } from "@/utils/activityLogger";
@@ -283,7 +284,15 @@ export async function POST(req: NextRequest) {
         htmlContent = generateContractorsPacketHTML(contractorsData);
       } else if (isManufacturers) {
         console.log("📄 Generating Manufacturers Supplemental PDF...");
-        htmlContent = generateManufacturersPacketHTML(submission.payload);
+        const manufacturersData = mapManufacturersDataToPacketData(
+          submission.payload,
+          submission._id.toString(),
+          agency,
+          undefined,
+          submission,
+          capitalCoLogoSVG
+        );
+        htmlContent = generateManufacturersPacketHTML(manufacturersData);
       } else if (isBuildersRisk) {
         console.log("📄 Generating Builders Risk Supplemental PDF...");
         htmlContent = generateBuildersRiskPacketHTML(submission.payload);

@@ -84,18 +84,40 @@ const YesNo = ({
 );
 
 const INDUSTRY_OPTIONS = [
-  "Pharmaceutical/Nutraceutical",
-  "Medical Devices",
-  "Tobacco/Smoking Pipes",
-  "Marijuana Cannabis",
-  "CBD/Hemp Cannabis",
-  "Electronic Cigarettes",
-  "Aviation/Aerospace (inc'l UAS)",
-  "Firearms, Ammunition, Ballistics",
-  "Machine Shops",
-  "Equipment Rental",
-  "Amusement Devices/Inflatables",
-  "Energy Sector/Offshore",
+  "Machinery / Industrial Equipment",
+  "Machine Shops / Fabricated Metal Products",
+  "Construction Tools & Equipment",
+  "Agricultural Equipment / Parts",
+  "Consumer Appliances",
+  "Electronics / Electrical Products",
+  "Imported Consumer Goods",
+  "Furniture / Home Furnishings",
+  "Clothing / Apparel / Accessories",
+  "Toys / Games / Children’s Products",
+  "Infant / Juvenile Products",
+  "Sporting Goods / Recreational Equipment",
+  "Exercise / Fitness Equipment",
+  "Playground Equipment",
+  "Helmets / Protective Equipment",
+  "Motorcycles / Scooters / E-Bikes",
+  "Food Products / Food Processing",
+  "Beverage Products",
+  "Nutraceuticals / Dietary Supplements",
+  "Cosmetics / Beauty / Personal Care Products",
+  "Class I Medical Devices",
+  "Class II Medical Devices",
+  "Veterinary Products / Animal Health Products",
+  "Pet Food / Pet Products",
+  "Chemicals / Chemical Products",
+  "Paints / Coatings / Solvents / Adhesives",
+  "Cannabis / Marijuana Products",
+  "CBD / Hemp Products",
+  "Tobacco / Smoking Products",
+  "Electronic Cigarettes / Vaping Products",
+  "Firearms / Ammunition",
+  "Body Armor / Ballistic Products",
+  "Other Consumer Products",
+  "Other Commercial / Industrial Products"
 ];
 
 function ManufacturersContent() {
@@ -137,25 +159,16 @@ function ManufacturersContent() {
   // ================= Form State =================
   // 1) General Information
   const [namedInsured, setNamedInsured] = useState('');
-  const [brokerage, setBrokerage] = useState('');
   const [agencyAgent, setAgencyAgent] = useState(userName || '');
   const [isRenewal, setIsRenewal] = useState<boolean | null>(null);
-  const [policyNumber, setPolicyNumber] = useState('');
   const [effectiveDate, setEffectiveDate] = useState(new Date().toISOString().split('T')[0]);
-  const [website, setWebsite] = useState('');
 
   // 2) Current Carrier Information
-  const [carrier, setCarrier] = useState('');
   const [limitOfInsurance, setLimitOfInsurance] = useState('');
   const [deductible, setDeductible] = useState('');
-  const [premium, setPremium] = useState('');
   const [offeringRenewal, setOfferingRenewal] = useState<boolean | null>(null);
   const [claimsMade, setClaimsMade] = useState<boolean | null>(null);
   const [retroactiveDate, setRetroactiveDate] = useState('');
-
-  // Attachments
-  const [lossRunsFile, setLossRunsFile] = useState<File | null>(null);
-  const [brochureFile, setBrochureFile] = useState<File | null>(null);
 
   // 3) Mailing Address
   const [mailingAddress, setMailingAddress] = useState('');
@@ -169,6 +182,106 @@ function ManufacturersContent() {
   const [premiseCity, setPremiseCity] = useState('');
   const [premiseState, setPremiseState] = useState('');
   const [premiseZip, setPremiseZip] = useState('');
+
+  // Address Autocomplete State
+  const mailingSuggestionRef = useRef<HTMLDivElement>(null);
+  const [mailingSuggestions, setMailingSuggestions] = useState<any[]>([]);
+  const [showMailingSuggestions, setShowMailingSuggestions] = useState(false);
+  const [mailingAddressLoading, setMailingAddressLoading] = useState(false);
+
+  const premiseSuggestionRef = useRef<HTMLDivElement>(null);
+  const [premiseSuggestions, setPremiseSuggestions] = useState<any[]>([]);
+  const [showPremiseSuggestions, setShowPremiseSuggestions] = useState(false);
+  const [premiseAddressLoading, setPremiseAddressLoading] = useState(false);
+
+  const STATE_CODE_TO_NAME: Record<string, string> = {
+    AL: "Alabama", AK: "Alaska", AZ: "Arizona", AR: "Arkansas",
+    CA: "California", CO: "Colorado", CT: "Connecticut", DE: "Delaware",
+    DC: "District of Columbia", FL: "Florida", GA: "Georgia", HI: "Hawaii",
+    ID: "Idaho", IL: "Illinois", IN: "Indiana", IA: "Iowa", KS: "Kansas",
+    KY: "Kentucky", LA: "Louisiana", ME: "Maine", MD: "Maryland",
+    MA: "Massachusetts", MI: "Michigan", MN: "Minnesota", MS: "Mississippi",
+    MO: "Missouri", MT: "Montana", NE: "Nebraska", NV: "Nevada",
+    NH: "New Hampshire", NJ: "New Jersey", NM: "New Mexico", NY: "New York",
+    NC: "North Carolina", ND: "North Dakota", OH: "Ohio", OK: "Oklahoma",
+    OR: "Oregon", PA: "Pennsylvania", RI: "Rhode Island", SC: "South Carolina",
+    SD: "South Dakota", TN: "Tennessee", TX: "Texas", UT: "Utah",
+    VT: "Vermont", VA: "Virginia", WA: "Washington", WV: "West Virginia",
+    WI: "Wisconsin", WY: "Wyoming",
+  };
+
+  const handleMailingAddressSearch = async (value: string) => {
+    setMailingAddress(value);
+    if (value.length < 3) {
+      setMailingSuggestions([]);
+      setShowMailingSuggestions(false);
+      return;
+    }
+    setMailingAddressLoading(true);
+    try {
+      const res = await fetch(`/api/address/autocomplete?search=${encodeURIComponent(value)}`);
+      const data = await res.json();
+      setMailingSuggestions(data.suggestions || []);
+      setShowMailingSuggestions(true);
+    } catch (err) {
+      console.error("Address search error:", err);
+    } finally {
+      setMailingAddressLoading(false);
+    }
+  };
+
+  const handleSelectMailingSuggestion = (suggestion: any) => {
+    const fullStateName = STATE_CODE_TO_NAME[suggestion.state] || suggestion.state;
+    setMailingAddress(`${suggestion.street_line} ${suggestion.secondary || ''}`.trim());
+    setMailingCity(suggestion.city);
+    setMailingZip(suggestion.zipcode);
+    setMailingState(fullStateName);
+    setMailingSuggestions([]);
+    setShowMailingSuggestions(false);
+  };
+
+  const handlePremiseAddressSearch = async (value: string) => {
+    setPremiseAddress(value);
+    if (value.length < 3) {
+      setPremiseSuggestions([]);
+      setShowPremiseSuggestions(false);
+      return;
+    }
+    setPremiseAddressLoading(true);
+    try {
+      const res = await fetch(`/api/address/autocomplete?search=${encodeURIComponent(value)}`);
+      const data = await res.json();
+      setPremiseSuggestions(data.suggestions || []);
+      setShowPremiseSuggestions(true);
+    } catch (err) {
+      console.error("Address search error:", err);
+    } finally {
+      setPremiseAddressLoading(false);
+    }
+  };
+
+  const handleSelectPremiseSuggestion = (suggestion: any) => {
+    const fullStateName = STATE_CODE_TO_NAME[suggestion.state] || suggestion.state;
+    setPremiseAddress(`${suggestion.street_line} ${suggestion.secondary || ''}`.trim());
+    setPremiseCity(suggestion.city);
+    setPremiseZip(suggestion.zipcode);
+    setPremiseState(fullStateName);
+    setPremiseSuggestions([]);
+    setShowPremiseSuggestions(false);
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (mailingSuggestionRef.current && !mailingSuggestionRef.current.contains(e.target as Node)) {
+        setShowMailingSuggestions(false);
+      }
+      if (premiseSuggestionRef.current && !premiseSuggestionRef.current.contains(e.target as Node)) {
+        setShowPremiseSuggestions(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // 5) Sales Table
   const [salesUpcoming, setSalesUpcoming] = useState('');
@@ -185,6 +298,7 @@ function ManufacturersContent() {
   // ================= NEW SECTIONS: PAGE 2 & 3 =================
   // 7) Industries
   const [industries, setIndustries] = useState<string[]>([]);
+  const [isIndustryDropdownOpen, setIsIndustryDropdownOpen] = useState(false);
 
   // 8) Excluded subsidiary / product
   const [excludedProducts, setExcludedProducts] = useState('');
@@ -311,17 +425,12 @@ function ManufacturersContent() {
           if (sub && sub.payload) {
             const p = sub.payload;
             setNamedInsured(p.namedInsured || sub.clientContact?.name || '');
-            setBrokerage(p.brokerage || '');
             setAgencyAgent(p.agencyAgent || sub.agentName || '');
             setIsRenewal(p.isRenewal ?? null);
-            setPolicyNumber(p.policyNumber || '');
             setEffectiveDate(p.effectiveDate || '');
-            setWebsite(p.website || '');
 
-            setCarrier(p.carrier || '');
             setLimitOfInsurance(p.limitOfInsurance || '');
             setDeductible(p.deductible || '');
-            setPremium(p.premium || '');
             setOfferingRenewal(p.offeringRenewal ?? null);
             setClaimsMade(p.claimsMade ?? null);
             setRetroactiveDate(p.retroactiveDate || '');
@@ -415,17 +524,12 @@ function ManufacturersContent() {
       const payload = {
         namedInsured,
         companyName: namedInsured,
-        brokerage,
         agencyAgent,
         agentName: agencyAgent,
         isRenewal,
-        policyNumber,
         effectiveDate,
-        website,
-        carrier,
         limitOfInsurance,
         deductible,
-        premium,
         offeringRenewal,
         claimsMade,
         retroactiveDate,
@@ -452,8 +556,6 @@ function ManufacturersContent() {
         phone: auditPhone || '000-000-0000',
         auditEmail,
         email: auditEmail || 'unknown@example.com',
-        hasLossRunsAttachment: !!lossRunsFile,
-        hasBrochureAttachment: !!brochureFile,
 
         // Page 2 fields
         industries,
@@ -635,16 +737,6 @@ function ManufacturersContent() {
                 />
               </Row>
 
-              <Row label="Brokerage/Broker" bold>
-                <input
-                  type="text"
-                  value={brokerage}
-                  onChange={e => setBrokerage(e.target.value)}
-                  placeholder="Brokerage / Broker"
-                  className={inp}
-                />
-              </Row>
-
               <Row label="Agency/Agent" bold required>
                 {agentOptions.length > 0 ? (
                   <select
@@ -677,16 +769,6 @@ function ManufacturersContent() {
                 />
               </Row>
 
-              <Row label="Policy Number" bold>
-                <input
-                  type="text"
-                  value={policyNumber}
-                  onChange={e => setPolicyNumber(e.target.value)}
-                  placeholder="Policy Number"
-                  className={inp}
-                />
-              </Row>
-
               <Row label="Effective Date" bold>
                 <input
                   type="date"
@@ -695,30 +777,10 @@ function ManufacturersContent() {
                   className={inp}
                 />
               </Row>
-
-              <Row label="Website" bold>
-                <input
-                  type="text"
-                  value={website}
-                  onChange={e => setWebsite(e.target.value)}
-                  placeholder="https://www.example.com"
-                  className={inp}
-                />
-              </Row>
             </Section>
 
             {/* ═══ 2. Current Carrier Information ═════════════════════ */}
             <Section title="Current Carrier Information">
-              <Row label="Carrier" bold>
-                <input
-                  type="text"
-                  value={carrier}
-                  onChange={e => setCarrier(e.target.value)}
-                  placeholder="Carrier name"
-                  className={inp}
-                />
-              </Row>
-
               <Row label="Limit of Insurance" bold>
                 <CurrencyInp
                   value={limitOfInsurance}
@@ -732,14 +794,6 @@ function ManufacturersContent() {
                   value={deductible}
                   onChange={setDeductible}
                   placeholder="5,000"
-                />
-              </Row>
-
-              <Row label="Premium" bold>
-                <CurrencyInp
-                  value={premium}
-                  onChange={setPremium}
-                  placeholder="10,000"
                 />
               </Row>
 
@@ -767,67 +821,41 @@ function ManufacturersContent() {
                   className={inp}
                 />
               </Row>
-
-              {/* Attachments */}
-              <div className="pt-3 border-t border-gray-100">
-                <p className="text-sm font-semibold italic text-gray-700 mb-3">
-                  Please attach copies of the following:
-                </p>
-
-                <div className="space-y-3">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-gray-50 rounded border border-gray-200">
-                    <span className="text-sm text-gray-700 italic flex-1">
-                      a) Currently valued five year loss runs, including claim detail for all losses open or exceeding $15,000
-                    </span>
-                    <label className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-xs font-semibold rounded cursor-pointer transition-colors shrink-0 shadow-sm">
-                      <Upload className="w-3.5 h-3.5 text-gray-500" />
-                      <span>{lossRunsFile ? lossRunsFile.name : "Choose File"}</span>
-                      <input
-                        type="file"
-                        className="hidden"
-                        onChange={e => {
-                          if (e.target.files && e.target.files[0]) {
-                            setLossRunsFile(e.target.files[0]);
-                            toast.success(`Attached: ${e.target.files[0].name}`);
-                          }
-                        }}
-                      />
-                    </label>
-                  </div>
-
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-gray-50 rounded border border-gray-200">
-                    <span className="text-sm text-gray-700 italic flex-1">
-                      b) Applicant's product brochure, catalog, or marketing materials if a website is not available
-                    </span>
-                    <label className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-xs font-semibold rounded cursor-pointer transition-colors shrink-0 shadow-sm">
-                      <Upload className="w-3.5 h-3.5 text-gray-500" />
-                      <span>{brochureFile ? brochureFile.name : "Choose File"}</span>
-                      <input
-                        type="file"
-                        className="hidden"
-                        onChange={e => {
-                          if (e.target.files && e.target.files[0]) {
-                            setBrochureFile(e.target.files[0]);
-                            toast.success(`Attached: ${e.target.files[0].name}`);
-                          }
-                        }}
-                      />
-                    </label>
-                  </div>
-                </div>
-              </div>
             </Section>
 
             {/* ═══ 3. Mailing Address ═════════════════════════════════ */}
             <Section title="Mailing Address">
               <Row label="Mailing Address" bold>
-                <input
-                  type="text"
-                  value={mailingAddress}
-                  onChange={e => setMailingAddress(e.target.value)}
-                  placeholder="Street Address"
-                  className={inp}
-                />
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={mailingAddress}
+                    onChange={e => handleMailingAddressSearch(e.target.value)}
+                    placeholder="Street Address"
+                    className={inp}
+                    autoComplete="off"
+                  />
+                  {mailingAddressLoading && (
+                    <div className="absolute right-3 top-2.5 text-xs text-gray-400">Searching...</div>
+                  )}
+                  {showMailingSuggestions && mailingSuggestions.length > 0 && (
+                    <div
+                      ref={mailingSuggestionRef}
+                      className="absolute z-50 w-full bg-white border border-gray-200 rounded shadow-lg mt-1 max-h-60 overflow-y-auto"
+                    >
+                      {mailingSuggestions.map((suggestion, index) => (
+                        <div
+                          key={index}
+                          onMouseDown={() => handleSelectMailingSuggestion(suggestion)}
+                          className="px-4 py-3 hover:bg-[#f5f2ef] cursor-pointer text-sm border-b border-gray-100 last:border-0"
+                        >
+                          <span className="font-medium">{suggestion.street_line} {suggestion.secondary}</span>
+                          <span className="text-gray-500 ml-1">{suggestion.city}, {suggestion.state} {suggestion.zipcode}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </Row>
               <Row label="City" bold>
                 <input
@@ -839,13 +867,16 @@ function ManufacturersContent() {
                 />
               </Row>
               <Row label="State" bold>
-                <input
-                  type="text"
+                <select
                   value={mailingState}
                   onChange={e => setMailingState(e.target.value)}
-                  placeholder="State (e.g. CA)"
-                  className={inp}
-                />
+                  className={sel}
+                >
+                  <option value="">Select State</option>
+                  {Object.values(STATE_CODE_TO_NAME).map(stateName => (
+                    <option key={stateName} value={stateName}>{stateName}</option>
+                  ))}
+                </select>
               </Row>
               <Row label="Zip Code" bold>
                 <input
@@ -875,13 +906,36 @@ function ManufacturersContent() {
               {!sameAsMailing && (
                 <div className="space-y-6 pt-2">
                   <Row label="Premise Address" bold>
-                    <input
-                      type="text"
-                      value={premiseAddress}
-                      onChange={e => setPremiseAddress(e.target.value)}
-                      placeholder="Premise Street Address"
-                      className={inp}
-                    />
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={premiseAddress}
+                        onChange={e => handlePremiseAddressSearch(e.target.value)}
+                        placeholder="Premise Street Address"
+                        className={inp}
+                        autoComplete="off"
+                      />
+                      {premiseAddressLoading && (
+                        <div className="absolute right-3 top-2.5 text-xs text-gray-400">Searching...</div>
+                      )}
+                      {showPremiseSuggestions && premiseSuggestions.length > 0 && (
+                        <div
+                          ref={premiseSuggestionRef}
+                          className="absolute z-50 w-full bg-white border border-gray-200 rounded shadow-lg mt-1 max-h-60 overflow-y-auto"
+                        >
+                          {premiseSuggestions.map((suggestion, index) => (
+                            <div
+                              key={index}
+                              onMouseDown={() => handleSelectPremiseSuggestion(suggestion)}
+                              className="px-4 py-3 hover:bg-[#f5f2ef] cursor-pointer text-sm border-b border-gray-100 last:border-0"
+                            >
+                              <span className="font-medium">{suggestion.street_line} {suggestion.secondary}</span>
+                              <span className="text-gray-500 ml-1">{suggestion.city}, {suggestion.state} {suggestion.zipcode}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </Row>
                   <Row label="City" bold>
                     <input
@@ -893,13 +947,16 @@ function ManufacturersContent() {
                     />
                   </Row>
                   <Row label="State" bold>
-                    <input
-                      type="text"
+                    <select
                       value={premiseState}
                       onChange={e => setPremiseState(e.target.value)}
-                      placeholder="State (e.g. CA)"
-                      className={inp}
-                    />
+                      className={sel}
+                    >
+                      <option value="">Select State</option>
+                      {Object.values(STATE_CODE_TO_NAME).map(stateName => (
+                        <option key={stateName} value={stateName}>{stateName}</option>
+                      ))}
+                    </select>
                   </Row>
                   <Row label="Zip Code" bold>
                     <input
@@ -1012,23 +1069,62 @@ function ManufacturersContent() {
 
               {/* Question 7: Industry Checkboxes */}
               <div className="pb-5 border-b border-gray-100">
-                <p className="text-sm font-bold text-gray-900 mb-3">
-                  7) Are any of your products used in any of the following industries?
-                </p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 bg-gray-50 p-4 rounded border border-gray-200">
-                  {INDUSTRY_OPTIONS.map(ind => (
-                    <label key={ind} className="flex items-center gap-2.5 text-xs md:text-sm text-gray-800 cursor-pointer select-none">
-                      <input
-                        type="checkbox"
-                        checked={industries.includes(ind)}
-                        onChange={() => toggleIndustry(ind)}
-                        className="w-4 h-4 accent-[#7A6F64] rounded"
-                      />
-                      <span>{ind}</span>
-                    </label>
-                  ))}
+                <div className="mb-3">
+                  <p className="text-sm font-bold text-gray-900">7. MANUFACTURING / PRODUCT TYPE</p>
+                  <p className="text-sm text-gray-800 mt-1">What type of products does your company manufacture, import, distribute, or sell?</p>
                 </div>
-                <p className="text-xs italic text-amber-800 mt-2.5">
+
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setIsIndustryDropdownOpen(!isIndustryDropdownOpen)}
+                    className="w-full sm:w-2/3 bg-white border border-gray-300 rounded-md py-2.5 px-3 text-left shadow-sm flex justify-between items-center focus:outline-none focus:ring-2 focus:ring-[#7A6F64] transition-all"
+                  >
+                    <span className="truncate text-gray-700 font-medium">
+                      {industries.length > 0 
+                        ? `${industries.length} product type(s) selected` 
+                        : "Select all that apply..."}
+                    </span>
+                    <svg className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+
+                  {isIndustryDropdownOpen && (
+                    <div className="absolute z-10 mt-1 w-full sm:w-3/4 bg-white shadow-xl rounded-md border border-gray-200">
+                      <div className="p-2 border-b border-gray-100 flex justify-between items-center bg-gray-50 rounded-t-md">
+                        <span className="text-xs font-semibold text-gray-600 px-1">Select options below:</span>
+                        <button type="button" onClick={() => setIsIndustryDropdownOpen(false)} className="text-xs bg-[#7A6F64] text-white px-3 py-1 rounded hover:bg-[#5C534A] font-medium transition-colors">Done</button>
+                      </div>
+                      <div className="max-h-64 overflow-y-auto p-2 grid grid-cols-1 md:grid-cols-2 gap-1 bg-white rounded-b-md">
+                        {INDUSTRY_OPTIONS.map(ind => (
+                          <label key={ind} className="flex items-start gap-2.5 text-sm text-gray-700 cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors select-none">
+                            <input
+                              type="checkbox"
+                              checked={industries.includes(ind)}
+                              onChange={() => toggleIndustry(ind)}
+                              className="mt-0.5 w-4 h-4 accent-[#7A6F64] rounded border-gray-300"
+                            />
+                            <span className="leading-snug">{ind}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Show tags of selected options below the dropdown for visibility */}
+                {industries.length > 0 && (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {industries.map(ind => (
+                      <span key={ind} className="inline-flex items-center gap-1.5 bg-gray-100 border border-gray-200 text-gray-700 text-xs px-2.5 py-1.5 rounded-md shadow-sm">
+                        {ind}
+                        <button type="button" onClick={() => toggleIndustry(ind)} className="text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full w-4 h-4 flex items-center justify-center transition-colors">&times;</button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+                <p className="text-xs italic text-amber-800 mt-3.5">
                   If any of the above are indicated, please complete the specialty Kinsale Supplemental Application for the indicated class instead of this application.
                 </p>
               </div>

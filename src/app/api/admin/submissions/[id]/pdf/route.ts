@@ -12,6 +12,7 @@ import { mapContractorsDataToPacketData } from "@/lib/services/pdf/mappers/contr
 import { generateContractorsPacketHTML } from "@/lib/services/pdf/ContractorsEquipmentPacketPDF";
 import { generateBuildersRiskPacketHTML } from "@/lib/services/pdf/BuildersRiskPacketPDF";
 import { generateManufacturersPacketHTML } from "@/lib/services/pdf/ManufacturersPacketPDF";
+import { mapManufacturersDataToPacketData } from "@/lib/services/pdf/mappers/manufacturersMapper";
 
 /**
  * GET /api/admin/submissions/[id]/pdf
@@ -113,7 +114,15 @@ export async function GET(
       htmlContent = generateBuildersRiskPacketHTML(formData);
     } else if (isManufacturers) {
       console.log("📄 [PDF Download] Generating Manufacturers PDF...");
-      htmlContent = generateManufacturersPacketHTML(formData);
+      const manufacturersData = mapManufacturersDataToPacketData(
+        formData,
+        submission._id.toString(),
+        agency,
+        quote ? quote.toObject() : undefined,
+        submission,
+        capitalCoLogoSVG
+      );
+      htmlContent = generateManufacturersPacketHTML(manufacturersData);
     } else {
       const packetData = mapFormDataToPacketData(
         formData,

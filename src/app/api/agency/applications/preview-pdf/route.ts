@@ -10,6 +10,7 @@ import { mapContractorsDataToPacketData } from "@/lib/services/pdf/mappers/contr
 import { generateContractorsPacketHTML } from "@/lib/services/pdf/ContractorsEquipmentPacketPDF";
 import { generateBuildersRiskPacketHTML } from "@/lib/services/pdf/BuildersRiskPacketPDF";
 import { generateManufacturersPacketHTML } from "@/lib/services/pdf/ManufacturersPacketPDF";
+import { mapManufacturersDataToPacketData } from "@/lib/services/pdf/mappers/manufacturersMapper";
 
 /**
  * POST /api/agency/applications/preview-pdf
@@ -119,7 +120,15 @@ export async function POST(req: NextRequest) {
       htmlContent = generateBuildersRiskPacketHTML(formData);
     } else if (isManufacturers) {
       console.log("📄 [PDF Download] Generating Manufacturers PDF...");
-      htmlContent = generateManufacturersPacketHTML(formData);
+      const manufacturersData = mapManufacturersDataToPacketData(
+        formData,
+        tempSubmissionId,
+        agency,
+        { status: "PREVIEW" } as any,
+        { programName: programName || "Manufacturers" } as any,
+        capitalCoLogoSVG
+      );
+      htmlContent = generateManufacturersPacketHTML(manufacturersData);
     } else {
       // Map form data to packet data format
       const packetData = mapFormDataToPacketData(

@@ -286,7 +286,7 @@ function formatYesNo(value: boolean | null | undefined, defaultValue?: boolean):
  * Generate Capital & Co Logo HTML (with two hands)
  * Optimized: Uses SVG reference to avoid duplication
  */
-function generateCapitalCoLogoHTML(svgContent?: string, size: string = '100%', logoId: string = 'capital-co-logo'): string {
+export function generateCapitalCoLogoHTML(svgContent?: string, size: string = '100%', logoId: string = 'capital-co-logo'): string {
 	if (svgContent) {
 		// Optimize SVG: Remove XML declaration, comments, and unnecessary whitespace
 		let optimizedSVG = svgContent

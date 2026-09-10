@@ -12,6 +12,7 @@ import { mapContractorsDataToPacketData } from "@/lib/services/pdf/mappers/contr
 import { generateContractorsPacketHTML } from "@/lib/services/pdf/ContractorsEquipmentPacketPDF";
 import { generateBuildersRiskPacketHTML } from "@/lib/services/pdf/BuildersRiskPacketPDF";
 import { generateManufacturersPacketHTML } from "@/lib/services/pdf/ManufacturersPacketPDF";
+import { mapManufacturersDataToPacketData } from "@/lib/services/pdf/mappers/manufacturersMapper";
 
 /**
  * GET /api/agency/applications/[id]/pdf
@@ -112,21 +113,21 @@ export async function GET(
 
     let htmlContent: string = "";
 
-    const isApartment = submission.programId === "apartment-buildings" || 
-                        submission.programName?.toLowerCase().includes("apartment building") || 
-                        submission.programName?.toLowerCase().includes("commercial property");
+    const isApartment = submission.programId === "apartment-buildings" ||
+      submission.programName?.toLowerCase().includes("apartment building") ||
+      submission.programName?.toLowerCase().includes("commercial property");
 
-    const isContractors = submission.programId === "contractors-equipment" || 
-                         submission.programName?.toLowerCase().includes("contractors equipment") ||
-                         submission.programName?.toLowerCase().includes("construction equipment");
+    const isContractors = submission.programId === "contractors-equipment" ||
+      submission.programName?.toLowerCase().includes("contractors equipment") ||
+      submission.programName?.toLowerCase().includes("construction equipment");
 
-    const isBuildersRisk = submission.programId === "builders-risk" || 
-                           submission.programName?.toLowerCase().includes("builders risk") ||
-                           submission.programName?.toLowerCase().includes("builder's risk");
+    const isBuildersRisk = submission.programId === "builders-risk" ||
+      submission.programName?.toLowerCase().includes("builders risk") ||
+      submission.programName?.toLowerCase().includes("builder's risk");
 
-    const isManufacturers = submission.programId === "manufacturers" || 
-                            submission.programName?.toLowerCase().includes("manufacturers") ||
-                            submission.programName?.toLowerCase().includes("distributors");
+    const isManufacturers = submission.programId === "manufacturers" ||
+      submission.programName?.toLowerCase().includes("manufacturers") ||
+      submission.programName?.toLowerCase().includes("distributors");
 
     if (isApartment) {
       console.log("📄 [PDF Download] Generating Apartment Buildings PDF...");
@@ -156,7 +157,15 @@ export async function GET(
       htmlContent = generateBuildersRiskPacketHTML(formData);
     } else if (isManufacturers) {
       console.log("📄 [PDF Download] Generating Manufacturers PDF...");
-      htmlContent = generateManufacturersPacketHTML(formData);
+      const manufacturersData = mapManufacturersDataToPacketData(
+        formData,
+        submission._id.toString(),
+        agency,
+        quote,
+        submission,
+        capitalCoLogoSVG
+      );
+      htmlContent = generateManufacturersPacketHTML(manufacturersData);
     } else {
       const packetData = mapFormDataToPacketData(
         formData,
@@ -216,7 +225,7 @@ export async function GET(
     // Return PDF as response
     try {
       console.log("📄 [PDF Download] Returning PDF response...");
-      const filename = isApartment 
+      const filename = isApartment
         ? `${formData.companyName || formData.applicantName || 'Application'}-Property-Application.pdf`
         : isContractors
           ? `${formData.companyName || formData.applicantName || 'Application'}-Equipment-Application.pdf`

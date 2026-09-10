@@ -21,5 +21,9 @@ export function getDisplayProgramName(programName?: string | null, templateIndus
     return "Builders Risk";
   }
 
+  if (name === "Manufacturers / Distributors" || name.toLowerCase().includes("manufacturer")) {
+    return "Manufacturers";
+  }
+
   return name;
 }
