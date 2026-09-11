@@ -23,23 +23,20 @@ export interface ManufacturersPacketData {
 
     // 1. General Info
     namedInsured: string;
+    firstName: string;
+    lastName: string;
+    dba: string;
+    applicantPhone: string;
+    applicantEmail: string;
     brokerage: string;
     agencyAgent: string;
-    isRenewal: boolean | null;
     policyNumber: string;
     effectiveDate: string;
+    desiredCoverageDates?: string;
     website: string;
 
-    // Carrier Info
-    carrier: string;
-    limitOfInsurance: string;
-    deductible: string;
-    premium: string;
-    offeringRenewal: boolean | null;
-    claimsMade: boolean | null;
-    retroactiveDate: string;
-
     // Addresses
+    sameAsMailing: boolean;
     mailingAddress: string;
     mailingCity: string;
     mailingState: string;
@@ -110,6 +107,82 @@ export interface ManufacturersPacketData {
     awareOfOccurrencesDetails: string;
 }
 
+export function formatDateToUS(dateInput: any): string {
+    if (!dateInput || dateInput === "-") return "-";
+
+    if (dateInput instanceof Date) {
+        if (isNaN(dateInput.getTime())) return "-";
+        return dateInput.toLocaleDateString('en-US', {
+            month: '2-digit',
+            day: '2-digit',
+            year: 'numeric'
+        });
+    }
+
+    const clean = String(dateInput).trim();
+    if (!clean) return "-";
+
+    // Handle YYYY-MM-DD or YYYY-MM-DDTHH:mm:ss
+    const isoMatch = clean.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+    if (isoMatch) {
+        const y = isoMatch[1];
+        const m = isoMatch[2].padStart(2, '0');
+        const d = isoMatch[3].padStart(2, '0');
+        return `${m}/${d}/${y}`;
+    }
+
+    // Handle MM-DD-YYYY or MM/DD/YYYY
+    const usMatch = clean.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
+    if (usMatch) {
+        const m = usMatch[1].padStart(2, '0');
+        const d = usMatch[2].padStart(2, '0');
+        const y = usMatch[3];
+        return `${m}/${d}/${y}`;
+    }
+
+    const date = new Date(dateInput);
+    if (isNaN(date.getTime())) return clean;
+    return date.toLocaleDateString('en-US', {
+        month: '2-digit',
+        day: '2-digit',
+        year: 'numeric'
+    });
+}
+
+export function computeDesiredCoverageDates(effectiveDateStr?: string): string {
+    if (!effectiveDateStr || !effectiveDateStr.trim()) return "-";
+    const clean = effectiveDateStr.trim();
+    
+    // Check if format is YYYY-MM-DD
+    const isoMatch = clean.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+    if (isoMatch) {
+        const y = parseInt(isoMatch[1], 10);
+        const m = isoMatch[2].padStart(2, '0');
+        const d = isoMatch[3].padStart(2, '0');
+        return `${m}/${d}/${y} - ${m}/${d}/${y + 1}`;
+    }
+
+    // Check if format is MM-DD-YYYY or MM/DD/YYYY
+    const usMatch = clean.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
+    if (usMatch) {
+        const m = usMatch[1].padStart(2, '0');
+        const d = usMatch[2].padStart(2, '0');
+        const y = parseInt(usMatch[3], 10);
+        return `${m}/${d}/${y} - ${m}/${d}/${y + 1}`;
+    }
+
+    // Fallback using Date object
+    const parsed = new Date(clean);
+    if (!isNaN(parsed.getTime())) {
+        const m = String(parsed.getUTCMonth() + 1).padStart(2, '0');
+        const d = String(parsed.getUTCDate()).padStart(2, '0');
+        const y = parsed.getUTCFullYear();
+        return `${m}/${d}/${y} - ${m}/${d}/${y + 1}`;
+    }
+
+    return clean;
+}
+
 export function mapManufacturersDataToPacketData(
     formData: any,
     submissionId: string,
@@ -121,8 +194,7 @@ export function mapManufacturersDataToPacketData(
     const safeData = formData || {};
     
     // Formatting Dates
-    const rawDate = submission?.createdAt ? new Date(submission.createdAt) : new Date();
-    const formDate = rawDate.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' });
+    const formDate = formatDateToUS(submission?.createdAt || new Date());
 
     // Addresses mapping
     const mailingAddress = safeData.mailingAddress || safeData.streetAddress || '';
@@ -130,10 +202,27 @@ export function mapManufacturersDataToPacketData(
     const mailingState = safeData.mailingState || safeData.state || '';
     const mailingZip = safeData.mailingZip || safeData.zip || '';
 
-    const premiseAddress = safeData.sameAsMailing ? mailingAddress : (safeData.premiseAddress || '');
-    const premiseCity = safeData.sameAsMailing ? mailingCity : (safeData.premiseCity || '');
-    const premiseState = safeData.sameAsMailing ? mailingState : (safeData.premiseState || '');
-    const premiseZip = safeData.sameAsMailing ? mailingZip : (safeData.premiseZip || '');
+    const isSameAsMailing = Boolean(
+        safeData.sameAsMailing === true ||
+        !safeData.premiseAddress ||
+        (
+            safeData.premiseAddress.toString().trim().toLowerCase() === mailingAddress.toString().trim().toLowerCase() &&
+            safeData.premiseZip.toString().trim() === mailingZip.toString().trim()
+        )
+    );
+
+    const premiseAddress = isSameAsMailing ? mailingAddress : (safeData.premiseAddress || '');
+    const premiseCity = isSameAsMailing ? mailingCity : (safeData.premiseCity || '');
+    const premiseState = isSameAsMailing ? mailingState : (safeData.premiseState || '');
+    const premiseZip = isSameAsMailing ? mailingZip : (safeData.premiseZip || '');
+
+    // Insured Information mapping
+    const firstName = safeData.firstName || '';
+    const lastName = safeData.lastName || '';
+    const fullName = [firstName, lastName].filter(Boolean).join(' ') || safeData.namedInsured || safeData.companyName || '';
+    const dba = safeData.dba || '';
+    const applicantPhone = safeData.applicantPhone || safeData.phone || submission?.clientContact?.phone || '';
+    const applicantEmail = safeData.applicantEmail || safeData.email || submission?.clientContact?.email || '';
 
     return {
         // Metadata
@@ -155,24 +244,21 @@ export function mapManufacturersDataToPacketData(
         capitalCoLogoSVG: capitalCoLogoSVG,
 
         // 1. General Info
-        namedInsured: safeData.namedInsured || safeData.companyName || '',
+        namedInsured: fullName,
+        firstName,
+        lastName,
+        dba,
+        applicantPhone,
+        applicantEmail,
         brokerage: safeData.brokerage || safeData.broker || '',
         agencyAgent: safeData.agencyAgent || safeData.agentName || submission?.agentName || '',
-        isRenewal: safeData.isRenewal === true ? true : (safeData.isRenewal === false ? false : null),
         policyNumber: safeData.policyNumber || '',
-        effectiveDate: safeData.effectiveDate || '',
+        effectiveDate: formatDateToUS(safeData.effectiveDate),
+        desiredCoverageDates: computeDesiredCoverageDates(safeData.effectiveDate),
         website: safeData.website || '',
 
-        // Carrier Info
-        carrier: safeData.carrier || '',
-        limitOfInsurance: safeData.limitOfInsurance || '',
-        deductible: safeData.deductible || '',
-        premium: safeData.premium || '',
-        offeringRenewal: safeData.offeringRenewal === true ? true : (safeData.offeringRenewal === false ? false : null),
-        claimsMade: safeData.claimsMade === true ? true : (safeData.claimsMade === false ? false : null),
-        retroactiveDate: safeData.retroactiveDate || '',
-
         // Addresses
+        sameAsMailing: isSameAsMailing,
         mailingAddress,
         mailingCity,
         mailingState,
@@ -191,8 +277,8 @@ export function mapManufacturersDataToPacketData(
 
         // Audit / Inspection
         auditContact: safeData.auditContact || '',
-        auditPhone: safeData.auditPhone || safeData.phone || '',
-        auditEmail: safeData.auditEmail || safeData.email || '',
+        auditPhone: safeData.auditPhone || '',
+        auditEmail: safeData.auditEmail || '',
 
         // Industries
         industries: Array.isArray(safeData.industries) ? safeData.industries : [],
@@ -224,7 +310,7 @@ export function mapManufacturersDataToPacketData(
         recallInsurance: safeData.recallInsurance === true ? true : (safeData.recallInsurance === false ? false : null),
         recallMeansDisposal: safeData.recallMeansDisposal || '',
         recallEvent: safeData.recallEvent === true ? true : (safeData.recallEvent === false ? false : null),
-        recallDate: safeData.recallDate || '',
+        recallDate: formatDateToUS(safeData.recallDate),
         recallType: safeData.recallType || '',
         recallAgency: safeData.recallAgency || '',
         recallProductsInvolved: safeData.recallProductsInvolved || '',

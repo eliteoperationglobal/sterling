@@ -5,7 +5,7 @@
 
 import QRCode from 'qrcode';
 
-interface ApplicationPacketData {
+export interface ApplicationPacketData {
 	qrCodeDataUrl?: string; // Base64 QR code data URL
 	// Application Metadata
 	applicationId: string;
@@ -4992,7 +4992,7 @@ function generatePage12(data: ApplicationPacketData): string {
 
 {/* page 125 */ }
 
-function generateAcord125Page1(data: ApplicationPacketData): string {
+export function generateAcord125Page1(data: ApplicationPacketData): string {
 
 	// Split "MM/DD/YYYY - MM/DD/YYYY" → effDate / expDate
 	const _acord125DateParts = (data.desiredCoverageDates || '').split(' - ').map((s: string) => s.trim());
@@ -5184,7 +5184,7 @@ function generateAcord125Page1(data: ApplicationPacketData): string {
 `;
 
 }
-function generateAcord125Page2(data: ApplicationPacketData): string {
+export function generateAcord125Page2(data: ApplicationPacketData): string {
 
 	return ` 
   <div class="page page14-isc" style="page-break-after: always;">
@@ -5374,7 +5374,7 @@ function generateAcord125Page2(data: ApplicationPacketData): string {
 `;
 
 }
-function generateAcord125Page3(data: ApplicationPacketData): string {
+export function generateAcord125Page3(data: ApplicationPacketData): string {
 
 	return `
   <div class="page page14-isc" style="page-break-after: always;">
@@ -5475,7 +5475,7 @@ function generateAcord125Page3(data: ApplicationPacketData): string {
 `;
 
 }
-function generateAcord125Page4(data: ApplicationPacketData): string {
+export function generateAcord125Page4(data: ApplicationPacketData): string {
 
 	return `
   <div class="page page14-isc" style="page-break-after: always;">
@@ -5588,7 +5588,7 @@ function generateAcord125Page4(data: ApplicationPacketData): string {
 }
 
 {/* PDF 126  */ }
-function generateAcord126Page1(data: ApplicationPacketData): string {
+export function generateAcord126Page1(data: ApplicationPacketData): string {
 
 	return `
   <div class="page page13-isc" style="page-break-after: always;">
@@ -5698,7 +5698,7 @@ function generateAcord126Page1(data: ApplicationPacketData): string {
   </div>
 `;
 }
-function generateAcord126Page2(data: ApplicationPacketData): string {
+export function generateAcord126Page2(data: ApplicationPacketData): string {
 
 	return `
   <div class="page page14-isc" style="page-break-after: always;">
@@ -5776,7 +5776,7 @@ function generateAcord126Page2(data: ApplicationPacketData): string {
 `;
 
 }
-function generateAcord126Page3(data: ApplicationPacketData): string {
+export function generateAcord126Page3(data: ApplicationPacketData): string {
 
 	return `
   <div class="page page15-isc" style="page-break-after: always;">
@@ -5850,7 +5850,7 @@ function generateAcord126Page3(data: ApplicationPacketData): string {
 `;
 
 }
-function generateAcord126Page4(data: ApplicationPacketData): string {
+export function generateAcord126Page4(data: ApplicationPacketData): string {
 
 	return `
   <div class="page page16-isc" style="page-break-after: always;">

@@ -1,23 +1,96 @@
-import { ManufacturersPacketData } from "./mappers/manufacturersMapper";
+import { ManufacturersPacketData, computeDesiredCoverageDates, formatDateToUS } from "./mappers/manufacturersMapper";
 import { blueAngelLogoSVG, sjjLogoSVG, patrickAriasLogoSVG, titanLogoSVG, texasLogoSVG } from "./ApartmentPacketPDF";
+import {
+	ApplicationPacketData,
+	generateAcord125Page1,
+	generateAcord125Page2,
+	generateAcord125Page3,
+	generateAcord125Page4,
+	generateAcord126Page1,
+	generateAcord126Page2,
+	generateAcord126Page3,
+	generateAcord126Page4,
+} from "./ApplicationPacketPDF";
+import { acord125And126CSS } from "./acord125And126CSS";
 
 /**
  * Manufacturers/Distributors Supplemental Application PDF Generator
  * Styled to exactly match ApartmentPacketPDF professional format
  */
 
+function mapManufacturersToAcordData(data: ManufacturersPacketData): ApplicationPacketData {
+	const contactPerson = data.auditContact || [data.firstName, data.lastName].filter(Boolean).join(" ") || "";
+
+	// Split desiredCoverageDates "MM/DD/YYYY - MM/DD/YYYY" if available
+	let effectiveDate = data.effectiveDate || "";
+	let expirationDate = "";
+	if (data.desiredCoverageDates && data.desiredCoverageDates.includes(" - ")) {
+		const parts = data.desiredCoverageDates.split(" - ");
+		if (!effectiveDate) effectiveDate = parts[0]?.trim() || "";
+		expirationDate = parts[1]?.trim() || "";
+	}
+
+	return {
+		// Metadata & Tracking
+		applicationId: data.applicationId || "",
+		submissionNumber: data.submissionNumber || "",
+		formDate: data.formDate || "",
+
+		// Agency Information (prints on ACORD 125 Page 1 & ACORD 126 Page 1)
+		agencyName: data.agencyName || "",
+		agentName: data.agentName || "",
+		agencyAddress: data.agencyAddress || "",
+		agencyCity: data.agencyCity || "",
+		agencyState: data.agencyState || "",
+		agencyZip: data.agencyZip || "",
+		agencyPhone: data.agencyPhone || "",
+		agencyEmail: data.agencyEmail || "",
+
+		// Applicant Information (prints on ACORD 125 Pages 1 & 2)
+		companyName: data.namedInsured || "",
+		applicantAddress: data.mailingAddress || "",
+		applicantCity: data.mailingCity || "",
+		applicantState: data.mailingState || "",
+		applicantZip: data.mailingZip || "",
+		applicantPhone: data.applicantPhone || data.auditPhone || "",
+		applicantEmail: data.applicantEmail || data.auditEmail || "",
+		contactPerson: contactPerson,
+
+		// Coverage Dates (prints on ACORD 125 Page 1)
+		effectiveDate: effectiveDate,
+		expirationDate: expirationDate,
+		desiredCoverageDates: data.desiredCoverageDates || computeDesiredCoverageDates(data.effectiveDate) || "",
+
+		// Sales / Receipts (prints on ACORD 125 Page 2)
+		estimatedTotalGrossReceipts: data.salesUpcoming || data.salesLast12 || "",
+	} as unknown as ApplicationPacketData;
+}
+
 export function generateManufacturersPacketHTML(data: ManufacturersPacketData): string {
+  const acordData = mapManufacturersToAcordData(data);
+
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <title>Manufacturers/Distributors Supplemental Application</title>
-  <style>${cssContent}</style>
+  <style>
+${cssContent}
+${acord125And126CSS}
+  </style>
 </head>
 <body>
   ${generateApplicationPage1(data)}
   ${generateApplicationPage2(data)}
   ${generateApplicationPage3(data)}
+  ${generateAcord125Page1(acordData)}
+  ${generateAcord125Page2(acordData)}
+  ${generateAcord125Page3(acordData)}
+  ${generateAcord125Page4(acordData)}
+  ${generateAcord126Page1(acordData)}
+  ${generateAcord126Page2(acordData)}
+  ${generateAcord126Page3(acordData)}
+  ${generateAcord126Page4(acordData)}
 </body>
 </html>`;
 }
@@ -89,8 +162,12 @@ function generateCapitalCoLogoHTML(svgContent?: string, size: string = '100%'): 
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// PAGE 1 — Header + General Information
-// ─────────────────────────────────────────────────────────────────────────────
+// Toggle to comment out or re-enable "1. General Information" (set to true to re-enable)
+const SHOW_GENERAL_INFO = false;
+
+// Helper to keep complete consecutive numbering across all sections and questions
+const qNum = (withGeneralInfoNum: number) => SHOW_GENERAL_INFO ? withGeneralInfoNum : withGeneralInfoNum - 1;
+
 function generateApplicationPage1(data: ManufacturersPacketData): string {
 	const email = data.agencyEmail?.toLowerCase() || "";
 	let selectedLogo = data.capitalCoLogoSVG;
@@ -132,73 +209,49 @@ function generateApplicationPage1(data: ManufacturersPacketData): string {
 				<div class="app-id-quote-parallel-page2">
 					<div>
 						<div class="section-title-page2">Date</div>
-						<div class="date-section-page2">${data.formDate || new Date().toLocaleDateString('en-US')}</div>
+						<div class="date-section-page2">${data.formDate && data.formDate !== '-' ? data.formDate : formatDateToUS(new Date())}</div>
 					</div>
 					<div>
 						<div class="section-title-page2">Insured Information</div>
-						<div class="insured-detail-page2"><strong>${data.namedInsured || ""}</strong></div>
+						<div class="insured-detail-page2"><strong>${data.namedInsured || [data.firstName, data.lastName].filter(Boolean).join(' ') || ""}</strong></div>
+						${data.dba ? `<div class="insured-detail-page2">DBA: ${data.dba}</div>` : ''}
 						<div class="invoice-field-page12">${data.mailingAddress ? data.mailingAddress.split(',')[0].trim() : ''}</div>
 						<div class="insured-detail-page2">${data.mailingCity || ""}, ${data.mailingState || ""} ${data.mailingZip || ""}</div>
-						<div class="insured-detail-page2">${data.auditPhone || ""}</div>
-						<div class="insured-detail-page2">Email: ${data.auditEmail?.toLowerCase() || ""}</div>
+						<div class="insured-detail-page2">${data.applicantPhone || data.auditPhone || ""}</div>
+						<div class="insured-detail-page2">Email: ${(data.applicantEmail || data.auditEmail || "").toLowerCase()}</div>
 					</div>
 					<div>
 						<div class="section-title-page2">Quote Information</div>
 						<div class="quote-detail-page2">Manufacturers / Distributors</div>
 						<div class="quote-detail-page2">Manufacturer</div>
-						<div class="quote-detail-page2">Effective Date: ${data.effectiveDate || "-"}</div>
+						<div class="quote-detail-page2">Desired Coverage Dates: ${data.desiredCoverageDates || computeDesiredCoverageDates(data.effectiveDate)}</div>
 					</div>
 				</div>
 
-				<!-- GENERAL INFORMATION Section -->
+				<!-- 1. GENERAL INFORMATION (Commented out for now; uncomment/set SHOW_GENERAL_INFO=true later) -->
+				${SHOW_GENERAL_INFO ? `
 				<div class="section-container" style="margin-top: 0.1in;">
 					<div class="section-header">1. General Information</div>
 					<hr class="section-divider" />
 
-					${renderField("Named Insured", data.namedInsured)}
 					${renderField("Agency / Agent", data.agencyAgent)}
-
-					<div class="field-item">
-						<span class="field-label">Renewal?</span>
-						<span class="field-value yes-no-options" style="justify-content: flex-start; gap: 15px;">
-							<span class="option ${data.isRenewal === true ? 'selected' : ''}">Yes</span>
-							<span class="option ${data.isRenewal === false ? 'selected' : ''}">No</span>
-						</span>
-					</div>
+					${data.firstName || data.lastName ? `
+						${renderField("First Name", data.firstName)}
+						${renderField("Last Name", data.lastName)}
+					` : `
+						${renderField("Named Insured", data.namedInsured)}
+					`}
+					${data.dba ? renderField("DBA", data.dba) : ''}
+					${renderField("Applicant Phone", data.applicantPhone || data.auditPhone)}
+					${renderField("Applicant Email", data.applicantEmail || data.auditEmail)}
 
 					${renderField("Effective Date", data.effectiveDate)}
 				</div>
-
-				<!-- CURRENT CARRIER INFORMATION -->
-				<div class="section-container">
-					<div class="section-header">2. Current Carrier Information</div>
-					<hr class="section-divider" />
-
-					${renderField("Limit of Insurance", data.limitOfInsurance)}
-					${renderField("Deductible", data.deductible)}
-
-					<div class="field-item">
-						<span class="field-label">Offering renewal?</span>
-						<span class="field-value yes-no-options" style="justify-content: flex-start; gap: 15px;">
-							<span class="option ${data.offeringRenewal === true ? 'selected' : ''}">Yes</span>
-							<span class="option ${data.offeringRenewal === false ? 'selected' : ''}">No</span>
-						</span>
-					</div>
-
-					<div class="field-item">
-						<span class="field-label">Claims made?</span>
-						<span class="field-value yes-no-options" style="justify-content: flex-start; gap: 15px;">
-							<span class="option ${data.claimsMade === true ? 'selected' : ''}">Yes</span>
-							<span class="option ${data.claimsMade === false ? 'selected' : ''}">No</span>
-						</span>
-					</div>
-
-					${renderField("Retroactive Date", data.retroactiveDate)}
-				</div>
+				` : ''}
 
 				<!-- ADDRESSES -->
-				<div class="section-container">
-					<div class="section-header">3. Mailing Address</div>
+				<div class="section-container" ${!SHOW_GENERAL_INFO ? 'style="margin-top: 0.1in;"' : ''}>
+					<div class="section-header">${SHOW_GENERAL_INFO ? '2.' : '1.'} Mailing Address</div>
 					<hr class="section-divider" />
 					${renderField("Street Address", data.mailingAddress)}
 					${renderField("City", data.mailingCity)}
@@ -207,17 +260,23 @@ function generateApplicationPage1(data: ManufacturersPacketData): string {
 				</div>
 
 				<div class="section-container">
-					<div class="section-header">4. Premise Address (if different)</div>
+					<div class="section-header">${SHOW_GENERAL_INFO ? '3.' : '2.'} Premise Address (if different)</div>
 					<hr class="section-divider" />
-					${renderField("Street Address", data.premiseAddress || "-")}
-					${renderField("City", data.premiseCity)}
-					${renderField("State", data.premiseState)}
-					${renderField("Zip Code", data.premiseZip)}
+					${(data.sameAsMailing || !data.premiseAddress || (data.premiseAddress.trim().toLowerCase() === data.mailingAddress.trim().toLowerCase() && data.premiseZip.trim() === data.mailingZip.trim())) ? `
+						<div class="field-item">
+							<span class="field-value" style="font-weight: 500; font-style: italic; color: #444;">Same as Mailing Address</span>
+						</div>
+					` : `
+						${renderField("Street Address", data.premiseAddress || "-")}
+						${renderField("City", data.premiseCity)}
+						${renderField("State", data.premiseState)}
+						${renderField("Zip Code", data.premiseZip)}
+					`}
 				</div>
 
 				<!-- SALES TABLE -->
 				<div class="section-container">
-					<div class="section-header">5. Sales Information</div>
+					<div class="section-header">${SHOW_GENERAL_INFO ? '4.' : '3.'} Sales Information</div>
 					<hr class="section-divider" />
 					<table style="width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 10pt;">
 						<thead>
@@ -241,7 +300,14 @@ function generateApplicationPage1(data: ManufacturersPacketData): string {
 					</table>
 				</div>
 
-				<!-- AUDIT CONTACT moved to Page 2 to avoid overflow -->
+				<!-- AUDIT CONTACT -->
+				<div class="section-container">
+					<div class="section-header">${SHOW_GENERAL_INFO ? '5.' : '4.'} Audit / Inspection Contact</div>
+					<hr class="section-divider" />
+					${renderField("Contact Name", data.auditContact)}
+					${renderField("Phone Number", data.auditPhone)}
+					${renderField("Email", data.auditEmail)}
+				</div>
 			</div>
 		</div>`;
 }
@@ -302,17 +368,8 @@ function generateApplicationPage2(data: ManufacturersPacketData): string {
 	<div class="page page2-isc">
 		<div class="main-content main-content-page2">
 
-			<!-- AUDIT CONTACT -->
 			<div class="section-container" style="margin-top: 0.1in;">
-				<div class="section-header">6. Audit / Inspection Contact</div>
-				<hr class="section-divider" />
-				${renderField("Contact Name", data.auditContact)}
-				${renderField("Phone Number", data.auditPhone)}
-				${renderField("Email", data.auditEmail)}
-			</div>
-
-			<div class="section-container">
-				<div class="section-header">7. MANUFACTURING / PRODUCT TYPE</div>
+				<div class="section-header">${qNum(6)}. MANUFACTURING / PRODUCT TYPE</div>
 				<hr class="section-divider" />
 				<div style="font-size: 10pt; color: #444;">What type of products does your company manufacture, import, distribute, or sell?</div>
 				${industriesHTML}
@@ -322,7 +379,7 @@ function generateApplicationPage2(data: ManufacturersPacketData): string {
 			</div>
 
 			<div class="section-container">
-				<div class="section-header">8. Excluded Products</div>
+				<div class="section-header">${qNum(7)}. Excluded Products</div>
 				<hr class="section-divider" />
 				${renderField("Excluded subsidiary / product group", data.excludedProducts)}
 				<div class="question-block">
@@ -334,16 +391,16 @@ function generateApplicationPage2(data: ManufacturersPacketData): string {
 				<div class="section-header">Product Questions</div>
 				<hr class="section-divider" />
 				<div class="question-block">
-					${renderYesNo("9) Are any new products to be introduced during the next year?", data.newProducts, data.newProductsDetails)}
+					${renderYesNo(`${qNum(8)}) Are any new products to be introduced during the next year?`, data.newProducts, data.newProductsDetails)}
 				</div>
 				<div class="question-block">
-					${renderYesNo("10) Can your products be identified from those of your competitors?", data.identifiedCompetitors, data.identifiedHow)}
+					${renderYesNo(`${qNum(9)}) Can your products be identified from those of your competitors?`, data.identifiedCompetitors, data.identifiedHow)}
 				</div>
 				<div class="question-block">
-					${renderYesNo("11) Do you import any products or components?", data.importProducts)}
+					${renderYesNo(`${qNum(10)}) Do you import any products or components?`, data.importProducts)}
 				</div>
 				<div class="question-block">
-					${renderYesNo("12) Does any manufacturer grant you AI Vendor status for products that you distribute?", data.aiVendorStatus)}
+					${renderYesNo(`${qNum(11)}) Does any manufacturer grant you AI Vendor status for products that you distribute?`, data.aiVendorStatus)}
 				</div>
 				<div class="sub-section">
 					<div class="question-block">
@@ -353,20 +410,20 @@ function generateApplicationPage2(data: ManufacturersPacketData): string {
 			</div>
 
 			<div class="section-container">
-				<div class="section-header">13. Installation & Service Operations</div>
+				<div class="section-header">${qNum(12)}. Installation & Service Operations</div>
 				<hr class="section-divider" />
 				<div class="question-block">
 					${renderYesNo("Do you have any installation, service, or repair operations that occur off of your premise(s)?", data.offPremiseOps, data.offPremiseClarify)}
 				</div>
 				<div class="sub-section">
 					<div class="question-block">
-						${renderYesNo("b. Do you hire subcontractors to perform any work on your behalf?", data.hireSubcontractors)}
+						${renderYesNo("a. Do you hire subcontractors to perform any work on your behalf?", data.hireSubcontractors)}
 					</div>
 					<div class="question-block">
-						${renderYesNo("c. Do you collect certificates of insurance from all subcontractors prior to the beginning of work?", data.collectCoi)}
+						${renderYesNo("b. Do you collect certificates of insurance from all subcontractors prior to the beginning of work?", data.collectCoi)}
 					</div>
 					<div class="question-block">
-						${renderYesNo("d. Do you have any work performed in condominiums, apartment to condo conversions, townhouses, or tract housing?", data.condoTownhouseWork)}
+						${renderYesNo("c. Do you have any work performed in condominiums, apartment to condo conversions, townhouses, or tract housing?", data.condoTownhouseWork)}
 					</div>
 				</div>
 			</div>
@@ -375,10 +432,10 @@ function generateApplicationPage2(data: ManufacturersPacketData): string {
 				<div class="section-header">Additional Product Questions</div>
 				<hr class="section-divider" />
 				<div class="question-block">
-					${renderYesNo("14) Do you have any discontinued products?", data.discontinuedProducts, data.discontinuedReason)}
+					${renderYesNo(`${qNum(13)}) Do you have any discontinued products?`, data.discontinuedProducts, data.discontinuedReason)}
 				</div>
 				<div class="question-block">
-					${renderYesNo("15) Do you rent any equipment?", data.rentEquipment)}
+					${renderYesNo(`${qNum(14)}) Do you rent any equipment?`, data.rentEquipment)}
 				</div>
 				<div class="sub-section">
 					<div class="question-block">
@@ -389,7 +446,7 @@ function generateApplicationPage2(data: ManufacturersPacketData): string {
 					</div>
 				</div>
 				<div class="question-block">
-					${renderYesNo("16) Are batch or product records, serial numbers or copies of guarantee/warranty cards maintained that would facilitate tracing whereabouts of products?", data.tracingRecordsMaintained, data.recordsMaintainedHowLong ? 'Duration maintained: ' + data.recordsMaintainedHowLong : undefined)}
+					${renderYesNo(`${qNum(15)}) Are batch or product records, serial numbers or copies of guarantee/warranty cards maintained that would facilitate tracing whereabouts of products?`, data.tracingRecordsMaintained, data.recordsMaintainedHowLong ? 'Duration maintained: ' + data.recordsMaintainedHowLong : undefined)}
 				</div>
 			</div>
 
@@ -409,7 +466,7 @@ function generateApplicationPage3(data: ManufacturersPacketData): string {
 				<div class="section-header">Recall Information</div>
 				<hr class="section-divider" />
 				<div class="question-block">
-					${renderYesNo("17) In the event that it becomes necessary to recall a product, do you have a recall plan in place?", data.recallPlan)}
+					${renderYesNo(`${qNum(16)}) In the event that it becomes necessary to recall a product, do you have a recall plan in place?`, data.recallPlan)}
 				</div>
 				<div class="sub-section">
 					<div class="question-block">
@@ -418,7 +475,7 @@ function generateApplicationPage3(data: ManufacturersPacketData): string {
 				</div>
 
 				<div class="question-block">
-					${renderYesNo("18) Have you ever had a product recall event?", data.recallEvent)}
+					${renderYesNo(`${qNum(17)}) Have you ever had a product recall event?`, data.recallEvent)}
 				</div>
 				<div class="sub-section">
 					${renderField("a. Date of recall(s)", data.recallDate)}
@@ -448,19 +505,19 @@ function generateApplicationPage3(data: ManufacturersPacketData): string {
 				<div class="section-header">Claims & Compliance</div>
 				<hr class="section-divider" />
 				<div class="question-block">
-					${renderYesNo("19) Are there any present situations that might give rise to an incident causing a product recall?", data.presentSituationsRecall, data.presentSituationsDetails)}
+					${renderYesNo(`${qNum(18)}) Are there any present situations that might give rise to an incident causing a product recall?`, data.presentSituationsRecall, data.presentSituationsDetails)}
 				</div>
 				<div class="question-block">
-					${renderYesNo("20) Have you been cited by any regulatory agency for violations arising out of business activity involving your product?", data.citedByAgency, data.citedAgencyDetails)}
+					${renderYesNo(`${qNum(19)}) Have you been cited by any regulatory agency for violations arising out of business activity involving your product?`, data.citedByAgency, data.citedAgencyDetails)}
 				</div>
 				<div class="question-block">
-					${renderYesNo("21) Have you had any Product Liability claims that were or were not covered by insurance?", data.productLiabilityClaims, data.productLiabilityExplanation)}
+					${renderYesNo(`${qNum(20)}) Have you had any Product Liability claims that were or were not covered by insurance?`, data.productLiabilityClaims, data.productLiabilityExplanation)}
 				</div>
 				<div class="question-block">
-					${renderYesNo("22) During the past five years, has any insurer ever canceled or non-renewed similar insurance to any applicant or has your insurance been canceled for nonpayment of premium by any insurance or finance company?", data.canceledNonRenewed, data.canceledNonRenewedDetails)}
+					${renderYesNo(`${qNum(21)}) During the past five years, has any insurer ever canceled or non-renewed similar insurance to any applicant or has your insurance been canceled for nonpayment of premium by any insurance or finance company?`, data.canceledNonRenewed, data.canceledNonRenewedDetails)}
 				</div>
 				<div class="question-block">
-					${renderYesNo("23) Is your company aware of any occurrences, facts, circumstances, incidents, situations, damages or accidents arising out of or related to your products that a reasonably prudent person might expect to give rise to a claim or lawsuit whether valid or not which might directly or indirectly involve the company?", data.awareOfOccurrences, data.awareOfOccurrencesDetails)}
+					${renderYesNo(`${qNum(22)}) Is your company aware of any occurrences, facts, circumstances, incidents, situations, damages or accidents arising out of or related to your products that a reasonably prudent person might expect to give rise to a claim or lawsuit whether valid or not which might directly or indirectly involve the company?`, data.awareOfOccurrences, data.awareOfOccurrencesDetails)}
 				</div>
 			</div>
 

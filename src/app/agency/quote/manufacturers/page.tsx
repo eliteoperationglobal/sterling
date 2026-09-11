@@ -120,6 +120,20 @@ const INDUSTRY_OPTIONS = [
   "Other Commercial / Industrial Products"
 ];
 
+const toInputDateFormat = (val?: string) => {
+  if (!val) return '';
+  const clean = String(val).trim();
+  const isoMatch = clean.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+  if (isoMatch) {
+    return `${isoMatch[1]}-${isoMatch[2].padStart(2, '0')}-${isoMatch[3].padStart(2, '0')}`;
+  }
+  const usMatch = clean.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
+  if (usMatch) {
+    return `${usMatch[3]}-${usMatch[1].padStart(2, '0')}-${usMatch[2].padStart(2, '0')}`;
+  }
+  return clean;
+};
+
 function ManufacturersContent() {
   const router = useRouter();
   const { data: session, status } = useSession();
@@ -158,19 +172,15 @@ function ManufacturersContent() {
 
   // ================= Form State =================
   // 1) General Information
-  const [namedInsured, setNamedInsured] = useState('');
   const [agencyAgent, setAgencyAgent] = useState(userName || '');
-  const [isRenewal, setIsRenewal] = useState<boolean | null>(null);
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [dba, setDba] = useState('');
+  const [applicantPhone, setApplicantPhone] = useState('');
+  const [applicantEmail, setApplicantEmail] = useState('');
   const [effectiveDate, setEffectiveDate] = useState(new Date().toISOString().split('T')[0]);
 
-  // 2) Current Carrier Information
-  const [limitOfInsurance, setLimitOfInsurance] = useState('');
-  const [deductible, setDeductible] = useState('');
-  const [offeringRenewal, setOfferingRenewal] = useState<boolean | null>(null);
-  const [claimsMade, setClaimsMade] = useState<boolean | null>(null);
-  const [retroactiveDate, setRetroactiveDate] = useState('');
-
-  // 3) Mailing Address
+  // 2) Mailing Address
   const [mailingAddress, setMailingAddress] = useState('');
   const [mailingCity, setMailingCity] = useState('');
   const [mailingState, setMailingState] = useState('');
@@ -424,16 +434,25 @@ function ManufacturersContent() {
           const sub = data.submission || data;
           if (sub && sub.payload) {
             const p = sub.payload;
-            setNamedInsured(p.namedInsured || sub.clientContact?.name || '');
+            if (p.firstName || p.lastName) {
+              setFirstName(p.firstName || '');
+              setLastName(p.lastName || '');
+            } else if (p.namedInsured || sub.clientContact?.name) {
+              const raw = (p.namedInsured || sub.clientContact?.name || '').trim();
+              const parts = raw.split(' ');
+              if (parts.length <= 1) {
+                setFirstName(parts[0] || '');
+                setLastName('');
+              } else {
+                setFirstName(parts.slice(0, -1).join(' '));
+                setLastName(parts[parts.length - 1]);
+              }
+            }
+            setDba(p.dba || '');
+            setApplicantPhone(p.applicantPhone || p.phone || sub.clientContact?.phone || '');
+            setApplicantEmail(p.applicantEmail || p.email || sub.clientContact?.email || '');
             setAgencyAgent(p.agencyAgent || sub.agentName || '');
-            setIsRenewal(p.isRenewal ?? null);
-            setEffectiveDate(p.effectiveDate || '');
-
-            setLimitOfInsurance(p.limitOfInsurance || '');
-            setDeductible(p.deductible || '');
-            setOfferingRenewal(p.offeringRenewal ?? null);
-            setClaimsMade(p.claimsMade ?? null);
-            setRetroactiveDate(p.retroactiveDate || '');
+            setEffectiveDate(toInputDateFormat(p.effectiveDate));
 
             setMailingAddress(p.mailingAddress || p.streetAddress || '');
             setMailingCity(p.mailingCity || p.city || '');
@@ -484,7 +503,7 @@ function ManufacturersContent() {
             setRecallInsurance(p.recallInsurance ?? null);
             setRecallMeansDisposal(p.recallMeansDisposal || '');
             setRecallEvent(p.recallEvent ?? null);
-            setRecallDate(p.recallDate || '');
+            setRecallDate(toInputDateFormat(p.recallDate));
             setRecallType(p.recallType || '');
             setRecallAgency(p.recallAgency || '');
             setRecallProductsInvolved(p.recallProductsInvolved || '');
@@ -510,29 +529,44 @@ function ManufacturersContent() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!namedInsured.trim()) {
-      toast.error("Please enter the Named Insured");
-      return;
-    }
     if (!agencyAgent.trim()) {
       toast.error("Please select or enter the Agency/Agent name");
+      return;
+    }
+    if (!firstName.trim()) {
+      toast.error("Please enter the First Name");
+      return;
+    }
+    if (!lastName.trim()) {
+      toast.error("Please enter the Last Name");
+      return;
+    }
+    if (!applicantPhone.trim()) {
+      toast.error("Please enter the Applicant Phone");
+      return;
+    }
+    if (!applicantEmail.trim()) {
+      toast.error("Please enter the Applicant Email");
       return;
     }
 
     setIsSubmitting(true);
     try {
+      const fullName = [firstName.trim(), lastName.trim()].filter(Boolean).join(' ');
       const payload = {
-        namedInsured,
-        companyName: namedInsured,
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        namedInsured: fullName,
+        companyName: dba.trim() ? `${fullName} DBA ${dba.trim()}` : fullName,
+        applicantName: fullName,
+        dba: dba.trim(),
+        applicantPhone: applicantPhone.trim(),
+        applicantEmail: applicantEmail.trim(),
+        phone: applicantPhone.trim() || '000-000-0000',
+        email: applicantEmail.trim() || 'unknown@example.com',
         agencyAgent,
         agentName: agencyAgent,
-        isRenewal,
         effectiveDate,
-        limitOfInsurance,
-        deductible,
-        offeringRenewal,
-        claimsMade,
-        retroactiveDate,
         mailingAddress,
         streetAddress: mailingAddress || premiseAddress,
         mailingCity,
@@ -553,9 +587,7 @@ function ManufacturersContent() {
         salesThreeYearsPrior,
         auditContact,
         auditPhone,
-        phone: auditPhone || '000-000-0000',
         auditEmail,
-        email: auditEmail || 'unknown@example.com',
 
         // Page 2 fields
         industries,
@@ -623,6 +655,17 @@ function ManufacturersContent() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             payload: payload,
+            clientContact: {
+              name: fullName || payload.namedInsured || payload.companyName,
+              phone: applicantPhone.trim() || '000-000-0000',
+              email: applicantEmail.trim() || 'unknown@example.com',
+              businessAddress: {
+                street: (mailingAddress || premiseAddress).trim(),
+                city: (mailingCity || premiseCity).trim(),
+                state: mailingState || premiseState || 'CA',
+                zip: (mailingZip || premiseZip).trim(),
+              }
+            }
           }),
         });
       } else {
@@ -726,17 +769,7 @@ function ManufacturersContent() {
 
             {/* ═══ 1. General Information ═══════════════════════════ */}
             <Section title="General Information">
-              <Row label="Named Insured" bold required>
-                <input
-                  type="text"
-                  required
-                  value={namedInsured}
-                  onChange={e => setNamedInsured(e.target.value)}
-                  placeholder="Named Insured"
-                  className={inp}
-                />
-              </Row>
-
+              {/* 1. Agency/Agent */}
               <Row label="Agency/Agent" bold required>
                 {agentOptions.length > 0 ? (
                   <select
@@ -761,14 +794,66 @@ function ManufacturersContent() {
                 )}
               </Row>
 
-              <Row label="Renewal?" bold>
-                <YesNo
-                  name="renewalRadio"
-                  value={isRenewal}
-                  onChange={setIsRenewal}
+              {/* 2. First Name */}
+              <Row label="First Name" bold required>
+                <input
+                  type="text"
+                  required
+                  value={firstName}
+                  onChange={e => setFirstName(e.target.value)}
+                  placeholder="First Name"
+                  className={inp}
                 />
               </Row>
 
+              {/* 3. Last Name */}
+              <Row label="Last Name" bold required>
+                <input
+                  type="text"
+                  required
+                  value={lastName}
+                  onChange={e => setLastName(e.target.value)}
+                  placeholder="Last Name"
+                  className={inp}
+                />
+              </Row>
+
+              {/* 4. DBA */}
+              <Row label="DBA" bold>
+                <input
+                  type="text"
+                  value={dba}
+                  onChange={e => setDba(e.target.value)}
+                  placeholder="DBA (Doing Business As)"
+                  className={inp}
+                />
+              </Row>
+
+              {/* 5. Applicant Phone */}
+              <Row label="Applicant Phone" bold required>
+                <input
+                  type="tel"
+                  required
+                  value={applicantPhone}
+                  onChange={e => setApplicantPhone(formatPhoneNumber(e.target.value))}
+                  placeholder="(555) 000-0000"
+                  className={inp}
+                />
+              </Row>
+
+              {/* 6. Applicant Email */}
+              <Row label="Applicant Email" bold required>
+                <input
+                  type="email"
+                  required
+                  value={applicantEmail}
+                  onChange={e => setApplicantEmail(e.target.value)}
+                  placeholder="applicant@example.com"
+                  className={inp}
+                />
+              </Row>
+
+              {/* 7. Effective Date */}
               <Row label="Effective Date" bold>
                 <input
                   type="date"
@@ -779,51 +864,7 @@ function ManufacturersContent() {
               </Row>
             </Section>
 
-            {/* ═══ 2. Current Carrier Information ═════════════════════ */}
-            <Section title="Current Carrier Information">
-              <Row label="Limit of Insurance" bold>
-                <CurrencyInp
-                  value={limitOfInsurance}
-                  onChange={setLimitOfInsurance}
-                  placeholder="1,000,000"
-                />
-              </Row>
-
-              <Row label="Deductible" bold>
-                <CurrencyInp
-                  value={deductible}
-                  onChange={setDeductible}
-                  placeholder="5,000"
-                />
-              </Row>
-
-              <Row label="Offering renewal?" bold>
-                <YesNo
-                  name="offeringRenewalRadio"
-                  value={offeringRenewal}
-                  onChange={setOfferingRenewal}
-                />
-              </Row>
-
-              <Row label="Claims made?" bold>
-                <YesNo
-                  name="claimsMadeRadio"
-                  value={claimsMade}
-                  onChange={setClaimsMade}
-                />
-              </Row>
-
-              <Row label="Retroactive date" bold>
-                <input
-                  type="date"
-                  value={retroactiveDate}
-                  onChange={e => setRetroactiveDate(e.target.value)}
-                  className={inp}
-                />
-              </Row>
-            </Section>
-
-            {/* ═══ 3. Mailing Address ═════════════════════════════════ */}
+            {/* ═══ 2. Mailing Address ═════════════════════════════════ */}
             <Section title="Mailing Address">
               <Row label="Mailing Address" bold>
                 <div className="relative">
@@ -889,7 +930,7 @@ function ManufacturersContent() {
               </Row>
             </Section>
 
-            {/* ═══ 4. Premise Address (if different from above) ═══════ */}
+            {/* ═══ 3. Premise Address (if different from above) ═══════ */}
             <Section title="Premise Address (if different from above)">
               <div className="py-2 border-b border-gray-100">
                 <label className="flex items-center gap-3 cursor-pointer">
@@ -971,7 +1012,7 @@ function ManufacturersContent() {
               )}
             </Section>
 
-            {/* ═══ 5. Sales Information Table ════════════════════════ */}
+            {/* ═══ 4. Sales Information Table ════════════════════════ */}
             <Section title="Sales Information">
               <p className="text-sm font-semibold text-gray-800">
                 Please complete the below table regarding your sales:
@@ -1031,7 +1072,7 @@ function ManufacturersContent() {
               </div>
             </Section>
 
-            {/* ═══ 6. Audit/Inspection Contact ═══════════════════════ */}
+            {/* ═══ 5. Audit/Inspection Contact ═══════════════════════ */}
             <Section title="Audit / Inspection Contact">
               <Row label="Audit/Inspection contact" bold>
                 <input

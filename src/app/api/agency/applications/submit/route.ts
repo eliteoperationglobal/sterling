@@ -8,7 +8,7 @@ import { generateApplicationPacketHTML, mapFormDataToPacketData, loadCapitalCoLo
 import { generateApartmentPacketHTML } from "@/lib/services/pdf/ApartmentPacketPDF";
 import { generateContractorsPacketHTML } from "@/lib/services/pdf/ContractorsEquipmentPacketPDF";
 import { generateManufacturersPacketHTML } from "@/lib/services/pdf/ManufacturersPacketPDF";
-import { generateBuildersRiskPacketHTML } from "@/lib/services/pdf/BuildersRiskPacketPDF";
+import { generateBuildersRiskPacketHTML, mapBuildersRiskDataToPacketData } from "@/lib/services/pdf/BuildersRiskPacketPDF";
 import { mapApartmentDataToPacketData } from "@/lib/services/pdf/mappers/apartmentMapper";
 import { mapContractorsDataToPacketData } from "@/lib/services/pdf/mappers/contractorsMapper";
 import { mapManufacturersDataToPacketData } from "@/lib/services/pdf/mappers/manufacturersMapper";
@@ -157,10 +157,14 @@ export async function POST(req: NextRequest) {
     const applicationNumber = generateApplicationNumber();
 
     // Prepare client contact from form data
+    const fullName = (formData.firstName || formData.lastName)
+      ? `${formData.firstName || ''} ${formData.lastName || ''}`.trim()
+      : (formData.companyName || formData.applicantName || formData.namedInsured || "Unknown");
+
     const clientContact = {
-      name: formData.companyName || formData.applicantName || "Unknown",
-      phone: formData.phone?.trim() || "000-000-0000",
-      email: formData.email?.trim() || "unknown@example.com",
+      name: fullName,
+      phone: formData.applicantPhone?.trim() || formData.phone?.trim() || "000-000-0000",
+      email: formData.applicantEmail?.trim() || formData.email?.trim() || "unknown@example.com",
       businessAddress: {
         street: formData.streetAddress?.trim() || formData.applicantMailingAddress || "Unknown Street",
         city: formData.city?.trim() || "Unknown City",
@@ -295,7 +299,15 @@ export async function POST(req: NextRequest) {
         htmlContent = generateManufacturersPacketHTML(manufacturersData);
       } else if (isBuildersRisk) {
         console.log("📄 Generating Builders Risk Supplemental PDF...");
-        htmlContent = generateBuildersRiskPacketHTML(submission.payload);
+        const buildersRiskData = mapBuildersRiskDataToPacketData(
+          submission.payload,
+          submission._id.toString(),
+          agency,
+          undefined,
+          submission,
+          capitalCoLogoSVG
+        );
+        htmlContent = generateBuildersRiskPacketHTML(buildersRiskData);
       } else {
         // Map form data to packet data format (no quote yet for new submissions)
         let packetData;

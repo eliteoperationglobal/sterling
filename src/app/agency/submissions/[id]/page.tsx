@@ -1121,12 +1121,12 @@ function SubmissionDetailsContent() {
 
                   <span className="flex items-center gap-1.5">
                     <Phone className="w-4 h-4" />
-                    {(submission?.clientContact?.phone || "???")}
+                    {submission?.payload?.applicantPhone || (submission?.clientContact?.phone && submission?.clientContact?.phone !== "000-000-0000" ? submission?.clientContact?.phone : "") || submission?.payload?.phone || submission?.clientContact?.phone || "???"}
                   </span>
 
                   <span className="flex items-center gap-1.5">
                     <Mail className="w-4 h-4" />
-                    {(submission?.clientContact?.email || "???")}
+                    {submission?.payload?.applicantEmail || (submission?.clientContact?.email && submission?.clientContact?.email !== "unknown@example.com" ? submission?.clientContact?.email : "") || submission?.payload?.email || submission?.clientContact?.email || "???"}
                   </span>
 
                 </div>

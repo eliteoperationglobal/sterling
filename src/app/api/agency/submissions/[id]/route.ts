@@ -262,6 +262,25 @@ export async function PATCH(
       submission.payload = body.payload;
       submission.markModified("payload");
 
+      // Auto-sync clientContact if applicant details are present in payload
+      const syncPhone = body.payload.applicantPhone || body.payload.phone;
+      const syncEmail = body.payload.applicantEmail || body.payload.email;
+      const syncName = (body.payload.firstName || body.payload.lastName)
+        ? `${body.payload.firstName || ''} ${body.payload.lastName || ''}`.trim()
+        : (body.payload.namedInsured || body.payload.companyName);
+
+      if (!submission.clientContact) submission.clientContact = {} as any;
+      if (syncPhone && (syncPhone !== "000-000-0000" || !submission.clientContact.phone || submission.clientContact.phone === "000-000-0000")) {
+        submission.clientContact.phone = syncPhone;
+      }
+      if (syncEmail && (syncEmail !== "unknown@example.com" || !submission.clientContact.email || submission.clientContact.email === "unknown@example.com")) {
+        submission.clientContact.email = syncEmail;
+      }
+      if (syncName) {
+        submission.clientContact.name = syncName;
+      }
+      submission.markModified("clientContact");
+
       const XS_ADDED = (!oldPayload.addExcessLiability) && (body.payload.addExcessLiability === true);
       const XS_REMOVED = (oldPayload.addExcessLiability === true) && (body.payload.addExcessLiability === false);
 

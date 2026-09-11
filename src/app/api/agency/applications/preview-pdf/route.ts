@@ -8,7 +8,7 @@ import { mapApartmentDataToPacketData } from "@/lib/services/pdf/mappers/apartme
 import { generateApartmentPacketHTML } from "@/lib/services/pdf/ApartmentPacketPDF";
 import { mapContractorsDataToPacketData } from "@/lib/services/pdf/mappers/contractorsMapper";
 import { generateContractorsPacketHTML } from "@/lib/services/pdf/ContractorsEquipmentPacketPDF";
-import { generateBuildersRiskPacketHTML } from "@/lib/services/pdf/BuildersRiskPacketPDF";
+import { generateBuildersRiskPacketHTML, mapBuildersRiskDataToPacketData } from "@/lib/services/pdf/BuildersRiskPacketPDF";
 import { generateManufacturersPacketHTML } from "@/lib/services/pdf/ManufacturersPacketPDF";
 import { mapManufacturersDataToPacketData } from "@/lib/services/pdf/mappers/manufacturersMapper";
 
@@ -116,8 +116,16 @@ export async function POST(req: NextRequest) {
       );
       htmlContent = generateContractorsPacketHTML(contractorsData);
     } else if (isBuildersRisk) {
-      console.log("📄 [PDF Download] Generating Builders Risk PDF...");
-      htmlContent = generateBuildersRiskPacketHTML(formData);
+      console.log("📄 [PDF Preview] Generating Builders Risk PDF...");
+      const buildersRiskData = mapBuildersRiskDataToPacketData(
+        formData,
+        tempSubmissionId,
+        agency,
+        { status: "PREVIEW" } as any,
+        { programName: programName || "Builders Risk" } as any,
+        capitalCoLogoSVG
+      );
+      htmlContent = generateBuildersRiskPacketHTML(buildersRiskData);
     } else if (isManufacturers) {
       console.log("📄 [PDF Download] Generating Manufacturers PDF...");
       const manufacturersData = mapManufacturersDataToPacketData(
