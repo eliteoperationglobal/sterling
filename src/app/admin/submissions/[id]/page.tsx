@@ -830,6 +830,33 @@ export default function AdminSubmissionDetailsPage() {
       ? "/agency/quote/contractors-equipment"
       : `/agency/quote/${submission?.programId}`;
 
+  const isCommercialProperty =
+    submission?.programId === 'apartment-buildings' ||
+    submission?.programName === 'Commercial Property' ||
+    submission?.programName === 'Apartment Building';
+
+  const isContractorsEquipment =
+    ["inland-marine", "contractors-equipment"].includes(submission?.programId || "") ||
+    ["Equipment", "Construction Equipment", "Contractors Equipment"].includes(submission?.programName || "");
+
+  const isManufacturer =
+    submission?.programId === 'manufacturers' ||
+    submission?.programName === 'Manufacturers / Distributors' ||
+    (submission?.programName || '').toLowerCase().includes('manufacturer') ||
+    (submission?.industry || '').toLowerCase().includes('manufacturer');
+
+  const getPolicyLabel = (type: string) => {
+    if (type === "GENERAL_LIABILITY") {
+      if (isManufacturer) return "Manufacturers";
+      if (isCommercialProperty) return "Property";
+      if (isContractorsEquipment) return "Inland Marine";
+      return "General Liability";
+    } else {
+      if (isCommercialProperty) return "General Liability";
+      return "Excess Liability";
+    }
+  };
+
   const statusHistory = [
     {
       _id: submission._id + "-created",
@@ -1100,7 +1127,7 @@ export default function AdminSubmissionDetailsPage() {
               <div>
                 <h1 className="flex items-center gap-3 text-[24px] font-semibold text-gray-900 leading-tight">
                   <div>
-                    {(submission?.clientContact?.name || "???")}
+                    {(submission?.payload?.companyName || submission?.payload?.namedInsured || submission?.clientContact?.name || "???")}
                     <span className={`ml-3 inline-flex items-center rounded-md px-3 py-[4px] text-[13px] font-bold border transition-all ${(() => {
                       if (submission?.status === "CANCELLED") return "bg-red-100 text-red-700 border-red-200";
                       if (cancelRequested) return "bg-orange-100 text-orange-700 border-orange-200";
@@ -1400,7 +1427,13 @@ export default function AdminSubmissionDetailsPage() {
             <div>
               <p className="text-gray-500 mb-1 leading-tight">Program Name</p>
               <p className="font-semibold text-gray-900 break-words">
-                {submission?.programName === "Advantage Contractor GL" ? "Construction" : (submission?.programName === "Construction Equipment" ? "Contractors Equipment" : (submission?.programName || "General Liability"))}
+                {submission?.programName === "Advantage Contractor GL"
+                  ? "Construction"
+                  : (submission?.programName === "Construction Equipment"
+                    ? "Contractors Equipment"
+                    : (submission?.programName === "Manufacturers / Distributors" || (submission?.programName || "").toLowerCase().includes("manufacturer") || submission?.programId === "manufacturers")
+                      ? "Manufacturers"
+                      : (submission?.programName || "General Liability"))}
               </p>
             </div>
             {/* <div>
@@ -1488,10 +1521,7 @@ export default function AdminSubmissionDetailsPage() {
                     : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                     }`}
                 >
-                  {type === "GENERAL_LIABILITY"
-                    ? (submission?.programId === 'apartment-buildings' || submission?.programName === 'Commercial Property' || submission?.programName === 'Apartment Building' ? "Property" : "General Liability")
-                    : (submission?.programId === 'apartment-buildings' || submission?.programName === 'Commercial Property' || submission?.programName === 'Apartment Building' ? "General Liability" : "Excess Liability")
-                  }
+                  {getPolicyLabel(type)}
                 </button>
               ))}
             </div>
@@ -1504,10 +1534,7 @@ export default function AdminSubmissionDetailsPage() {
           <div className="mb-6 flex items-center justify-between">
             <div>
               <h3 className="text-[15px] font-semibold text-gray-900 tracking-tight">
-                {currentPolicyType === "GENERAL_LIABILITY"
-                  ? (submission?.programId === 'apartment-buildings' || submission?.programName === 'Commercial Property' || submission?.programName === 'Apartment Building' ? "Property" : "General Liability")
-                  : (submission?.programId === 'apartment-buildings' || submission?.programName === 'Commercial Property' || submission?.programName === 'Apartment Building' ? "General Liability" : "Excess Liability")
-                }
+                {getPolicyLabel(currentPolicyType)}
               </h3>
               <div className="mt-2 h-[1px] w-64 bg-gray-300" />
             </div>
@@ -1925,7 +1952,7 @@ export default function AdminSubmissionDetailsPage() {
                     key={item._id}
                     className="px-4 py-3 grid grid-cols-4 text-[14px] text-gray-900 border-b border-gray-100 last:border-0"
                   >
-                    <span>{item.program === "Advantage Contractor GL" ? "Construction" : (item.program === "Construction Equipment" ? "Contractors Equipment" : item.program)}</span>
+                    <span>{item.program === "Advantage Contractor GL" ? "Construction" : (item.program === "Construction Equipment" ? "Contractors Equipment" : (item.program === "Manufacturers / Distributors" || item.program?.toLowerCase().includes("manufacturer") ? "Manufacturers" : item.program))}</span>
                     <span>{new Date(item.changedAt).toLocaleDateString('en-US', { timeZone: 'UTC', month: '2-digit', day: '2-digit', year: 'numeric' })}</span>
                     <span>{item.user}</span>
                     <span>{item.status}</span>
@@ -2035,10 +2062,7 @@ export default function AdminSubmissionDetailsPage() {
                     </div>
                     <p className="text-gray-500 font-medium">No quote entered yet for</p>
                     <p className="text-gray-900 font-bold mt-1">
-                      {currentPolicyType === "GENERAL_LIABILITY"
-                        ? (submission?.programId === 'apartment-buildings' || submission?.programName === 'Commercial Property' || submission?.programName === 'Apartment Building' ? "Property" : "General Liability")
-                        : (submission?.programId === 'apartment-buildings' || submission?.programName === 'Commercial Property' || submission?.programName === 'Apartment Building' ? "General Liability" : "Excess Liability")
-                      }
+                      {getPolicyLabel(currentPolicyType)}
                     </p>
                   </div>
                 ) : (

@@ -1208,10 +1208,7 @@ export default function AdminQuotePage() {
     setSpecialNotes(nextState.specialNotes || "");
 
     setCurrentPolicyType(newType);
-    toast.info(`Switched to ${newType === "GENERAL_LIABILITY"
-      ? (submission?.programId === 'apartment-buildings' || submission?.programName === 'Commercial Property' || submission?.programName === 'Apartment Building' ? "Property" : "General Liability")
-      : (submission?.programId === 'apartment-buildings' || submission?.programName === 'Commercial Property' || submission?.programName === 'Apartment Building' ? "General Liability" : "Excess Liability")
-      }`);
+    toast.info(`Switched to ${getPolicyLabel(newType)}`);
   };
 
   // NEW: validate only required fields (carrier + premium) for each existing policy
@@ -1228,6 +1225,28 @@ export default function AdminQuotePage() {
   const missingPolicies = availablePolicies.filter(type => !isPolicyReady(type));
 
   const isCommercialProperty = (submission?.programId === 'apartment-buildings' || submission?.programName === 'Commercial Property' || submission?.programName === 'Apartment Building');
+  const isManufacturer =
+    submission?.programId === 'manufacturers' ||
+    submission?.programName === 'Manufacturers / Distributors' ||
+    (submission?.programName || '').toLowerCase().includes('manufacturer') ||
+    ((submission as any)?.industry || submission.templateId?.industry || '').toLowerCase().includes('manufacturer');
+
+  const isContractorsEquipment =
+    ['inland-marine', 'contractors-equipment'].includes(submission?.programId || '') ||
+    ['Equipment', 'Construction Equipment', 'Contractors Equipment'].includes(submission?.programName || '');
+
+  const getPolicyLabel = (type: string) => {
+    if (type === "GENERAL_LIABILITY") {
+      if (isManufacturer) return "Manufacturers";
+      if (isCommercialProperty) return "Property";
+      if (isContractorsEquipment) return "Inland Marine";
+      return "General Liability";
+    } else {
+      if (isCommercialProperty) return "General Liability";
+      return "Excess Liability";
+    }
+  };
+
   const isPropertyPolicy = currentPolicyType === "GENERAL_LIABILITY" && isCommercialProperty;
   const showGLLimits = (currentPolicyType === "GENERAL_LIABILITY" && !isCommercialProperty) || (currentPolicyType === "EXCESS_LIABILITY" && isCommercialProperty);
   const showExcessLimits = currentPolicyType === "EXCESS_LIABILITY" && !isCommercialProperty;
@@ -1354,15 +1373,12 @@ export default function AdminQuotePage() {
                 </div>
                 <div>
                   <h1 className="text-3xl font-bold text-gray-900">
-                    {isRenterQuote ? "Enter Renter Quote" : `Enter ${currentPolicyType === "GENERAL_LIABILITY"
-                      ? (submission?.programId === 'apartment-buildings' || submission?.programName === 'Commercial Property' || submission?.programName === 'Apartment Building' ? "Property" : "General Liability")
-                      : (submission?.programId === 'apartment-buildings' || submission?.programName === 'Commercial Property' || submission?.programName === 'Apartment Building' ? "General Liability" : "Excess Liability")
-                      } Quote`}
+                    {isRenterQuote ? "Enter Renter Quote" : `Enter ${getPolicyLabel(currentPolicyType)} Quote`}
                   </h1>
                   <p className="text-gray-600 mt-1">
                     Create a quote for:{" "}
                     <span className="font-semibold text-gray-900">
-                      {submission.clientContact.name}
+                      {submission.payload?.companyName || submission.payload?.namedInsured || submission.clientContact.name}
                     </span>
                     {submission.programName ? (
                       <> ({submission.programName})</>
@@ -1400,10 +1416,7 @@ export default function AdminQuotePage() {
                         <div className={`w-3 h-3 rounded-full ${policiesStatus[type] === "complete" ? "bg-green-500 shadow-sm shadow-green-200" : "bg-amber-300 animate-pulse"
                           }`} />
                         <span className={`text-sm font-bold ${currentPolicyType === type ? "text-rose-700" : "text-gray-600"}`}>
-                          {type === "GENERAL_LIABILITY"
-                            ? (submission?.programId === 'apartment-buildings' || submission?.programName === 'Commercial Property' || submission?.programName === 'Apartment Building' ? "Property" : "General Liability")
-                            : (submission?.programId === 'apartment-buildings' || submission?.programName === 'Commercial Property' || submission?.programName === 'Apartment Building' ? "General Liability" : "Excess Liability")
-                          }
+                          {getPolicyLabel(type)}
                         </span>
                       </div>
                       <div className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider ${policiesStatus[type] === "complete" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-600"

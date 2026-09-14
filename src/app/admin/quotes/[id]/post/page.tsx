@@ -212,7 +212,7 @@ export default function PostQuotePage() {
               <div className="flex justify-between">
                 <span className="text-[#6B6B6B]">Client:</span>
                 <span className="font-semibold text-[#4A4A4A]">
-                  {quote.submissionId.clientContact.name}
+                  {(quote.submissionId as any)?.payload?.companyName || (quote.submissionId as any)?.payload?.namedInsured || (quote.submissionId as any)?.clientName || quote.submissionId.clientContact.name}
                 </span>
               </div>
               <div className="flex justify-between">

@@ -8,7 +8,7 @@ import { Clock, Bell, CheckCircle, CircleSmall, XCircle, AlertCircle } from "luc
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { useEffect, useState, useRef, Suspense } from "react";
+import { useEffect, useState, useRef, Suspense, useMemo } from "react";
 import { signOut } from "next-auth/react";
 
 interface Submission {
@@ -64,7 +64,9 @@ function AgencyDashboardContent() {
   const [dashboardNotifications, setDashboardNotifications] = useState<any[]>([]);
   const notificationChannel = useRef<BroadcastChannel | null>(null);
   const { data: session, status } = useSession();
+  const userName = session?.user?.name || "Agent";
   const email = session?.user?.email || "";
+  const agencyName = (session?.user as any)?.agencyName || "";
 
   const getNotificationTag = (type: string) => {
     switch (type) {
@@ -85,19 +87,35 @@ function AgencyDashboardContent() {
     }
   };
 
-  // ── Agency detection (same logic as quote form) ──
-  const isCapco = email === "admin@agency1.com";
-  const isBlueAngel = email === "admin@blueangel.com";
-  const isSJJ = email === "admin@sjjinsurance.com";
-  const isTitan = email === "solutions@titaninssolutions.com";
+  // ── Agency detection (same logic as quote form & marketplace) ──
+  const isCapco = agencyName.includes("Capital & Co") || agencyName.includes("Capco") || email.includes("capcoinsurance") || email === "admin@agency1.com" || userName.includes("Gamaty");
+  const isBlueAngel = agencyName.includes("Blue Angel") || email === "admin@blueangel.com";
+  const isSJJ = agencyName.includes("SJJ") || email === "admin@sjjinsurance.com";
+  const isPatrickArias = agencyName.includes("Patrick Arias") || email.includes("patrickariasinsurance");
+  const isTitan = agencyName.toLowerCase().includes("titan") || email.includes("solutions@titaninssolutions.com");
+  const isTexas = agencyName.toLowerCase().includes("texas") || email.toLowerCase().includes("texascomm@services.com");
 
   // ── Hardcoded agent lists per agency ──
-  const CAPCO_AGENTS = ["Eidan Gamaty", "Moshe Gamaty", "Michael Gamaty", "Yoav Anatian", "Jake Weiner", "Benjamin Solender", "Michal Kraut", "Jonathan Akwa"];
+  const CAPCO_AGENTS = ["Eidan Gamaty", "Moshe Gamaty", "Michael Gamaty", "Yoav Anatian", "Jake Weiner", "Benjamin Solender", "Michal Kraut", "Jonathan Akwa","Juan Montoya"];
   const BLUE_ANGEL_AGENTS = ["Max Mintz"];
   const SJJ_AGENTS = ["Sam Joffe", "Nathan Gawronsky", "Jack Douek", "Will Feldsher", "Joel Gabai", "Dean Halleluyan", "Harel Fedida"];
+  const PATRICK_ARIAS_AGENTS = ["Patrick Arias"];
   const TITAN_AGENTS = ["Judah Cohen"];
+  const TEXAS_AGENTS = ["Eidan Gamaty", "Moshe Gamaty", "Michael Gamaty", "Yoav Anatian", "Jake Weiner", "Benjamin Solender", "Michal Kraut", "Jonathan Akwa","Juan Montoya"];
 
-  const agentOptions = isCapco ? CAPCO_AGENTS : isBlueAngel ? BLUE_ANGEL_AGENTS : isSJJ ? SJJ_AGENTS : isTitan ? TITAN_AGENTS : [];
+  const baseAgencyAgents = isCapco
+    ? CAPCO_AGENTS
+    : isBlueAngel
+    ? BLUE_ANGEL_AGENTS
+    : isSJJ
+    ? SJJ_AGENTS
+    : isPatrickArias
+    ? PATRICK_ARIAS_AGENTS
+    : isTitan
+    ? TITAN_AGENTS
+    : isTexas
+    ? TEXAS_AGENTS
+    : [];
 
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -127,6 +145,42 @@ function AgencyDashboardContent() {
   const [filterAgent, setFilterAgent] = useState<string>("ALL");
   const [showFilters, setShowFilters] = useState(false);
   const [newQuotes, setNewQuotes] = useState<any[]>(() => cachedNewQuotes);
+  const [apiAgents, setApiAgents] = useState<string[]>([]);
+
+  const agentOptions = useMemo(() => {
+    const agentsSet = new Set<string>();
+
+    const isAgencyEntityName = (name: string) => {
+      const lower = name.toLowerCase().trim();
+      if (!lower) return true;
+      if (agencyName && (lower === agencyName.toLowerCase().trim() || agencyName.toLowerCase().includes(lower))) return true;
+      if (
+        lower.includes("insurance services") ||
+        lower.includes("insurance agency") ||
+        lower.includes("capital & co") ||
+        lower === "capco" ||
+        lower === "blue angel" ||
+        lower === "sjj insurance" ||
+        lower === "titan insurance"
+      ) {
+        return true;
+      }
+      return false;
+    };
+
+    const addAgent = (name: string | null | undefined) => {
+      if (!name) return;
+      const clean = name.trim();
+      if (!clean || isAgencyEntityName(clean)) return;
+      agentsSet.add(clean);
+    };
+
+    baseAgencyAgents.forEach(addAgent);
+    apiAgents.forEach(addAgent);
+    allSubmissions.forEach((sub) => addAgent(sub.agentName));
+
+    return Array.from(agentsSet).sort((a, b) => a.localeCompare(b));
+  }, [baseAgencyAgents, apiAgents, allSubmissions, agencyName]);
 
   // Map ISC pipeline stages to real database statuses
   const stageToStatusMap: Record<string, string | string[]> = {
@@ -160,9 +214,26 @@ function AgencyDashboardContent() {
     }
   }, [status, router]);
 
+  const fetchAgencyAgents = async () => {
+    try {
+      const res = await fetch(`/api/agents?t=${Date.now()}`);
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data?.agents && Array.isArray(data.agents)) {
+        const names = data.agents
+          .map((a: any) => (typeof a === "string" ? a.trim() : a.name?.trim()))
+          .filter(Boolean);
+        setApiAgents(names);
+      }
+    } catch (err) {
+      console.error("Failed to load agency agents:", err);
+    }
+  };
+
   useEffect(() => {
     if (status === "authenticated") {
       fetchAgencyData();
+      fetchAgencyAgents();
     }
   }, [status, filterStartDate, filterEndDate]);
 
@@ -390,7 +461,7 @@ function AgencyDashboardContent() {
 
     // Filter by agent
     if (filterAgent !== "ALL") {
-      filtered = filtered.filter(sub => sub.agentName === filterAgent);
+      filtered = filtered.filter(sub => sub.agentName?.trim().toLowerCase() === filterAgent.trim().toLowerCase());
     }
 
     // Filter by search query
@@ -806,7 +877,9 @@ function AgencyDashboardContent() {
                         ) : (
                           <>
                             {sub.industry === "Construction Equipment" || sub.industry === "Contractors Equipment" ? "Inland Marine" :
-                              sub.industry === "Apartment Building" || sub.industry === "Commercial Property" ? "Property" : (
+                              sub.industry === "Apartment Building" || sub.industry === "Commercial Property" ? "Property" :
+                              sub.industry === "Manufacturers" || (sub.industry && sub.industry.toLowerCase().includes("manufacturer")) ? "Manufacturers" :
+                              sub.industry === "Builders Risk" ? "Builders Risk" : (
                                 sub.hasGeneral && sub.hasExcess ? "General & Excess Liability" :
                                   sub.hasExcess ? "Excess Liability" : "General Liability"
                               )}

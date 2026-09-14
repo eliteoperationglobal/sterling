@@ -240,7 +240,7 @@ export async function GET(req: NextRequest) {
         estimatedPremium: totals.estimatedPremium,
         hasGeneral: totals.hasGeneral || false,
         hasExcess: totals.hasExcess || false,
-        agentName: sub.agentName || sub.payload?.agentName || null,
+        agentName: sub.payload?.agentName?.trim() || sub.agentName?.trim() || null,
         agentId: sub.agentId ? sub.agentId.toString() : null,
         effectiveDate: totals.quoteEffectiveDate || sub.payload?.effectiveDate || null,
         effectiveCancellationDate: policyCancellationDates[sub._id.toString()] || (sub as any).effectiveCancellationDate || null,

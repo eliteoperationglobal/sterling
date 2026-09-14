@@ -83,6 +83,8 @@ export async function GET(req: NextRequest) {
       return {
         _id: submission._id.toString(),
         clientContact: submission.clientContact,
+        payload: submission.payload,
+        clientName: submission.payload?.companyName?.trim() || submission.payload?.namedInsured?.trim() || submission.clientContact?.name || "N/A",
         agencyId: submission.agencyId
           ? {
             _id: submission.agencyId._id.toString(),

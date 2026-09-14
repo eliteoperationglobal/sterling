@@ -36,6 +36,7 @@ export async function GET(req: NextRequest) {
     // Import models to ensure they're registered for populate
     await import("@/models/FormTemplate");
     await import("@/models/Agency");
+    await import("@/models/User");
     const Quote = (await import("@/models/Quote")).default;
 
     const searchParams = req.nextUrl.searchParams;
@@ -99,6 +100,7 @@ export async function GET(req: NextRequest) {
       submissions = await Submission.find(query)
         .populate("templateId", "industry subtype title")
         .populate("agencyId", "name email")
+        .populate("agentId", "name email")
         .sort({ createdAt: -1 })
         .lean();
       console.log(`[Admin Submissions API] Found ${submissions.length} submissions matching query`);
@@ -188,8 +190,15 @@ export async function GET(req: NextRequest) {
         submissionNumber: sub.submissionNumber ?? null,
         agencyId: sub.agencyId?._id?.toString() || null,
         agencyName: sub.agencyId?.name || "Unknown Agency",
-        agentId: sub.agentId?.toString() || null,
-        agentName: sub.payload?.agentName || sub.agentName || null,
+        agentId: sub.agentId?._id?.toString() || sub.agentId?.toString() || null,
+        agentName: (
+          sub.payload?.agentName ||
+          sub.payload?.agencyAgent ||
+          (sub.agentName && sub.agentName !== sub.agencyId?.name ? sub.agentName : null) ||
+          sub.agentId?.name ||
+          sub.agentName ||
+          null
+        )?.trim() || null,
         industry: sub.templateId?.industry || sub.programName || "Unknown",
         subtype: sub.templateId?.subtype || "Unknown",
         templateTitle: sub.templateId?.title || sub.programName || "Unknown",
@@ -229,4 +238,3 @@ export async function GET(req: NextRequest) {
     );
   }
 }
-

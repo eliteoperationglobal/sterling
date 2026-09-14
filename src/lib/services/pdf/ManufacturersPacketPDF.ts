@@ -214,7 +214,8 @@ function generateApplicationPage1(data: ManufacturersPacketData): string {
 					<div>
 						<div class="section-title-page2">Insured Information</div>
 						<div class="insured-detail-page2"><strong>${data.namedInsured || [data.firstName, data.lastName].filter(Boolean).join(' ') || ""}</strong></div>
-						${data.dba ? `<div class="insured-detail-page2">DBA: ${data.dba}</div>` : ''}
+						<div class="insured-detail-page2">${[data.firstName, data.lastName].filter(Boolean).join(' ') || ""}</div>
+						${data.dba ? `<div class="insured-detail-page2">${data.dba}</div>` : ''}
 						<div class="invoice-field-page12">${data.mailingAddress ? data.mailingAddress.split(',')[0].trim() : ''}</div>
 						<div class="insured-detail-page2">${data.mailingCity || ""}, ${data.mailingState || ""} ${data.mailingZip || ""}</div>
 						<div class="insured-detail-page2">${data.applicantPhone || data.auditPhone || ""}</div>

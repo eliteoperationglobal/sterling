@@ -16,6 +16,8 @@ interface QuoteRequestSubmission {
     email: string;
     phone: string;
   };
+  payload?: any;
+  clientName?: string;
   agencyId: {
     _id: string;
     name: string;
@@ -80,9 +82,10 @@ export default function AdminQuoteRequestsPage() {
     if (!searchQuery) return true;
     const q = searchQuery.toLowerCase().trim();
     const agencyName = String(sub.agencyId?.name || "").toLowerCase();
-    const clientName = String(sub.clientContact?.name || "").toLowerCase();
+    const clientName = String(sub.payload?.companyName || sub.payload?.namedInsured || sub.clientContact?.name || "").toLowerCase();
+    const contactName = String(sub.clientContact?.name || "").toLowerCase();
     const appId = String(sub.submissionNumber || (sub._id ? sub._id.slice(-8) : "")).toLowerCase();
-    return agencyName.includes(q) || appId.includes(q) || clientName.includes(q);
+    return agencyName.includes(q) || appId.includes(q) || clientName.includes(q) || contactName.includes(q);
   });
 
   if (loading) {
@@ -290,7 +293,9 @@ export default function AdminQuoteRequestsPage() {
                   <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 sm:gap-0 mb-4">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
-                        <h3 className="text-xl font-bold text-gray-900">{submission.clientContact.name}</h3>
+                        <h3 className="text-xl font-bold text-gray-900">
+                          {submission.payload?.companyName || submission.payload?.namedInsured || submission.clientContact.name}
+                        </h3>
                         <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#f5f1eb] text-[#9A8B7A] border border-[#e5ddd5]">
                           SUBMITTED
                         </span>

@@ -816,6 +816,33 @@ function SubmissionDetailsContent() {
     ? "/agency/quote/contractors-equipment"
     : `/agency/quote/${submission?.programId}`;
 
+  const isCommercialProperty =
+    submission?.programId === 'apartment-buildings' ||
+    submission?.programName === 'Commercial Property' ||
+    submission?.programName === 'Apartment Building';
+
+  const isContractorsEquipment =
+    ["inland-marine", "contractors-equipment"].includes(submission?.programId || "") ||
+    ["Equipment", "Construction Equipment", "Contractors Equipment"].includes(submission?.programName || "");
+
+  const isManufacturer =
+    submission?.programId === 'manufacturers' ||
+    submission?.programName === 'Manufacturers / Distributors' ||
+    (submission?.programName || '').toLowerCase().includes('manufacturer') ||
+    (submission?.industry || '').toLowerCase().includes('manufacturer');
+
+  const getPolicyLabel = (type: string) => {
+    if (type === "GENERAL_LIABILITY") {
+      if (isManufacturer) return "Manufacturers";
+      if (isCommercialProperty) return "Property";
+      if (isContractorsEquipment) return "Inland Marine";
+      return "General Liability";
+    } else {
+      if (isCommercialProperty) return "General Liability";
+      return "Excess Liability";
+    }
+  };
+
   const boundQuote = (quotes || []).find((q: any) => q.status === "BOUND");
 
 
@@ -916,14 +943,14 @@ function SubmissionDetailsContent() {
             {availablePolicies.includes("GENERAL_LIABILITY") && !data.quotes?.some(q => (q.policyType === "GENERAL_LIABILITY" || !q.policyType) && (q.status === "BOUND" || q.status === "BIND_REQUESTED")) && data.quotes?.some(q => q.policyType === "GENERAL_LIABILITY" || !q.policyType) && (
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {submission?.programId === 'apartment-buildings' || submission?.programName === 'Commercial Property' || submission?.programName === 'Apartment Building' ? "Property" : "General Liability"} Carrier
+                  {getPolicyLabel("GENERAL_LIABILITY")} Carrier
                 </label>
                 <select
                   value={bindSelectedCarrierIdGL || ""}
                   onChange={(e) => setBindSelectedCarrierIdGL(e.target.value)}
                   className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-black focus:border-black block p-3 outline-none transition-all"
                 >
-                  <option value="">Do not bind {submission?.programId === 'apartment-buildings' || submission?.programName === 'Commercial Property' || submission?.programName === 'Apartment Building' ? "Property" : "GL"}...</option>
+                  <option value="">Do not bind {getPolicyLabel("GENERAL_LIABILITY")}...</option>
                   {data.quotes?.filter(q => (q.policyType === "GENERAL_LIABILITY" || !q.policyType) && q.status !== "BOUND").map((quote) => (
                     <option key={quote._id} value={quote.carrierId?._id}>
                       {quote.carrierId?.name || "Unknown Carrier"}
@@ -938,14 +965,14 @@ function SubmissionDetailsContent() {
             {availablePolicies.includes("EXCESS_LIABILITY") && !data.quotes?.some(q => q.policyType === "EXCESS_LIABILITY" && (q.status === "BOUND" || q.status === "BIND_REQUESTED")) && data.quotes?.some(q => q.policyType === "EXCESS_LIABILITY") && (
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {submission?.programId === 'apartment-buildings' || submission?.programName === 'Commercial Property' || submission?.programName === 'Apartment Building' ? "General Liability" : "Excess Liability"} Carrier
+                  {getPolicyLabel("EXCESS_LIABILITY")} Carrier
                 </label>
                 <select
                   value={bindSelectedCarrierIdXL || ""}
                   onChange={(e) => setBindSelectedCarrierIdXL(e.target.value)}
                   className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-black focus:border-black block p-3 outline-none transition-all"
                 >
-                  <option value="">Do not bind {submission?.programId === 'apartment-buildings' || submission?.programName === 'Commercial Property' || submission?.programName === 'Apartment Building' ? "GL" : "XL"}...</option>
+                  <option value="">Do not bind {getPolicyLabel("EXCESS_LIABILITY")}...</option>
                   {data.quotes?.filter(q => q.policyType === "EXCESS_LIABILITY" && q.status !== "BOUND").map((quote) => (
                     <option key={quote._id} value={quote.carrierId?._id}>
                       {quote.carrierId?.name || "Unknown Carrier"}
@@ -1731,10 +1758,7 @@ function SubmissionDetailsContent() {
                     : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                     }`}
                 >
-                  {type === "GENERAL_LIABILITY"
-                    ? (submission?.programId === 'apartment-buildings' || submission?.programName === 'Commercial Property' || submission?.programName === 'Apartment Building' ? "Property" : "General Liability")
-                    : (submission?.programId === 'apartment-buildings' || submission?.programName === 'Commercial Property' || submission?.programName === 'Apartment Building' ? "General Liability" : "Excess Liability")
-                  }
+                  {getPolicyLabel(type)}
                 </button>
               ))}
             </div>
@@ -1747,10 +1771,7 @@ function SubmissionDetailsContent() {
           <div className="mb-6 flex items-center justify-between">
             <div>
               <h3 className="text-[15px] font-semibold text-gray-900 tracking-tight">
-                {currentPolicyType === "GENERAL_LIABILITY"
-                  ? (submission?.programId === 'apartment-buildings' || submission?.programName === 'Commercial Property' || submission?.programName === 'Apartment Building' ? "Property" : "General Liability")
-                  : (submission?.programId === 'apartment-buildings' || submission?.programName === 'Commercial Property' || submission?.programName === 'Apartment Building' ? "General Liability" : "Excess Liability")
-                }
+                {getPolicyLabel(currentPolicyType)}
               </h3>
               <div className="mt-2 h-[1px] w-64 bg-gray-300" />
             </div>
@@ -2139,7 +2160,7 @@ function SubmissionDetailsContent() {
                   key={item._id}
                   className="px-4 py-3 grid grid-cols-4 min-w-[600px] text-sm border-t"
                 >
-                  <span>{item.program === "Advantage Contractor GL" ? "Construction" : (item.program === "Construction Equipment" ? "Contractors Equipment" : item.program)}</span>
+                  <span>{item.program === "Advantage Contractor GL" ? "Construction" : (item.program === "Construction Equipment" ? "Contractors Equipment" : (item.program === "Manufacturers / Distributors" || item.program?.toLowerCase().includes("manufacturer") ? "Manufacturers" : item.program))}</span>
                   <span>{new Date(item.changedAt).toLocaleDateString('en-US', { timeZone: 'UTC', month: '2-digit', day: '2-digit', year: 'numeric' })}</span>
                   <span>{item.user}</span>
                   <span>{item.status}</span>
@@ -2240,10 +2261,7 @@ function SubmissionDetailsContent() {
                   </div>
                   <p className="text-gray-500 font-medium">No quote entered yet for</p>
                   <p className="text-gray-900 font-bold mt-1">
-                    {currentPolicyType === "GENERAL_LIABILITY"
-                      ? (submission?.programId === 'apartment-buildings' || submission?.programName === 'Commercial Property' || submission?.programName === 'Apartment Building' ? "Property" : "General Liability")
-                      : (submission?.programId === 'apartment-buildings' || submission?.programName === 'Commercial Property' || submission?.programName === 'Apartment Building' ? "General Liability" : "Excess Liability")
-                    }
+                    {getPolicyLabel(currentPolicyType)}
                   </p>
                 </div>
               ) : (

@@ -10,6 +10,7 @@ interface Submission {
   _id: string;
   submissionId: string;
   submissionNumber?: number;
+  policyNumber?: string;
   agencyId?: string;
   agentId?: string;
   agentName?: string;
@@ -125,28 +126,6 @@ export default function AdminSubmissionsPage() {
     }
   };
 
-  // Derive filtered submissions in memory for instant switching & zero UI flashing
-  const displaySubmissions = (statusFilter === "ALL" 
-    ? allSubmissions 
-    : allSubmissions.filter(s => {
-        if (statusFilter === "SUBMITTED") return s.status === "SUBMITTED" || s.status === "APPROVAL_REQUESTED";
-        if (statusFilter === "QUOTED") return s.status === "QUOTED";
-        if (statusFilter === "BIND_REQUESTED") return s.status === "BIND_REQUESTED";
-        if (statusFilter === "BOUND") return s.status === "BOUND";
-        if (statusFilter === "DECLINED") return s.status === "DECLINED" || s.status === "CANCELLED";
-        return s.status === statusFilter;
-      })
-  ).filter(s => {
-    if (!searchQuery) return true;
-    const q = searchQuery.toLowerCase();
-    return (
-      (s.clientName || "").toLowerCase().includes(q) ||
-      (s.agencyName || "").toLowerCase().includes(q) ||
-      (s.submissionNumber ? s.submissionNumber.toString() : "").includes(q) ||
-      (s.programName || "").toLowerCase().includes(q)
-    );
-  });
-
   const getStatusBadgeColor = (status: string) => {
     switch (status) {
       case "SUBMITTED":
@@ -180,10 +159,12 @@ export default function AdminSubmissionsPage() {
   }, [selectedAgency]);
 
   const availableAgents = useMemo(() => {
-    if (selectedAgency === "ALL") return [];
     const agents = new Set<string>();
     allSubmissions.forEach(s => {
-      if (s.agencyName && s.agencyName.trim() === selectedAgency && s.agentName) {
+      if (
+        (selectedAgency === "ALL" || (s.agencyName && s.agencyName.trim() === selectedAgency)) &&
+        s.agentName
+      ) {
         agents.add(s.agentName.trim());
       }
     });
@@ -224,6 +205,9 @@ export default function AdminSubmissionsPage() {
       return (
         s.clientName?.toLowerCase().includes(query) ||
         s.agencyName?.toLowerCase().includes(query) ||
+        s.agentName?.toLowerCase().includes(query) ||
+        s.programName?.toLowerCase().includes(query) ||
+        s.clientEmail?.toLowerCase().includes(query) ||
         s.submissionId?.toLowerCase().includes(query) ||
         (s.submissionNumber ? s.submissionNumber.toString() : "").includes(query) ||
         s.policyNumber?.toLowerCase().includes(query)
@@ -367,7 +351,7 @@ export default function AdminSubmissionsPage() {
               <div className="relative flex-1 min-w-[200px] max-w-md">
                 <input
                   type="text"
-                  placeholder="Search Agency, Client, ID, or Policy #"
+                  placeholder="Search Agency, Agent, Client, ID, or Policy #"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10 pr-4 py-2 w-full border border-[#e5ddd5] rounded-xl text-sm bg-[#fdfaf7] focus:outline-none focus:ring-2 focus:ring-[#9A8B7A]/50 transition-all"
@@ -393,7 +377,7 @@ export default function AdminSubmissionsPage() {
               <select
                 value={selectedAgent}
                 onChange={(e) => setSelectedAgent(e.target.value)}
-                disabled={selectedAgency === "ALL" || availableAgents.length === 0}
+                disabled={availableAgents.length === 0}
                 className="py-2 px-3 border border-[#e5ddd5] rounded-xl text-sm bg-[#fdfaf7] text-[#6b5e52] focus:outline-none focus:ring-2 focus:ring-[#9A8B7A]/50 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed w-full md:w-auto"
               >
                 <option value="ALL">All Agents</option>
@@ -450,6 +434,11 @@ export default function AdminSubmissionsPage() {
                         <div className="font-semibold text-[#2d2a26] group-hover:text-[#9A8B7A] transition-colors">
                           {sub.agencyName || "N/A"}
                         </div>
+                        {sub.agentName && (
+                          <div className="text-xs text-gray-500 mt-0.5">
+                            Agent: <span className="font-medium text-[#4a4238]">{sub.agentName}</span>
+                          </div>
+                        )}
                       </td>
                       <td className="px-6 py-5">
                         <span className="inline-block font-mono text-[12px] font-semibold text-[#6b5e52] tracking-tight">
@@ -464,6 +453,9 @@ export default function AdminSubmissionsPage() {
                         <div className="font-semibold text-[#2d2a26]">
                           {(() => {
                             const program = sub.programName || sub.industry || "N/A";
+                            if (program.toLowerCase().includes("manufacturer")) {
+                              return "Manufacturers";
+                            }
                             if (program.toLowerCase().includes("equipment")) {
                               return "Contractors Equipment";
                             }

@@ -16,6 +16,8 @@ interface BindRequestSubmission {
     email: string;
     phone: string;
   };
+  payload?: any;
+  clientName?: string;
   agencyId: {
     _id: string;
     name: string;
@@ -155,6 +157,33 @@ export default function AdminBindRequestsPage() {
     }
   };
 
+  const getSubPolicyLabel = (sub: any, type: string) => {
+    const isCommercialProperty =
+      sub?.programId === 'apartment-buildings' ||
+      sub?.programName === 'Commercial Property' ||
+      sub?.programName === 'Apartment Building';
+
+    const isManufacturer =
+      sub?.programId === 'manufacturers' ||
+      sub?.programName === 'Manufacturers / Distributors' ||
+      (sub?.programName || '').toLowerCase().includes('manufacturer') ||
+      (sub?.industry || '').toLowerCase().includes('manufacturer');
+
+    const isContractorsEquipment =
+      ['inland-marine', 'contractors-equipment'].includes(sub?.programId || '') ||
+      ['Equipment', 'Construction Equipment', 'Contractors Equipment'].includes(sub?.programName || '');
+
+    if (type === "GENERAL_LIABILITY") {
+      if (isManufacturer) return "Manufacturers";
+      if (isCommercialProperty) return "Property";
+      if (isContractorsEquipment) return "Inland Marine";
+      return "General Liability";
+    } else {
+      if (isCommercialProperty) return "General Liability";
+      return "Excess Liability";
+    }
+  };
+
   const handleApprove = (submissionId: string) => {
     setSelectedSubmissionId(submissionId);
 
@@ -182,9 +211,7 @@ export default function AdminBindRequestsPage() {
     const data = policyForms[pType];
 
     const sub = submissions.find((s) => s._id === selectedSubmissionId);
-    const label = pType === "GENERAL_LIABILITY"
-      ? (sub?.programId === 'apartment-buildings' || sub?.programName === 'Commercial Property' || sub?.programName === 'Apartment Building' ? "Property" : "General Liability")
-      : (sub?.programId === 'apartment-buildings' || sub?.programName === 'Commercial Property' || sub?.programName === 'Apartment Building' ? "General Liability" : "Excess Liability");
+    const label = getSubPolicyLabel(sub, pType);
 
     // Validation for ONLY the active policy tab
     if (!data.effectiveDate || !data.expirationDate || !data.policyNumber) {
@@ -222,9 +249,7 @@ export default function AdminBindRequestsPage() {
       }
 
       const subForToast = submissions.find((s) => s._id === selectedSubmissionId);
-      const labelForToast = pType === "GENERAL_LIABILITY"
-        ? (subForToast?.programId === 'apartment-buildings' || subForToast?.programName === 'Commercial Property' || subForToast?.programName === 'Apartment Building' ? "Property" : "General Liability")
-        : (subForToast?.programId === 'apartment-buildings' || subForToast?.programName === 'Commercial Property' || subForToast?.programName === 'Apartment Building' ? "General Liability" : "Excess Liability");
+      const labelForToast = getSubPolicyLabel(subForToast, pType);
 
       toast.success(`${labelForToast} approved successfully!`, {
         description: "The policy has been marked as BOUND with policy details",
@@ -259,6 +284,7 @@ export default function AdminBindRequestsPage() {
     if (!searchQuery.trim()) return true;
     const query = searchQuery.toLowerCase();
     return (
+      (sub.payload?.companyName || sub.payload?.namedInsured || sub.clientName || sub.clientContact?.name || "")?.toLowerCase().includes(query) ||
       sub.clientContact?.name?.toLowerCase().includes(query) ||
       sub.clientContact?.email?.toLowerCase().includes(query) ||
       sub.agencyId?.name?.toLowerCase().includes(query)
@@ -465,7 +491,9 @@ export default function AdminBindRequestsPage() {
                   <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 sm:gap-0 mb-4">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
-                        <h3 className="text-xl font-bold text-gray-900">{submission.clientContact.name}</h3>
+                        <h3 className="text-xl font-bold text-gray-900">
+                          {submission.payload?.companyName || submission.payload?.namedInsured || submission.clientName || submission.clientContact.name}
+                        </h3>
                         <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#f5f1eb] text-[#9A8B7A] border border-[#e5ddd5]">
                           BIND REQUESTED
                         </span>
@@ -589,10 +617,7 @@ export default function AdminBindRequestsPage() {
                             : "border-transparent text-gray-400 hover:text-gray-600 hover:border-gray-300"
                             }`}
                         >
-                          {q.policyType === "GENERAL_LIABILITY"
-                            ? (sub?.programId === 'apartment-buildings' || sub?.programName === 'Commercial Property' || sub?.programName === 'Apartment Building' ? "Property" : "General Liability")
-                            : (sub?.programId === 'apartment-buildings' || sub?.programName === 'Commercial Property' || sub?.programName === 'Apartment Building' ? "General Liability" : "Excess Liability")
-                          }
+                          {getSubPolicyLabel(sub, q.policyType || "GENERAL_LIABILITY")}
                         </button>
                       ))}
                     </div>
@@ -799,9 +824,7 @@ export default function AdminBindRequestsPage() {
                   ) : (
                     (() => {
                       const sub = submissions.find((s) => s._id === selectedSubmissionId);
-                      const label = activePolicyTab === "GENERAL_LIABILITY"
-                        ? (sub?.programId === 'apartment-buildings' || sub?.programName === 'Commercial Property' || sub?.programName === 'Apartment Building' ? "Property" : "General Liability")
-                        : (sub?.programId === 'apartment-buildings' || sub?.programName === 'Commercial Property' || sub?.programName === 'Apartment Building' ? "General Liability" : "Excess Liability");
+                      const label = getSubPolicyLabel(sub, activePolicyTab);
                       return `Approve ${label}`;
                     })()
                   )}

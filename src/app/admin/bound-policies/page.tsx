@@ -16,6 +16,8 @@ interface BoundPolicy {
     email: string;
     phone: string;
   };
+  payload?: any;
+  clientName?: string;
   agencyId: {
     _id: string;
     name: string;
@@ -126,6 +128,7 @@ export default function AdminBoundPoliciesPage() {
     if (!searchQuery.trim()) return true;
     const query = searchQuery.toLowerCase();
     return (
+      (policy.payload?.companyName || policy.payload?.namedInsured || policy.clientName || policy.clientContact?.name || "")?.toLowerCase().includes(query) ||
       policy.clientContact?.name?.toLowerCase().includes(query) ||
       policy.clientContact?.email?.toLowerCase().includes(query) ||
       policy.agencyId?.name?.toLowerCase().includes(query) ||
@@ -311,7 +314,9 @@ export default function AdminBoundPoliciesPage() {
                   <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 sm:gap-0 mb-4">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
-                        <h3 className="text-xl font-bold text-gray-900">{policy.clientContact.name}</h3>
+                        <h3 className="text-xl font-bold text-gray-900">
+                          {policy.payload?.companyName || policy.payload?.namedInsured || policy.clientName || policy.clientContact?.name || "—"}
+                        </h3>
                         <span className="px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-emerald-50 to-teal-50 text-emerald-700 border border-emerald-200">
                           ✓ BOUND
                         </span>
