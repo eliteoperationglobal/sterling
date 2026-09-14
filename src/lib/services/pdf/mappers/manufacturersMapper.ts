@@ -22,6 +22,7 @@ export interface ManufacturersPacketData {
     capitalCoLogoSVG?: string;
 
     // 1. General Info
+    companyName?: string;
     namedInsured: string;
     firstName: string;
     lastName: string;
@@ -217,9 +218,11 @@ export function mapManufacturersDataToPacketData(
     const premiseZip = isSameAsMailing ? mailingZip : (safeData.premiseZip || '');
 
     // Insured Information mapping
+    const companyName = (safeData.companyName || '').trim();
     const firstName = safeData.firstName || '';
     const lastName = safeData.lastName || '';
-    const fullName = [firstName, lastName].filter(Boolean).join(' ') || safeData.namedInsured || safeData.companyName || '';
+    const fullName = [firstName, lastName].filter(Boolean).join(' ') || safeData.namedInsured || companyName || '';
+    const namedInsured = companyName || safeData.namedInsured || fullName;
     const dba = safeData.dba || '';
     const applicantPhone = safeData.applicantPhone || safeData.phone || submission?.clientContact?.phone || '';
     const applicantEmail = safeData.applicantEmail || safeData.email || submission?.clientContact?.email || '';
@@ -244,7 +247,8 @@ export function mapManufacturersDataToPacketData(
         capitalCoLogoSVG: capitalCoLogoSVG,
 
         // 1. General Info
-        namedInsured: fullName,
+        namedInsured: namedInsured,
+        companyName: companyName,
         firstName,
         lastName,
         dba,

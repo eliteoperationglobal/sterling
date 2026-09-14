@@ -26,6 +26,8 @@ export interface BuildersRiskPacketData {
 
     // Section 1: General Info
     namedInsured: string;
+    firstName?: string;
+    lastName?: string;
     brokerage: string;
     agencyAgent: string;
     isNewVenture: boolean | null;
@@ -38,6 +40,24 @@ export interface BuildersRiskPacketData {
     website: string;
     phone?: string;
     email?: string;
+    applicantPhone?: string;
+    applicantEmail?: string;
+
+    // ACORD 125 & Common Applicant fields
+    proposedEffectiveDateFrom?: string;
+    proposedEffectiveDateTo?: string;
+    companyName?: string;
+    applicantAddress?: string;
+    applicantCity?: string;
+    applicantState?: string;
+    applicantZip?: string;
+    fein?: string;
+    contactPerson?: string;
+    propertyNameAndAddress?: string;
+    estimatedTotalGrossReceipts?: string;
+    numberOfFieldEmployees?: string;
+    classCode?: string;
+    descriptionOfOperations?: string;
 
     // 2. Current Carrier Info
     carrier: string;
@@ -241,9 +261,11 @@ export function mapBuildersRiskDataToPacketData(
         capitalCoLogoSVG: capitalCoLogoSVG,
 
         // General Info
-        namedInsured: safeData.namedInsured || safeData.companyName || '',
-        brokerage: safeData.brokerage || safeData.broker || '',
-        agencyAgent: safeData.agencyAgent || safeData.agentName || submission?.agentName || '',
+        firstName: safeData.firstName || '',
+        lastName: safeData.lastName || '',
+        namedInsured: safeData.namedInsured || safeData.companyName || [safeData.firstName, safeData.lastName].filter(Boolean).join(' ') || '',
+        brokerage: safeData.brokerage || safeData.broker || safeData.agencyAgent || '',
+        agencyAgent: safeData.agencyAgent || safeData.agentName || safeData.brokerage || submission?.agentName || '',
         isNewVenture: toBool(safeData.isNewVenture),
         isRenewal: toBool(safeData.isRenewal),
         policyNumber: safeData.policyNumber || '',
@@ -252,8 +274,26 @@ export function mapBuildersRiskDataToPacketData(
         requestedEffectiveDate: safeData.requestedEffectiveDate || safeData.effectiveDate || '',
         requestedExpiryDate: safeData.requestedExpiryDate || '',
         website: safeData.website || '',
-        phone: safeData.phone || safeData.contactPhone || '',
-        email: safeData.email || safeData.contactEmail || '',
+        phone: safeData.applicantPhone || safeData.phone || safeData.contactPhone || submission?.clientContact?.phone || '',
+        email: safeData.applicantEmail || safeData.email || safeData.contactEmail || submission?.clientContact?.email || '',
+        applicantPhone: safeData.applicantPhone || safeData.phone || safeData.contactPhone || submission?.clientContact?.phone || '',
+        applicantEmail: safeData.applicantEmail || safeData.email || safeData.contactEmail || submission?.clientContact?.email || '',
+
+        // ACORD 125 & Common Applicant fields
+        proposedEffectiveDateFrom: safeData.proposedEffectiveDateFrom || safeData.requestedEffectiveDate || safeData.effectiveDate || '',
+        proposedEffectiveDateTo: safeData.proposedEffectiveDateTo || safeData.requestedExpiryDate || safeData.expiryDate || '',
+        companyName: safeData.companyName || safeData.namedInsured || [safeData.firstName, safeData.lastName].filter(Boolean).join(' ') || '',
+        applicantAddress: safeData.applicantAddress || mailingAddress || propertyAddress || '',
+        applicantCity: safeData.applicantCity || mailingCity || propertyCity || '',
+        applicantState: safeData.applicantState || mailingState || propertyState || '',
+        applicantZip: safeData.applicantZip || mailingZip || propertyZip || '',
+        fein: safeData.fein || '',
+        contactPerson: safeData.contactPerson || [safeData.firstName, safeData.lastName].filter(Boolean).join(' ') || safeData.namedInsured || '',
+        propertyNameAndAddress: propertyAddress ? `${propertyAddress}, ${propertyCity}, ${propertyState} ${propertyZip}`.trim() : (mailingAddress ? `${mailingAddress}, ${mailingCity}, ${mailingState} ${mailingZip}`.trim() : ''),
+        estimatedTotalGrossReceipts: safeData.estimatedTotalGrossReceipts || safeData.projectedRevenue || safeData.last12Revenue || safeData.totalInsurableValue || '',
+        numberOfFieldEmployees: safeData.numberOfFieldEmployees || (safeData.contractorExperienceYears ? `${safeData.contractorExperienceYears} yrs` : ''),
+        classCode: safeData.classCode || 'BUILDERS RISK',
+        descriptionOfOperations: safeData.descriptionOfOperations || safeData.workDescription || safeData.intendedOccupancy || safeData.operationHistory || '',
 
         // Current Carrier Info
         carrier: safeData.carrier || '',

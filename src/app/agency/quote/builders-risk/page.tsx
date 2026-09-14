@@ -44,6 +44,7 @@ const Row = ({
 );
 
 const inp = "w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-800 focus:outline-none focus:border-[#7A6F64] focus:ring-1 focus:ring-[#7A6F64] bg-white";
+const sel = `${inp} bg-white`;
 const textareaStyle = "w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-800 focus:outline-none focus:border-[#7A6F64] focus:ring-1 focus:ring-[#7A6F64] bg-white resize-y";
 
 const CurrencyInp = ({
@@ -182,11 +183,55 @@ function BuildersRiskContent() {
 
   // Agent / Agency Options
   const userName = session?.user?.name || "Agent";
+  const email = session?.user?.email || "";
+  const agencyName = (session?.user as any)?.agencyName || "";
+
+  const isCapco = agencyName.includes("Capital & Co") || agencyName.includes("Capco") || email.includes("capcoinsurance") || email === "admin@agency1.com" || userName.includes("Gamaty");
+  const isBlueAngel = agencyName.includes("Blue Angel") || email === "admin@blueangel.com";
+  const isSJJ = agencyName.includes("SJJ") || email === "admin@sjjinsurance.com";
+  const isPatrickArias = agencyName.includes("Patrick Arias") || email.includes("patrickariasinsurance");
+  const isTitan = agencyName.toLowerCase().includes("titan") || email.includes("solutions@titaninssolutions.com");
+  const isTexas = agencyName.toLowerCase().includes("texas") || email.toLowerCase().includes("texascomm@services.com");
+
+  const CAPCO_AGENTS = ["Eidan Gamaty", "Moshe Gamaty", "Michael Gamaty", "Yoav Anatian", "Jake Weiner", "Benjamin Solender", "Michal Kraut", "Jonathan Akwa"];
+  const BLUE_ANGEL_AGENTS = ["Max Mintz"];
+  const SJJ_AGENTS = ["Sam Joffe", "Nathan Gawronsky", "Jack Douek", "Will Feldsher", "Joel Gabai", "Dean Halleluyan", "Harel Fedida"];
+  const PATRICK_ARIAS_AGENTS = ["Patrick Arias"];
+  const TITAN_AGENTS = ["Judah Cohen"];
+  const TEXAS_AGENTS = ["Eidan Gamaty", "Moshe Gamaty", "Michael Gamaty", "Yoav Anatian", "Jake Weiner", "Benjamin Solender", "Michal Kraut", "Jonathan Akwa"];
+
+  const [dynamicAgents, setDynamicAgents] = useState<string[]>([]);
+
+  useEffect(() => {
+    fetch('/api/agency/agents')
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (data?.agents?.length) {
+          setDynamicAgents(data.agents.map((a: any) => a.name).filter(Boolean));
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const baseAgents = isCapco ? CAPCO_AGENTS : isBlueAngel ? BLUE_ANGEL_AGENTS : isSJJ ? SJJ_AGENTS : isPatrickArias ? PATRICK_ARIAS_AGENTS : isTitan ? TITAN_AGENTS : isTexas ? TEXAS_AGENTS : [];
+  const agentOptions = Array.from(new Set([...baseAgents, ...dynamicAgents]));
+
   const [agencyAgent, setAgencyAgent] = useState(userName || '');
   const [brokerage, setBrokerage] = useState('');
 
+  useEffect(() => {
+    if (!agencyAgent && session?.user?.name) {
+      setAgencyAgent(session.user.name);
+      setBrokerage(session.user.name);
+    }
+  }, [session?.user?.name]);
+
   // ================= Form State =================
   // Section I: 1) General Information
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [applicantPhone, setApplicantPhone] = useState('');
+  const [applicantEmail, setApplicantEmail] = useState('');
   const [namedInsured, setNamedInsured] = useState('');
   const [isNewVenture, setIsNewVenture] = useState<boolean | null>(null);
   const [isRenewal, setIsRenewal] = useState<boolean | null>(null);
@@ -222,6 +267,88 @@ function BuildersRiskContent() {
   const [propertyCity, setPropertyCity] = useState('');
   const [propertyState, setPropertyState] = useState('');
   const [propertyZip, setPropertyZip] = useState('');
+
+  // Address search & autocomplete states
+  const mailingSuggestionRef = useRef<HTMLDivElement>(null);
+  const [mailingSuggestions, setMailingSuggestions] = useState<any[]>([]);
+  const [showMailingSuggestions, setShowMailingSuggestions] = useState(false);
+  const [mailingAddressLoading, setMailingAddressLoading] = useState(false);
+
+  const propertySuggestionRef = useRef<HTMLDivElement>(null);
+  const [propertySuggestions, setPropertySuggestions] = useState<any[]>([]);
+  const [showPropertySuggestions, setShowPropertySuggestions] = useState(false);
+  const [propertyAddressLoading, setPropertyAddressLoading] = useState(false);
+
+  const handleMailingAddressSearch = async (value: string) => {
+    setMailingAddress(value);
+    if (value.length < 3) {
+      setMailingSuggestions([]);
+      setShowMailingSuggestions(false);
+      return;
+    }
+    setMailingAddressLoading(true);
+    try {
+      const res = await fetch(`/api/address/autocomplete?search=${encodeURIComponent(value)}`);
+      const data = await res.json();
+      setMailingSuggestions(data.suggestions || []);
+      setShowMailingSuggestions(true);
+    } catch (err) {
+      console.error("Address search error:", err);
+    } finally {
+      setMailingAddressLoading(false);
+    }
+  };
+
+  const handleSelectMailingSuggestion = (suggestion: any) => {
+    setMailingAddress(`${suggestion.street_line} ${suggestion.secondary || ''}`.trim());
+    setMailingCity(suggestion.city);
+    setMailingZip(suggestion.zipcode);
+    setMailingState(suggestion.state);
+    setMailingSuggestions([]);
+    setShowMailingSuggestions(false);
+  };
+
+  const handlePropertyAddressSearch = async (value: string) => {
+    setPropertyAddress(value);
+    if (value.length < 3) {
+      setPropertySuggestions([]);
+      setShowPropertySuggestions(false);
+      return;
+    }
+    setPropertyAddressLoading(true);
+    try {
+      const res = await fetch(`/api/address/autocomplete?search=${encodeURIComponent(value)}`);
+      const data = await res.json();
+      setPropertySuggestions(data.suggestions || []);
+      setShowPropertySuggestions(true);
+    } catch (err) {
+      console.error("Address search error:", err);
+    } finally {
+      setPropertyAddressLoading(false);
+    }
+  };
+
+  const handleSelectPropertySuggestion = (suggestion: any) => {
+    setPropertyAddress(`${suggestion.street_line} ${suggestion.secondary || ''}`.trim());
+    setPropertyCity(suggestion.city);
+    setPropertyZip(suggestion.zipcode);
+    setPropertyState(suggestion.state);
+    setPropertySuggestions([]);
+    setShowPropertySuggestions(false);
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (mailingSuggestionRef.current && !mailingSuggestionRef.current.contains(e.target as Node)) {
+        setShowMailingSuggestions(false);
+      }
+      if (propertySuggestionRef.current && !propertySuggestionRef.current.contains(e.target as Node)) {
+        setShowPropertySuggestions(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // 5) Entity Type
   const [entityTypes, setEntityTypes] = useState<string[]>([]);
@@ -362,6 +489,15 @@ function BuildersRiskContent() {
     }
   }, [existingStructureValue, buildingMaterialsValue]);
 
+  // Format Phone Number
+  const formatPhoneNumber = (val: string) => {
+    const digits = val.replace(/\D/g, '');
+    if (!digits) return '';
+    if (digits.length <= 3) return `(${digits}`;
+    if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+    return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 10)}`;
+  };
+
   // Submit states
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -392,9 +528,30 @@ function BuildersRiskContent() {
         .then(res => res.json())
         .then(data => {
           const payload = data.payload || {};
-          setNamedInsured(payload.namedInsured || '');
+          if (payload.firstName || payload.lastName) {
+            setFirstName(payload.firstName || '');
+            setLastName(payload.lastName || '');
+            setNamedInsured(payload.namedInsured || [payload.firstName, payload.lastName].filter(Boolean).join(' '));
+          } else if (payload.namedInsured) {
+            const raw = (payload.namedInsured || '').trim();
+            const parts = raw.split(' ');
+            if (parts.length <= 1) {
+              setFirstName(parts[0] || '');
+              setLastName('');
+            } else {
+              setFirstName(parts.slice(0, -1).join(' '));
+              setLastName(parts[parts.length - 1]);
+            }
+            setNamedInsured(raw);
+          } else {
+            setFirstName('');
+            setLastName('');
+            setNamedInsured('');
+          }
+          setApplicantPhone(payload.applicantPhone || payload.phone || data.clientContact?.phone || '');
+          setApplicantEmail(payload.applicantEmail || payload.email || data.clientContact?.email || '');
           setBrokerage(payload.brokerage || '');
-          setAgencyAgent(payload.agencyAgent || '');
+          setAgencyAgent(payload.agencyAgent || payload.agentName || payload.brokerage || data.agentName || '');
           setIsNewVenture(payload.isNewVenture ?? null);
           setIsRenewal(payload.isRenewal ?? null);
           setPolicyNumber(payload.policyNumber || '');
@@ -586,18 +743,48 @@ function BuildersRiskContent() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!namedInsured.trim()) {
-      toast.error("Please enter the Named Insured");
+    if (!agencyAgent.trim()) {
+      toast.error("Please select or enter the Agency/Agent name");
+      return;
+    }
+
+    if (!firstName.trim()) {
+      toast.error("Please enter the First Name");
+      return;
+    }
+
+    if (!lastName.trim()) {
+      toast.error("Please enter the Last Name");
+      return;
+    }
+
+    if (!applicantPhone.trim()) {
+      toast.error("Please enter the Applicant Phone");
+      return;
+    }
+
+    if (!applicantEmail.trim()) {
+      toast.error("Please enter the Applicant Email");
       return;
     }
 
     setIsSubmitting(true);
 
     try {
+      const fullName = [firstName.trim(), lastName.trim()].filter(Boolean).join(' ');
       const payload = {
-        namedInsured,
-        brokerage,
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        applicantPhone: applicantPhone.trim(),
+        applicantEmail: applicantEmail.trim(),
+        phone: applicantPhone.trim() || '000-000-0000',
+        email: applicantEmail.trim() || 'unknown@example.com',
+        namedInsured: fullName,
+        applicantName: fullName,
+        companyName: fullName,
+        brokerage: agencyAgent,
         agencyAgent,
+        agentName: agencyAgent,
         isNewVenture,
         isRenewal,
         policyNumber,
@@ -859,23 +1046,87 @@ function BuildersRiskContent() {
                   1) Policy & Venture Information
                 </div>
 
-                <Row label="Named Insured" required>
+                {/* 1. Agency/Agent */}
+                <Row label="Agency/Agent" bold required>
+                  {agentOptions.length > 0 ? (
+                    <select
+                      value={agencyAgent}
+                      onChange={e => {
+                        setAgencyAgent(e.target.value);
+                        setBrokerage(e.target.value);
+                      }}
+                      className={sel}
+                    >
+                      <option value="">Select Agent</option>
+                      {agentOptions.map(name => (
+                        <option key={name} value={name}>{name}</option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input
+                      type="text"
+                      required
+                      value={agencyAgent}
+                      onChange={e => {
+                        setAgencyAgent(e.target.value);
+                        setBrokerage(e.target.value);
+                      }}
+                      placeholder="Agency / Agent"
+                      className={inp}
+                    />
+                  )}
+                </Row>
+
+                {/* 2. First Name */}
+                <Row label="First Name" bold required>
                   <input
                     type="text"
-                    value={namedInsured}
-                    onChange={e => setNamedInsured(e.target.value)}
-                    placeholder="Enter Named Insured"
-                    className={inp}
                     required
+                    value={firstName}
+                    onChange={e => {
+                      setFirstName(e.target.value);
+                      setNamedInsured([e.target.value, lastName].filter(Boolean).join(' '));
+                    }}
+                    placeholder="First Name"
+                    className={inp}
                   />
                 </Row>
 
-                <Row label="Brokerage/Broker">
+                {/* 3. Last Name */}
+                <Row label="Last Name" bold required>
                   <input
                     type="text"
-                    value={brokerage}
-                    onChange={e => setBrokerage(e.target.value)}
-                    placeholder="Brokerage or Broker name"
+                    required
+                    value={lastName}
+                    onChange={e => {
+                      setLastName(e.target.value);
+                      setNamedInsured([firstName, e.target.value].filter(Boolean).join(' '));
+                    }}
+                    placeholder="Last Name"
+                    className={inp}
+                  />
+                </Row>
+
+                {/* 4. Applicant Phone */}
+                <Row label="Applicant Phone" bold required>
+                  <input
+                    type="tel"
+                    required
+                    value={applicantPhone}
+                    onChange={e => setApplicantPhone(formatPhoneNumber(e.target.value))}
+                    placeholder="(555) 000-0000"
+                    className={inp}
+                  />
+                </Row>
+
+                {/* 5. Applicant Email */}
+                <Row label="Applicant Email" bold required>
+                  <input
+                    type="email"
+                    required
+                    value={applicantEmail}
+                    onChange={e => setApplicantEmail(e.target.value)}
+                    placeholder="applicant@example.com"
                     className={inp}
                   />
                 </Row>
@@ -1056,13 +1307,36 @@ function BuildersRiskContent() {
                 </div>
 
                 <Row label="Mailing Address">
-                  <input
-                    type="text"
-                    value={mailingAddress}
-                    onChange={e => setMailingAddress(e.target.value)}
-                    placeholder="Street address, Suite / Apt"
-                    className={inp}
-                  />
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={mailingAddress}
+                      onChange={e => handleMailingAddressSearch(e.target.value)}
+                      placeholder="Street address, Suite / Apt"
+                      className={inp}
+                      autoComplete="off"
+                    />
+                    {mailingAddressLoading && (
+                      <div className="absolute right-3 top-2.5 text-xs text-gray-400">Searching...</div>
+                    )}
+                    {showMailingSuggestions && mailingSuggestions.length > 0 && (
+                      <div
+                        ref={mailingSuggestionRef}
+                        className="absolute z-50 w-full bg-white border border-gray-200 rounded shadow-lg mt-1 max-h-60 overflow-y-auto"
+                      >
+                        {mailingSuggestions.map((suggestion, index) => (
+                          <div
+                            key={index}
+                            onMouseDown={() => handleSelectMailingSuggestion(suggestion)}
+                            className="px-4 py-3 hover:bg-[#f5f2ef] cursor-pointer text-sm border-b border-gray-100 last:border-0"
+                          >
+                            <span className="font-medium">{suggestion.street_line} {suggestion.secondary}</span>
+                            <span className="text-gray-500 ml-1">{suggestion.city}, {suggestion.state} {suggestion.zipcode}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </Row>
 
                 <Row label="City / State / Zip">
@@ -1113,13 +1387,36 @@ function BuildersRiskContent() {
                 {!sameAsMailing ? (
                   <>
                     <Row label="Property Address">
-                      <input
-                        type="text"
-                        value={propertyAddress}
-                        onChange={e => setPropertyAddress(e.target.value)}
-                        placeholder="Property street address"
-                        className={inp}
-                      />
+                      <div className="relative">
+                        <input
+                          type="text"
+                          value={propertyAddress}
+                          onChange={e => handlePropertyAddressSearch(e.target.value)}
+                          placeholder="Property street address"
+                          className={inp}
+                          autoComplete="off"
+                        />
+                        {propertyAddressLoading && (
+                          <div className="absolute right-3 top-2.5 text-xs text-gray-400">Searching...</div>
+                        )}
+                        {showPropertySuggestions && propertySuggestions.length > 0 && (
+                          <div
+                            ref={propertySuggestionRef}
+                            className="absolute z-50 w-full bg-white border border-gray-200 rounded shadow-lg mt-1 max-h-60 overflow-y-auto"
+                          >
+                            {propertySuggestions.map((suggestion, index) => (
+                              <div
+                                key={index}
+                                onMouseDown={() => handleSelectPropertySuggestion(suggestion)}
+                                className="px-4 py-3 hover:bg-[#f5f2ef] cursor-pointer text-sm border-b border-gray-100 last:border-0"
+                              >
+                                <span className="font-medium">{suggestion.street_line} {suggestion.secondary}</span>
+                                <span className="text-gray-500 ml-1">{suggestion.city}, {suggestion.state} {suggestion.zipcode}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </Row>
 
                     <Row label="City / State / Zip">

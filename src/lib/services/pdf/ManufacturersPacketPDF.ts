@@ -382,8 +382,10 @@ function generateApplicationPage2(data: ManufacturersPacketData): string {
 				<div class="section-header">${qNum(7)}. Excluded Products</div>
 				<hr class="section-divider" />
 				${renderField("Excluded subsidiary / product group", data.excludedProducts)}
-				<div class="question-block">
-					${renderYesNo("a. Are these products covered elsewhere?", data.coveredElsewhere)}
+				<div class="sub-section">
+					<div class="question-block">
+						${renderYesNo("a. Are these products covered elsewhere?", data.coveredElsewhere)}
+					</div>
 				</div>
 			</div>
 
@@ -402,30 +404,35 @@ function generateApplicationPage2(data: ManufacturersPacketData): string {
 				<div class="question-block">
 					${renderYesNo(`${qNum(11)}) Does any manufacturer grant you AI Vendor status for products that you distribute?`, data.aiVendorStatus)}
 				</div>
+				${data.aiVendorStatus ? `
 				<div class="sub-section">
 					<div class="question-block">
 						${renderYesNo("a. If Yes, is the manufacturer's policy from a domestic / US based carrier?", data.domesticCarrier)}
 					</div>
 				</div>
+				` : ''}
 			</div>
 
 			<div class="section-container">
 				<div class="section-header">${qNum(12)}. Installation & Service Operations</div>
 				<hr class="section-divider" />
 				<div class="question-block">
-					${renderYesNo("Do you have any installation, service, or repair operations that occur off of your premise(s)?", data.offPremiseOps, data.offPremiseClarify)}
+					${renderYesNo("Do you have any installation, service, or repair operations that occur off of your premise(s)?", data.offPremiseOps)}
 				</div>
+				${data.offPremiseOps ? `
 				<div class="sub-section">
+					${data.offPremiseClarify ? renderField("a. If yes, please clarify", data.offPremiseClarify) : ''}
 					<div class="question-block">
-						${renderYesNo("a. Do you hire subcontractors to perform any work on your behalf?", data.hireSubcontractors)}
+						${renderYesNo("b. Do you hire subcontractors to perform any work on your behalf?", data.hireSubcontractors)}
 					</div>
 					<div class="question-block">
-						${renderYesNo("b. Do you collect certificates of insurance from all subcontractors prior to the beginning of work?", data.collectCoi)}
+						${renderYesNo("c. Do you collect certificates of insurance from all subcontractors prior to the beginning of work?", data.collectCoi)}
 					</div>
 					<div class="question-block">
-						${renderYesNo("c. Do you have any work performed in condominiums, apartment to condo conversions, townhouses, or tract housing?", data.condoTownhouseWork)}
+						${renderYesNo("d. Do you have any work performed in condominiums, apartment to condo conversions, townhouses, or tract housing?", data.condoTownhouseWork)}
 					</div>
 				</div>
+				` : ''}
 			</div>
 
 			<div class="section-container">
@@ -437,6 +444,7 @@ function generateApplicationPage2(data: ManufacturersPacketData): string {
 				<div class="question-block">
 					${renderYesNo(`${qNum(14)}) Do you rent any equipment?`, data.rentEquipment)}
 				</div>
+				${data.rentEquipment ? `
 				<div class="sub-section">
 					<div class="question-block">
 						${renderYesNo("a. If Yes, are all rentals without operator?", data.withoutOperator)}
@@ -445,6 +453,7 @@ function generateApplicationPage2(data: ManufacturersPacketData): string {
 						${renderYesNo("b. Do you have a rental agreement with hold harmless wording in your favor?", data.holdHarmlessAgreement)}
 					</div>
 				</div>
+				` : ''}
 				<div class="question-block">
 					${renderYesNo(`${qNum(15)}) Are batch or product records, serial numbers or copies of guarantee/warranty cards maintained that would facilitate tracing whereabouts of products?`, data.tracingRecordsMaintained, data.recordsMaintainedHowLong ? 'Duration maintained: ' + data.recordsMaintainedHowLong : undefined)}
 				</div>
@@ -470,13 +479,15 @@ function generateApplicationPage3(data: ManufacturersPacketData): string {
 				</div>
 				<div class="sub-section">
 					<div class="question-block">
-						${renderYesNo("a. Do you have Product Recall insurance?", data.recallInsurance, data.recallMeansDisposal ? 'Means used to secure return and disposal: ' + data.recallMeansDisposal : undefined)}
+						${renderYesNo("a. Do you have Product Recall insurance?", data.recallInsurance)}
 					</div>
+					${data.recallMeansDisposal ? renderField("b. Means used for return and disposal", data.recallMeansDisposal) : ''}
 				</div>
 
 				<div class="question-block">
 					${renderYesNo(`${qNum(17)}) Have you ever had a product recall event?`, data.recallEvent)}
 				</div>
+				${data.recallEvent ? `
 				<div class="sub-section">
 					${renderField("a. Date of recall(s)", data.recallDate)}
 
@@ -499,6 +510,7 @@ function generateApplicationPage3(data: ManufacturersPacketData): string {
 					${renderField("e. What was the remedy of the problem?", data.recallRemedy)}
 					${renderField("f. What percentage of recalled goods were returned/repaired?", data.recallPercentReturned)}
 				</div>
+				` : ''}
 			</div>
 
 			<div class="section-container">

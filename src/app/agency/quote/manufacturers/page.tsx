@@ -173,6 +173,7 @@ function ManufacturersContent() {
   // ================= Form State =================
   // 1) General Information
   const [agencyAgent, setAgencyAgent] = useState(userName || '');
+  const [companyName, setCompanyName] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [dba, setDba] = useState('');
@@ -434,6 +435,11 @@ function ManufacturersContent() {
           const sub = data.submission || data;
           if (sub && sub.payload) {
             const p = sub.payload;
+            if (p.companyName) {
+              setCompanyName(p.companyName);
+            } else if (p.namedInsured) {
+              setCompanyName(p.namedInsured);
+            }
             if (p.firstName || p.lastName) {
               setFirstName(p.firstName || '');
               setLastName(p.lastName || '');
@@ -533,6 +539,10 @@ function ManufacturersContent() {
       toast.error("Please select or enter the Agency/Agent name");
       return;
     }
+    if (!companyName.trim()) {
+      toast.error("Please enter the Company Name");
+      return;
+    }
     if (!firstName.trim()) {
       toast.error("Please enter the First Name");
       return;
@@ -553,12 +563,13 @@ function ManufacturersContent() {
     setIsSubmitting(true);
     try {
       const fullName = [firstName.trim(), lastName.trim()].filter(Boolean).join(' ');
+      const trimmedCompanyName = companyName.trim();
       const payload = {
+        companyName: trimmedCompanyName,
+        namedInsured: trimmedCompanyName || fullName,
         firstName: firstName.trim(),
         lastName: lastName.trim(),
-        namedInsured: fullName,
-        companyName: dba.trim() ? `${fullName} DBA ${dba.trim()}` : fullName,
-        applicantName: fullName,
+        applicantName: fullName || trimmedCompanyName,
         dba: dba.trim(),
         applicantPhone: applicantPhone.trim(),
         applicantEmail: applicantEmail.trim(),
@@ -792,6 +803,18 @@ function ManufacturersContent() {
                     className={inp}
                   />
                 )}
+              </Row>
+
+              {/* Company Name */}
+              <Row label="Company Name" bold required>
+                <input
+                  type="text"
+                  required
+                  value={companyName}
+                  onChange={e => setCompanyName(e.target.value)}
+                  placeholder="Company Name"
+                  className={inp}
+                />
               </Row>
 
               {/* 2. First Name */}

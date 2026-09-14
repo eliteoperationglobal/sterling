@@ -195,9 +195,7 @@ export async function GET(req: NextRequest) {
         templateTitle: sub.templateId?.title || sub.programName || "Unknown",
         programId: sub.programId || null,
         programName: sub.programName || null,
-        clientName: (sub.payload?.firstName || sub.payload?.lastName)
-          ? `${sub.payload.firstName || ''} ${sub.payload.lastName || ''}`.trim()
-          : (sub.clientContact?.name || sub.payload?.namedInsured || "N/A"),
+        clientName: sub.payload?.companyName?.trim() || sub.payload?.namedInsured?.trim() || sub.clientContact?.name || "N/A",
         clientEmail: (sub.clientContact?.email && sub.clientContact?.email !== "unknown@example.com")
           ? sub.clientContact.email
           : (sub.payload?.applicantEmail || sub.payload?.email || sub.clientContact?.email || "N/A"),
