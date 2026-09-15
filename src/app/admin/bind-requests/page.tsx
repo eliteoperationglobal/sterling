@@ -173,10 +173,16 @@ export default function AdminBindRequestsPage() {
       ['inland-marine', 'contractors-equipment'].includes(sub?.programId || '') ||
       ['Equipment', 'Construction Equipment', 'Contractors Equipment'].includes(sub?.programName || '');
 
+    const isBuildersRisk =
+      sub?.programId === 'builders-risk' ||
+      sub?.programName === 'Builders Risk' ||
+      (sub?.programName || '').toLowerCase().includes('builder');
+
     if (type === "GENERAL_LIABILITY") {
       if (isManufacturer) return "Manufacturers";
       if (isCommercialProperty) return "Property";
       if (isContractorsEquipment) return "Inland Marine";
+      if (isBuildersRisk) return "Builders Risk";
       return "General Liability";
     } else {
       if (isCommercialProperty) return "General Liability";

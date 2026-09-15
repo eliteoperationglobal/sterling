@@ -36,6 +36,8 @@ interface Submission {
   effectiveCancellationDate?: string | null;
   cancelRequested?: boolean;
   policyNumber?: string | null;
+  programId?: string | null;
+  programName?: string | null;
 }
 
 interface DashboardStats {

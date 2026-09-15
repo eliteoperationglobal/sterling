@@ -1235,11 +1235,17 @@ export default function AdminQuotePage() {
     ['inland-marine', 'contractors-equipment'].includes(submission?.programId || '') ||
     ['Equipment', 'Construction Equipment', 'Contractors Equipment'].includes(submission?.programName || '');
 
+  const isBuildersRisk =
+    submission?.programId === 'builders-risk' ||
+    submission?.programName === 'Builders Risk' ||
+    (submission?.programName || '').toLowerCase().includes('builder');
+
   const getPolicyLabel = (type: string) => {
     if (type === "GENERAL_LIABILITY") {
       if (isManufacturer) return "Manufacturers";
       if (isCommercialProperty) return "Property";
       if (isContractorsEquipment) return "Inland Marine";
+      if (isBuildersRisk) return "Builders Risk";
       return "General Liability";
     } else {
       if (isCommercialProperty) return "General Liability";

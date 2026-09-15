@@ -7,6 +7,7 @@ import ActivityLog from "@/models/ActivityLog";
 import Submission from "@/models/Submission";
 import Quote from "@/models/Quote";
 import Agency from "@/models/Agency";
+import { getClientDisplayName } from "@/utils/formatters";
 
 
 /**
@@ -55,7 +56,7 @@ export async function GET(req: NextRequest) {
       })
         .sort({ createdAt: -1 })
         .limit(20)
-        .populate("submissionId", "_id submissionNumber clientContact status");
+        .populate("submissionId", "_id submissionNumber clientContact status payload");
 
       // 1.b Approval requests
       const newApprovalRequests = await ActivityLog.find({
@@ -64,7 +65,7 @@ export async function GET(req: NextRequest) {
       })
         .sort({ createdAt: -1 })
         .limit(20)
-        .populate("submissionId", "_id submissionNumber clientContact status");
+        .populate("submissionId", "_id submissionNumber clientContact status payload");
 
       // 1.c Bind requests
       const newBindRequests = await ActivityLog.find({
@@ -73,7 +74,7 @@ export async function GET(req: NextRequest) {
       })
         .sort({ createdAt: -1 })
         .limit(20)
-        .populate("submissionId", "_id submissionNumber clientContact status");
+        .populate("submissionId", "_id submissionNumber clientContact status payload");
 
       // 2. New bound policies
       const newPolicyBounds = await ActivityLog.find({
@@ -82,7 +83,7 @@ export async function GET(req: NextRequest) {
       })
         .sort({ createdAt: -1 })
         .limit(20)
-        .populate("submissionId", "_id submissionNumber clientContact status");
+        .populate("submissionId", "_id submissionNumber clientContact status payload");
 
       // 3. New notes added to submissions
       const newNotes = await ActivityLog.find({
@@ -91,7 +92,7 @@ export async function GET(req: NextRequest) {
       })
         .sort({ createdAt: -1 })
         .limit(20)
-        .populate("submissionId", "_id submissionNumber clientContact");
+        .populate("submissionId", "_id submissionNumber clientContact payload");
 
       // Combine and format
       const allActivities = [...newSubmissions, ...newApprovalRequests, ...newBindRequests, ...newPolicyBounds, ...newNotes].sort(
@@ -105,7 +106,7 @@ export async function GET(req: NextRequest) {
             id: activity._id.toString(),
             type: "NEW_SUBMISSION",
             title: "New Submission",
-            description: `Agency submitted: ${submission?.clientContact?.name || "Unknown"}`,
+            description: `Agency submitted: ${getClientDisplayName(submission)}`,
             submissionId: submission?._id?.toString(),
             submissionNumber: submission?.submissionNumber,
             timestamp: activity.createdAt,
@@ -116,7 +117,7 @@ export async function GET(req: NextRequest) {
             id: activity._id.toString(),
             type: "APPROVAL_REQUESTED",
             title: "Approval Requested",
-            description: `Approval requested for ${submission?.clientContact?.name || "Unknown"}`,
+            description: `Approval requested for ${getClientDisplayName(submission)}`,
             submissionId: submission?._id?.toString(),
             submissionNumber: submission?.submissionNumber,
             timestamp: activity.createdAt,
@@ -127,7 +128,7 @@ export async function GET(req: NextRequest) {
             id: activity._id.toString(),
             type: "BIND_REQUESTED",
             title: "Bind Requested",
-            description: `Bind requested for ${submission?.clientContact?.name || "Unknown"}`,
+            description: `Bind requested for ${getClientDisplayName(submission)}`,
             submissionId: submission?._id?.toString(),
             submissionNumber: submission?.submissionNumber,
             timestamp: activity.createdAt,
@@ -138,7 +139,7 @@ export async function GET(req: NextRequest) {
             id: activity._id.toString(),
             type: "POLICY_BOUND",
             title: "Policy Bound",
-            description: `Policy bound for ${submission?.clientContact?.name || "Unknown"}`,
+            description: `Policy bound for ${getClientDisplayName(submission)}`,
             submissionId: submission?._id?.toString(),
             submissionNumber: submission?.submissionNumber,
             timestamp: activity.createdAt,
@@ -149,7 +150,7 @@ export async function GET(req: NextRequest) {
             id: activity._id.toString(),
             type: "NEW_NOTE",
             title: "New Note Added",
-            description: `Note added for ${submission?.clientContact?.name || "Unknown"}: "${(activity.details?.noteText || activity.details?.text || "")?.substring(0, 50)}..."`,
+            description: `Note added for ${getClientDisplayName(submission)}: "${(activity.details?.noteText || activity.details?.text || "")?.substring(0, 50)}..."`,
             submissionId: submission?._id?.toString(),
             submissionNumber: submission?.submissionNumber,
             timestamp: activity.createdAt,
@@ -181,7 +182,7 @@ export async function GET(req: NextRequest) {
       })
         .sort({ createdAt: -1 })
         .limit(20)
-        .populate("submissionId", "_id submissionNumber clientContact")
+        .populate("submissionId", "_id submissionNumber clientContact payload")
         .populate("quoteId", "carrierQuoteUSD status");
 
       const newPolicyBounds = await ActivityLog.find({
@@ -191,7 +192,7 @@ export async function GET(req: NextRequest) {
       })
         .sort({ createdAt: -1 })
         .limit(20)
-        .populate("submissionId", "_id submissionNumber clientContact");
+        .populate("submissionId", "_id submissionNumber clientContact payload");
 
       // 2. New notes added to submissions
       const newNotes = await ActivityLog.find({
@@ -201,7 +202,7 @@ export async function GET(req: NextRequest) {
       })
         .sort({ createdAt: -1 })
         .limit(20)
-        .populate("submissionId", "_id submissionNumber clientContact");
+        .populate("submissionId", "_id submissionNumber clientContact payload");
 
       // Combine and format
       const allActivities = [...newQuotes, ...newPolicyBounds, ...newNotes].sort(
@@ -217,7 +218,7 @@ export async function GET(req: NextRequest) {
             id: activity._id.toString(),
             type: "NEW_QUOTE",
             title: "New Quote Posted",
-            description: `Quote posted for ${submission?.clientContact?.name || "Unknown"}: $${quote?.carrierQuoteUSD?.toLocaleString('en-US') || "0"}`,
+            description: `Quote posted for ${getClientDisplayName(submission)}: $${quote?.carrierQuoteUSD?.toLocaleString('en-US') || "0"}`,
             submissionId: submission?._id?.toString(),
             submissionNumber: submission?.submissionNumber,
             quoteId: quote?._id?.toString(),
@@ -229,7 +230,7 @@ export async function GET(req: NextRequest) {
             id: activity._id.toString(),
             type: "POLICY_BOUND",
             title: "Policy Bound",
-            description: `Your policy is bound for ${submission?.clientContact?.name || "Unknown"}`,
+            description: `Your policy is bound for ${getClientDisplayName(submission)}`,
             submissionId: submission?._id?.toString(),
             submissionNumber: submission?.submissionNumber,
             timestamp: activity.createdAt,
@@ -240,7 +241,7 @@ export async function GET(req: NextRequest) {
             id: activity._id.toString(),
             type: "NEW_NOTE",
             title: "New Note Added",
-            description: `Note added for ${submission?.clientContact?.name || "Unknown"}: "${(activity.details?.noteText || activity.details?.text || "")?.substring(0, 50)}..."`,
+            description: `Note added for ${getClientDisplayName(submission)}: "${(activity.details?.noteText || activity.details?.text || "")?.substring(0, 50)}..."`,
             submissionId: submission?._id?.toString(),
             submissionNumber: submission?.submissionNumber,
             timestamp: activity.createdAt,

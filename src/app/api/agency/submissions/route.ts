@@ -84,12 +84,12 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    type AgencySubmissionLean = Pick<ISubmission, "_id" | "submissionNumber" | "status" | "createdAt" | "updatedAt" | "state" | "agentName" | "agentId" | "payload" | "clientContact" | "templateId" | "files" | "programName" | "policyNumber"> & {
+    type AgencySubmissionLean = Pick<ISubmission, "_id" | "submissionNumber" | "status" | "createdAt" | "updatedAt" | "state" | "agentName" | "agentId" | "payload" | "clientContact" | "templateId" | "files" | "programName" | "programId" | "policyNumber"> & {
       templateId?: { industry?: string; subtype?: string; title?: string };
     };
 
     const submissions = await Submission.find(query)
-      .select("submissionNumber policyNumber status createdAt updatedAt state agentName agentId payload clientContact templateId files programName effectiveCancellationDate")
+      .select("submissionNumber policyNumber status createdAt updatedAt state agentName agentId payload clientContact templateId files programName programId effectiveCancellationDate")
       .populate("templateId", "industry subtype title")
       .sort({ createdAt: -1 })
       .skip(skip)
@@ -220,7 +220,9 @@ export async function GET(req: NextRequest) {
       return {
         _id: sub._id.toString(),
         submissionNumber: sub.submissionNumber ?? 0,
-        industry: (sub.programName === "Equipment" || sub.programName === "Construction Equipment" || sub.programName === "Contractors Equipment") ? "Contractors Equipment" : (sub.programName === "Apartment Building" || sub.programName === "Commercial Property") ? "Commercial Property" : (sub.programName === "Manufacturers / Distributors" || sub.programName?.includes("Manufacturer")) ? "Manufacturers" : (sub.templateId?.industry || "Construction"),
+        industry: (sub.programName === "Equipment" || sub.programName === "Construction Equipment" || sub.programName === "Contractors Equipment") ? "Contractors Equipment" : (sub.programName === "Apartment Building" || sub.programName === "Commercial Property") ? "Commercial Property" : (sub.programName === "Manufacturers / Distributors" || sub.programName?.includes("Manufacturer")) ? "Manufacturers" : (sub.programName === "Builders Risk" || sub.programId === "builders-risk" || sub.programName?.toLowerCase().includes("builder")) ? "Builders Risk" : (sub.templateId?.industry || "Construction"),
+        programId: sub.programId || null,
+        programName: sub.programName || null,
         subtype: sub.templateId?.subtype || "Unknown",
         templateTitle: sub.templateId?.title || "Unknown",
         clientName: sub.payload?.companyName?.trim() || sub.payload?.applicantName?.trim() || sub.payload?.namedInsured?.trim() || sub.clientContact?.name || "N/A",
