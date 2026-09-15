@@ -184,7 +184,7 @@ export async function POST(
         await sendAdminNoteToBroker({
           brokerEmail: resolvedBrokerEmail,
           brokerName: agentName || agency?.name || "Broker",
-          companyName: submission.payload?.companyName || submission.clientContact?.name || "Unknown Company",
+          companyName: submission.payload?.companyName || submission.payload?.applicantName || submission.payload?.namedInsured || submission.clientContact?.name || "Unknown Company",
           adminName: userName,
           noteContent: note,
           submissionId: submission._id.toString()

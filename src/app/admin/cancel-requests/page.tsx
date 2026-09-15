@@ -211,7 +211,7 @@ export default function CancelRequestsPage() {
               {requests.map((r) => (
                 <tr key={r._id} className="hover:bg-[#f5f1eb]/50 transition-colors">
                   <td className="p-4 font-medium text-gray-900">
-                    {(r.submissionId as any)?.payload?.companyName || (r.submissionId as any)?.payload?.namedInsured || (r.submissionId as any)?.clientName || r.submissionId?.clientContact?.name || "N/A"}
+                    {(r.submissionId as any)?.payload?.companyName || (r.submissionId as any)?.payload?.applicantName || (r.submissionId as any)?.payload?.namedInsured || (r.submissionId as any)?.clientName || r.submissionId?.clientContact?.name || "N/A"}
                   </td>
 
                   <td className="p-4 text-gray-600">

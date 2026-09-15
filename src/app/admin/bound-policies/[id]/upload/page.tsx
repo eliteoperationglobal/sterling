@@ -384,7 +384,7 @@ export default function UploadFinalDocumentsPage() {
             <div>
               <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Upload Final Policy Documents</h1>
               <p className="text-sm text-gray-600 font-medium mt-0.5">
-                Client: {submission.payload?.companyName || submission.payload?.namedInsured || submission.clientName || submission.clientContact.name}
+                Client: {submission.payload?.companyName || submission.payload?.applicantName || submission.payload?.namedInsured || submission.clientName || submission.clientContact.name}
               </p>
             </div>
           </div>

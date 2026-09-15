@@ -284,7 +284,7 @@ export default function AdminBindRequestsPage() {
     if (!searchQuery.trim()) return true;
     const query = searchQuery.toLowerCase();
     return (
-      (sub.payload?.companyName || sub.payload?.namedInsured || sub.clientName || sub.clientContact?.name || "")?.toLowerCase().includes(query) ||
+      (sub.payload?.companyName || sub.payload?.applicantName || sub.payload?.namedInsured || sub.clientName || sub.clientContact?.name || "")?.toLowerCase().includes(query) ||
       sub.clientContact?.name?.toLowerCase().includes(query) ||
       sub.clientContact?.email?.toLowerCase().includes(query) ||
       sub.agencyId?.name?.toLowerCase().includes(query)
@@ -492,7 +492,7 @@ export default function AdminBindRequestsPage() {
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
                         <h3 className="text-xl font-bold text-gray-900">
-                          {submission.payload?.companyName || submission.payload?.namedInsured || submission.clientName || submission.clientContact.name}
+                          {submission.payload?.companyName || submission.payload?.applicantName || submission.payload?.namedInsured || submission.clientName || submission.clientContact.name}
                         </h3>
                         <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#f5f1eb] text-[#9A8B7A] border border-[#e5ddd5]">
                           BIND REQUESTED

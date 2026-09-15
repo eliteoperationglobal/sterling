@@ -223,7 +223,7 @@ export async function GET(req: NextRequest) {
         industry: (sub.programName === "Equipment" || sub.programName === "Construction Equipment" || sub.programName === "Contractors Equipment") ? "Contractors Equipment" : (sub.programName === "Apartment Building" || sub.programName === "Commercial Property") ? "Commercial Property" : (sub.programName === "Manufacturers / Distributors" || sub.programName?.includes("Manufacturer")) ? "Manufacturers" : (sub.templateId?.industry || "Construction"),
         subtype: sub.templateId?.subtype || "Unknown",
         templateTitle: sub.templateId?.title || "Unknown",
-        clientName: sub.payload?.companyName?.trim() || sub.payload?.namedInsured?.trim() || sub.clientContact?.name || "N/A",
+        clientName: sub.payload?.companyName?.trim() || sub.payload?.applicantName?.trim() || sub.payload?.namedInsured?.trim() || sub.clientContact?.name || "N/A",
         clientEmail: (sub.clientContact?.email && sub.clientContact?.email !== "unknown@example.com")
           ? sub.clientContact.email
           : (sub.payload?.applicantEmail || sub.payload?.email || sub.clientContact?.email || "N/A"),

@@ -1098,7 +1098,7 @@ function SubmissionDetailsContent() {
                 {/* Title */}
                 <h1 className="flex items-center gap-3 text-xl md:text-[24px] font-semibold text-gray-900 leading-tight">
                   <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3">
-                    {(submission?.payload?.companyName || submission?.clientContact?.name || "???")}
+                    {(submission?.payload?.companyName || submission?.payload?.applicantName || submission?.payload?.namedInsured || submission?.clientContact?.name || "???")}
                     <span className={`inline-flex items-center rounded-md px-3 py-[4px] text-[13px] font-bold border transition-all w-fit ${(() => {
                       if (submission?.status === "CANCELLED") return "bg-red-100 text-red-700 border-red-200";
                       if (cancelRequested) return "bg-orange-100 text-orange-700 border-orange-200";

@@ -1127,7 +1127,7 @@ export default function AdminSubmissionDetailsPage() {
               <div>
                 <h1 className="flex items-center gap-3 text-[24px] font-semibold text-gray-900 leading-tight">
                   <div>
-                    {(submission?.payload?.companyName || submission?.payload?.namedInsured || submission?.clientContact?.name || "???")}
+                    {(submission?.payload?.companyName || submission?.payload?.applicantName || submission?.payload?.namedInsured || submission?.clientContact?.name || "???")}
                     <span className={`ml-3 inline-flex items-center rounded-md px-3 py-[4px] text-[13px] font-bold border transition-all ${(() => {
                       if (submission?.status === "CANCELLED") return "bg-red-100 text-red-700 border-red-200";
                       if (cancelRequested) return "bg-orange-100 text-orange-700 border-orange-200";

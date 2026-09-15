@@ -1378,7 +1378,7 @@ export default function AdminQuotePage() {
                   <p className="text-gray-600 mt-1">
                     Create a quote for:{" "}
                     <span className="font-semibold text-gray-900">
-                      {submission.payload?.companyName || submission.payload?.namedInsured || submission.clientContact.name}
+                      {submission.payload?.companyName || submission.payload?.applicantName || submission.payload?.namedInsured || submission.clientContact.name}
                     </span>
                     {submission.programName ? (
                       <> ({submission.programName})</>

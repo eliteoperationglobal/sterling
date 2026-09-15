@@ -204,7 +204,7 @@ export async function GET(req: NextRequest) {
         templateTitle: sub.templateId?.title || sub.programName || "Unknown",
         programId: sub.programId || null,
         programName: sub.programName || null,
-        clientName: sub.payload?.companyName?.trim() || sub.payload?.namedInsured?.trim() || sub.clientContact?.name || "N/A",
+        clientName: sub.payload?.companyName?.trim() || sub.payload?.applicantName?.trim() || sub.payload?.namedInsured?.trim() || sub.clientContact?.name || "N/A",
         clientEmail: (sub.clientContact?.email && sub.clientContact?.email !== "unknown@example.com")
           ? sub.clientContact.email
           : (sub.payload?.applicantEmail || sub.payload?.email || sub.clientContact?.email || "N/A"),

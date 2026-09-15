@@ -27,3 +27,17 @@ export function getDisplayProgramName(programName?: string | null, templateIndus
 
   return name;
 }
+
+export function getClientDisplayName(data?: any): string {
+  if (!data) return "N/A";
+  const p = data.payload || data;
+  const name =
+    p.companyName?.trim() ||
+    p.applicantName?.trim() ||
+    p.namedInsured?.trim() ||
+    p.business_name?.trim() ||
+    data.clientName?.trim() ||
+    data.clientContact?.name?.trim() ||
+    data.name?.trim();
+  return name || "N/A";
+}
