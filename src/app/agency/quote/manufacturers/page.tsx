@@ -168,11 +168,12 @@ function ManufacturersContent() {
   const TITAN_AGENTS = ["Judah Cohen"];
   const TEXAS_AGENTS = ["Eidan Gamaty", "Moshe Gamaty", "Michael Gamaty", "Yoav Anatian", "Jake Weiner", "Benjamin Solender", "Michal Kraut", "Jonathan Akwa", "Juan Montoya"];
 
-  const agentOptions = isCapco ? CAPCO_AGENTS : isBlueAngel ? BLUE_ANGEL_AGENTS : isSJJ ? SJJ_AGENTS : isPatrickArias ? PATRICK_ARIAS_AGENTS : isTitan ? TITAN_AGENTS : isTexas ? TEXAS_AGENTS : [];
+  const baseAgents = isCapco ? CAPCO_AGENTS : isBlueAngel ? BLUE_ANGEL_AGENTS : isSJJ ? SJJ_AGENTS : isPatrickArias ? PATRICK_ARIAS_AGENTS : isTitan ? TITAN_AGENTS : isTexas ? TEXAS_AGENTS : [];
 
   // ================= Form State =================
   // 1) General Information
   const [agencyAgent, setAgencyAgent] = useState(userName || '');
+  const agentOptions = Array.from(new Set([...baseAgents, ...(submissionId && agencyAgent ? [agencyAgent] : [])]));
   const [companyName, setCompanyName] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -754,10 +755,16 @@ function ManufacturersContent() {
       <div className="py-4 px-6">
         <button
           type="button"
-          onClick={() => router.push("/agency/marketplace")}
+          onClick={() => {
+            if (isEditMode || isViewMode) {
+              window.close();
+            } else {
+              router.push("/agency/marketplace");
+            }
+          }}
           className="flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-gray-800 transition-colors"
         >
-          <ArrowLeft className="w-4 h-4" /> Back to Marketplace
+          <ArrowLeft className="w-4 h-4" /> {isEditMode || isViewMode ? "Close" : "Back to Marketplace"}
         </button>
       </div>
 

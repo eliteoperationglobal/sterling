@@ -351,10 +351,12 @@ function ContractorsEquipmentContent() {
     const isTexas = agencyName.toLowerCase().includes("texas commercial") || userEmail.includes("texascomm@services.com")
 
     const TITAN_AGENTS = ["Judah Cohen"];
-    const agentOptions = isCapco ? CAPCO_AGENTS : isBlueAngel ? BLUE_ANGEL_AGENTS : isSJJ ? SJJ_AGENTS : isPatrickArias ? PATRICK_ARIAS_AGENTS : isTitan ? TITAN_AGENTS : isTexas ? CAPCO_AGENTS : []
+    const agentOptionsList = isCapco ? CAPCO_AGENTS : isBlueAngel ? BLUE_ANGEL_AGENTS : isSJJ ? SJJ_AGENTS : isPatrickArias ? PATRICK_ARIAS_AGENTS : isTitan ? TITAN_AGENTS : isTexas ? CAPCO_AGENTS : [];
 
     // State
-    const [agentName, setAgentName] = useState('')
+    const [agentName, setAgentName] = useState('');
+
+    const agentOptions = Array.from(new Set([...agentOptionsList, ...(submissionId && agentName ? [agentName] : [])]));
 
     // Auto-select agent if userName matches
     useEffect(() => {
@@ -891,9 +893,15 @@ function ContractorsEquipmentContent() {
     return (
         <div className="min-h-screen bg-gray-100 pb-24">
             <div className="py-4 px-6">
-                <button type="button" onClick={() => router.back()}
+                <button type="button" onClick={() => {
+                    if (isEditMode || isViewMode) {
+                        window.close();
+                    } else {
+                        router.back();
+                    }
+                }}
                     className="flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-gray-800 transition-colors">
-                    <ArrowLeft className="w-4 h-4" /> Back
+                    <ArrowLeft className="w-4 h-4" /> {isEditMode || isViewMode ? "Close" : "Back"}
                 </button>
             </div>
 
@@ -1635,9 +1643,15 @@ function ContractorsEquipmentContent() {
 
                 {/* ═══ Fixed bottom bar ═══════════════════════════════════════════════ */}
                 <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-8 py-4 flex items-center justify-between z-50">
-                    <button type="button" onClick={() => router.back()}
+                    <button type="button" onClick={() => {
+                        if (isEditMode || isViewMode) {
+                            window.close();
+                        } else {
+                            router.push("/agency/marketplace");
+                        }
+                    }}
                         className="px-6 py-2.5 border border-gray-400 text-gray-700 text-sm font-semibold rounded hover:bg-gray-50 transition-colors">
-                        Return to Dashboard
+                        {isEditMode || isViewMode ? "Close Tab" : "Return to Marketplace"}
                     </button>
                     <div className="flex items-center gap-3">
                         <button type="button" disabled className="flex items-center gap-2 px-6 py-2.5 border border-gray-400 text-gray-700 text-sm font-semibold rounded hover:bg-gray-50 transition-colors opacity-50 cursor-not-allowed">

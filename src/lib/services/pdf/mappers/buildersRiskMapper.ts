@@ -42,7 +42,7 @@ export interface BuildersRiskPacketData {
     email?: string;
     applicantPhone?: string;
     applicantEmail?: string;
-
+    carrierName?: string;
     // ACORD 125 & Common Applicant fields
     proposedEffectiveDateFrom?: string;
     proposedEffectiveDateTo?: string;
@@ -65,7 +65,7 @@ export interface BuildersRiskPacketData {
     effectiveDate: string;
     expiryDate: string;
     deductible: string;
-    premium: string;
+    currentCarrierPremium: string;
     offeringRenewal: boolean | null;
 
     // 3 & 4. Addresses
@@ -205,6 +205,44 @@ export interface BuildersRiskPacketData {
     canceledNonRenewed: boolean | null;
     canceledExplanation: string;
     claimsList: any[];
+
+    // Financial fields for Proposal & Invoice
+    premium?: string;
+    carrierPolicyFee?: string;
+    sterlingFees?: string;
+    surplusLinesTax?: string;
+    stampingFee?: string;
+    stampingFeePerFiling?: string;
+    slaServiceCharge?: string;
+    fireMarshalTax?: string;
+    totalCostOfPolicy?: string;
+    quoteType?: string;
+    coverageType?: string;
+
+    // Deposit & Payment Breakdown
+    depositPremium?: string;
+    depositPolicyFee?: string;
+    depositInspectionFee?: string;
+    depositStateTax?: string;
+    depositFireMarshal?: string;
+    depositAssociationDues?: string;
+    totalDeposit?: string;
+    totalToRetain?: string;
+    totalToBeSent?: string;
+    totalToFinanceCompany?: string;
+}
+
+/**
+ * Helper to format currency strings or numbers to $0,000.00
+ */
+function formatUSD(amount: any): string {
+    if (amount === undefined || amount === null || amount === "") return "$0.00";
+    const num = typeof amount === "string" ? parseFloat(amount.replace(/[\$,]/g, "")) : amount;
+    if (isNaN(num)) return "$0.00";
+    return `$${num.toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    })}`;
 }
 
 export function mapBuildersRiskDataToPacketData(
@@ -301,7 +339,7 @@ export function mapBuildersRiskDataToPacketData(
         effectiveDate: safeData.effectiveDate || '',
         expiryDate: safeData.expiryDate || '',
         deductible: safeData.deductible || '',
-        premium: safeData.premium || '',
+        currentCarrierPremium: safeData.premium || '',
         offeringRenewal: toBool(safeData.offeringRenewal),
 
         // Addresses
@@ -409,6 +447,33 @@ export function mapBuildersRiskDataToPacketData(
         unreportedIncidentsExplanation: safeData.unreportedIncidentsExplanation || '',
         canceledNonRenewed: toBool(safeData.canceledNonRenewed),
         canceledExplanation: safeData.canceledExplanation || '',
-        claimsList: Array.isArray(safeData.claimsList) ? safeData.claimsList : []
+        claimsList: Array.isArray(safeData.claimsList) ? safeData.claimsList : [],
+
+        // Financials (if quote exists)
+        premium: formatUSD(quote?.costs?.premium ?? quote?.carrierQuoteUSD ?? submission?.quote?.costs?.premium),
+        carrierPolicyFee: formatUSD(quote?.costs?.carrierPolicyFee ?? quote?.carrierFeesUSD ?? submission?.quote?.costs?.carrierPolicyFee),
+        sterlingFees: formatUSD(quote?.costs?.sterlingFees ?? quote?.sterlingInsuranceServicesFeesUSD ?? submission?.quote?.costs?.sterlingFees),
+        surplusLinesTax: formatUSD(quote?.costs?.surplusLinesTax ?? quote?.premiumTaxAmountUSD ?? submission?.quote?.costs?.surplusLinesTax),
+        stampingFee: formatUSD(quote?.costs?.stampingFee ?? quote?.stampingFeeAmountUSD ?? submission?.quote?.costs?.stampingFee),
+        stampingFeePerFiling: formatUSD(quote?.costs?.stampingFeePerFiling ?? quote?.stampingFeePerFilingUSD ?? submission?.quote?.costs?.stampingFeePerFiling),
+        slaServiceCharge: formatUSD(quote?.costs?.slaServiceCharge ?? quote?.slaServiceChargeUSD ?? submission?.quote?.costs?.slaServiceCharge),
+        fireMarshalTax: formatUSD(quote?.costs?.fireMarshalTax ?? quote?.fireMarshalTaxAmountUSD ?? submission?.quote?.costs?.fireMarshalTax),
+        totalCostOfPolicy: formatUSD(quote?.costs?.totalCostOfPolicy ?? quote?.finalAmountUSD ?? submission?.quote?.costs?.totalCostOfPolicy),
+        quoteType: quote?.metadata?.type || quote?.policyType || submission?.quote?.metadata?.type || "General Liability",
+        coverageType: quote?.metadata?.coverageType || quote?.coverageType || submission?.quote?.metadata?.coverageType || "Occurrence",
+
+        // Deposits
+        depositPremium: formatUSD(quote?.deposit?.premium ?? quote?.depositPremiumUSD ?? submission?.quote?.deposit?.premium),
+        depositPolicyFee: formatUSD(quote?.deposit?.policyFee ?? quote?.depositStampingUSD ?? submission?.quote?.deposit?.policyFee),
+        depositInspectionFee: formatUSD(quote?.deposit?.inspectionFee ?? quote?.depositSterlingFeesUSD ?? submission?.quote?.deposit?.inspectionFee),
+        depositStateTax: formatUSD(quote?.deposit?.stateTax ?? quote?.depositTaxUSD ?? submission?.quote?.deposit?.stateTax),
+        depositFireMarshal: formatUSD(quote?.deposit?.fireMarshal ?? quote?.depositFireMarshalUSD ?? submission?.quote?.deposit?.fireMarshal),
+        depositAssociationDues: formatUSD(quote?.deposit?.associationDues ?? quote?.depositCarrierFeesUSD ?? submission?.quote?.deposit?.associationDues),
+        totalDeposit: formatUSD(quote?.deposit?.totalDeposit ?? quote?.totalDepositUSD ?? submission?.quote?.deposit?.totalDeposit),
+
+        // Payment Details
+        totalToRetain: formatUSD(quote?.commission?.totalToRetain ?? quote?.totalToRetainUSD ?? submission?.quote?.commission?.totalToRetain),
+        totalToBeSent: formatUSD(quote?.payment?.totalToBeSent ?? quote?.totalToBeSentUSD ?? submission?.quote?.payment?.totalToBeSent),
+        totalToFinanceCompany: formatUSD(quote?.payment?.totalToFinanceCompany ?? quote?.totalToFinanceCompanyUSD ?? submission?.quote?.payment?.totalToFinanceCompany),
     };
 }

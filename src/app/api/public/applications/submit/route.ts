@@ -145,10 +145,10 @@ export async function POST(req: NextRequest) {
       phone: formData.applicantPhone?.trim() || formData.phone?.trim() || "000-000-0000",
       email: formData.applicantEmail?.trim() || formData.email?.trim() || "unknown@example.com",
       businessAddress: {
-        street: formData.streetAddress?.trim() || formData.applicantMailingAddress || "Unknown Street",
-        city: formData.city?.trim() || "Unknown City",
-        state: formData.state || "CA",
-        zip: formData.zip || "00000",
+        street: formData.streetAddress?.trim() || formData.applicantMailingAddress?.trim() || formData.mailingAddress?.trim() || "Unknown Street",
+        city: formData.city?.trim() || formData.mailingCity?.trim() || "Unknown City",
+        state: formData.state || formData.mailingState || "CA",
+        zip: formData.zip || formData.mailingZip || "00000",
       },
     };
 

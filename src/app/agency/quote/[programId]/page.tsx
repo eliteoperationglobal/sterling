@@ -242,7 +242,7 @@ export default function QuoteFormPage() {
   const PATRICK_ARIAS_AGENTS = ["Patrick Arias"];
   const TITAN_AGENTS = ["Judah Cohen"];
 
-  const agentOptions = isCapco ? CAPCO_AGENTS : isBlueAngel ? BLUE_ANGEL_AGENTS : isSJJ ? SJJ_AGENTS : isPatrickArias ? PATRICK_ARIAS_AGENTS : isTitan ? TITAN_AGENTS : isTexas ? CAPCO_AGENTS : [];
+  const agentOptionsList = isCapco ? CAPCO_AGENTS : isBlueAngel ? BLUE_ANGEL_AGENTS : isSJJ ? SJJ_AGENTS : isPatrickArias ? PATRICK_ARIAS_AGENTS : isTitan ? TITAN_AGENTS : isTexas ? CAPCO_AGENTS : [];
   const router = useRouter();
   const params = useParams();
   const programId = params.programId as string;
@@ -353,6 +353,7 @@ export default function QuoteFormPage() {
 
 
   const [formData, setFormData] = useState<any>(initialFormData);
+  const agentOptions = Array.from(new Set([...agentOptionsList, ...(submissionId && formData.agentName ? [formData.agentName] : [])]));
 
   // const [formData, setFormData] = useState<any>({
   //   /* ================= APPLICATION INFO ================= */
@@ -1421,10 +1422,17 @@ export default function QuoteFormPage() {
       </div> */}
       <div className="bg-white md:bg-[#fafaf9] p-4 md:p-8 font-sans text-gray-800 overflow-x-hidden">
         <button
-          onClick={() => router.back()}
-          className="flex items-center text-gray-500 hover:text-[#9A8B7A] transition-colors mb-4 font-medium text-sm w-fit"
+          type="button"
+          onClick={() => {
+            if (isEditMode || isViewMode) {
+              window.close();
+            } else {
+              router.back();
+            }
+          }}
+          className="flex items-center text-sm text-[#7A6F64] hover:text-[#5A4F44] transition-colors"
         >
-          <ArrowLeft className="w-4 h-4 mr-1.5" /> Back
+          <ArrowLeft className="w-4 h-4 mr-1.5" /> {isEditMode || isViewMode ? "Close" : "Back"}
         </button>
       </div>
 

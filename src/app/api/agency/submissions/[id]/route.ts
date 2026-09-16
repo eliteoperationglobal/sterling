@@ -279,6 +279,22 @@ export async function PATCH(
       if (syncName) {
         submission.clientContact.name = syncName;
       }
+
+      // Auto-sync Address
+      const syncStreet = body.payload.streetAddress?.trim() || body.payload.applicantMailingAddress?.trim() || body.payload.mailingAddress?.trim();
+      const syncCity = body.payload.city?.trim() || body.payload.mailingCity?.trim();
+      const syncState = body.payload.state || body.payload.mailingState;
+      const syncZip = body.payload.zip || body.payload.mailingZip;
+      
+      if (!submission.clientContact.businessAddress) {
+        submission.clientContact.businessAddress = { street: "Unknown Street", city: "Unknown City", state: "CA", zip: "00000" };
+      }
+      
+      if (syncStreet && syncStreet !== "Unknown Street") submission.clientContact.businessAddress.street = syncStreet;
+      if (syncCity && syncCity !== "Unknown City") submission.clientContact.businessAddress.city = syncCity;
+      if (syncState) submission.clientContact.businessAddress.state = syncState;
+      if (syncZip && syncZip !== "00000") submission.clientContact.businessAddress.zip = syncZip;
+
       submission.markModified("clientContact");
 
       const XS_ADDED = (!oldPayload.addExcessLiability) && (body.payload.addExcessLiability === true);

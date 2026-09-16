@@ -200,23 +200,12 @@ function BuildersRiskContent() {
   const TITAN_AGENTS = ["Judah Cohen"];
   const TEXAS_AGENTS = ["Eidan Gamaty", "Moshe Gamaty", "Michael Gamaty", "Yoav Anatian", "Jake Weiner", "Benjamin Solender", "Michal Kraut", "Jonathan Akwa", "Juan Montoya"];
 
-  const [dynamicAgents, setDynamicAgents] = useState<string[]>([]);
 
-  useEffect(() => {
-    fetch('/api/agency/agents')
-      .then(res => res.ok ? res.json() : null)
-      .then(data => {
-        if (data?.agents?.length) {
-          setDynamicAgents(data.agents.map((a: any) => a.name).filter(Boolean));
-        }
-      })
-      .catch(() => {});
-  }, []);
 
   const baseAgents = isCapco ? CAPCO_AGENTS : isBlueAngel ? BLUE_ANGEL_AGENTS : isSJJ ? SJJ_AGENTS : isPatrickArias ? PATRICK_ARIAS_AGENTS : isTitan ? TITAN_AGENTS : isTexas ? TEXAS_AGENTS : [];
-  const agentOptions = Array.from(new Set([...baseAgents, ...dynamicAgents]));
-
+  
   const [agencyAgent, setAgencyAgent] = useState(userName || '');
+  const agentOptions = Array.from(new Set([...baseAgents, ...(submissionId && agencyAgent ? [agencyAgent] : [])]));
   const [brokerage, setBrokerage] = useState('');
 
   useEffect(() => {
@@ -527,7 +516,8 @@ function BuildersRiskContent() {
       fetch(`/api/agency/submissions/${submissionId}`)
         .then(res => res.json())
         .then(data => {
-          const payload = data.payload || {};
+          const submission = data.submission || data;
+          const payload = submission.payload || {};
           if (payload.firstName || payload.lastName) {
             setFirstName(payload.firstName || '');
             setLastName(payload.lastName || '');
@@ -548,10 +538,10 @@ function BuildersRiskContent() {
             setLastName('');
             setNamedInsured('');
           }
-          setApplicantPhone(payload.applicantPhone || payload.phone || data.clientContact?.phone || '');
-          setApplicantEmail(payload.applicantEmail || payload.email || data.clientContact?.email || '');
+          setApplicantPhone(payload.applicantPhone || payload.phone || submission.clientContact?.phone || '');
+          setApplicantEmail(payload.applicantEmail || payload.email || submission.clientContact?.email || '');
           setBrokerage(payload.brokerage || '');
-          setAgencyAgent(payload.agencyAgent || payload.agentName || payload.brokerage || data.agentName || '');
+          setAgencyAgent(payload.agencyAgent || payload.agentName || payload.brokerage || submission.agentName || '');
           setIsNewVenture(payload.isNewVenture ?? null);
           setIsRenewal(payload.isRenewal ?? null);
           setPolicyNumber(payload.policyNumber || '');
@@ -1024,11 +1014,17 @@ function BuildersRiskContent() {
         <div className="mb-6 flex items-center justify-between">
           <button
             type="button"
-            onClick={() => router.push("/agency/marketplace")}
+            onClick={() => {
+              if (isEditMode || isViewMode) {
+                window.close();
+              } else {
+                router.push("/agency/marketplace");
+              }
+            }}
             className="inline-flex items-center gap-2 text-sm font-medium text-[#7A6F64] hover:text-[#5A4F44] transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
-            Back to Marketplace
+            {isEditMode || isViewMode ? "Close" : "Back to Marketplace"}
           </button>
         </div>
 
@@ -2592,10 +2588,16 @@ function BuildersRiskContent() {
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-8 py-4 flex items-center justify-between z-50 shadow-md">
           <button
             type="button"
-            onClick={() => router.push("/agency/marketplace")}
+            onClick={() => {
+              if (isEditMode || isViewMode) {
+                window.close();
+              } else {
+                router.push("/agency/marketplace");
+              }
+            }}
             className="px-6 py-2.5 border border-gray-400 text-gray-700 text-sm font-semibold rounded hover:bg-gray-50 transition-colors"
           >
-            Return to Marketplace
+            {isEditMode || isViewMode ? "Close Tab" : "Return to Marketplace"}
           </button>
 
           <div className="flex items-center gap-3">

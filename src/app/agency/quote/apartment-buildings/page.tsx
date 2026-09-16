@@ -150,7 +150,7 @@ function ApartmentBuildingsContent() {
     const PATRICK_ARIAS_AGENTS = ["Patrick Arias"];
     const TITAN_AGENTS = ["Judah Cohen"];
 
-    const agentOptions = isCapco ? CAPCO_AGENTS : isBlueAngel ? BLUE_ANGEL_AGENTS : isSJJ ? SJJ_AGENTS : isPatrickArias ? PATRICK_ARIAS_AGENTS : isTitan ? TITAN_AGENTS : isTexas ? CAPCO_AGENTS : [];
+    const agentOptionsList = isCapco ? CAPCO_AGENTS : isBlueAngel ? BLUE_ANGEL_AGENTS : isSJJ ? SJJ_AGENTS : isPatrickArias ? PATRICK_ARIAS_AGENTS : isTitan ? TITAN_AGENTS : isTexas ? CAPCO_AGENTS : [];
 
     const [currentView, setCurrentView] = useState<'overview' | 'form'>('overview');
     const [appExpanded, setAppExpanded] = useState(true);
@@ -393,6 +393,8 @@ function ApartmentBuildingsContent() {
         glDeductible: "$2,500" as string,
         paymentOption: "" as string,
     });
+
+    const agentOptions = Array.from(new Set([...agentOptionsList, ...(submissionId && formData.agentName ? [formData.agentName] : [])]));
 
     const handleAddressSearch = async (value: string, type: "mailing" | "property") => {
         handleInputChange(type === "mailing" ? "applicantMailingAddress" : "propertyNameAndAddress", value);
@@ -1680,10 +1682,17 @@ function ApartmentBuildingsContent() {
     return (
         <div className="min-h-screen bg-white md:bg-[#fafaf9] p-4 md:p-8 font-sans text-gray-800 overflow-x-hidden">
             <button
-                onClick={() => router.back()}
+                type="button"
+                onClick={() => {
+                    if (isEditMode || isViewMode) {
+                        window.close();
+                    } else {
+                        router.back();
+                    }
+                }}
                 className="flex items-center text-gray-500 hover:text-[#9A8B7A] transition-colors mb-6 font-medium text-sm w-fit"
             >
-                <ArrowLeft className="w-4 h-4 mr-1.5" /> Back
+                <ArrowLeft className="w-4 h-4 mr-1.5" /> {isEditMode || isViewMode ? "Close" : "Back"}
             </button>
 
             {renderForm()}

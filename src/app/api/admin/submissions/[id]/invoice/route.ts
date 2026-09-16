@@ -10,6 +10,8 @@ import { mapApartmentDataToPacketData } from "@/lib/services/pdf/mappers/apartme
 import { generateApartmentInvoiceHTML } from "@/lib/services/pdf/ApartmentPacketPDF";
 import { mapContractorsDataToPacketData } from "@/lib/services/pdf/mappers/contractorsMapper";
 import { generateContractorsInvoiceHTML } from "@/lib/services/pdf/ContractorsEquipmentPacketPDF";
+import { mapBuildersRiskDataToPacketData } from "@/lib/services/pdf/mappers/buildersRiskMapper";
+import { generateBuildersRiskInvoiceHTML } from "@/lib/services/pdf/BuildersRiskPacketPDF";
 
 /**
  * GET /api/admin/submissions/[id]/invoice
@@ -79,6 +81,9 @@ export async function GET(
     const isContractors = submission.programId === "contractors-equipment" || 
                          submission.programName?.toLowerCase().includes("contractors equipment");
 
+    const isBuildersRisk = submission.programId === "builders-risk" || 
+                           submission.programName?.toLowerCase().includes("builders risk");
+
     if (isApartment) {
       console.log("📄 [Admin Invoice Download] Generating Apartment Buildings Invoice...");
       const apartmentData = mapApartmentDataToPacketData(
@@ -102,6 +107,17 @@ export async function GET(
         quote
       );
       invoiceHTML = generateContractorsInvoiceHTML(contractorsData);
+    } else if (isBuildersRisk) {
+      console.log("📄 [Admin Invoice Download] Generating Builders Risk Invoice...");
+      const buildersRiskData = mapBuildersRiskDataToPacketData(
+        formData,
+        submission._id.toString(),
+        agency,
+        quote,
+        submission,
+        capitalCoLogoSVG
+      );
+      invoiceHTML = generateBuildersRiskInvoiceHTML(buildersRiskData);
     } else {
       const packetData = mapFormDataToPacketData(
         formData,
@@ -131,10 +147,11 @@ export async function GET(
 
     const policyLabel = isApartment 
       ? (quote?.policyType === 'EXCESS_LIABILITY' ? 'General-Liability' : 'Commercial-Property')
-      : isContractors ? 'Equipment' : 'Invoice';
+      : isContractors ? 'Equipment' 
+      : isBuildersRisk ? 'Builders-Risk' : 'Invoice';
 
     const customerName = formData.companyName || formData.applicantName || submission.clientContact?.name || "Invoice";
-    const filename = isApartment || isContractors
+    const filename = isApartment || isContractors || isBuildersRisk
       ? `${customerName}-${policyLabel}-Invoice.pdf`
       : `${customerName}-Invoice.pdf`;
 

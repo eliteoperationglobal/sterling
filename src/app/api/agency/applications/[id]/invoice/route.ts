@@ -10,6 +10,8 @@ import { mapApartmentDataToPacketData } from "@/lib/services/pdf/mappers/apartme
 import { mapContractorsDataToPacketData } from "@/lib/services/pdf/mappers/contractorsMapper";
 import { generateApartmentInvoiceHTML } from "@/lib/services/pdf/ApartmentPacketPDF";
 import { generateContractorsInvoiceHTML } from "@/lib/services/pdf/ContractorsEquipmentPacketPDF";
+import { mapBuildersRiskDataToPacketData } from "@/lib/services/pdf/mappers/buildersRiskMapper";
+import { generateBuildersRiskInvoiceHTML } from "@/lib/services/pdf/BuildersRiskPacketPDF";
 
 /**
  * GET /api/agency/applications/[id]/invoice
@@ -96,15 +98,18 @@ export async function GET(
 
     // Map form data to packet data format
     const formData = submission.payload || {};
-    
+
     let invoiceHTML: string = "";
 
-    const isApartment = submission.programId === "apartment-buildings" || 
-                        submission.programName?.toLowerCase().includes("apartment building") || 
-                        submission.programName?.toLowerCase().includes("commercial property");
+    const isApartment = submission.programId === "apartment-buildings" ||
+      submission.programName?.toLowerCase().includes("apartment building") ||
+      submission.programName?.toLowerCase().includes("commercial property");
 
-    const isContractors = submission.programId === "contractors-equipment" || 
-                         submission.programName?.toLowerCase().includes("contractors equipment");
+    const isContractors = submission.programId === "contractors-equipment" ||
+      submission.programName?.toLowerCase().includes("contractors equipment");
+
+    const isBuildersRisk = submission.programId === "builders-risk" ||
+      submission.programName?.toLowerCase().includes("builders risk");
 
     if (isApartment) {
       console.log("📄 [Invoice Download] Generating Apartment Buildings Invoice...");
@@ -129,6 +134,17 @@ export async function GET(
         quote
       );
       invoiceHTML = generateContractorsInvoiceHTML(contractorsData);
+    } else if (isBuildersRisk) {
+      console.log("📄 [Invoice Download] Generating Builders Risk Invoice...");
+      const buildersRiskData = mapBuildersRiskDataToPacketData(
+        formData,
+        submission._id.toString(),
+        agency,
+        quote,
+        submission,
+        capitalCoLogoSVG
+      );
+      invoiceHTML = generateBuildersRiskInvoiceHTML(buildersRiskData);
     } else {
       const packetData = mapFormDataToPacketData(
         formData,
@@ -187,12 +203,13 @@ export async function GET(
     // Return PDF as response
     try {
       console.log("📄 [PDF Download] Returning PDF response...");
-      const policyLabel = isApartment 
+      const policyLabel = isApartment
         ? (quote?.policyType === 'EXCESS_LIABILITY' ? 'General-Liability' : 'Commercial-Property')
-        : isContractors ? 'Equipment' : 'Invoice';
+        : isContractors ? 'Equipment'
+          : isBuildersRisk ? 'Builders-Risk' : 'Invoice';
 
       const customerName = formData.companyName || formData.applicantName || submission.clientContact?.name || "Invoice";
-      const filename = isApartment || isContractors
+      const filename = isApartment || isContractors || isBuildersRisk
         ? `${customerName}-${policyLabel}-Invoice.pdf`
         : `${customerName}-Invoice.pdf`;
 
