@@ -106,6 +106,45 @@ export interface ManufacturersPacketData {
     canceledNonRenewedDetails: string;
     awareOfOccurrences: boolean | null;
     awareOfOccurrencesDetails: string;
+
+    // Financial fields for Proposal & Invoice
+    carrierName?: string;
+    premium?: string;
+    carrierPolicyFee?: string;
+    sterlingFees?: string;
+    surplusLinesTax?: string;
+    stampingFee?: string;
+    stampingFeePerFiling?: string;
+    slaServiceCharge?: string;
+    fireMarshalTax?: string;
+    totalCostOfPolicy?: string;
+    quoteType?: string;
+    coverageType?: string;
+
+    // Deposit & Payment Breakdown
+    depositPremium?: string;
+    depositPolicyFee?: string;
+    depositInspectionFee?: string;
+    depositStateTax?: string;
+    depositFireMarshal?: string;
+    depositAssociationDues?: string;
+    totalDeposit?: string;
+    totalToRetain?: string;
+    totalToBeSent?: string;
+    totalToFinanceCompany?: string;
+}
+
+/**
+ * Helper to format currency strings or numbers to $0,000.00
+ */
+function formatUSD(amount: any): string {
+    if (amount === undefined || amount === null || amount === "") return "$0.00";
+    const num = typeof amount === "string" ? parseFloat(amount.replace(/[\$,]/g, "")) : amount;
+    if (isNaN(num)) return "$0.00";
+    return `$${num.toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    })}`;
 }
 
 export function formatDateToUS(dateInput: any): string {
@@ -330,6 +369,34 @@ export function mapManufacturersDataToPacketData(
         canceledNonRenewed: safeData.canceledNonRenewed === true ? true : (safeData.canceledNonRenewed === false ? false : null),
         canceledNonRenewedDetails: safeData.canceledNonRenewedDetails || '',
         awareOfOccurrences: safeData.awareOfOccurrences === true ? true : (safeData.awareOfOccurrences === false ? false : null),
-        awareOfOccurrencesDetails: safeData.awareOfOccurrencesDetails || ''
-    };
+        awareOfOccurrencesDetails: safeData.awareOfOccurrencesDetails || '',
+
+        // Financials (if quote exists or from formData)
+        carrierName: quote?.metadata?.carrierName || quote?.carrierId?.name || submission?.carrier?.name || submission?.carrierName || quote?.carrier?.name || safeData.carrierName || "Capital & Co",
+        premium: formatUSD(quote?.costs?.premium ?? quote?.carrierQuoteUSD ?? submission?.quote?.costs?.premium ?? safeData.premium),
+        carrierPolicyFee: formatUSD(quote?.costs?.carrierPolicyFee ?? quote?.carrierFeesUSD ?? submission?.quote?.costs?.carrierPolicyFee ?? safeData.carrierPolicyFee),
+        sterlingFees: formatUSD(quote?.costs?.sterlingFees ?? quote?.sterlingInsuranceServicesFeesUSD ?? submission?.quote?.costs?.sterlingFees ?? safeData.sterlingFees),
+        surplusLinesTax: formatUSD(quote?.costs?.surplusLinesTax ?? quote?.premiumTaxAmountUSD ?? submission?.quote?.costs?.surplusLinesTax ?? safeData.surplusLinesTax),
+        stampingFee: formatUSD(quote?.costs?.stampingFee ?? quote?.stampingFeeAmountUSD ?? submission?.quote?.costs?.stampingFee ?? safeData.stampingFee),
+        stampingFeePerFiling: formatUSD(quote?.costs?.stampingFeePerFiling ?? quote?.stampingFeePerFilingUSD ?? submission?.quote?.costs?.stampingFeePerFiling ?? safeData.stampingFeePerFiling),
+        slaServiceCharge: formatUSD(quote?.costs?.slaServiceCharge ?? quote?.slaServiceChargeUSD ?? submission?.quote?.costs?.slaServiceCharge ?? safeData.slaServiceCharge),
+        fireMarshalTax: formatUSD(quote?.costs?.fireMarshalTax ?? quote?.fireMarshalTaxAmountUSD ?? submission?.quote?.costs?.fireMarshalTax ?? safeData.fireMarshalTax),
+        totalCostOfPolicy: formatUSD(quote?.costs?.totalCostOfPolicy ?? quote?.finalAmountUSD ?? submission?.quote?.costs?.totalCostOfPolicy ?? safeData.totalCostOfPolicy),
+        quoteType: quote?.metadata?.type || quote?.policyType || submission?.quote?.metadata?.type || safeData.quoteType || "General Liability",
+        coverageType: quote?.metadata?.coverageType || quote?.coverageType || submission?.quote?.metadata?.coverageType || safeData.coverageType || "Occurrence",
+
+        // Deposits
+        depositPremium: formatUSD(quote?.deposit?.premium ?? quote?.depositPremiumUSD ?? submission?.quote?.deposit?.premium ?? safeData.depositPremium),
+        depositPolicyFee: formatUSD(quote?.deposit?.policyFee ?? quote?.depositStampingUSD ?? submission?.quote?.deposit?.policyFee ?? safeData.depositPolicyFee),
+        depositInspectionFee: formatUSD(quote?.deposit?.inspectionFee ?? quote?.depositSterlingFeesUSD ?? submission?.quote?.deposit?.inspectionFee ?? safeData.depositInspectionFee),
+        depositStateTax: formatUSD(quote?.deposit?.stateTax ?? quote?.depositTaxUSD ?? submission?.quote?.deposit?.stateTax ?? safeData.depositStateTax),
+        depositFireMarshal: formatUSD(quote?.deposit?.fireMarshal ?? quote?.depositFireMarshalUSD ?? submission?.quote?.deposit?.fireMarshal ?? safeData.depositFireMarshal),
+        depositAssociationDues: formatUSD(quote?.deposit?.associationDues ?? quote?.depositCarrierFeesUSD ?? submission?.quote?.deposit?.associationDues ?? safeData.depositAssociationDues),
+        totalDeposit: formatUSD(quote?.deposit?.totalDeposit ?? quote?.totalDepositUSD ?? submission?.quote?.deposit?.totalDeposit ?? safeData.totalDeposit),
+
+        // Payment Details
+        totalToRetain: formatUSD(quote?.commission?.totalToRetain ?? quote?.totalToRetainUSD ?? submission?.quote?.commission?.totalToRetain ?? safeData.totalToRetain),
+        totalToBeSent: formatUSD(quote?.payment?.totalToBeSent ?? quote?.totalToBeSentUSD ?? submission?.quote?.payment?.totalToBeSent ?? safeData.totalToBeSent),
+        totalToFinanceCompany: formatUSD(quote?.payment?.totalToFinanceCompany ?? quote?.totalToFinanceCompanyUSD ?? submission?.quote?.payment?.totalToFinanceCompany ?? safeData.totalToFinanceCompany),
+    };                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
 }

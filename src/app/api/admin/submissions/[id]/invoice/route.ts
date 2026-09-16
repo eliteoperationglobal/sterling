@@ -12,6 +12,8 @@ import { mapContractorsDataToPacketData } from "@/lib/services/pdf/mappers/contr
 import { generateContractorsInvoiceHTML } from "@/lib/services/pdf/ContractorsEquipmentPacketPDF";
 import { mapBuildersRiskDataToPacketData } from "@/lib/services/pdf/mappers/buildersRiskMapper";
 import { generateBuildersRiskInvoiceHTML } from "@/lib/services/pdf/BuildersRiskPacketPDF";
+import { mapManufacturersDataToPacketData } from "@/lib/services/pdf/mappers/manufacturersMapper";
+import { generateManufacturersInvoiceHTML } from "@/lib/services/pdf/ManufacturersPacketPDF";
 
 /**
  * GET /api/admin/submissions/[id]/invoice
@@ -84,6 +86,9 @@ export async function GET(
     const isBuildersRisk = submission.programId === "builders-risk" || 
                            submission.programName?.toLowerCase().includes("builders risk");
 
+    const isManufacturers = submission.programId === "manufacturers" || 
+                            submission.programName?.toLowerCase().includes("manufacturers");
+
     if (isApartment) {
       console.log("📄 [Admin Invoice Download] Generating Apartment Buildings Invoice...");
       const apartmentData = mapApartmentDataToPacketData(
@@ -118,6 +123,17 @@ export async function GET(
         capitalCoLogoSVG
       );
       invoiceHTML = generateBuildersRiskInvoiceHTML(buildersRiskData);
+    } else if (isManufacturers) {
+      console.log("📄 [Admin Invoice Download] Generating Manufacturers Invoice...");
+      const manufacturersData = mapManufacturersDataToPacketData(
+        formData,
+        submission._id.toString(),
+        agency,
+        quote,
+        submission,
+        capitalCoLogoSVG
+      );
+      invoiceHTML = generateManufacturersInvoiceHTML(manufacturersData);
     } else {
       const packetData = mapFormDataToPacketData(
         formData,

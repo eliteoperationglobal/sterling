@@ -1,4 +1,4 @@
-import { ManufacturersPacketData, computeDesiredCoverageDates, formatDateToUS } from "./mappers/manufacturersMapper";
+import { ManufacturersPacketData, computeDesiredCoverageDates, formatDateToUS, mapManufacturersDataToPacketData } from "./mappers/manufacturersMapper";
 import { blueAngelLogoSVG, sjjLogoSVG, patrickAriasLogoSVG, titanLogoSVG, texasLogoSVG } from "./ApartmentPacketPDF";
 import {
 	ApplicationPacketData,
@@ -738,4 +738,297 @@ const cssContent = `
 
 	.signature-grid-row { display: flex; gap: 40px; width: 100%; margin-top: 8px; margin-bottom: 20px; }
 	.signature-grid-row-large { margin-top: 35px !important; margin-bottom: 40px !important; }
+
+	/* ============================================
+	   PAGE 12 - INVOICE STATEMENT (ISC FORMAT)
+	   ============================================ */
+
+	.page12-isc .invoice-section-page12 {
+		margin-top: 0.06in;
+		margin-bottom: 0.12in;
+	}
+
+	.page12-isc .main-content-page12 {
+		padding: 0.45in 0.4in 0.35in 0.4in;
+	}
+	.page12-isc .extra-space {
+	  margin-bottom: 0.3in;
+	  margin-top: 0.5in;
+	}
+
+	/* Section Title */
+	.page12-isc .invoice-section-title-page12 {
+		font-size: 11pt;
+		font-weight: 700;
+		text-transform: uppercase;
+		color: #1f2937;
+		border-bottom: 1px solid #1f2937;
+		padding-bottom: 0.04in;
+		margin-bottom: 0.06in;
+	}
+
+	/* Rows */
+	.page12-isc .invoice-row-page12 {
+		display: flex;
+		justify-content: space-between;
+		padding: 0.025in 0;
+		border-bottom: none;
+	}
+
+	.page12-isc .invoice-header-page12 {
+	  margin-bottom: 0.2in;
+	  font-size: 11pt;
+	  display: flex;
+	  justify-content: space-between;
+	  align-items: flex-start;
+	}
+
+	/* Labels */
+	.page12-isc .invoice-label-page12 {
+		font-size: 10pt;
+		color: #1f2937;
+		font-weight: 400;
+	}
+
+	/* Values */
+	.page12-isc .invoice-value-page12 {
+		font-size: 10pt;
+		font-weight: 400;
+		text-align: right;
+		min-width: 1.3in;
+		color: #1f2937;
+	}
+
+	/* TOTAL ROW (Accounting Style) */
+	.page12-isc .invoice-row-total-page12 {
+		display: flex;
+		justify-content: flex-end;
+		gap: 0.7in;
+		padding-top: 0.04in;
+		margin-top: 0.06in;
+	}
+
+	.page12-isc .invoice-row-total-page12 .invoice-label-page12 {
+		font-weight: 700;
+		font-size: 10pt;
+		text-transform: uppercase;
+	}
+
+	.page12-isc .invoice-row-total-page12 .invoice-value-page12 {
+		font-weight: 800;
+		font-size: 10pt;
+		min-width: 1.3in;
+		text-align: right;
+	}
+
+	/* Binding / Payment area */
+	.page12-isc .binding-statement-page12 {
+		margin-top: 0.04in;
+		font-size: 9pt;
+	}
+
+	.page12-isc .signature-field-page12 {
+	  margin-bottom: 0.2in;
+	  margin-top: 0.5in;
+	}
+
+	.page12-isc .bottom-section {
+	  margin-top: 1.5in;
+	}
+
+	/* Disclaimer */
+	.page12-isc .invoice-disclaimer-page12 {
+		margin-top: 0.1in;
+		font-size: 8pt;
+		font-style: italic;
+	}
+
+	.page12-isc .invoice-disclaimer-page12 p {
+		margin: 0;
+		color: #6b7280;
+	}
 `;
+
+/**
+ * Page: Invoice Statement - ISC Format (Page 12 style)
+ */
+function generateInvoicePage(data: ManufacturersPacketData): string {
+  return `
+	<div class="page page12-isc" style="page-break-after: always;">
+	  <div class="main-content main-content-page12">
+		<div class="invoice-header-page12">
+		  <div>
+			<div class="invoice-field-page12">${data.companyName || data.namedInsured}</div>
+			<div class="invoice-field-page12">${data.mailingAddress || ''}</div>
+			<div class="invoice-field-page12">${data.mailingCity || ''}, ${data.mailingState || ''} ${data.mailingZip || ''}</div>
+			<div class="invoice-field-page12">${data.applicantPhone || ''}</div>
+			<div class="invoice-field-page12">Email: ${data.applicantEmail || ''}</div>
+			<div class="invoice-field-page12">${data.submissionNumber || data.applicationId}</div>
+		  </div>
+		  <div>
+			<div class="invoice-field-page12" style="font-weight: bold; max-width: 300px;">${data.agencyName}</div>
+			<div class="invoice-field-page12">${data.agencyAddress}</div>
+			<div class="invoice-field-page12">${data.agencyCity}, ${data.agencyState} ${data.agencyZip}</div>
+			<div class="invoice-field-page12">${data.agencyPhone}</div>
+			<div class="invoice-field-page12">${data.agencyEmail}</div>
+		  </div>
+		</div>
+		<div style="text-align: center;">
+			<strong>Manufacturers - ${data.carrierName}</strong>
+		</div>
+		
+		<div class="invoice-section-page12">
+		  <div class="invoice-section-title-page12">TOTAL COST OF POLICY*</div>
+		  <div class="invoice-row-page12">
+			<div class="invoice-label-page12">Premium</div>
+			<div class="invoice-value-page12">${data.premium || '$0.00'}</div>
+		  </div>
+		  <div class="invoice-row-page12">
+			<div class="invoice-label-page12">Carrier Policy Fee</div>
+			<div class="invoice-value-page12">${data.carrierPolicyFee || '$0.00'}</div>
+		  </div>
+		  <div class="invoice-row-page12">
+			<div class="invoice-label-page12">Sterling Insurance Services Fees</div>
+			<div class="invoice-value-page12">${data.sterlingFees || '$0.00'}</div>
+		  </div>
+		  <div class="invoice-row-page12">
+			<div class="invoice-label-page12">Surplus Lines Tax</div>
+			<div class="invoice-value-page12">${data.surplusLinesTax || '$0.00'}</div>
+		  </div>
+		  ${data.stampingFee && parseFloat(data.stampingFee.replace(/[\$,]/g, "")) > 0 ? `
+			<div class="invoice-row-page12">
+			  <div class="invoice-label-page12">Stamping Fee</div>
+			  <div class="invoice-value-page12">${data.stampingFee}</div>
+			</div>
+		  ` : ''}
+		  ${data.stampingFeePerFiling && parseFloat(data.stampingFeePerFiling.replace(/[\$,]/g, "")) > 0 ? `
+			<div class="invoice-row-page12">
+			  <div class="invoice-label-page12">PA Flat Fee</div>
+			  <div class="invoice-value-page12">${data.stampingFeePerFiling}</div>
+			</div>
+		  ` : ''}
+		  ${data.slaServiceCharge && parseFloat(data.slaServiceCharge.replace(/[\$,]/g, "")) > 0 ? `
+			<div class="invoice-row-page12">
+			  <div class="invoice-label-page12">SLSC</div>
+			  <div class="invoice-value-page12">${data.slaServiceCharge}</div>
+			</div>
+		  ` : ''}
+
+		  ${data.fireMarshalTax && parseFloat(data.fireMarshalTax.replace(/[\$,]/g, "")) > 0 ? `
+			<div class="invoice-row-page12">
+			  <div class="invoice-label-page12">Fire Marshal Tax</div>
+			  <div class="invoice-value-page12">${data.fireMarshalTax}</div>
+			</div>
+		  ` : ''}
+
+		  <div class="invoice-row-total-page12">
+			<div class="invoice-label-page12">TOTAL COST OF POLICY*</div>
+			<div class="invoice-value-page12">${data.totalCostOfPolicy || '$0.00'}</div>
+		  </div>
+		</div>
+		
+		<div class="invoice-section-page12">
+		  <div class="invoice-section-title-page12">TOTAL DEPOSIT*</div>
+		  <div class="invoice-row-page12">
+			<div class="invoice-label-page12">Premium</div>
+			<div class="invoice-value-page12">${data.depositPremium || '$0.00'}</div>
+		  </div>
+		  <div class="invoice-row-page12">
+			<div class="invoice-label-page12">Carrier Policy Fee</div>
+			<div class="invoice-value-page12">${data.depositAssociationDues || '$0.00'}</div>
+		  </div>
+		  <div class="invoice-row-page12">
+			<div class="invoice-label-page12">Sterling Insurance Services Fees</div>
+			<div class="invoice-value-page12">${data.depositInspectionFee || '$0.00'}</div>
+		  </div>
+		  <div class="invoice-row-page12">
+			<div class="invoice-label-page12">Surplus Lines Tax</div>
+			<div class="invoice-value-page12">${data.depositStateTax || '$0.00'}</div>
+		  </div>
+		  ${data.depositPolicyFee && parseFloat(data.depositPolicyFee.replace(/[\$,]/g, "")) > 0 ? `
+			<div class="invoice-row-page12">
+			  <div class="invoice-label-page12">Stamping Fee</div>
+			  <div class="invoice-value-page12">${data.depositPolicyFee}</div>
+			</div>`
+      : ''}
+
+		  ${data.depositFireMarshal && parseFloat(data.depositFireMarshal.replace(/[\$,]/g, "")) > 0 ? `
+			<div class="invoice-row-page12">
+			  <div class="invoice-label-page12">Fire Marshal Tax</div>
+			  <div class="invoice-value-page12">${data.depositFireMarshal}</div>
+			</div>`
+      : ''}
+
+		  <div class="invoice-row-total-page12">
+			<div class="invoice-label-page12">TOTAL DEPOSIT*</div>
+			<div class="invoice-value-page12">${data.totalDeposit || '$0.00'}</div>
+		  </div>
+		</div>
+		
+		<div class="invoice-section-page12">
+		  <div class="invoice-section-title-page12">TOTAL TO RETAIN*</div>
+		  <div class="invoice-row-page12">
+			<div class="invoice-label-page12">10% Commission on Premium (${data.premium || '$0.00'})</div>
+			<div class="invoice-value-page12">${data.totalToRetain || '$0.00'}</div>
+		  </div>
+		  <div class="invoice-row-total-page12">
+			<div class="invoice-label-page12">TOTAL TO RETAIN*</div>
+			<div class="invoice-value-page12">${data.totalToRetain || '$0.00'}</div>
+		  </div>
+		</div>
+		
+		<div class="invoice-section-page12">
+		  <div class="invoice-section-title-page12">TOTAL TO BE SENT</div>
+		  <div class="invoice-row-total-page12">
+			<div class="invoice-label-page12">MAKE CHECK PAYABLE FOR from agency</div>
+			<div class="invoice-value-page12">${data.totalToBeSent || '$0.00'}</div>
+		  </div>
+		  <div class="invoice-row-total-page12">
+			<div class="invoice-label-page12">MAKE CHECK PAYABLE FOR finance company</div>
+			<div class="invoice-value-page12">${data.totalToFinanceCompany || '$0.00'}</div>
+		  </div>
+		</div>
+
+		<div style="text-align: center; margin-top: 62px;">
+			<strong style="font-size: 20px;">Sterling Insurance Services</strong>
+			<p>5455 Wilshire Blvd. #1816,<br>Los Angeles, CA 90036</p>
+			<p>(310) 492-2007</p>
+			<p>info@SterlingInsurancePartners.com</p>
+			<p>License Number: 6015632</p>
+		</div>
+
+	  </div>
+	</div>
+	`;
+}
+
+export function generateManufacturersInvoiceHTML(data: any): string {
+  const packetData: ManufacturersPacketData = (data && data.isMappedPacketData)
+    ? data
+    : mapManufacturersDataToPacketData(
+      data?.payload || data,
+      data?.submissionNumber || data?.applicationId || data?.submissionId || data?._id?.toString() || "Pending",
+      data?.agency || {
+        name: data?.agencyName,
+        address: { street: data?.agencyAddress, city: data?.agencyCity, state: data?.agencyState, zip: data?.agencyZip },
+        phone: data?.agencyPhone,
+        email: data?.agencyEmail
+      },
+      data?.quote,
+      data?.submission || data,
+      data?.capitalCoLogoSVG
+    );
+
+  return `
+		<!DOCTYPE html>
+		<html>
+		<head>
+			<meta charset="UTF-8">
+			<style>${cssContent}</style>
+		</head>
+		<body>
+			${generateInvoicePage(packetData)}
+		</body>
+		</html>
+	`;
+}
