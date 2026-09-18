@@ -60,8 +60,17 @@ async function getAISSessionToken(accessToken: string) {
   }
 
   const data = await response.json();
+  console.log("[AIS API] Session Token Raw Response:", JSON.stringify(data));
+  
   // We assume the response returns a session token property
-  return data.sessionToken || data.SessionToken || data.token || data.sessionId; 
+  const token = data.sessionToken || data.SessionToken || data.token || data.sessionId || data.session_token;
+  
+  if (!token) {
+    console.error("[AIS API] Could not extract session token from response!", data);
+    throw new Error(`Invalid Session Token Response: ${JSON.stringify(data)}`);
+  }
+  
+  return token;
 }
 
 export async function POST(req: Request) {
