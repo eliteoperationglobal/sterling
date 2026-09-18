@@ -2533,6 +2533,9 @@ export default function AdminQuotePage() {
 
                 {financeTerms && (
                   <div className="bg-white p-5 rounded-lg border border-indigo-100 space-y-3">
+                    <pre className="text-xs text-indigo-900 bg-indigo-50 p-2 rounded overflow-auto max-w-full">
+                      DEBUG: {JSON.stringify(financeTerms, null, 2)}
+                    </pre>
                     <div className="flex justify-between items-center py-2 border-b border-gray-100">
                       <span className="text-gray-600 font-medium">Down Payment</span>
                       <span className="text-gray-900 font-bold">${financeTerms.totalDownPayAmount}</span>
