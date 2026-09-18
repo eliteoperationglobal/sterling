@@ -122,8 +122,8 @@ export async function POST(req: Request) {
       },
       agent: {
         agentCodeCrossReference: " ",
-        agentCode: process.env.AIS_AGENT_CODE || "040000",
-        agentName: rawAgentName.replace(/[^a-zA-Z0-9 ]/g, "")
+        agentCode: process.env.AIS_AGENT_CODE || " ",
+        agentName: " "
       },
       account: {
         accountType: "C",
@@ -133,8 +133,8 @@ export async function POST(req: Request) {
       policies: [
         {
           policyNumber: "TBD",
-          policyInsuranceCompanyNumber: "9999", // Required by AIS (Max length 4)
-          policyCoverageTypeCode: "99", // Required by AIS (99 = Other/Generic)
+          policyInsuranceCompanyNumber: " ", 
+          policyCoverageTypeCode: " ", 
           policyInceptionDate: policyInceptionDate,
           policyTerm: "12",
           policyPremiumAmount: Number(premiumAmount).toFixed(2),
