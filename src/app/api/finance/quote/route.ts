@@ -133,7 +133,7 @@ export async function POST(req: Request) {
       policies: [
         {
           policyNumber: "TBD",
-          policyInsuranceCompanyNumber: "99999", // Required by AIS
+          policyInsuranceCompanyNumber: "9999", // Required by AIS (Max length 4)
           policyCoverageTypeCode: "99", // Required by AIS (99 = Other/Generic)
           policyInceptionDate: policyInceptionDate,
           policyTerm: "12",
