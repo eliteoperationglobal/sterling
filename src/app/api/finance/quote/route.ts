@@ -164,7 +164,7 @@ export async function POST(req: Request) {
     if (!quoteResponse.ok) {
       const errorText = await quoteResponse.text();
       console.error("[AIS API] Quote Error:", errorText);
-      throw new Error(`AIS Quote Failed: ${quoteResponse.status}`);
+      throw new Error(`AIS Quote Failed: ${quoteResponse.status} - ${errorText.substring(0, 200)}`);
     }
 
     const quoteData = await quoteResponse.json();
