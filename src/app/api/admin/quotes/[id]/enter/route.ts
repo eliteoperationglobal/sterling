@@ -88,6 +88,7 @@ export async function POST(
       specialNotes,
       customDocuments,
       policyType,
+      premiumFinanceTerms,
     } = body;
 
     // Validate input
@@ -505,6 +506,33 @@ export async function POST(
     } catch (pdfError: any) {
       console.error("❌ Binder PDF generation error:", pdfError);
       // Continue even if PDF fails - we can regenerate later
+    }
+
+    // Download Premium Finance Agreement if available
+    let premiumFinanceAgreementUrl = "";
+    if (premiumFinanceTerms) {
+      const pfaUrl = premiumFinanceTerms.premiumFinanceAgreement || premiumFinanceTerms.premiumFinanceAgreementPdfURL || premiumFinanceTerms.premiumFinanceAgreementUrl;
+      if (pfaUrl) {
+        try {
+          console.log(`📄 Downloading Premium Finance Agreement PDF from ${pfaUrl}...`);
+          const pfaResponse = await fetch(pfaUrl);
+          if (pfaResponse.ok) {
+            const arrayBuffer = await pfaResponse.arrayBuffer();
+            const buffer = Buffer.from(arrayBuffer);
+            const fileName = `finance-agreement-${quote._id.toString()}.pdf`;
+            premiumFinanceAgreementUrl = await savePDFToStorage(buffer, fileName);
+            
+            await Quote.findByIdAndUpdate(quote._id, {
+              premiumFinanceAgreementUrl,
+            });
+            console.log(`✅ Premium Finance Agreement PDF saved: ${premiumFinanceAgreementUrl}`);
+          } else {
+             console.error("❌ Failed to download Premium Finance Agreement PDF");
+          }
+        } catch (err) {
+          console.error("❌ Premium Finance Agreement PDF generation error:", err);
+        }
+      }
     }
 
     // Send email to broker

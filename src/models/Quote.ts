@@ -73,6 +73,7 @@ export interface IQuote extends Document {
   binderPdfUrl?: string;
   binderUrl?: string;
   policyDocsUrl?: string;
+  premiumFinanceAgreementUrl?: string;
 
   status: QuoteStatus;
   // Admin entry fields
@@ -297,6 +298,9 @@ const QuoteSchema: Schema = new Schema(
       type: String,
     },
     policyDocsUrl: {
+      type: String,
+    },
+    premiumFinanceAgreementUrl: {
       type: String,
     },
     status: {

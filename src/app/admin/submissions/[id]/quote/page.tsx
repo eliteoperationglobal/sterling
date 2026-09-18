@@ -122,6 +122,11 @@ export default function AdminQuotePage() {
   const [customDocuments, setCustomDocuments] = useState<string[]>([""]);
   const [hasExistingQuotes, setHasExistingQuotes] = useState(false);
 
+  // --- Premium Finance State ---
+  const [financeTerms, setFinanceTerms] = useState<any>(null);
+  const [fetchingFinance, setFetchingFinance] = useState(false);
+  const [financeError, setFinanceError] = useState("");
+
   // Available endorsements
   const availableEndorsements = [
     "Blanket Additional Insured",
@@ -910,6 +915,7 @@ export default function AdminQuotePage() {
       policyNumber: state.policyNumber || undefined,
       carrierReference: state.carrierReference || undefined,
       specialNotes: state.specialNotes || undefined,
+      premiumFinanceTerms: financeTerms || undefined,
       policyType,
       customDocuments: (state.customDocuments || []).filter((d: string) => d.trim() !== ""),
     };
@@ -1209,6 +1215,48 @@ export default function AdminQuotePage() {
 
     setCurrentPolicyType(newType);
     toast.info(`Switched to ${getPolicyLabel(newType)}`);
+  };
+
+  const fetchFinanceTerms = async () => {
+    if (!carrierQuoteUSD) {
+      toast.error("Please enter the carrier premium first");
+      return;
+    }
+
+    setFetchingFinance(true);
+    setFinanceError("");
+
+    try {
+      const pPremium = parseCurrency(carrierQuoteUSD);
+      const pTaxes = parseCurrency(premiumTaxAmountUSD) + parseCurrency(fireMarshalTaxAmountUSD) + parseCurrency(stampingFeeAmountUSD);
+      const pFees = parseCurrency(policyFeeUSD) + parseCurrency(carrierFeesUSD) + parseCurrency(sterlingFeesUSD) + parseCurrency(fireMarshalFlatFeeUSD) + parseCurrency(stampingFeePerFilingUSD) + parseCurrency(slaServiceChargeUSD);
+
+      const response = await fetch("/api/finance/quote", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          premiumAmount: pPremium.toString(),
+          taxesAmount: pTaxes.toString(),
+          feesAmount: pFees.toString(),
+          insuredName: submission?.payload?.companyName || submission?.payload?.applicantName || submission?.payload?.namedInsured || submission?.clientContact?.name || "Client",
+          state: getStateCode((submission as any)?.state || (submission as any)?.clientContact?.businessAddress?.state || "CA"),
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || "Failed to fetch finance terms");
+      }
+
+      setFinanceTerms(data.data);
+      toast.success("Finance terms retrieved successfully!");
+    } catch (err: any) {
+      console.error(err);
+      setFinanceError(err.message);
+      toast.error(err.message);
+    } finally {
+      setFetchingFinance(false);
+    }
   };
 
   // NEW: validate only required fields (carrier + premium) for each existing policy
@@ -2454,6 +2502,59 @@ export default function AdminQuotePage() {
                     </span>
                   </div>
                 </div>
+              </div>
+            )}
+
+            {/* Premium Finance Integration */}
+            {(submission as any)?.payload?.paymentOption === "Premium Financial Partners Co." && breakdown && (
+              <div className="p-6 bg-gradient-to-br from-indigo-50 to-blue-50 rounded-xl border-2 border-indigo-200 shadow-lg mt-6 mb-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                    <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-lg flex items-center justify-center">
+                      <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    Premium Finance Quote
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={fetchFinanceTerms}
+                    disabled={fetchingFinance || !carrierQuoteUSD}
+                    className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-bold hover:bg-indigo-700 disabled:opacity-50 transition-colors flex items-center gap-2 shadow-sm"
+                  >
+                    {fetchingFinance ? "Calculating..." : "Get Finance Terms"}
+                  </button>
+                </div>
+
+                {financeError && (
+                  <p className="text-red-600 text-sm font-medium mb-4">{financeError}</p>
+                )}
+
+                {financeTerms && (
+                  <div className="bg-white p-5 rounded-lg border border-indigo-100 space-y-3">
+                    <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                      <span className="text-gray-600 font-medium">Down Payment</span>
+                      <span className="text-gray-900 font-bold">${financeTerms.totalDownPayAmount}</span>
+                    </div>
+                    <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                      <span className="text-gray-600 font-medium">Amount Financed</span>
+                      <span className="text-gray-900 font-bold">${financeTerms.amountFinanced}</span>
+                    </div>
+                    <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                      <span className="text-gray-600 font-medium">Finance Charge</span>
+                      <span className="text-gray-900 font-bold">${financeTerms.financeChargeAmount}</span>
+                    </div>
+                    <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                      <span className="text-gray-600 font-medium">Number of Installments</span>
+                      <span className="text-gray-900 font-bold">{financeTerms.numberOfInstallments}</span>
+                    </div>
+                    <div className="flex justify-between items-center py-2 bg-indigo-50 px-3 rounded-lg mt-2">
+                      <span className="text-indigo-900 font-bold">Monthly Payment</span>
+                      <span className="text-indigo-600 font-black text-xl">${financeTerms.regularInstallmentAmount}</span>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
