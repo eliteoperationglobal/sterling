@@ -93,6 +93,16 @@ export async function POST(req: Request) {
     // 2. Get the Session Token securely
     const sessionToken = await getAISSessionToken(accessToken);
 
+    // Format date as MMDDYYYY which AIS expects
+    const d = new Date();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    const yyyy = d.getFullYear();
+    const policyInceptionDate = `${mm}${dd}${yyyy}`;
+
+    // Clean agent name to prevent invalid character rejections (like '&')
+    const rawAgentName = "Sterling Agent"; // User can override in env if needed
+
     // 3. Build the exact payload required by AIS
     const quotePayload = {
       consumerReferenceNumber: `QUOTE-${Date.now()}`,
@@ -113,7 +123,7 @@ export async function POST(req: Request) {
       agent: {
         agentCodeCrossReference: " ",
         agentCode: process.env.AIS_AGENT_CODE || "040000",
-        agentName: "Sterling Agent"
+        agentName: rawAgentName.replace(/[^a-zA-Z0-9 ]/g, "")
       },
       account: {
         accountType: "C",
@@ -123,7 +133,9 @@ export async function POST(req: Request) {
       policies: [
         {
           policyNumber: "TBD",
-          policyInceptionDate: new Date().toISOString().slice(0, 10).replace(/-/g, ''),
+          policyInsuranceCompanyNumber: "99999", // Required by AIS
+          policyCoverageTypeCode: "99", // Required by AIS (99 = Other/Generic)
+          policyInceptionDate: policyInceptionDate,
           policyTerm: "12",
           policyPremiumAmount: Number(premiumAmount).toFixed(2),
           policyFee1Type: "T", 

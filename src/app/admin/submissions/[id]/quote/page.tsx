@@ -2538,7 +2538,7 @@ export default function AdminQuotePage() {
                     </pre>
                     <div className="flex justify-between items-center py-2 border-b border-gray-100">
                       <span className="text-gray-600 font-medium">Down Payment</span>
-                      <span className="text-gray-900 font-bold">${financeTerms.totalDownPayAmount}</span>
+                      <span className="text-gray-900 font-bold">${financeTerms.totalDownpayAmount}</span>
                     </div>
                     <div className="flex justify-between items-center py-2 border-b border-gray-100">
                       <span className="text-gray-600 font-medium">Amount Financed</span>
@@ -2546,7 +2546,7 @@ export default function AdminQuotePage() {
                     </div>
                     <div className="flex justify-between items-center py-2 border-b border-gray-100">
                       <span className="text-gray-600 font-medium">Finance Charge</span>
-                      <span className="text-gray-900 font-bold">${financeTerms.financeChargeAmount}</span>
+                      <span className="text-gray-900 font-bold">${financeTerms.financeCharge}</span>
                     </div>
                     <div className="flex justify-between items-center py-2 border-b border-gray-100">
                       <span className="text-gray-600 font-medium">Number of Installments</span>
@@ -2554,7 +2554,7 @@ export default function AdminQuotePage() {
                     </div>
                     <div className="flex justify-between items-center py-2 bg-indigo-50 px-3 rounded-lg mt-2">
                       <span className="text-indigo-900 font-bold">Monthly Payment</span>
-                      <span className="text-indigo-600 font-black text-xl">${financeTerms.regularInstallmentAmount}</span>
+                      <span className="text-indigo-600 font-black text-xl">${financeTerms.paymentAmount}</span>
                     </div>
                   </div>
                 )}
