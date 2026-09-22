@@ -133,7 +133,7 @@ export async function POST(req: Request) {
       policies: [
         {
           policyNumber: "TBD",
-          policyInsuranceCompanyNumber: "8426", // Try 01 since 9999 was invalid
+          policyInsuranceCompanyNumber: "7X31", // Try 01 since 9999 was invalid
           policyCoverageTypeCode: "99", // 99 worked previously!
           policyInceptionDate: policyInceptionDate,
           policyTerm: "12",
