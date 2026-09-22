@@ -48,20 +48,12 @@ export async function POST(req: NextRequest) {
       expiresAt,
     });
 
-    const jwtSecret = process.env.JWT_SECRET || process.env.NEXTAUTH_SECRET || "fallback_secret";
+    const jwtSecret = process.env.JWT_SECRET || process.env.NEXTAUTH_SECRET;
+    if (!jwtSecret) throw new Error("FATAL: JWT Secret is missing");
     
-    // Create JWT
-    const token = jwt.sign(
-      {
-        jti,
-        programId,
-        agentName,
-        agencyId: agency._id.toString(),
-        agencyName,
-      },
-      jwtSecret,
-      { expiresIn: `${expiresInDays}d` }
-    );
+    // We now just return the raw UUID (jti) as the token to prevent iOS link parsing issues.
+    // The verify endpoints will accept this UUID directly or fallback to JWT for legacy links.
+    const token = jti;
 
     const appUrl = req.headers.get("origin") || getBaseUrl();
     const generatedUrl = `${appUrl}/agency/quote/${programId}?token=${token}`;

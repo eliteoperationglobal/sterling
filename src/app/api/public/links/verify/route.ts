@@ -13,23 +13,31 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ valid: false, error: "No token provided" }, { status: 400 });
     }
 
-    const jwtSecret = process.env.JWT_SECRET || process.env.NEXTAUTH_SECRET || "fallback_secret";
+    const jwtSecret = process.env.JWT_SECRET || process.env.NEXTAUTH_SECRET;
+    if (!jwtSecret) throw new Error("FATAL: JWT Secret is missing");
 
-    let decoded: any;
-    try {
-      decoded = jwt.verify(token, jwtSecret);
-    } catch (err: any) {
-      return NextResponse.json({ valid: false, error: "Invalid or expired token" }, { status: 401 });
-    }
+    let jtiToLookup: string;
 
-    if (!decoded.jti) {
-      return NextResponse.json({ valid: false, error: "Invalid token payload" }, { status: 401 });
+    // A standard UUID is 36 characters long. If it's a UUID, it's a new-style link.
+    // Otherwise, attempt to decode it as a legacy JWT.
+    if (token.length === 36) {
+      jtiToLookup = token;
+    } else {
+      try {
+        const decoded: any = jwt.verify(token, jwtSecret);
+        if (!decoded.jti) {
+          return NextResponse.json({ valid: false, error: "Invalid token payload" }, { status: 401 });
+        }
+        jtiToLookup = decoded.jti;
+      } catch (err: any) {
+        return NextResponse.json({ valid: false, error: "Invalid or expired token" }, { status: 401 });
+      }
     }
 
     await connectDB();
 
     // Check DB for the link
-    const link = await GeneratedLink.findOne({ jti: decoded.jti });
+    const link = await GeneratedLink.findOne({ jti: jtiToLookup });
 
     if (!link) {
       return NextResponse.json({ valid: false, error: "Link not found" }, { status: 404 });

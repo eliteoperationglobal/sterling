@@ -132,7 +132,9 @@ export default function AdminBoundPoliciesPage() {
       policy.clientContact?.name?.toLowerCase().includes(query) ||
       policy.clientContact?.email?.toLowerCase().includes(query) ||
       policy.agencyId?.name?.toLowerCase().includes(query) ||
-      policy.quote?.carrierName?.toLowerCase().includes(query)
+      policy.quote?.carrierName?.toLowerCase().includes(query) ||
+      policy.quote?.policyNumber?.toLowerCase().includes(query) ||
+      policy.excessQuote?.policyNumber?.toLowerCase().includes(query)
     );
   });
 
@@ -268,7 +270,7 @@ export default function AdminBoundPoliciesPage() {
           </div>
           <input
             type="text"
-            placeholder="Search by Agency Name, Client Name, or Email..."
+            placeholder="Search by Agency Name, Client Name, Email, or Policy Number..."
             className="block w-full pl-11 pr-4 py-3 border border-[#e5ddd5] rounded-xl bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#9A8B7A] focus:border-transparent sm:text-sm shadow-sm transition-all duration-300"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}

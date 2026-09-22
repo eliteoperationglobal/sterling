@@ -86,18 +86,28 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Missing public token" }, { status: 401 });
     }
 
-    const jwtSecret = process.env.JWT_SECRET || process.env.NEXTAUTH_SECRET || "fallback_secret";
+    const jwtSecret = process.env.JWT_SECRET || process.env.NEXTAUTH_SECRET;
+    if (!jwtSecret) throw new Error("FATAL: JWT Secret is missing");
     
-    let decoded: any;
-    try {
-      decoded = jwt.verify(token, jwtSecret);
-    } catch (err) {
-      return NextResponse.json({ error: "Invalid or expired token" }, { status: 401 });
+    let jtiToLookup: string;
+
+    if (token.length === 36) {
+      jtiToLookup = token;
+    } else {
+      try {
+        const decoded: any = jwt.verify(token, jwtSecret);
+        if (!decoded.jti) {
+          return NextResponse.json({ error: "Invalid token payload" }, { status: 401 });
+        }
+        jtiToLookup = decoded.jti;
+      } catch (err) {
+        return NextResponse.json({ error: "Invalid or expired token" }, { status: 401 });
+      }
     }
 
     await connectDB();
 
-    const link = await GeneratedLink.findOne({ jti: decoded.jti });
+    const link = await GeneratedLink.findOne({ jti: jtiToLookup });
     if (!link || link.used || link.expiresAt < new Date()) {
       return NextResponse.json({ error: "Link is invalid, expired, or already used." }, { status: 403 });
     }
