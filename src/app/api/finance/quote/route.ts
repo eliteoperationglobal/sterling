@@ -133,8 +133,8 @@ export async function POST(req: Request) {
       policies: [
         {
           policyNumber: "TBD",
-          policyInsuranceCompanyNumber: "7X31", // Try 01 since 9999 was invalid
-          policyCoverageTypeCode: "99", // 99 worked previously!
+          policyInsuranceCompanyNumber: "7X31", // Valid code from client CSV (Accredited Specialty)
+          policyCoverageTypeCode: "GL", // Try 'GL' (General Liability) instead of 99
           policyInceptionDate: policyInceptionDate,
           policyTerm: "12",
           policyPremiumAmount: Number(premiumAmount).toFixed(2),
