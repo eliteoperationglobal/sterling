@@ -33,7 +33,7 @@ export async function GET(
 
     // Get quote with submission
     const quote = await Quote.findById(params.id)
-      .populate("submissionId", "clientContact status esignCompleted esignCompletedAt paymentStatus paymentDate paymentAmount paymentMethod agencyId bindRequested bindRequestedAt bindApproved bindApprovedAt signedDocuments finalPolicyDocuments")
+      .populate("submissionId", "clientContact status esignCompleted esignCompletedAt paymentStatus paymentDate paymentAmount paymentMethod agencyId bindRequested bindRequestedAt bindApproved bindApprovedAt signedDocuments finalPolicyDocuments payload")
       .populate("carrierId", "name email")
       .lean();
 
@@ -59,7 +59,7 @@ export async function GET(
         submissionId: quote.submissionId._id.toString(),
         carrierId: quote.carrierId._id.toString(),
         carrierName: (quote.carrierId as any).name,
-        clientName: submission.clientContact?.name || "N/A",
+        clientName: submission.payload?.companyName?.trim() || submission.payload?.applicantName?.trim() || submission.payload?.namedInsured?.trim() || submission.clientContact?.name || "N/A",
         carrierQuoteUSD: quote.carrierQuoteUSD,
         // No wholesale fee - removed per user request
         brokerFeeAmountUSD: quote.brokerFeeAmountUSD || 0,

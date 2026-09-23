@@ -129,7 +129,7 @@ export async function GET(req: NextRequest) {
       submissionId: { $in: submissionIds },
       status: { $in: ["POSTED", "APPROVED", "BOUND"] },
     })
-      .select("submissionId effectiveDate policyNumber")
+      .select("submissionId effectiveDate policyNumber policyType")
       .sort({ createdAt: 1 })
       .lean();
 
@@ -140,7 +140,9 @@ export async function GET(req: NextRequest) {
     for (const q of quotes as any[]) {
       const subIdStr = q.submissionId.toString();
       if (q.effectiveDate) {
-        quoteEffectiveDateMap[subIdStr] = q.effectiveDate;
+        if (!quoteEffectiveDateMap[subIdStr] || q.policyType === "GENERAL_LIABILITY") {
+          quoteEffectiveDateMap[subIdStr] = q.effectiveDate;
+        }
       }
       if (q.policyNumber) {
         if (!quotePolicyNumbersMap[subIdStr]) quotePolicyNumbersMap[subIdStr] = [];

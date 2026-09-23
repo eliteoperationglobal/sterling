@@ -363,14 +363,25 @@ export async function POST(
 
     console.log(`[EXEC] Forcing status for ${submissionId} to ${definitiveStatus} (Found bound quote: ${hasBoundPolicy})`);
 
+    const updateFields: any = {
+      status: definitiveStatus,
+      hasNewEdits: false,
+    };
+
+    if (policyType !== 'EXCESS_LIABILITY') {
+      if (effectiveDate) {
+        updateFields["payload.effectiveDate"] = effectiveDate;
+        updateFields.effectiveDate = new Date(effectiveDate);
+      }
+      if (expirationDate) {
+        updateFields["payload.expirationDate"] = expirationDate;
+        updateFields.expirationDate = new Date(expirationDate);
+      }
+    }
+
     await Submission.updateOne(
       { _id: submissionId },
-      { 
-        $set: { 
-          status: definitiveStatus,
-          hasNewEdits: false 
-        } 
-      }
+      { $set: updateFields }
     );
 
     // Log activity: Quote created or updated

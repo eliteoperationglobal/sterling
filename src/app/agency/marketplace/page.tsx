@@ -187,8 +187,8 @@ export default function MarketplacePage() {
       <div className="min-h-screen flex items-center justify-center bg-[#f5f0e8]">
         <div className="text-center">
           <div className="relative w-16 h-16 mx-auto mb-4">
-            <div className="absolute inset-0 border-4 border-cyan-100 rounded-full"></div>
-            <div className="absolute inset-0 border-4 border-transparent border-t-cyan-500 rounded-full animate-spin"></div>
+            <div className="absolute inset-0 border-2 border-gray-200 rounded-full"></div>
+            <div className="absolute inset-0 border-2 border-transparent border-t-[#9A8B7A] rounded-full animate-spin"></div>
           </div>
           <p className="text-sm text-gray-600 font-medium">Loading marketplace...</p>
         </div>
@@ -293,7 +293,7 @@ export default function MarketplacePage() {
         </div>
 
         {/* Content */}
-        <div className="flex flex-col md:flex-row flex-wrap justify-start p-4 md:p-10 gap-4 md:gap-10">
+        <div className="max-w-[1400px] mx-auto flex flex-col md:flex-row flex-wrap justify-center p-4 md:p-10 gap-4 md:gap-10">
 
           {/* BIG CONSTRUCTION BUTTON */}
           <button

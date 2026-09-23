@@ -153,7 +153,10 @@ export async function GET(req: NextRequest) {
         }
 
         if (q.effectiveDate) {
-          quoteEffectiveDate = q.effectiveDate;
+          // Prefer General Liability's effective date over Excess Liability
+          if (!quoteEffectiveDate || policyType === "GENERAL_LIABILITY") {
+            quoteEffectiveDate = q.effectiveDate;
+          }
         }
         if (q.policyNumber) {
           allQuotePolicyNumbers.push(q.policyNumber);

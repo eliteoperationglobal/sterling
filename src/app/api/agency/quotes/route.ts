@@ -62,7 +62,7 @@ export async function GET(req: NextRequest) {
 
     // Get quotes for these submissions
     const quotes = await Quote.find(query)
-      .populate("submissionId", "clientContact status esignCompleted paymentStatus")
+      .populate("submissionId", "clientContact status esignCompleted paymentStatus payload")
       .populate("carrierId", "name email")
       .sort({ createdAt: -1 })
       .lean();
@@ -72,7 +72,7 @@ export async function GET(req: NextRequest) {
       submissionId: quote.submissionId._id.toString(),
       carrierId: quote.carrierId._id.toString(),
       carrierName: quote.carrierId.name,
-      clientName: quote.submissionId.clientContact?.name || "N/A",
+      clientName: quote.submissionId.payload?.companyName?.trim() || quote.submissionId.payload?.applicantName?.trim() || quote.submissionId.payload?.namedInsured?.trim() || quote.submissionId.clientContact?.name || "N/A",
       carrierQuoteUSD: quote.carrierQuoteUSD,
       // No wholesale fee - removed per user request
       brokerFeeAmountUSD: quote.brokerFeeAmountUSD || 0,

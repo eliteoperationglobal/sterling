@@ -360,7 +360,7 @@ function AgencyDashboardContent() {
         fetch(`/api/agency/submissions?${params.toString()}`),
         fetch("/api/agency/quotes?status=POSTED"),
         fetch("/api/agency/bound-policies"),
-        fetch("/api/agency/cancel-requests"),
+        fetch("/api/agency/cancel-request"),
       ]);
 
       const submissionsData = submissionsRes.ok ? await submissionsRes.json() : { submissions: [] };

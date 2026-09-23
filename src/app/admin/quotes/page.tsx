@@ -11,6 +11,7 @@ import MobileNav from "@/components/layout/MobileNav";
 interface Quote {
   _id: string;
   submissionId: string;
+  submissionNumber?: number | null;
   carrierName: string;
   clientName: string;
   carrierQuoteUSD: number;
@@ -379,8 +380,8 @@ export default function AdminQuotesPage() {
                       <p className="text-sm font-bold text-gray-900">${quote.brokerFeeAmountUSD.toLocaleString('en-US')}</p>
                     </div>
                     <div className="md:col-span-2">
-                      <p className="text-xs text-gray-500 font-medium mb-1">Submission ID</p>
-                      <p className="text-sm font-mono font-bold text-gray-900">{quote.submissionId}</p>
+                      <p className="text-xs text-gray-500 font-medium mb-1">App ID</p>
+                      <p className="text-sm font-mono font-bold text-gray-900">{quote.submissionNumber || quote.submissionId}</p>
                     </div>
                   </div>
 

@@ -182,7 +182,7 @@ export async function GET(req: NextRequest) {
     await connectDB();
 
     const quotes = await Quote.find({})
-      .populate("submissionId", "clientContact status")
+      .populate("submissionId", "clientContact status payload submissionNumber")
       .populate("carrierId", "name email")
       .sort({ createdAt: -1 })
       .lean();
@@ -190,9 +190,10 @@ export async function GET(req: NextRequest) {
     const formattedQuotes = quotes.map((quote: any) => ({
       _id: quote._id.toString(),
       submissionId: quote.submissionId?._id?.toString() || null,
+      submissionNumber: quote.submissionId?.submissionNumber || null,
       carrierId: quote.carrierId?._id?.toString() || null,
       carrierName: quote.carrierId?.name || "N/A",
-      clientName: quote.submissionId?.clientContact?.name || "N/A",
+      clientName: quote.submissionId?.payload?.companyName?.trim() || quote.submissionId?.payload?.applicantName?.trim() || quote.submissionId?.payload?.namedInsured?.trim() || quote.submissionId?.clientContact?.name || "N/A",
       carrierQuoteUSD: quote.carrierQuoteUSD,
       wholesaleFeePercent: quote.wholesaleFeePercent,
       wholesaleFeeAmountUSD: quote.wholesaleFeeAmountUSD,

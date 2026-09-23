@@ -5607,7 +5607,7 @@ export function generateAcord126Page1(data: ApplicationPacketData): string {
 					<div class="pdf24_01" style="left:25.794em;top:5.6131em;"><span class="pdf24_07 pdf24_08 pdf24_12">CARRIER &nbsp;</span></div>
 					<div class="pdf24_01" style="left:1.794em;top:5.7186em;"><span> <span class="pdf24_10 pdf24_11 pdf24_12">AGENCY </span> <br> <div class="aveen1">${data.agencyName} </div> <div class="aveen2"><br> ${data.agencyAddress} , ${data.agencyCity}, ${data.agencyState} ${data.agencyZip} </div> &nbsp;</span></div>
 					<div class="pdf24_01" style="left:1.794em;top:7.7167em;"><span class="pdf24_10 pdf24_11 pdf24_09" style="word-spacing:0.0002em;">POLICY NUMBER &nbsp;</span></div>
-					<div class="pdf24_01" style="left:21.006em;top:7.7166em;"><span class="pdf24_10 pdf24_11 pdf24_09" style="word-spacing:0.0001em;">EFFECTIVE DATE <br> ${data.addExcessLiability} &nbsp;</span></div>
+					<div class="pdf24_01" style="left:21.006em;top:7.7166em;"><span class="pdf24_10 pdf24_11 pdf24_09" style="word-spacing:0.0001em;">EFFECTIVE DATE <br> ${data.effectiveDate || ''} &nbsp;</span></div>
 					<div class="pdf24_01" style="left:25.7942em;top:7.7467em;"><span class="pdf24_10 pdf24_11 pdf24_09" style="word-spacing:0.0003em;">APPLICANT / FIRST NAMED INSURED &nbsp;</span></div>
 					<div class="pdf24_01" style="left:1.7938em;top:9.6669em;"><span class="pdf24_14 pdf24_08 pdf24_09">COVERAGES &nbsp;</span></div>
 					<div class="pdf24_01" style="left:19.494em;top:9.6851em;"><span class="pdf24_14 pdf24_08 pdf24_15">LIMITS &nbsp;</span></div>

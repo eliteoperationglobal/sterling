@@ -143,7 +143,9 @@ export function generateProposalHTML(data: ProposalData): string {
 	let selectedLogo = capitalLogo;
 	let selectedLogoWidth = "520px";
 
-	if (email === "texascomm@services.com" || (email === "cs@capcoinsurance.com" && (data.agencyName || "").toLowerCase().includes("texas"))) {
+	const isTCLS = email === "texascomm@services.com" || (email === "cs@capcoinsurance.com" && (data.agencyName || "").toLowerCase().includes("texas"));
+
+	if (isTCLS) {
 		selectedLogo = texasLogo;
 	}
 
@@ -600,7 +602,7 @@ export function generateProposalHTML(data: ProposalData): string {
 		<div class="pdf24new_view">
 			<div class="pdf24new_05 pdf24new_06">
 				<div class="pdf24new_01" style="left:0em;top:7.809em;width:52em;text-align:center;white-space:normal;word-wrap:break-word;line-height:0.8625em;">
-					<span class="pdf24new_07 pdf24new_08 pdf24new_09" style="word-spacing:0.0002em; font-size: ${titleFontSize};">${proposalAgencyTitle} Proposal &nbsp;</span>
+					<span class="pdf24new_07 pdf24new_08 pdf24new_09" style="word-spacing:0.0002em; font-size: ${titleFontSize};${isTCLS ? ' color: black;' : ''}">${proposalAgencyTitle} Proposal &nbsp;</span>
 				</div>
 				<div class="pdf24new_01" style="left:7em;top:13.3434em;width:38em;text-align:center;white-space:normal;word-wrap:break-word;"><span
 						class="pdf24new_10 pdf24new_11 pdf24new_09" style="word-spacing:0.0003em;">Prepared for: ${data.companyName} &nbsp;</span></div>
