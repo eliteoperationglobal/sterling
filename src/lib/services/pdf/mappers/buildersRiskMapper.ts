@@ -31,10 +31,6 @@ export interface BuildersRiskPacketData {
     brokerage: string;
     agencyAgent: string;
     isNewVenture: boolean | null;
-    isRenewal: boolean | null;
-    policyNumber: string;
-    currentEffectiveDate: string;
-    currentExpiryDate: string;
     requestedEffectiveDate: string;
     requestedExpiryDate: string;
     website: string;
@@ -305,13 +301,9 @@ export function mapBuildersRiskDataToPacketData(
         brokerage: safeData.brokerage || safeData.broker || safeData.agencyAgent || '',
         agencyAgent: safeData.agencyAgent || safeData.agentName || safeData.brokerage || submission?.agentName || '',
         isNewVenture: toBool(safeData.isNewVenture),
-        isRenewal: toBool(safeData.isRenewal),
-        policyNumber: safeData.policyNumber || '',
-        currentEffectiveDate: safeData.currentEffectiveDate || '',
-        currentExpiryDate: safeData.currentExpiryDate || '',
         requestedEffectiveDate: safeData.requestedEffectiveDate || safeData.effectiveDate || '',
         requestedExpiryDate: safeData.requestedExpiryDate || '',
-        website: safeData.website || '',
+        website: '',
         phone: safeData.applicantPhone || safeData.phone || safeData.contactPhone || submission?.clientContact?.phone || '',
         email: safeData.applicantEmail || safeData.email || safeData.contactEmail || submission?.clientContact?.email || '',
         applicantPhone: safeData.applicantPhone || safeData.phone || safeData.contactPhone || submission?.clientContact?.phone || '',
@@ -334,11 +326,11 @@ export function mapBuildersRiskDataToPacketData(
         descriptionOfOperations: safeData.descriptionOfOperations || safeData.workDescription || safeData.intendedOccupancy || safeData.operationHistory || '',
 
         // Current Carrier Info
-        carrier: safeData.carrier || '',
-        limitOfInsurance: safeData.limitOfInsurance || '',
-        effectiveDate: safeData.effectiveDate || '',
-        expiryDate: safeData.expiryDate || '',
-        deductible: safeData.deductible || '',
+        carrier: '',
+        limitOfInsurance: '',
+        effectiveDate: '',
+        expiryDate: '',
+        deductible: '',
         currentCarrierPremium: safeData.premium || '',
         offeringRenewal: toBool(safeData.offeringRenewal),
 

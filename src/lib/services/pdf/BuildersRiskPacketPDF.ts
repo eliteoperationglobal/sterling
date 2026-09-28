@@ -186,20 +186,8 @@ function generateApplicationPage1(data: BuildersRiskPacketData): string {
             </span>
           </div>
 
-          <div class="field-item">
-            <span class="field-label">Renewal?</span>
-            <span class="field-value yes-no-options" style="justify-content: flex-start; gap: 15px;">
-              <span class="option ${data.isRenewal === true ? 'selected' : ''}">Yes</span>
-              <span class="option ${data.isRenewal === false ? 'selected' : ''}">No</span>
-            </span>
-          </div>
-
-          ${renderField("Policy Number", data.policyNumber)}
-          ${renderField("Current Effective Date", data.currentEffectiveDate)}
-          ${renderField("Current Expiry Date", data.currentExpiryDate)}
           ${renderField("Requested Effective Date", data.requestedEffectiveDate)}
           ${renderField("Requested Expiry Date", data.requestedExpiryDate)}
-          ${renderField("Website", data.website)}
         </div>
 
         <!-- 2. CURRENT CARRIER INFORMATION -->
@@ -207,12 +195,7 @@ function generateApplicationPage1(data: BuildersRiskPacketData): string {
           <div class="section-header">2. Current Carrier Information</div>
           <hr class="section-divider" />
 
-          ${renderField("Carrier", data.carrier)}
-          ${renderField("Limit of Insurance", data.limitOfInsurance)}
-          ${renderField("Deductible", data.deductible)}
           ${renderField("Premium", data.currentCarrierPremium)}
-          ${renderField("Effective Date", data.effectiveDate)}
-          ${renderField("Expiry Date", data.expiryDate)}
 
           <div class="field-item">
             <span class="field-label">Offering Renewal?</span>
@@ -863,7 +846,7 @@ function generateApplicationPage6(data: BuildersRiskPacketData): string {
           <div class="fld" style="left:29.33px;top:104px;width:373.33px;height:16px;font-size:10.67px;font-family:sans-serif;color:#000000; line-height:16px; overflow:hidden; white-space:pre;">${data.agencyName || ''}</div>
           <div class="fld" style="left:413.33px;top:104px;width:301.33px;height:16px;font-size:10.67px;font-family:sans-serif;color:#000000; line-height:16px; overflow:hidden; white-space:pre;">${data.carrier || ''}</div>
           <div class="fld" style="left:725.33px;top:104px;width:61.33px;height:16px;font-size:10.67px;font-family:sans-serif;color:#000000; line-height:16px; overflow:hidden; white-space:pre;"></div>
-          <div class="fld" style="left:29.33px;top:136px;width:297.33px;height:16px;font-size:10.67px;font-family:sans-serif;color:#000000; line-height:16px; overflow:hidden; white-space:pre;">${data.policyNumber || ''}</div>
+          <div class="fld" style="left:29.33px;top:136px;width:297.33px;height:16px;font-size:10.67px;font-family:sans-serif;color:#000000; line-height:16px; overflow:hidden; white-space:pre;"></div>
           <div class="fld" style="left:336px;top:136px;width:66.67px;height:16px;font-size:10.67px;font-family:sans-serif;color:#000000;text-align:center; line-height:16px; overflow:hidden; white-space:pre;">${data.requestedEffectiveDate || data.effectiveDate || ''}</div>
           <div class="fld" style="left:413.33px;top:136px;width:373.33px;height:16px;font-size:10.67px;font-family:sans-serif;color:#000000; line-height:16px; overflow:hidden; white-space:pre;">${data.namedInsured || ''}</div>
           <div class="fld" style="left:42.67px;top:152px;width:20px;height:16px; font-size:11px; font-weight:bold; font-family:Arial, sans-serif; text-align:center; line-height:16px; color:#000000;">${isInstallation ? 'X' : ''}</div>
@@ -1662,8 +1645,8 @@ function generateApplicationPage8(data: BuildersRiskPacketData): string {
 }
 export function generateAcord125Page1(data: BuildersRiskPacketData): string {
 
-  const effDate = data.proposedEffectiveDateFrom || data.requestedEffectiveDate || data.effectiveDate || data.currentEffectiveDate || '';
-  const expDate = data.proposedEffectiveDateTo || data.requestedExpiryDate || data.expiryDate || data.currentExpiryDate || '';
+  const effDate = data.proposedEffectiveDateFrom || data.requestedEffectiveDate || data.effectiveDate || '';
+  const expDate = data.proposedEffectiveDateTo || data.requestedExpiryDate || data.expiryDate || '';
 
   return `
   <div class="page page2-isc">

@@ -223,20 +223,10 @@ function BuildersRiskContent() {
   const [applicantEmail, setApplicantEmail] = useState('');
   const [namedInsured, setNamedInsured] = useState('');
   const [isNewVenture, setIsNewVenture] = useState<boolean | null>(null);
-  const [isRenewal, setIsRenewal] = useState<boolean | null>(null);
-  const [policyNumber, setPolicyNumber] = useState('');
-  const [currentEffectiveDate, setCurrentEffectiveDate] = useState('');
-  const [currentExpiryDate, setCurrentExpiryDate] = useState('');
   const [requestedEffectiveDate, setRequestedEffectiveDate] = useState(new Date().toISOString().split('T')[0]);
   const [requestedExpiryDate, setRequestedExpiryDate] = useState('');
-  const [website, setWebsite] = useState('');
 
   // 2) Current Carrier Information
-  const [carrier, setCarrier] = useState('');
-  const [limitOfInsurance, setLimitOfInsurance] = useState('');
-  const [effectiveDate, setEffectiveDate] = useState('');
-  const [expiryDate, setExpiryDate] = useState('');
-  const [deductible, setDeductible] = useState('');
   const [premium, setPremium] = useState('');
   const [offeringRenewal, setOfferingRenewal] = useState<boolean | null>(null);
 
@@ -543,19 +533,9 @@ function BuildersRiskContent() {
           setBrokerage(payload.brokerage || '');
           setAgencyAgent(payload.agencyAgent || payload.agentName || payload.brokerage || submission.agentName || '');
           setIsNewVenture(payload.isNewVenture ?? null);
-          setIsRenewal(payload.isRenewal ?? null);
-          setPolicyNumber(payload.policyNumber || '');
-          setCurrentEffectiveDate(payload.currentEffectiveDate || '');
-          setCurrentExpiryDate(payload.currentExpiryDate || '');
           setRequestedEffectiveDate(payload.requestedEffectiveDate || '');
           setRequestedExpiryDate(payload.requestedExpiryDate || '');
-          setWebsite(payload.website || '');
 
-          setCarrier(payload.carrier || '');
-          setLimitOfInsurance(payload.limitOfInsurance || '');
-          setEffectiveDate(payload.effectiveDate || '');
-          setExpiryDate(payload.expiryDate || '');
-          setDeductible(payload.deductible || '');
           setPremium(payload.premium || '');
           setOfferingRenewal(payload.offeringRenewal ?? null);
 
@@ -776,20 +756,10 @@ function BuildersRiskContent() {
         agencyAgent,
         agentName: agencyAgent,
         isNewVenture,
-        isRenewal,
-        policyNumber,
-        currentEffectiveDate,
-        currentExpiryDate,
         requestedEffectiveDate,
         requestedExpiryDate,
-        website,
 
         // Carrier Info
-        carrier,
-        limitOfInsurance,
-        effectiveDate,
-        expiryDate,
-        deductible,
         premium,
         offeringRenewal,
         lossRunsFileName,
@@ -1131,38 +1101,6 @@ function BuildersRiskContent() {
                   <YesNo name="isNewVenture" value={isNewVenture} onChange={setIsNewVenture} />
                 </Row>
 
-                <Row label="Renewal?">
-                  <YesNo name="isRenewal" value={isRenewal} onChange={setIsRenewal} />
-                </Row>
-
-                <Row label="Policy Number">
-                  <input
-                    type="text"
-                    value={policyNumber}
-                    onChange={e => setPolicyNumber(e.target.value)}
-                    placeholder="e.g. POL-12345"
-                    className={inp}
-                  />
-                </Row>
-
-                <Row label="Current Effective Date">
-                  <input
-                    type="date"
-                    value={currentEffectiveDate}
-                    onChange={e => setCurrentEffectiveDate(e.target.value)}
-                    className={inp}
-                  />
-                </Row>
-
-                <Row label="Current Expiry Date">
-                  <input
-                    type="date"
-                    value={currentExpiryDate}
-                    onChange={e => setCurrentExpiryDate(e.target.value)}
-                    className={inp}
-                  />
-                </Row>
-
                 <Row label="Requested Effective Date">
                   <input
                     type="date"
@@ -1180,16 +1118,6 @@ function BuildersRiskContent() {
                     className={inp}
                   />
                 </Row>
-
-                <Row label="Website">
-                  <input
-                    type="url"
-                    value={website}
-                    onChange={e => setWebsite(e.target.value)}
-                    placeholder="https://example.com"
-                    className={inp}
-                  />
-                </Row>
               </div>
 
               {/* 2) Current Carrier Information */}
@@ -1197,50 +1125,6 @@ function BuildersRiskContent() {
                 <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
                   2) Current Carrier Information
                 </div>
-
-                <Row label="Carrier">
-                  <input
-                    type="text"
-                    value={carrier}
-                    onChange={e => setCarrier(e.target.value)}
-                    placeholder="Current insurance carrier"
-                    className={inp}
-                  />
-                </Row>
-
-                <Row label="Limit of Insurance">
-                  <CurrencyInp
-                    value={limitOfInsurance}
-                    onChange={setLimitOfInsurance}
-                    placeholder="0.00"
-                  />
-                </Row>
-
-                <Row label="Effective Date">
-                  <input
-                    type="date"
-                    value={effectiveDate}
-                    onChange={e => setEffectiveDate(e.target.value)}
-                    className={inp}
-                  />
-                </Row>
-
-                <Row label="Expiry Date">
-                  <input
-                    type="date"
-                    value={expiryDate}
-                    onChange={e => setExpiryDate(e.target.value)}
-                    className={inp}
-                  />
-                </Row>
-
-                <Row label="Deductible">
-                  <CurrencyInp
-                    value={deductible}
-                    onChange={setDeductible}
-                    placeholder="0.00"
-                  />
-                </Row>
 
                 <Row label="Premium">
                   <CurrencyInp
