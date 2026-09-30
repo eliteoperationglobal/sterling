@@ -246,7 +246,7 @@ export default function UploadFinalDocumentsPage() {
       });
 
       // Redirect back to Bound Policies page after successful upload
-      router.push("/admin/bound-policies");
+      router.back();
     } catch (err: any) {
       console.error("Upload error:", err);
       toast.error("Failed to upload documents", {
@@ -282,15 +282,15 @@ export default function UploadFinalDocumentsPage() {
           </div>
           <p className="text-lg font-semibold text-gray-900 mb-1">Submission Not Found</p>
           <p className="text-sm text-gray-600 mb-4">The submission you're looking for doesn't exist</p>
-          <Link
-            href="/admin/bound-policies"
+          <button
+            onClick={() => router.back()}
             className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 rounded-xl shadow-lg shadow-emerald-500/30 transition-all duration-300"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
             Back to Bound Policies
-          </Link>
+          </button>
         </div>
       </div>
     );
@@ -366,15 +366,15 @@ export default function UploadFinalDocumentsPage() {
       <main className="max-w-5xl mx-auto px-6 lg:px-8 py-8">
         {/* Page Title */}
         <div className="mb-6">
-          <Link
-            href="/admin/bound-policies"
+          <button
+            onClick={() => router.back()}
             className="inline-flex items-center gap-2 text-emerald-600 hover:text-emerald-700 font-medium text-sm mb-4 transition-colors"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
             Back to Bound Policies
-          </Link>
+          </button>
           <div className="flex items-center gap-3 mb-2">
             <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30">
               <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
