@@ -1435,7 +1435,15 @@ export default function AdminQuotePage() {
                       {submission.payload?.companyName || submission.payload?.applicantName || submission.payload?.namedInsured || submission.clientContact.name}
                     </span>
                     {submission.programName ? (
-                      <> ({submission.programName})</>
+                      <> ({
+                        submission.programName === "Advantage Contractor GL"
+                          ? "Construction"
+                          : submission.programName === "Construction Equipment"
+                            ? "Equipment"
+                            : (submission.programName === "Manufacturers / Distributors" || (submission.programName || "").toLowerCase().includes("manufacturer") || submission.programId === "manufacturers")
+                              ? "Manufacturing"
+                              : submission.programName
+                      })</>
                     ) : submission.templateId ? (
                       <> ({submission.templateId.industry} - {submission.templateId.subtype})</>
                     ) : (
