@@ -6,6 +6,7 @@ import { useSession, signOut } from "next-auth/react";
 import useSWR, { mutate } from "swr";
 import Link from "next/link";
 import { toast } from "sonner";
+import PolicyAuditTab from "@/components/audits/PolicyAuditTab";
 import {
   ArrowLeft,
   User,
@@ -1815,7 +1816,7 @@ export default function AdminSubmissionDetailsPage() {
         {/* Tabs Bar */}
         <div className="bg-white px-8 border-t border-gray-100 shadow-sm sticky top-[64px] z-30">
           <div className="px-8 flex items-center gap-8 h-[56px]">
-            {["Admin Notes", "Status History", "Additional Information", "Rating Information", "Key Information", "Quoting & Routing"].map((tab) => (
+            {["Admin Notes", "Status History", "Additional Information", "Rating Information", "Key Information", "Quoting & Routing", "Audits"].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -2233,6 +2234,12 @@ export default function AdminSubmissionDetailsPage() {
                     )}
                   </div>
                 </div>
+              </div>
+            )}
+
+            {activeTab === "Audits" && (
+              <div className="animate-in fade-in duration-300">
+                <PolicyAuditTab submissionId={submissionId as string} />
               </div>
             )}
           </div>
