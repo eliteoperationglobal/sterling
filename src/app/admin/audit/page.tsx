@@ -497,7 +497,7 @@ export default function AuditPage() {
                           </td>
                           <td className="px-6 py-4">
                             <p className="text-sm text-gray-700 whitespace-nowrap">
-                              {new Date(audit.auditPeriodStart).toLocaleDateString()} - {new Date(audit.auditPeriodEnd).toLocaleDateString()}
+                              {new Date(audit.auditPeriodStart).toLocaleDateString("en-US")} - {new Date(audit.auditPeriodEnd).toLocaleDateString("en-US")}
                             </p>
                           </td>
                           <td className="px-6 py-4">
@@ -523,19 +523,24 @@ export default function AuditPage() {
                             </span>
                           </td>
                           <td className="px-6 py-4">
-                            <p className="text-sm text-gray-700">{dueDateObj.toLocaleDateString()}</p>
+                            <p className="text-sm text-gray-700">{dueDateObj.toLocaleDateString("en-US")}</p>
                             <p className={`text-xs mt-0.5 ${isOverdue ? 'text-red-600 font-semibold' : 'text-gray-500'}`}>
                               {isOverdue ? `Overdue by ${Math.abs(daysLeft)} days` : `in ${daysLeft} days`}
                             </p>
                           </td>
                           <td className="px-6 py-4 text-right">
                             <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <Link 
-                                href={`/admin/submissions/${audit.submissionId}`}
+                              <button 
+                                onClick={() => {
+                                  if (typeof window !== "undefined") {
+                                    sessionStorage.setItem("sterling_admin_back_url", "/admin/audit");
+                                  }
+                                  router.push(`/admin/submissions/${audit.submissionId}?tab=Audits`);
+                                }}
                                 className="px-3 py-1.5 text-xs font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 shadow-sm transition inline-block text-center"
                               >
                                 View
-                              </Link>
+                              </button>
                               <button className="p-1.5 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition">
                                 <MoreHorizontal className="w-4 h-4" />
                               </button>

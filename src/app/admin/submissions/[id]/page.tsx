@@ -276,6 +276,14 @@ export default function AdminSubmissionDetailsPage() {
 
   // New state for refactored tabs and notes
   const [activeTab, setActiveTab] = useState("Admin Notes");
+  
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const tab = urlParams.get('tab');
+      if (tab) setActiveTab(tab);
+    }
+  }, []);
   const [activityLogs, setActivityLogs] = useState<any[]>([]);
   const [loadingActivity, setLoadingActivity] = useState(false);
   const [noteText, setNoteText] = useState("");
