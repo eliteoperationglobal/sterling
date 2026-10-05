@@ -29,6 +29,7 @@ export async function GET(req: NextRequest) {
     const audits = await Audit.find(query)
       .sort({ dueDate: 1 })
       .populate("agencyId", "name")
+      .populate("submissionId", "payload")
       .lean();
     
     if (submissionId && audits.length > 0) {

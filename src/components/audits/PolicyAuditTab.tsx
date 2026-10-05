@@ -11,11 +11,11 @@ export default function PolicyAuditTab({ submissionId, policyNumber = "PENDING" 
 
   // Form states
   const [auditedExposure, setAuditedExposure] = useState("");
-  const [rate, setRate] = useState("12.50");
+  const [rate, setRate] = useState("0.00");
   const [surplusTaxRate, setSurplusTaxRate] = useState("4.85");
   const [stampingFeeRate, setStampingFeeRate] = useState("0.04");
-  const [carrierFee, setCarrierFee] = useState("150.00");
-  const [sterlingFee, setSterlingFee] = useState("125.00");
+  const [carrierFee, setCarrierFee] = useState("0.00");
+  const [sterlingFee, setSterlingFee] = useState("0.00");
   const [notes, setNotes] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
@@ -29,7 +29,9 @@ export default function PolicyAuditTab({ submissionId, policyNumber = "PENDING" 
         if (data.audits[0].auditedExposure > 0) {
           setAuditedExposure(data.audits[0].auditedExposure.toString());
         }
-        setRate(data.audits[0].rate?.toString() || "12.50");
+        setRate(data.audits[0].rate?.toString() || "0.00");
+        setCarrierFee(data.audits[0].carrierFee?.toString() || "0.00");
+        setSterlingFee(data.audits[0].sterlingFee?.toString() || "0.00");
       }
     } catch (err) {
       console.error(err);
@@ -110,7 +112,7 @@ export default function PolicyAuditTab({ submissionId, policyNumber = "PENDING" 
   const parseNum = (val: string) => parseFloat(val.replace(/[^0-9.-]+/g,"")) || 0;
 
   // Math variables
-  const estExposure = audit.estimatedExposure || 100000;
+  const estExposure = audit.estimatedExposure || 0;
   const originalPremium = (estExposure / 1000) * parseNum(rate);
   const currentAuditedExposure = parseNum(auditedExposure);
   const auditedPremium = (currentAuditedExposure / 1000) * parseNum(rate);
@@ -564,38 +566,31 @@ export default function PolicyAuditTab({ submissionId, policyNumber = "PENDING" 
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                <tr className="hover:bg-gray-50/50 transition-colors">
-                  <td className="px-5 py-3">
-                    <p className="text-xs font-semibold text-gray-900">08/28/2026</p>
-                    <p className="text-[10px] text-gray-500 mt-0.5">10:24 AM</p>
-                  </td>
-                  <td className="px-5 py-3 text-xs text-gray-600 font-medium">System</td>
-                  <td className="px-5 py-3 text-xs text-gray-700 leading-tight">Documents received from insured</td>
-                </tr>
-                <tr className="hover:bg-gray-50/50 transition-colors">
-                  <td className="px-5 py-3">
-                    <p className="text-xs font-semibold text-gray-900">08/28/2026</p>
-                    <p className="text-[10px] text-gray-500 mt-0.5">10:24 AM</p>
-                  </td>
-                  <td className="px-5 py-3 text-xs text-gray-600 font-medium">System</td>
-                  <td className="px-5 py-3 text-xs text-gray-700 leading-tight">All required documents verified</td>
-                </tr>
-                <tr className="hover:bg-gray-50/50 transition-colors">
-                  <td className="px-5 py-3">
-                    <p className="text-xs font-semibold text-gray-900">08/28/2026</p>
-                    <p className="text-[10px] text-gray-500 mt-0.5">11:03 AM</p>
-                  </td>
-                  <td className="px-5 py-3 text-xs text-gray-600 font-medium">Underwriter</td>
-                  <td className="px-5 py-3 text-xs text-gray-700 leading-tight">Audit moved to underwriter review</td>
-                </tr>
-                <tr className="hover:bg-gray-50/50 transition-colors">
-                  <td className="px-5 py-3">
-                    <p className="text-xs font-semibold text-gray-900">08/15/2026</p>
-                    <p className="text-[10px] text-gray-500 mt-0.5">09:12 AM</p>
-                  </td>
-                  <td className="px-5 py-3 text-xs text-gray-600 font-medium">Carrier</td>
-                  <td className="px-5 py-3 text-xs text-gray-700 leading-tight">Audit requested by carrier</td>
-                </tr>
+                {(!audit.activities || audit.activities.length === 0) ? (
+                  <tr>
+                    <td colSpan={3} className="px-5 py-8 text-center text-gray-500 text-sm">
+                      No activity recorded yet
+                    </td>
+                  </tr>
+                ) : (
+                  audit.activities.map((activityObj: any, index: number) => {
+                    const dateObj = new Date(activityObj.timestamp || activityObj.createdAt);
+                    return (
+                      <tr key={index} className="hover:bg-gray-50/50 transition-colors">
+                        <td className="px-5 py-3">
+                          <p className="text-xs font-semibold text-gray-900">{dateObj.toLocaleDateString("en-US")}</p>
+                          <p className="text-[10px] text-gray-500 mt-0.5">{dateObj.toLocaleTimeString("en-US", { hour: '2-digit', minute: '2-digit' })}</p>
+                        </td>
+                        <td className="px-5 py-3 text-xs text-gray-600 font-medium">
+                          {activityObj.user || "System"}
+                        </td>
+                        <td className="px-5 py-3 text-xs text-gray-700 leading-tight">
+                          {activityObj.activity || activityObj.action}
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
               </tbody>
             </table>
           </div>

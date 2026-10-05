@@ -24,6 +24,23 @@ export default function AuditPage() {
   const [submissions, setSubmissions] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedSubmissions, setSelectedSubmissions] = useState<Record<string, boolean>>({});
+  const [submissionSearch, setSubmissionSearch] = useState("");
+  
+  // Create New User state
+  const [newClientName, setNewClientName] = useState("");
+  const [newEmail, setNewEmail] = useState("");
+  const [newPhone, setNewPhone] = useState("");
+  const [newAgency, setNewAgency] = useState("");
+  const [newIndustry, setNewIndustry] = useState("");
+  
+  const formatPhoneNumber = (value: string) => {
+    const cleaned = ('' + value).replace(/\D/g, '');
+    const match = cleaned.match(/^(\d{0,3})(\d{0,3})(\d{0,4})$/);
+    if (!match) return value;
+    if (!match[2]) return match[1];
+    if (!match[3]) return `(${match[1]}) ${match[2]}`;
+    return `(${match[1]}) ${match[2]}-${match[3]}`;
+  };
 
   // Audits state for the queue
   const [audits, setAudits] = useState<any[]>([]);
@@ -32,21 +49,32 @@ export default function AuditPage() {
   const [statusFilter, setStatusFilter] = useState("All Statuses");
   const [carrierFilter, setCarrierFilter] = useState("All Carriers");
   const [typeFilter, setTypeFilter] = useState("All Types");
+  const [sourceFilter, setSourceFilter] = useState("All Sources");
   const [dueDateStart, setDueDateStart] = useState("");
   const [dueDateEnd, setDueDateEnd] = useState("");
 
   // Format program names like in Submission page
   const getDisplayProgramName = (rawName: string) => {
-    if (rawName === "Advantage Contractor GL") return "Construction";
-    if (rawName === "Construction Equipment") return "Contractors Equipment";
-    if (rawName === "Manufacturers / Distributors" || (rawName || "").toLowerCase().includes("manufacturer")) return "Manufacturers";
-    return rawName || "General Liability";
+    if (!rawName) return "General Liability";
+    const lowerName = rawName.toLowerCase();
+    if (lowerName === "advantage contractor gl" || lowerName === "construction") return "Construction";
+    if (lowerName === "construction equipment") return "Contractors Equipment";
+    if (lowerName.includes("manufacturer") || lowerName === "manufacturing") return "Manufacturing";
+    
+    // Capitalize first letter of each word as fallback
+    return lowerName.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
   };
 
   const filteredAudits = audits.filter(audit => {
     if (statusFilter !== "All Statuses" && audit.status !== statusFilter) return false;
     if (carrierFilter !== "All Carriers" && audit.carrier !== carrierFilter && audit.carrier !== "Unknown") return false;
     if (typeFilter !== "All Types" && getDisplayProgramName(audit.program) !== typeFilter) return false;
+    
+    if (sourceFilter !== "All Sources") {
+      const isManual = audit.submissionId?.payload?.source === "MANUAL_AUDIT";
+      if (sourceFilter === "Manual" && !isManual) return false;
+      if (sourceFilter === "Portal" && isManual) return false;
+    }
     
     if (dueDateStart) {
       if (new Date(audit.dueDate) < new Date(dueDateStart)) return false;
@@ -159,6 +187,42 @@ export default function AuditPage() {
     } catch (err) {
       console.error(err);
       toast.error("Something went wrong while creating audits");
+    }
+  };
+
+  const handleCreateProfile = async () => {
+    if (!newClientName || !newEmail || !newPhone || !newAgency || !newIndustry) {
+      toast.error("Please fill in all the fields.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await fetch("/api/admin/manual-audit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          clientName: newClientName,
+          email: newEmail,
+          phone: newPhone,
+          agencyName: newAgency,
+          industry: newIndustry
+        })
+      });
+      
+      const data = await res.json();
+      if (data.success) {
+        toast.success("Manual audit profile created successfully!");
+        sessionStorage.setItem("returnToAudit", "true");
+        router.push(`/admin/submissions/${data.submissionId}?tab=Audits`);
+      } else {
+        toast.error(data.error || "Failed to create profile");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Something went wrong");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -395,7 +459,19 @@ export default function AuditPage() {
                   ))}
                 </select>
               </div>
-              <div className="w-48">
+              <div className="w-32">
+                <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase">Source</label>
+                <select 
+                  className="w-full text-sm border-gray-200 rounded-lg p-2 focus:ring-rose-500 bg-gray-50 outline-none"
+                  value={sourceFilter}
+                  onChange={(e) => setSourceFilter(e.target.value)}
+                >
+                  <option value="All Sources">All Sources</option>
+                  <option value="Portal">Portal Submissions</option>
+                  <option value="Manual">Manual Audits</option>
+                </select>
+              </div>
+              <div className="w-40">
                 <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase">Audit Type</label>
                 <select 
                   className="w-full text-sm border-gray-200 rounded-lg p-2 focus:ring-rose-500 bg-gray-50 outline-none"
@@ -446,6 +522,7 @@ export default function AuditPage() {
                     setStatusFilter("All Statuses");
                     setCarrierFilter("All Carriers");
                     setTypeFilter("All Types");
+                    setSourceFilter("All Sources");
                     setDueDateStart("");
                     setDueDateEnd("");
                   }}
@@ -488,7 +565,12 @@ export default function AuditPage() {
                       return (
                         <tr key={audit._id} className="hover:bg-gray-50 transition-colors group">
                           <td className="px-6 py-4">
-                            <p className="font-bold text-sm text-gray-900">{audit.auditId}</p>
+                            <div className="flex items-center gap-2">
+                              <p className="font-bold text-sm text-gray-900">{audit.auditId}</p>
+                              {audit.submissionId?.payload?.source === "MANUAL_AUDIT" && (
+                                <span className="px-1.5 py-0.5 bg-gray-100 text-gray-500 text-[9px] font-bold rounded-sm border border-gray-200 uppercase tracking-wider" title="Created Manually">Manual</span>
+                              )}
+                            </div>
                             <p className="text-xs text-gray-500 font-mono mt-0.5">{audit.policyNumber}</p>
                           </td>
                           <td className="px-6 py-4">
@@ -626,6 +708,17 @@ export default function AuditPage() {
               </button>
             </div>
 
+            <div className="mb-6 relative max-w-md">
+              <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                placeholder="Search by client name, policy number, or agency..."
+                value={submissionSearch}
+                onChange={(e) => setSubmissionSearch(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 bg-white border border-[#e5ddd5] rounded-xl focus:ring-2 focus:ring-[#9A8B7A] focus:border-transparent outline-none transition shadow-sm text-sm"
+              />
+            </div>
+
             {loading ? (
               <div className="py-20 text-center">
                 <div className="relative w-10 h-10 mx-auto mb-4">
@@ -647,12 +740,30 @@ export default function AuditPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#e5ddd5]">
-                    {submissions.length === 0 ? (
-                      <tr>
-                        <td colSpan={5} className="p-8 text-center text-gray-500">No submissions found.</td>
-                      </tr>
-                    ) : (
-                      submissions.map((sub: any) => (
+                    {(() => {
+                      const filteredSubs = submissions.filter((sub: any) => {
+                        // Only show BOUND (or IN_FORCE)
+                        if (sub.status !== "BOUND" && sub.status !== "IN_FORCE") return false;
+                        // Match search text
+                        if (submissionSearch) {
+                          const q = submissionSearch.toLowerCase();
+                          const client = String(sub.clientName || "").toLowerCase();
+                          const num = String(sub.submissionNumber || "").toLowerCase();
+                          const agency = String(sub.agencyName || "").toLowerCase();
+                          if (!client.includes(q) && !num.includes(q) && !agency.includes(q)) return false;
+                        }
+                        return true;
+                      });
+
+                      if (filteredSubs.length === 0) {
+                        return (
+                          <tr>
+                            <td colSpan={5} className="p-8 text-center text-gray-500">No matching bound submissions found.</td>
+                          </tr>
+                        );
+                      }
+
+                      return filteredSubs.map((sub: any) => (
                         <tr 
                           key={sub._id} 
                           className={`hover:bg-[#fcfaf8] transition-colors cursor-pointer ${selectedSubmissions[sub._id] ? 'bg-amber-50/50' : ''}`}
@@ -682,8 +793,8 @@ export default function AuditPage() {
                             {new Date(sub.createdAt).toLocaleDateString()}
                           </td>
                         </tr>
-                      ))
-                    )}
+                      ));
+                    })()}
                   </tbody>
                 </table>
               </div>
@@ -712,23 +823,58 @@ export default function AuditPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="md:col-span-2">
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Client / Company Name</label>
-                  <input type="text" placeholder="Enter company or client name" className="w-full px-4 py-3 border border-[#e5ddd5] rounded-xl bg-[#fcfaf8] focus:ring-2 focus:ring-blue-500 outline-none" />
+                  <input 
+                    type="text" 
+                    value={newClientName}
+                    onChange={(e) => setNewClientName(e.target.value)}
+                    placeholder="Enter company or client name" 
+                    className="w-full px-4 py-3 border border-[#e5ddd5] rounded-xl bg-[#fcfaf8] focus:ring-2 focus:ring-blue-500 outline-none" 
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Email Address</label>
-                  <input type="email" placeholder="client@example.com" className="w-full px-4 py-3 border border-[#e5ddd5] rounded-xl bg-[#fcfaf8] focus:ring-2 focus:ring-blue-500 outline-none" />
+                  <input 
+                    type="email" 
+                    value={newEmail}
+                    onChange={(e) => setNewEmail(e.target.value)}
+                    placeholder="client@example.com" 
+                    className="w-full px-4 py-3 border border-[#e5ddd5] rounded-xl bg-[#fcfaf8] focus:ring-2 focus:ring-blue-500 outline-none" 
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Phone Number</label>
-                  <input type="tel" placeholder="(555) 000-0000" className="w-full px-4 py-3 border border-[#e5ddd5] rounded-xl bg-[#fcfaf8] focus:ring-2 focus:ring-blue-500 outline-none" />
+                  <input 
+                    type="tel" 
+                    value={newPhone}
+                    onChange={(e) => setNewPhone(formatPhoneNumber(e.target.value))}
+                    placeholder="(555) 000-0000" 
+                    maxLength={14}
+                    className="w-full px-4 py-3 border border-[#e5ddd5] rounded-xl bg-[#fcfaf8] focus:ring-2 focus:ring-blue-500 outline-none" 
+                  />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Associated Agency (Optional)</label>
-                  <input type="text" placeholder="Select or enter agency name" className="w-full px-4 py-3 border border-[#e5ddd5] rounded-xl bg-[#fcfaf8] focus:ring-2 focus:ring-blue-500 outline-none" />
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Associated Agency</label>
+                  <select 
+                    value={newAgency}
+                    onChange={(e) => setNewAgency(e.target.value)}
+                    className="w-full px-4 py-3 border border-[#e5ddd5] rounded-xl bg-[#fcfaf8] focus:ring-2 focus:ring-blue-500 outline-none text-gray-700"
+                  >
+                    <option value="">Select agency name</option>
+                    <option value="Blue Angel Insurance">Blue Angel Insurance</option>
+                    <option value="Gamaty Insurance Agency LLC DBA Capital & Co Insurance Services">Gamaty Insurance Agency LLC DBA Capital & Co Insurance Services</option>
+                    <option value="Patrick Arias Insurance">Patrick Arias Insurance</option>
+                    <option value="SJJ Insurance Services">SJJ Insurance Services</option>
+                    <option value="Texas Commercial Liability Services">Texas Commercial Liability Services</option>
+                    <option value="Titan Commercial Insurance Solutions">Titan Commercial Insurance Solutions</option>
+                  </select>
                 </div>
                 <div className="md:col-span-2">
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Industry / Program</label>
-                  <select className="w-full px-4 py-3 border border-[#e5ddd5] rounded-xl bg-[#fcfaf8] focus:ring-2 focus:ring-blue-500 outline-none text-gray-700">
+                  <select 
+                    value={newIndustry}
+                    onChange={(e) => setNewIndustry(e.target.value)}
+                    className="w-full px-4 py-3 border border-[#e5ddd5] rounded-xl bg-[#fcfaf8] focus:ring-2 focus:ring-blue-500 outline-none text-gray-700"
+                  >
                     <option value="">Select Industry</option>
                     <option value="construction">Construction</option>
                     <option value="manufacturing">Manufacturing</option>
@@ -736,19 +882,20 @@ export default function AuditPage() {
                 </div>
               </div>
 
-              <div className="mt-10 flex justify-end gap-4 border-t border-[#e5ddd5] pt-6">
-                <button onClick={() => setView("options")} className="px-6 py-3 rounded-xl text-sm font-bold text-gray-600 hover:bg-gray-100 transition-colors">
+              <div className="mt-10 flex justify-end gap-4 border-t border-[#e5ddd5] pt-8">
+                <button 
+                  onClick={() => setView("options")} 
+                  className="px-8 py-3.5 rounded-xl text-sm font-semibold text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-all"
+                >
                   Cancel
                 </button>
                 <button
-                  onClick={() => {
-                    toast.success("New audit user created successfully!");
-                    setView("options");
-                  }}
-                  className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 text-white font-bold text-sm rounded-xl shadow-lg transition-all flex items-center gap-2"
+                  onClick={handleCreateProfile}
+                  disabled={loading}
+                  className="px-8 py-3.5 bg-gradient-to-r from-[#2d2a26] to-[#1a1815] hover:from-black hover:to-black text-white font-semibold text-sm rounded-xl shadow-lg shadow-gray-300 transition-all hover:-translate-y-0.5 hover:shadow-xl flex items-center gap-2 disabled:opacity-50 disabled:hover:translate-y-0"
                 >
                   <UserPlus className="w-4 h-4" />
-                  Create Profile
+                  {loading ? "Creating Profile..." : "Create Profile"}
                 </button>
               </div>
             </div>

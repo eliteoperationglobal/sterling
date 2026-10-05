@@ -213,12 +213,20 @@ export async function DELETE(
     // Delete related DB records
     const ActivityLog = (await import("@/models/ActivityLog")).default;
     const BoundPolicy = (await import("@/models/BoundPolicy")).default;
+    const Audit = (await import("@/models/Audit")).default;
+    const AuditActivity = (await import("@/models/AuditActivity")).default;
+
+    // Find audits first to delete their activities
+    const auditsToDelete = await Audit.find({ submissionId: submissionId });
+    const auditIds = auditsToDelete.map(a => a._id);
 
     await Promise.all([
       Quote.deleteMany({ submissionId: submissionId }),
       RoutingLog.deleteMany({ submissionId: submissionId }),
       ActivityLog.deleteMany({ submissionId: submissionId }),
       BoundPolicy.deleteMany({ submissionId: submissionId }),
+      AuditActivity.deleteMany({ auditId: { $in: auditIds } }),
+      Audit.deleteMany({ submissionId: submissionId }),
       Submission.findByIdAndDelete(submissionId)
     ]);
 
