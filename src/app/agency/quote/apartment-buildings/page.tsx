@@ -984,6 +984,7 @@ function ApartmentBuildingsContent() {
                                 <option value="Retail">Retail</option>
                                 <option value="Warehouse">Warehouse</option>
                                 <option value="Manufacturing">Manufacturing</option>
+                                <option value="Motel">Motel</option>
                             </select>
                         </GridRow>
 
