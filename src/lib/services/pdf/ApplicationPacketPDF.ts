@@ -6371,7 +6371,7 @@ function generateAcord131Page5(data: ApplicationPacketData): string {
 }
 
 /**Notic pdf */
-function generateNoticepdf(data: ApplicationPacketData): string {
+export function generateNoticepdf(data: ApplicationPacketData): string {
 
 	return `
   <div class="page page22-isc" style="page-break-after: always;">
@@ -6424,7 +6424,7 @@ function generateNoticepdf(data: ApplicationPacketData): string {
 `;
 
 }
-function generateNoticepdf1(data: ApplicationPacketData): string {
+export function generateNoticepdf1(data: ApplicationPacketData): string {
 	return `
   <div class="page page23-isc" style="page-break-after: always;">
 		<div id="page_0" class="notic102_ notic102_02">

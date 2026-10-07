@@ -3,6 +3,54 @@
  */
 
 import { ApartmentPacketData } from './mappers/apartmentMapper';
+import {
+	ApplicationPacketData,
+	generateAcord126Page1,
+	generateAcord126Page2,
+	generateAcord126Page3,
+	generateAcord126Page4,
+	generateNoticepdf,
+	generateNoticepdf1,
+} from "./ApplicationPacketPDF";
+import { acord125And126CSS } from "./acord125And126CSS";
+import { noticeCSS } from "./noticeCSS";
+
+function mapApartmentToAcordData(data: ApartmentPacketData): ApplicationPacketData {
+	let effectiveDate = data.proposedEffectiveDateFrom || "";
+	let expirationDate = data.proposedEffectiveDateTo || "";
+	if (data.desiredCoverageDates && data.desiredCoverageDates.includes(" - ")) {
+		const parts = data.desiredCoverageDates.split(" - ");
+		if (!effectiveDate) effectiveDate = parts[0]?.trim() || "";
+		if (!expirationDate) expirationDate = parts[1]?.trim() || "";
+	}
+
+	return {
+		applicationId: data.applicationId || "",
+		submissionNumber: data.submissionNumber || "",
+		formDate: data.formDate || "",
+		agencyName: data.agencyName || "",
+		agentName: data.agentName || "",
+		agencyAddress: data.agencyAddress || "",
+		agencyCity: data.agencyCity || "",
+		agencyState: data.agencyState || "",
+		agencyZip: data.agencyZip || "",
+		agencyPhone: data.agencyPhone || "",
+		agencyEmail: data.agencyEmail || "",
+		companyName: data.companyName || data.applicantName || "",
+		applicantAddress: data.applicantAddress || "",
+		applicantCity: data.applicantCity || "",
+		applicantState: data.applicantState || "",
+		applicantZip: data.applicantZip || "",
+		applicantPhone: data.applicantPhone || "",
+		applicantEmail: data.applicantEmail || "",
+		contactPerson: data.contactPerson || data.applicantName || "",
+		effectiveDate: effectiveDate,
+		expirationDate: expirationDate,
+		desiredCoverageDates: data.desiredCoverageDates || "",
+		estimatedTotalGrossReceipts: data.estimatedTotalGrossReceipts || data.annualGrossReceipts || "",
+		carrierName: data.carrierName || "",
+	} as unknown as ApplicationPacketData;
+}
 
 /**
  * Format Yes/No with underlined text selections - Standard Horizontal
@@ -5878,12 +5926,18 @@ function generateInvoicePage(data: ApartmentPacketData): string {
 }
 
 export function generateApartmentPacketHTML(data: ApartmentPacketData): string {
+	const acordData = mapApartmentToAcordData(data);
+
 	return `
 		<!DOCTYPE html>
 		<html>
 		<head>
 			<meta charset="UTF-8">
-			<style>${cssContent}</style>
+			<style>
+${cssContent}
+${acord125And126CSS}
+${noticeCSS}
+			</style>
 		</head>
 		<body>
 			${generatePage1(data)}
@@ -5895,10 +5949,16 @@ export function generateApartmentPacketHTML(data: ApartmentPacketData): string {
 				${generateAcord125Page2(data)}
 				${generateAcord125Page3(data)}
 				${generateAcord125Page4(data)}
+				${generateAcord126Page1(acordData)}
+				${generateAcord126Page2(acordData)}
+				${generateAcord126Page3(acordData)}
+				${generateAcord126Page4(acordData)}
 			` : ''}
 			${generatePage51(data)}
 			${generatePage52(data)}
 			${generatePage53(data)}
+			${data.carrierName?.toLowerCase().includes('richmond national insurance') ? generateNoticepdf(acordData) : ''}
+			${data.carrierName?.toLowerCase().includes('kinsale insurance') ? generateNoticepdf1(acordData) : ''}
 		</body>
 		</html>
 	`;
