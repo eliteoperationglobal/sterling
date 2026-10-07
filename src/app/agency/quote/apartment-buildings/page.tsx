@@ -979,6 +979,7 @@ function ApartmentBuildingsContent() {
                             >
                                 <option value="" disabled hidden>Select Building Type</option>
                                 <option value="Apartment">Apartment</option>
+                                <option value="Adult Assisted Living">Adult Assisted Living</option>
                                 <option value="Mixed-Use">Mixed-Use</option>
                                 <option value="Office">Office</option>
                                 <option value="Retail">Retail</option>
