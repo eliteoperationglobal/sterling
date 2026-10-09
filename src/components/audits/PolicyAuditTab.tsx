@@ -1,29 +1,40 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CheckCircle, Clock, FileText, AlertCircle, Save, ArrowLeft, Calendar, FileCheck, Check, Info, File as FileIcon, MoreHorizontal, Eye } from "lucide-react";
+import { CheckCircle, Clock, FileText, AlertCircle, Save, ArrowLeft, Calendar, FileCheck, Check, Info, File as FileIcon, MoreHorizontal, Eye, UploadCloud, X, Download } from "lucide-react";
 import { toast } from "sonner";
+import { useCallback } from "react";
 
-export default function PolicyAuditTab({ submissionId, policyNumber = "PENDING" }: { submissionId: string, policyNumber?: string }) {
+export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "PENDING" }: { submissionId?: string, auditId?: string, policyNumber?: string }) {
   const [loading, setLoading] = useState(true);
   const [audit, setAudit] = useState<any>(null);
   const [viewMode, setViewMode] = useState<"overview" | "edit">("overview");
 
+  // File Upload State
+  const [isDragging, setIsDragging] = useState(false);
+  const [uploadingDocs, setUploadingDocs] = useState(false);
+
+  // Delete Modal State
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [docToDelete, setDocToDelete] = useState<string | null>(null);
+  const [isDeletingDoc, setIsDeletingDoc] = useState(false);
+
   // Form states
   const [estimatedExposure, setEstimatedExposure] = useState("");
   const [auditedExposure, setAuditedExposure] = useState("");
-  const [rate, setRate] = useState("0.00");
-  const [surplusTaxRate, setSurplusTaxRate] = useState("4.85");
-  const [stampingFeeRate, setStampingFeeRate] = useState("0.04");
-  const [carrierFee, setCarrierFee] = useState("0.00");
-  const [sterlingFee, setSterlingFee] = useState("0.00");
+  const [rate, setRate] = useState("");
+  const [surplusTaxRate, setSurplusTaxRate] = useState("");
+  const [stampingFeeRate, setStampingFeeRate] = useState("");
+  const [carrierFee, setCarrierFee] = useState("");
+  const [sterlingFee, setSterlingFee] = useState("");
   const [notes, setNotes] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
   const fetchAudit = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/admin/audits?submissionId=${submissionId}`);
+      const queryParam = submissionId ? `submissionId=${submissionId}` : `auditId=${auditId}`;
+      const res = await fetch(`/api/admin/audits?${queryParam}`);
       const data = await res.json();
       if (data.success && data.audits && data.audits.length > 0) {
         setAudit(data.audits[0]);
@@ -33,9 +44,12 @@ export default function PolicyAuditTab({ submissionId, policyNumber = "PENDING" 
         if (data.audits[0].auditedExposure > 0) {
           setAuditedExposure(data.audits[0].auditedExposure.toString());
         }
-        setRate(data.audits[0].rate?.toString() || "0.00");
-        setCarrierFee(data.audits[0].carrierFee?.toString() || "0.00");
-        setSterlingFee(data.audits[0].sterlingFee?.toString() || "0.00");
+        setRate(data.audits[0].rate ? data.audits[0].rate.toString() : "");
+        setCarrierFee(data.audits[0].carrierFee ? data.audits[0].carrierFee.toString() : "");
+        setSterlingFee(data.audits[0].sterlingFee ? data.audits[0].sterlingFee.toString() : "");
+        if (data.audits[0].surplusLinesTaxRate !== undefined) setSurplusTaxRate(data.audits[0].surplusLinesTaxRate.toString());
+        if (data.audits[0].stampingFeeRate !== undefined) setStampingFeeRate(data.audits[0].stampingFeeRate.toString());
+        if (data.audits[0].auditNotes) setNotes(data.audits[0].auditNotes);
       }
     } catch (err) {
       console.error(err);
@@ -51,6 +65,11 @@ export default function PolicyAuditTab({ submissionId, policyNumber = "PENDING" 
         estimatedExposure: parseFloat(estimatedExposure) || 0,
         auditedExposure: parseFloat(auditedExposure) || 0,
         rate: parseFloat(rate) || 0,
+        carrierFee: parseFloat(carrierFee) || 0,
+        sterlingFee: parseFloat(sterlingFee) || 0,
+        surplusLinesTaxRate: parseFloat(surplusTaxRate) || 0,
+        stampingFeeRate: parseFloat(stampingFeeRate) || 0,
+        auditNotes: notes,
         action: statusUpdate ? `Status updated to ${statusUpdate}` : "Saved draft values"
       };
 
@@ -80,9 +99,85 @@ export default function PolicyAuditTab({ submissionId, policyNumber = "PENDING" 
     }
   };
 
+  const handleFileUpload = useCallback(async (files: FileList | File[]) => {
+    if (!audit || !audit._id || !files || files.length === 0) return;
+
+    const MAX_MB = 10;
+    const filesArray = Array.from(files);
+
+    for (const file of filesArray) {
+      if (file.size > MAX_MB * 1024 * 1024) {
+        toast.error(`File ${file.name} exceeds ${MAX_MB}MB`);
+        return;
+      }
+    }
+
+    try {
+      setUploadingDocs(true);
+      let successCount = 0;
+
+      for (const file of filesArray) {
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const res = await fetch(`/api/admin/audits/${audit._id}/upload`, {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          toast.error(`Failed: ${errData.error || res.statusText} | ${errData.details || ""}`);
+        } else {
+          successCount++;
+        }
+      }
+
+      if (successCount > 0) {
+        toast.success(`${successCount} document(s) uploaded successfully`);
+        fetchAudit(); // Refresh the audit to get new documents
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Failed to upload documents");
+    } finally {
+      setUploadingDocs(false);
+      setIsDragging(false);
+    }
+  }, [audit]);
+
+  const openDeleteModal = (docId: string) => {
+    setDocToDelete(docId);
+    setDeleteModalOpen(true);
+  };
+
+  const confirmDeleteDocument = async () => {
+    if (!docToDelete) return;
+    setIsDeletingDoc(true);
+    try {
+      const res = await fetch(`/api/admin/audits/${audit._id}/documents/${docToDelete}`, {
+        method: 'DELETE'
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success("Document deleted");
+        fetchAudit();
+        setDeleteModalOpen(false);
+        setDocToDelete(null);
+      } else {
+        toast.error(data.error || "Failed to delete");
+      }
+    } catch (error) {
+      toast.error("Error deleting document");
+    } finally {
+      setIsDeletingDoc(false);
+    }
+  };
+
   useEffect(() => {
-    fetchAudit();
-  }, [submissionId]);
+    if (submissionId || auditId) {
+      fetchAudit();
+    }
+  }, [submissionId, auditId]);
 
   if (loading) {
     return <div className="p-12 text-center text-gray-500">Loading audit details...</div>;
@@ -195,21 +290,25 @@ export default function PolicyAuditTab({ submissionId, policyNumber = "PENDING" 
                     <label className="block text-xs font-semibold text-blue-600 mb-1.5 flex items-center gap-1">
                       Original Estimated Gross Revenue
                     </label>
-                    <input
-                      type="text"
-                      value={`$${parseNum(estimatedExposure).toLocaleString()}`}
-                      onChange={(e) => setEstimatedExposure(e.target.value.replace(/[^0-9]/g, ''))}
-                      className="w-full bg-white border border-blue-300 text-slate-900 text-sm font-semibold rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-200 transition-all"
-                    />
+                    <div className="relative">
+                      <span className="absolute left-3 top-2 text-blue-500 font-bold">$</span>
+                      <input
+                        type="text"
+                        value={estimatedExposure ? parseNum(estimatedExposure).toLocaleString() : ""}
+                        onChange={(e) => setEstimatedExposure(e.target.value.replace(/[^0-9]/g, '').replace(/^0+(?=\d)/, ''))}
+                        className="w-full bg-white border border-blue-300 text-slate-900 text-sm font-semibold rounded-lg pl-7 pr-3 py-2 outline-none focus:ring-2 focus:ring-blue-200 transition-all"
+                      />
+                    </div>
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-gray-700 mb-1.5">Audited Gross Revenue</label>
                     <div className="relative">
+                      <span className="absolute left-3 top-2 text-emerald-600 font-bold">$</span>
                       <input
                         type="text"
-                        value={`$${currentAuditedExposure.toLocaleString()}`}
-                        onChange={(e) => setAuditedExposure(e.target.value.replace(/[^0-9]/g, ''))}
-                        className="w-full bg-white border-2 border-emerald-500 text-slate-900 text-sm font-bold rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-emerald-200 transition-all"
+                        value={auditedExposure ? parseNum(auditedExposure).toLocaleString() : ""}
+                        onChange={(e) => setAuditedExposure(e.target.value.replace(/[^0-9]/g, '').replace(/^0+(?=\d)/, ''))}
+                        className="w-full bg-white border-2 border-emerald-500 text-slate-900 text-sm font-bold rounded-lg pl-7 pr-8 py-2 outline-none focus:ring-2 focus:ring-emerald-200 transition-all"
                       />
                       <div className="absolute right-3 top-2.5 bg-emerald-500 rounded-full p-0.5">
                         <Check className="w-3 h-3 text-white" />
@@ -243,12 +342,15 @@ export default function PolicyAuditTab({ submissionId, policyNumber = "PENDING" 
               <div className="p-6 grid grid-cols-3 gap-6">
                 <div>
                   <label className="block text-xs font-semibold text-gray-500 mb-1.5">Rate per $1,000</label>
-                  <input
-                    type="text"
-                    value={`$${rate}`}
-                    onChange={(e) => setRate(e.target.value.replace(/[^0-9.]/g, ''))}
-                    className="w-full bg-slate-50 border border-slate-200 text-slate-700 text-sm font-medium rounded-lg px-3 py-2 outline-none focus:bg-white focus:border-blue-400"
-                  />
+                  <div className="relative">
+                    <span className="absolute left-3 top-2 text-slate-400 font-medium">$</span>
+                    <input
+                      type="text"
+                      value={rate}
+                      onChange={(e) => setRate(e.target.value.replace(/[^0-9.]/g, '').replace(/^0+(?=\d)/, ''))}
+                      className="w-full bg-slate-50 border border-slate-200 text-slate-700 text-sm font-medium rounded-lg pl-7 pr-3 py-2 outline-none focus:bg-white focus:border-blue-400"
+                    />
+                  </div>
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-gray-500 mb-1.5">Surplus Lines Tax</label>
@@ -256,7 +358,7 @@ export default function PolicyAuditTab({ submissionId, policyNumber = "PENDING" 
                     <input
                       type="text"
                       value={surplusTaxRate}
-                      onChange={(e) => setSurplusTaxRate(e.target.value.replace(/[^0-9.]/g, ''))}
+                      onChange={(e) => setSurplusTaxRate(e.target.value.replace(/[^0-9.]/g, '').replace(/^0+(?=\d)/, ''))}
                       className="w-full bg-slate-50 border border-slate-200 text-slate-700 text-sm font-medium rounded-lg px-3 py-2 outline-none focus:bg-white focus:border-blue-400"
                     />
                     <span className="absolute right-3 top-2.5 text-slate-400 text-sm">%</span>
@@ -268,7 +370,7 @@ export default function PolicyAuditTab({ submissionId, policyNumber = "PENDING" 
                     <input
                       type="text"
                       value={stampingFeeRate}
-                      onChange={(e) => setStampingFeeRate(e.target.value.replace(/[^0-9.]/g, ''))}
+                      onChange={(e) => setStampingFeeRate(e.target.value.replace(/[^0-9.]/g, '').replace(/^0+(?=\d)/, ''))}
                       className="w-full bg-slate-50 border border-slate-200 text-slate-700 text-sm font-medium rounded-lg px-3 py-2 outline-none focus:bg-white focus:border-blue-400"
                     />
                     <span className="absolute right-3 top-2.5 text-slate-400 text-sm">%</span>
@@ -276,21 +378,27 @@ export default function PolicyAuditTab({ submissionId, policyNumber = "PENDING" 
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-gray-500 mb-1.5">Carrier Fee</label>
-                  <input
-                    type="text"
-                    value={`$${carrierFee}`}
-                    onChange={(e) => setCarrierFee(e.target.value.replace(/[^0-9.]/g, ''))}
-                    className="w-full bg-slate-50 border border-slate-200 text-slate-700 text-sm font-medium rounded-lg px-3 py-2 outline-none focus:bg-white focus:border-blue-400"
-                  />
+                  <div className="relative">
+                    <span className="absolute left-3 top-2 text-slate-400 font-medium">$</span>
+                    <input
+                      type="text"
+                      value={carrierFee}
+                      onChange={(e) => setCarrierFee(e.target.value.replace(/[^0-9.]/g, '').replace(/^0+(?=\d)/, ''))}
+                      className="w-full bg-slate-50 border border-slate-200 text-slate-700 text-sm font-medium rounded-lg pl-7 pr-3 py-2 outline-none focus:bg-white focus:border-blue-400"
+                    />
+                  </div>
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-gray-500 mb-1.5">Sterling Service Fee</label>
-                  <input
-                    type="text"
-                    value={`$${sterlingFee}`}
-                    onChange={(e) => setSterlingFee(e.target.value.replace(/[^0-9.]/g, ''))}
-                    className="w-full bg-slate-50 border border-slate-200 text-slate-700 text-sm font-medium rounded-lg px-3 py-2 outline-none focus:bg-white focus:border-blue-400"
-                  />
+                  <div className="relative">
+                    <span className="absolute left-3 top-2 text-slate-400 font-medium">$</span>
+                    <input
+                      type="text"
+                      value={sterlingFee}
+                      onChange={(e) => setSterlingFee(e.target.value.replace(/[^0-9.]/g, '').replace(/^0+(?=\d)/, ''))}
+                      className="w-full bg-slate-50 border border-slate-200 text-slate-700 text-sm font-medium rounded-lg pl-7 pr-3 py-2 outline-none focus:bg-white focus:border-blue-400"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -473,36 +581,87 @@ export default function PolicyAuditTab({ submissionId, policyNumber = "PENDING" 
           <div className="p-6 border-b border-gray-100 flex justify-between items-center">
             <h3 className="text-[17px] font-bold text-gray-900">Supporting Documents</h3>
           </div>
+          
+          <div className="p-6">
+            <div
+              className={`border-2 border-dashed rounded-xl p-8 text-center transition-colors ${isDragging ? "border-blue-500 bg-blue-50/50" : "border-gray-300 hover:border-gray-400"} ${uploadingDocs ? "opacity-50 pointer-events-none" : ""}`}
+              onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+              onDragLeave={(e) => { e.preventDefault(); setIsDragging(false); }}
+              onDrop={(e) => {
+                e.preventDefault();
+                setIsDragging(false);
+                if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                  handleFileUpload(e.dataTransfer.files);
+                }
+              }}
+            >
+              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm border border-gray-200">
+                <UploadCloud className="w-5 h-5 text-gray-600" />
+              </div>
+              <h4 className="text-[15px] font-bold text-gray-900 mb-1">Click or drag files here to upload</h4>
+              <p className="text-xs text-gray-500 mb-4">Support for PDF, DOC, ZIP up to 10MB</p>
+              
+              <label className="cursor-pointer inline-flex items-center justify-center px-4 py-2 bg-white border border-gray-300 text-sm font-semibold text-gray-700 rounded-lg hover:bg-gray-50 transition shadow-sm">
+                <span>Select Files</span>
+                <input 
+                  type="file" 
+                  className="hidden" 
+                  multiple 
+                  onChange={(e) => {
+                    if (e.target.files) handleFileUpload(e.target.files);
+                  }}
+                />
+              </label>
+              
+              {uploadingDocs && (
+                <p className="text-sm font-semibold text-blue-600 mt-4 animate-pulse">Uploading documents...</p>
+              )}
+            </div>
+          </div>
+          
           <div className="w-full">
             <table className="w-full text-left">
               <thead>
                 <tr className="bg-gray-50/50">
-                  <th className="px-6 py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wide">Document Name</th>
+                  <th className="px-6 py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wide">Filename</th>
                   <th className="px-6 py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wide">Uploaded On</th>
                   <th className="px-6 py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wide">Status</th>
                   <th className="px-6 py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wide text-right">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
+                {(!audit.documents || audit.documents.length === 0) && (
+                  <tr>
+                    <td colSpan={4} className="px-6 py-8 text-center text-sm text-gray-500">
+                      No documents uploaded yet
+                    </td>
+                  </tr>
+                )}
                 {audit.documents?.map((doc: any, i: number) => (
                   <tr key={i} className="hover:bg-gray-50/50 transition-colors">
                     <td className="px-6 py-4">
                       <div className="text-sm font-semibold text-gray-900 flex items-center gap-2">
-                        {doc.name}
+                        {doc.fileName || doc.name}
                       </div>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-500 font-medium">
-                      {new Date(audit.createdAt).toLocaleDateString("en-US")}
+                      {new Date(doc.uploadedAt || audit.createdAt).toLocaleDateString("en-US")}
                     </td>
                     <td className="px-6 py-4">
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                        <CheckCircle className="w-3.5 h-3.5" /> Verified
+                      <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold border ${doc.status === 'VERIFIED' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-gray-100 text-gray-700 border-gray-200'}`}>
+                        {doc.status === 'VERIFIED' && <CheckCircle className="w-3.5 h-3.5" />} 
+                        {doc.status || "RECEIVED"}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-3">
-                        <button className="text-sm font-bold text-blue-600 hover:text-blue-800">View</button>
-                        <button className="text-gray-400 hover:text-gray-600"><MoreHorizontal className="w-4 h-4" /></button>
+                        {doc.fileUrl && (
+                          <>
+                            <a href={`/api/download?url=${encodeURIComponent(doc.fileUrl)}`} className="text-sm font-bold text-gray-500 hover:text-gray-800 transition">Download</a>
+                            <a href={`/api/download?url=${encodeURIComponent(doc.fileUrl)}&view=true`} target="_blank" rel="noopener noreferrer" className="text-sm font-bold text-gray-500 hover:text-gray-800 transition">View</a>
+                          </>
+                        )}
+                        <button onClick={() => openDeleteModal(doc.documentId)} className="text-gray-400 hover:text-rose-600 transition"><X className="w-4 h-4" /></button>
                       </div>
                     </td>
                   </tr>
@@ -604,6 +763,50 @@ export default function PolicyAuditTab({ submissionId, policyNumber = "PENDING" 
         </div>
 
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {deleteModalOpen && docToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="p-6 text-center">
+              <div className="w-16 h-16 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <AlertCircle className="w-8 h-8 text-rose-600" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Delete Document?</h3>
+              <p className="text-sm text-gray-500 mb-6">
+                Are you sure you want to permanently delete this document? This action cannot be undone.
+              </p>
+
+              <div className="flex gap-3 w-full">
+                <button
+                  onClick={() => {
+                    setDeleteModalOpen(false);
+                    setDocToDelete(null);
+                  }}
+                  disabled={isDeletingDoc}
+                  className="flex-1 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 font-bold rounded-xl hover:bg-gray-50 transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDeleteDocument}
+                  disabled={isDeletingDoc}
+                  className="flex-1 px-4 py-2.5 bg-rose-600 text-white font-bold rounded-xl hover:bg-rose-700 transition flex items-center justify-center gap-2"
+                >
+                  {isDeletingDoc ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      Deleting...
+                    </>
+                  ) : (
+                    "Delete Document"
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

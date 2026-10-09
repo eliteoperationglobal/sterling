@@ -32,12 +32,15 @@ export interface IAuditDocument {
 
 export interface IAudit extends Document {
   auditId: string; // e.g. AUD-20381
-  submissionId: mongoose.Types.ObjectId;
+  submissionId?: mongoose.Types.ObjectId;
+  source: "PORTAL" | "MANUAL_AUDIT";
   policyNumber: string;
   carrier: string;
   program: string;
   agencyId?: mongoose.Types.ObjectId;
   namedInsured: string;
+  clientEmail?: string;
+  clientPhone?: string;
   
   auditPeriodStart: Date;
   auditPeriodEnd: Date;
@@ -98,12 +101,15 @@ const AuditDocumentSchema = new Schema<IAuditDocument>({
 
 const AuditSchema = new Schema<IAudit>({
   auditId: { type: String, required: true, unique: true },
-  submissionId: { type: Schema.Types.ObjectId, ref: "Submission", required: true },
+  submissionId: { type: Schema.Types.ObjectId, ref: "Submission" },
+  source: { type: String, enum: ["PORTAL", "MANUAL_AUDIT"], default: "PORTAL" },
   policyNumber: { type: String, required: true },
   carrier: { type: String, required: true },
   program: { type: String, required: true },
   agencyId: { type: Schema.Types.ObjectId, ref: "Agency" },
   namedInsured: { type: String, required: true },
+  clientEmail: { type: String },
+  clientPhone: { type: String },
   
   auditPeriodStart: { type: Date, required: true },
   auditPeriodEnd: { type: Date, required: true },

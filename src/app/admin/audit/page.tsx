@@ -4,9 +4,9 @@ import { useEffect, useState } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { 
-  Menu, Users, UserPlus, CheckCircle, ArrowLeft, 
-  FileText, Calendar, DollarSign, Search, Filter, MoreHorizontal
+import {
+  Menu, Users, UserPlus, CheckCircle, ArrowLeft, AlertCircle,
+  FileText, Calendar, DollarSign, Search, Filter, MoreHorizontal, Trash2
 } from "lucide-react";
 import MobileNav from "@/components/layout/MobileNav";
 import { toast } from "sonner";
@@ -16,23 +16,26 @@ export default function AuditPage() {
   const router = useRouter();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
-  
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [auditToDelete, setAuditToDelete] = useState<any>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   // "queue" | "options" | "existing" | "new"
   const [view, setView] = useState<"queue" | "options" | "existing" | "new">("queue");
-  
+
   // Submissions state for existing users
   const [submissions, setSubmissions] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedSubmissions, setSelectedSubmissions] = useState<Record<string, boolean>>({});
   const [submissionSearch, setSubmissionSearch] = useState("");
-  
+
   // Create New User state
   const [newClientName, setNewClientName] = useState("");
   const [newEmail, setNewEmail] = useState("");
   const [newPhone, setNewPhone] = useState("");
   const [newAgency, setNewAgency] = useState("");
   const [newIndustry, setNewIndustry] = useState("");
-  
+
   const formatPhoneNumber = (value: string) => {
     const cleaned = ('' + value).replace(/\D/g, '');
     const match = cleaned.match(/^(\d{0,3})(\d{0,3})(\d{0,4})$/);
@@ -60,7 +63,7 @@ export default function AuditPage() {
     if (lowerName === "advantage contractor gl" || lowerName === "construction") return "Construction";
     if (lowerName === "construction equipment") return "Contractors Equipment";
     if (lowerName.includes("manufacturer") || lowerName === "manufacturing") return "Manufacturing";
-    
+
     // Capitalize first letter of each word as fallback
     return lowerName.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
   };
@@ -69,13 +72,13 @@ export default function AuditPage() {
     if (statusFilter !== "All Statuses" && audit.status !== statusFilter) return false;
     if (carrierFilter !== "All Carriers" && audit.carrier !== carrierFilter && audit.carrier !== "Unknown") return false;
     if (typeFilter !== "All Types" && getDisplayProgramName(audit.program) !== typeFilter) return false;
-    
+
     if (sourceFilter !== "All Sources") {
-      const isManual = audit.submissionId?.payload?.source === "MANUAL_AUDIT";
+      const isManual = audit.source === "MANUAL_AUDIT" || audit.submissionId?.payload?.source === "MANUAL_AUDIT";
       if (sourceFilter === "Manual" && !isManual) return false;
       if (sourceFilter === "Portal" && isManual) return false;
     }
-    
+
     if (dueDateStart) {
       if (new Date(audit.dueDate) < new Date(dueDateStart)) return false;
     }
@@ -97,7 +100,7 @@ export default function AuditPage() {
 
   // Extract unique carriers and types for dropdowns
   const uniqueCarriers = Array.from(new Set(audits.map(a => a.carrier).filter(Boolean)));
-  
+
   const rawUniqueTypes = Array.from(new Set(audits.map(a => a.program).filter(Boolean)));
   // Extract unique formatted types for the dropdown
   const uniqueTypes = Array.from(new Set(rawUniqueTypes.map(getDisplayProgramName)));
@@ -167,7 +170,7 @@ export default function AuditPage() {
       toast.error("Please select at least one policy to audit.");
       return;
     }
-    
+
     try {
       const res = await fetch("/api/admin/audits", {
         method: "POST",
@@ -175,7 +178,7 @@ export default function AuditPage() {
         body: JSON.stringify({ submissionIds: selectedIds })
       });
       const data = await res.json();
-      
+
       if (data.success) {
         toast.success(`Successfully created ${data.count} audits!`);
         setView("queue");
@@ -209,12 +212,12 @@ export default function AuditPage() {
           industry: newIndustry
         })
       });
-      
+
       const data = await res.json();
       if (data.success) {
         toast.success("Manual audit profile created successfully!");
         sessionStorage.setItem("returnToAudit", "true");
-        router.push(`/admin/submissions/${data.submissionId}?tab=Audits`);
+        router.push(`/admin/audits/${data.auditId}`);
       } else {
         toast.error(data.error || "Failed to create profile");
       }
@@ -234,7 +237,7 @@ export default function AuditPage() {
     in14Days.setDate(in14Days.getDate() + 14);
     return dueDate <= in14Days;
   }).length;
-  
+
   let docsTotal = 0;
   let docsReceived = 0;
   openAudits.forEach(a => {
@@ -244,13 +247,13 @@ export default function AuditPage() {
     }
   });
   const docsReceivedPercent = docsTotal > 0 ? Math.round((docsReceived / docsTotal) * 100) : 0;
-  
+
   const additionalPremiumIssued = audits.reduce((acc, a) => {
     return acc + (a.netChange > 0 ? a.netChange : 0); // Simplified logic
   }, 0);
 
   const getStatusPillColor = (status: string) => {
-    switch(status) {
+    switch (status) {
       case "REQUESTED": return "bg-blue-100 text-blue-700 border-blue-200";
       case "DOCS_RECEIVED": return "bg-indigo-100 text-indigo-700 border-indigo-200";
       case "UNDERWRITER_REVIEW": return "bg-amber-100 text-amber-700 border-amber-200";
@@ -283,7 +286,7 @@ export default function AuditPage() {
   return (
     <div className="min-h-screen bg-[#f5f1eb]">
       <MobileNav isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} />
-      
+
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-xl border-b border-[#e5ddd5] sticky top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
@@ -367,7 +370,7 @@ export default function AuditPage() {
 
       {/* Main Content */}
       <main className="max-w-[1400px] mx-auto px-4 md:px-8 py-8">
-        
+
         {/* ===================== AUDIT QUEUE VIEW ===================== */}
         {view === "queue" && (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -432,7 +435,7 @@ export default function AuditPage() {
             <div className="bg-white p-4 rounded-t-2xl border border-[#e5ddd5] border-b-0 flex flex-wrap gap-4 items-center">
               <div className="w-48">
                 <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase">Status</label>
-                <select 
+                <select
                   className="w-full text-sm border-gray-200 rounded-lg p-2 focus:ring-rose-500 bg-gray-50 outline-none"
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
@@ -448,7 +451,7 @@ export default function AuditPage() {
               </div>
               <div className="w-48">
                 <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase">Carrier</label>
-                <select 
+                <select
                   className="w-full text-sm border-gray-200 rounded-lg p-2 focus:ring-rose-500 bg-gray-50 outline-none"
                   value={carrierFilter}
                   onChange={(e) => setCarrierFilter(e.target.value)}
@@ -461,7 +464,7 @@ export default function AuditPage() {
               </div>
               <div className="w-32">
                 <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase">Source</label>
-                <select 
+                <select
                   className="w-full text-sm border-gray-200 rounded-lg p-2 focus:ring-rose-500 bg-gray-50 outline-none"
                   value={sourceFilter}
                   onChange={(e) => setSourceFilter(e.target.value)}
@@ -473,7 +476,7 @@ export default function AuditPage() {
               </div>
               <div className="w-40">
                 <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase">Audit Type</label>
-                <select 
+                <select
                   className="w-full text-sm border-gray-200 rounded-lg p-2 focus:ring-rose-500 bg-gray-50 outline-none"
                   value={typeFilter}
                   onChange={(e) => setTypeFilter(e.target.value)}
@@ -487,18 +490,18 @@ export default function AuditPage() {
               <div className="w-64">
                 <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase">Due Date Range</label>
                 <div className="flex items-center gap-2">
-                  <input 
-                    type="date" 
+                  <input
+                    type="date"
                     value={dueDateStart}
                     onChange={(e) => setDueDateStart(e.target.value)}
-                    className="w-full text-xs border-gray-200 rounded-lg p-2 focus:ring-rose-500 bg-gray-50 outline-none" 
+                    className="w-full text-xs border-gray-200 rounded-lg p-2 focus:ring-rose-500 bg-gray-50 outline-none"
                   />
                   <span className="text-gray-400">-</span>
-                  <input 
-                    type="date" 
+                  <input
+                    type="date"
                     value={dueDateEnd}
                     onChange={(e) => setDueDateEnd(e.target.value)}
-                    className="w-full text-xs border-gray-200 rounded-lg p-2 focus:ring-rose-500 bg-gray-50 outline-none" 
+                    className="w-full text-xs border-gray-200 rounded-lg p-2 focus:ring-rose-500 bg-gray-50 outline-none"
                   />
                 </div>
               </div>
@@ -506,17 +509,17 @@ export default function AuditPage() {
                 <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase">Search</label>
                 <div className="relative">
                   <Search className="w-4 h-4 text-gray-400 absolute left-3 top-2.5" />
-                  <input 
-                    type="text" 
-                    placeholder="Search by insured name, policy number..." 
-                    className="w-full pl-9 text-sm border-gray-200 rounded-lg p-2 focus:ring-rose-500 bg-gray-50 outline-none" 
+                  <input
+                    type="text"
+                    placeholder="Search by insured name, policy number..."
+                    className="w-full pl-9 text-sm border-gray-200 rounded-lg p-2 focus:ring-rose-500 bg-gray-50 outline-none"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
                 </div>
               </div>
               <div className="flex items-end h-[52px]">
-                <button 
+                <button
                   onClick={() => {
                     setSearchQuery("");
                     setStatusFilter("All Statuses");
@@ -557,7 +560,7 @@ export default function AuditPage() {
                     filteredAudits.map((audit) => {
                       const docsTotal = audit.documents?.length || 0;
                       const docsReceived = audit.documents?.filter((d: any) => d.status === "RECEIVED" || d.status === "VERIFIED").length || 0;
-                      
+
                       const dueDateObj = new Date(audit.dueDate);
                       const daysLeft = Math.ceil((dueDateObj.getTime() - Date.now()) / (1000 * 3600 * 24));
                       const isOverdue = daysLeft < 0;
@@ -567,7 +570,7 @@ export default function AuditPage() {
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-2">
                               <p className="font-bold text-sm text-gray-900">{audit.auditId}</p>
-                              {audit.submissionId?.payload?.source === "MANUAL_AUDIT" && (
+                              {(audit.source === "MANUAL_AUDIT" || audit.submissionId?.payload?.source === "MANUAL_AUDIT") && (
                                 <span className="px-1.5 py-0.5 bg-gray-100 text-gray-500 text-[9px] font-bold rounded-sm border border-gray-200 uppercase tracking-wider" title="Created Manually">Manual</span>
                               )}
                             </div>
@@ -593,8 +596,8 @@ export default function AuditPage() {
                               <span>{docsReceived} of {docsTotal}</span>
                             </div>
                             <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
-                              <div 
-                                className={`h-1.5 rounded-full ${docsReceived === docsTotal && docsTotal > 0 ? 'bg-emerald-500' : 'bg-blue-500'}`} 
+                              <div
+                                className={`h-1.5 rounded-full ${docsReceived === docsTotal && docsTotal > 0 ? 'bg-emerald-500' : 'bg-blue-500'}`}
                                 style={{ width: `${docsTotal > 0 ? (docsReceived / docsTotal) * 100 : 0}%` }}
                               ></div>
                             </div>
@@ -612,8 +615,17 @@ export default function AuditPage() {
                           </td>
                           <td className="px-6 py-4 text-right">
                             <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <button 
+                              <button
                                 onClick={() => {
+                                  // Check if it's a standalone manual audit (no submission ID)
+                                  if (audit.source === "MANUAL_AUDIT" && !audit.submissionId) {
+                                    if (typeof window !== "undefined") {
+                                      sessionStorage.setItem("sterling_admin_back_url", "/admin/audit");
+                                    }
+                                    router.push(`/admin/audits/${audit._id}`);
+                                    return;
+                                  }
+
                                   const targetId = audit.submissionId?._id || audit.submissionId;
                                   if (!targetId) {
                                     toast.error("This audit's original submission has been deleted.");
@@ -628,9 +640,28 @@ export default function AuditPage() {
                               >
                                 View
                               </button>
-                              <button className="p-1.5 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition">
-                                <MoreHorizontal className="w-4 h-4" />
-                              </button>
+
+                              {/* Show Delete button ONLY for standalone manual audits (no submission attached) */}
+                              {audit.source === "MANUAL_AUDIT" && !audit.submissionId && (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setAuditToDelete(audit);
+                                    setDeleteModalOpen(true);
+                                  }}
+                                  className="p-1.5 text-gray-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition"
+                                  title="Delete Manual Audit"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              )}
+
+                              {/* Only show extra options if it's not a standalone manual audit */}
+                              {!(audit.source === "MANUAL_AUDIT" && !audit.submissionId) && (
+                                <button className="p-1.5 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition">
+                                  <MoreHorizontal className="w-4 h-4" />
+                                </button>
+                              )}
                             </div>
                           </td>
                         </tr>
@@ -769,8 +800,8 @@ export default function AuditPage() {
                       }
 
                       return filteredSubs.map((sub: any) => (
-                        <tr 
-                          key={sub._id} 
+                        <tr
+                          key={sub._id}
                           className={`hover:bg-[#fcfaf8] transition-colors cursor-pointer ${selectedSubmissions[sub._id] ? 'bg-amber-50/50' : ''}`}
                           onClick={() => toggleSelection(sub._id)}
                         >
@@ -778,7 +809,7 @@ export default function AuditPage() {
                             <input
                               type="checkbox"
                               checked={!!selectedSubmissions[sub._id]}
-                              onChange={() => {}}
+                              onChange={() => { }}
                               className="w-5 h-5 rounded border-gray-300 text-amber-600 focus:ring-amber-500 cursor-pointer"
                             />
                           </td>
@@ -828,38 +859,38 @@ export default function AuditPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="md:col-span-2">
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Client / Company Name</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     value={newClientName}
                     onChange={(e) => setNewClientName(e.target.value)}
-                    placeholder="Enter company or client name" 
-                    className="w-full px-4 py-3 border border-[#e5ddd5] rounded-xl bg-[#fcfaf8] focus:ring-2 focus:ring-blue-500 outline-none" 
+                    placeholder="Enter company or client name"
+                    className="w-full px-4 py-3 border border-[#e5ddd5] rounded-xl bg-[#fcfaf8] focus:ring-2 focus:ring-blue-500 outline-none"
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Email Address</label>
-                  <input 
-                    type="email" 
+                  <input
+                    type="email"
                     value={newEmail}
                     onChange={(e) => setNewEmail(e.target.value)}
-                    placeholder="client@example.com" 
-                    className="w-full px-4 py-3 border border-[#e5ddd5] rounded-xl bg-[#fcfaf8] focus:ring-2 focus:ring-blue-500 outline-none" 
+                    placeholder="client@example.com"
+                    className="w-full px-4 py-3 border border-[#e5ddd5] rounded-xl bg-[#fcfaf8] focus:ring-2 focus:ring-blue-500 outline-none"
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Phone Number</label>
-                  <input 
-                    type="tel" 
+                  <input
+                    type="tel"
                     value={newPhone}
                     onChange={(e) => setNewPhone(formatPhoneNumber(e.target.value))}
-                    placeholder="(555) 000-0000" 
+                    placeholder="(555) 000-0000"
                     maxLength={14}
-                    className="w-full px-4 py-3 border border-[#e5ddd5] rounded-xl bg-[#fcfaf8] focus:ring-2 focus:ring-blue-500 outline-none" 
+                    className="w-full px-4 py-3 border border-[#e5ddd5] rounded-xl bg-[#fcfaf8] focus:ring-2 focus:ring-blue-500 outline-none"
                   />
                 </div>
                 <div className="md:col-span-2">
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Associated Agency</label>
-                  <select 
+                  <select
                     value={newAgency}
                     onChange={(e) => setNewAgency(e.target.value)}
                     className="w-full px-4 py-3 border border-[#e5ddd5] rounded-xl bg-[#fcfaf8] focus:ring-2 focus:ring-blue-500 outline-none text-gray-700"
@@ -875,7 +906,7 @@ export default function AuditPage() {
                 </div>
                 <div className="md:col-span-2">
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Industry / Program</label>
-                  <select 
+                  <select
                     value={newIndustry}
                     onChange={(e) => setNewIndustry(e.target.value)}
                     className="w-full px-4 py-3 border border-[#e5ddd5] rounded-xl bg-[#fcfaf8] focus:ring-2 focus:ring-blue-500 outline-none text-gray-700"
@@ -888,8 +919,8 @@ export default function AuditPage() {
               </div>
 
               <div className="mt-10 flex justify-end gap-4 border-t border-[#e5ddd5] pt-8">
-                <button 
-                  onClick={() => setView("options")} 
+                <button
+                  onClick={() => setView("options")}
                   className="px-8 py-3.5 rounded-xl text-sm font-semibold text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-all"
                 >
                   Cancel
@@ -907,6 +938,59 @@ export default function AuditPage() {
           </div>
         )}
       </main>
+
+      {/* Delete Confirmation Modal */}
+      {deleteModalOpen && auditToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="p-6 text-center">
+              <div className="w-16 h-16 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <AlertCircle className="w-8 h-8 text-rose-600" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Delete Manual Audit?</h3>
+              <p className="text-sm text-gray-500 mb-6">
+                Are you sure you want to permanently delete the audit for <strong className="text-gray-700">{auditToDelete.namedInsured}</strong>? This action cannot be undone and will erase all associated data and logs.
+              </p>
+
+              <div className="flex gap-3 w-full">
+                <button
+                  onClick={() => {
+                    setDeleteModalOpen(false);
+                    setAuditToDelete(null);
+                  }}
+                  disabled={isDeleting}
+                  className="flex-1 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 font-bold rounded-xl hover:bg-gray-50 transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={async () => {
+                    setIsDeleting(true);
+                    try {
+                      const res = await fetch(`/api/admin/audits/${auditToDelete._id}`, { method: "DELETE" });
+                      if (res.ok) {
+                        toast.success("Manual audit deleted successfully");
+                        fetchAudits();
+                        setDeleteModalOpen(false);
+                      } else {
+                        toast.error("Failed to delete audit");
+                      }
+                    } catch (err) {
+                      toast.error("An error occurred");
+                    } finally {
+                      setIsDeleting(false);
+                    }
+                  }}
+                  disabled={isDeleting}
+                  className="flex-1 px-4 py-2.5 bg-rose-600 text-white font-bold rounded-xl hover:bg-rose-700 shadow-sm shadow-rose-200 transition flex justify-center items-center gap-2"
+                >
+                  {isDeleting ? "Deleting..." : "Yes, Delete"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -6,6 +6,7 @@ import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 import connectDB from "@/lib/mongodb";
 import Submission from "@/models/Submission";
 import Quote from "@/models/Quote";
+import Audit from "@/models/Audit";
 
 const s3Client = new S3Client({
   region: process.env.B2_REGION || "us-west-004",
@@ -64,6 +65,7 @@ export async function GET(req: NextRequest) {
     const submission = await Submission.findOne(submissionQuery).lean();
     let finalSubmission = submission;
     let foundQuote = null;
+    let foundAudit = null;
 
     if (!finalSubmission) {
       // Check Quotes if not on top-level Submission
@@ -86,16 +88,42 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    if (!finalSubmission) {
+    if (!finalSubmission && !foundQuote) {
+      // Check Audits
+      const auditQuery: any = {
+        "documents.fileUrl": { $in: urlCandidates }
+      };
+      if (userRole === "agency_admin" || userRole === "agency_user") {
+        auditQuery.agencyId = (session.user as any).agencyId;
+      }
+      foundAudit = await Audit.findOne(auditQuery).lean();
+    }
+
+    if (!finalSubmission && !foundAudit) {
         return NextResponse.json({ error: "File not found or unauthorized access" }, { status: 404 });
     }
 
-    // 4. Find original File Name from database metadata (including binder/policy docs fallback)
-    let fileMeta = finalSubmission.files?.find((f: any) => f.fileUrl === normalizedUrl || f.fileUrl === decodedUrl || f.fileUrl === encodedDecodedUrl);
-    let downloadFilename = fileMeta?.fileName;
-    let contentType = fileMeta?.mimeType;
+    // 4. Find original File Name from database metadata
+    let fileMeta;
+    let downloadFilename;
+    let contentType;
 
-    if (!fileMeta) {
+    if (foundAudit) {
+      fileMeta = foundAudit.documents?.find((d: any) => d.fileUrl === normalizedUrl || d.fileUrl === decodedUrl || d.fileUrl === encodedDecodedUrl);
+      downloadFilename = fileMeta?.fileName || fileMeta?.name;
+      
+      const ext = downloadFilename?.split('.').pop()?.toLowerCase();
+      if (ext === 'pdf') contentType = "application/pdf";
+      else if (ext === 'jpg' || ext === 'jpeg') contentType = "image/jpeg";
+      else if (ext === 'png') contentType = "image/png";
+      else contentType = "application/octet-stream";
+    } else {
+      fileMeta = finalSubmission?.files?.find((f: any) => f.fileUrl === normalizedUrl || f.fileUrl === decodedUrl || f.fileUrl === encodedDecodedUrl);
+      downloadFilename = fileMeta?.fileName;
+      contentType = fileMeta?.mimeType;
+    }
+
+    if (!fileMeta && finalSubmission) {
       // Check submission root
       if (finalSubmission.binderUrl === normalizedUrl || finalSubmission.binderUrl === decodedUrl || finalSubmission.binderUrl === encodedDecodedUrl) {
         fileMeta = { fileUrl: finalSubmission.binderUrl, fileName: finalSubmission.binderUrl.split('/').pop(), mimeType: 'application/octet-stream' } as any;
@@ -121,16 +149,16 @@ export async function GET(req: NextRequest) {
     }
 
     // Customize filename to include client name
-    const clientName = finalSubmission.clientContact?.name || "???";
+    const clientName = finalSubmission?.clientContact?.name || foundAudit?.clientContact?.name || "???";
     
     // Check if it's a known policy doc or binder from either model
     const isBinder = 
-      (finalSubmission.binderUrl && urlCandidates.includes(finalSubmission.binderUrl)) || 
+      (finalSubmission?.binderUrl && urlCandidates.includes(finalSubmission.binderUrl)) || 
       (foundQuote?.binderUrl && urlCandidates.includes(foundQuote.binderUrl)) ||
       (foundQuote?.binderPdfUrl && urlCandidates.includes(foundQuote.binderPdfUrl));
       
     const isPolicyDoc = 
-      (finalSubmission.policyDocsUrl && urlCandidates.includes(finalSubmission.policyDocsUrl)) || 
+      (finalSubmission?.policyDocsUrl && urlCandidates.includes(finalSubmission.policyDocsUrl)) || 
       (foundQuote?.policyDocsUrl && urlCandidates.includes(foundQuote.policyDocsUrl)) ||
       (foundQuote?.proposalPdfUrl && urlCandidates.includes(foundQuote.proposalPdfUrl));
 

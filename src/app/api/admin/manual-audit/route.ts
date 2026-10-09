@@ -2,10 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/authOptions";
 import connectDB from "@/lib/mongodb";
-import Submission from "@/models/Submission";
 import Audit from "@/models/Audit";
 import Agency from "@/models/Agency";
-import mongoose from "mongoose";
+import AuditActivity from "@/models/AuditActivity";
 
 export async function POST(req: NextRequest) {
   try {
@@ -32,38 +31,10 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Generate a random submission number for the manual audit
+    // Generate a random policy/submission number for the manual audit
     const submissionNumber = Math.floor(100000 + Math.random() * 900000);
 
-    // 2. Create the skeleton submission (BOUND)
-    const newSubmission = new Submission({
-      agencyId: agencyId || new mongoose.Types.ObjectId(), // fallback to dummy ID if none
-      agentName: "Manual Audit Creator", // Generic agent name
-      templateId: new mongoose.Types.ObjectId(), // Dummy template
-      status: "BOUND",
-      submissionNumber,
-      programName: industry || "General Liability",
-      clientContact: {
-        name: clientName,
-        email: email,
-        phone: phone,
-        businessAddress: { street: "N/A", city: "N/A", state: "CA", zip: "00000" }
-      },
-      ccpaConsent: true,
-      state: "CA",
-      payload: {
-        source: "MANUAL_AUDIT",
-        notes: "Automatically generated skeleton submission for manual audit."
-      },
-      files: [],
-      signedDocuments: [],
-      paymentStatus: "PENDING",
-      esignCompleted: false
-    });
-
-    await newSubmission.save();
-
-    // 3. Create the Audit record tied to this submission
+    // 2. Create the Audit record directly
     // Generate unique audit ID
     const year = new Date().getFullYear();
     const uniqueSuffix = Math.floor(1000 + Math.random() * 9000);
@@ -75,12 +46,14 @@ export async function POST(req: NextRequest) {
 
     const newAudit = new Audit({
       auditId,
-      submissionId: newSubmission._id,
+      source: "MANUAL_AUDIT",
       policyNumber: `POL-${submissionNumber}`,
       carrier: "Unknown Carrier", // To be filled by admin later
-      program: newSubmission.programName,
+      program: industry || "General Liability",
       agencyId: agencyId,
       namedInsured: clientName,
+      clientEmail: email,
+      clientPhone: phone,
       auditPeriodStart: auditStart,
       auditPeriodEnd: auditEnd,
       status: "REQUESTED",
@@ -110,16 +83,24 @@ export async function POST(req: NextRequest) {
 
     await newAudit.save();
 
+    // Log the creation
+    await AuditActivity.create({
+      auditId: newAudit._id,
+      user: (session.user as any).name || "Admin",
+      role: "System Admin",
+      activity: "Manual audit profile created",
+      timestamp: new Date()
+    });
+
     return NextResponse.json({ 
       success: true, 
-      submissionId: newSubmission._id,
       auditId: newAudit._id
     });
 
   } catch (error: any) {
     console.error("Error creating manual audit:", error);
     return NextResponse.json(
-      { error: "Failed to create manual audit profile" },
+      { error: error.message || "Failed to create manual audit profile" },
       { status: 500 }
     );
   }

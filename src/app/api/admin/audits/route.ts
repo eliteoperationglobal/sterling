@@ -19,10 +19,14 @@ export async function GET(req: NextRequest) {
     
     const searchParams = req.nextUrl.searchParams;
     const submissionId = searchParams.get("submissionId");
+    const auditId = searchParams.get("auditId");
     
     const query: any = {};
     if (submissionId) {
       query.submissionId = submissionId;
+    }
+    if (auditId) {
+      query._id = auditId;
     }
     
     // Fetch audits, sort by dueDate ascending
@@ -32,7 +36,7 @@ export async function GET(req: NextRequest) {
       .populate("submissionId", "payload")
       .lean();
     
-    if (submissionId && audits.length > 0) {
+    if ((submissionId || auditId) && audits.length > 0) {
       const activities = await AuditActivity.find({ auditId: audits[0]._id }).sort({ timestamp: -1 }).lean();
       (audits[0] as any).activities = activities;
     }

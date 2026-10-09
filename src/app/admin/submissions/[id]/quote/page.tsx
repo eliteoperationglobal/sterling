@@ -2150,7 +2150,7 @@ export default function AdminQuotePage() {
             </div>
 
             {/* Endorsements Section */}
-            {!isPropertyPolicy && (
+            {!isPropertyPolicy && currentPolicyType !== "EXCESS_LIABILITY" && (
               <div className="bg-gradient-to-br from-indigo-50 to-blue-50 rounded-xl p-6 border border-indigo-200/60">
                 <h3 className="text-lg font-bold text-gray-900 mb-2 flex items-center gap-2">
                   <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-blue-500 rounded-lg flex items-center justify-center">
@@ -2243,17 +2243,16 @@ export default function AdminQuotePage() {
 
                 <div>
                   <label className="block text-sm font-semibold text-gray-900 mb-2">
-                    Expiration Date <span className="text-xs text-gray-500 font-normal">(auto-calculated)</span>
+                    Expiration Date
                   </label>
                   <input
                     type="date"
                     value={expirationDate}
-                    readOnly
-                    className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl text-gray-900 font-semibold !text-gray-900"
-                    placeholder="Select effective date and duration"
+                    onChange={(e) => setExpirationDate(e.target.value)}
+                    className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-900 font-semibold focus:outline-none focus:border-teal-500 focus:ring-4 focus:ring-teal-100 transition-all hover:border-gray-300 !text-gray-900"
                   />
                   {!effectiveDate && (
-                    <p className="text-xs text-gray-500 mt-1">Select effective date to calculate expiration</p>
+                    <p className="text-xs text-gray-500 mt-1">Select effective date to auto-calculate expiration (you can also edit manually)</p>
                   )}
                 </div>
 

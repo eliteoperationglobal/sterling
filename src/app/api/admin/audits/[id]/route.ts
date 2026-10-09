@@ -21,7 +21,18 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       return NextResponse.json({ error: "Audit not found" }, { status: 404 });
     }
 
-    const { auditedExposure, estimatedExposure, rate, status, action } = body;
+    const { 
+      auditedExposure, 
+      estimatedExposure, 
+      rate, 
+      carrierFee, 
+      sterlingFee, 
+      surplusLinesTaxRate, 
+      stampingFeeRate, 
+      auditNotes, 
+      status, 
+      action 
+    } = body;
     let activityLogDetails = "";
 
     // If updating estimated exposure
@@ -38,24 +49,52 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       }
     }
 
-    // If updating exposure and rate
-    if (auditedExposure !== undefined && rate !== undefined) {
-      const parsedExposure = parseFloat(auditedExposure);
-      const parsedRate = parseFloat(rate);
+    // If updating other fields
+    let recalculateFinancials = false;
 
-      if (audit.auditedExposure !== parsedExposure || audit.rate !== parsedRate) {
-        activityLogDetails += `Updated exposure from $${audit.auditedExposure} to $${parsedExposure}. Updated rate from ${audit.rate} to ${parsedRate}. `;
-        
+    if (auditedExposure !== undefined) {
+      const parsedExposure = parseFloat(auditedExposure);
+      if (audit.auditedExposure !== parsedExposure) {
+        activityLogDetails += `Updated audited exposure to $${parsedExposure}. `;
         audit.auditedExposure = parsedExposure;
-        audit.rate = parsedRate;
-        
-        // Backend Premium Calculation (Security: Do not trust frontend calculations)
-        audit.auditedPremium = (parsedExposure / audit.rateBasis) * parsedRate;
-        audit.netChange = audit.auditedPremium - audit.depositPremium;
-        
-        audit.surplusLinesTaxAmount = (audit.netChange * audit.surplusLinesTaxRate) / 100;
-        audit.stampingFeeAmount = (audit.netChange * audit.stampingFeeRate) / 100;
+        recalculateFinancials = true;
       }
+    }
+
+    if (rate !== undefined) {
+      const parsedRate = parseFloat(rate);
+      if (audit.rate !== parsedRate) {
+        activityLogDetails += `Updated rate to ${parsedRate}. `;
+        audit.rate = parsedRate;
+        recalculateFinancials = true;
+      }
+    }
+
+    if (carrierFee !== undefined && audit.carrierFee !== carrierFee) {
+      audit.carrierFee = carrierFee;
+    }
+    if (sterlingFee !== undefined && audit.sterlingFee !== sterlingFee) {
+      audit.sterlingFee = sterlingFee;
+    }
+    if (surplusLinesTaxRate !== undefined && audit.surplusLinesTaxRate !== surplusLinesTaxRate) {
+      audit.surplusLinesTaxRate = surplusLinesTaxRate;
+      recalculateFinancials = true;
+    }
+    if (stampingFeeRate !== undefined && audit.stampingFeeRate !== stampingFeeRate) {
+      audit.stampingFeeRate = stampingFeeRate;
+      recalculateFinancials = true;
+    }
+    if (auditNotes !== undefined) {
+      audit.auditNotes = auditNotes;
+    }
+
+    if (recalculateFinancials) {
+      // Backend Premium Calculation (Security: Do not trust frontend calculations)
+      audit.auditedPremium = (audit.auditedExposure / (audit.rateBasis || 1000)) * audit.rate;
+      audit.netChange = audit.auditedPremium - audit.depositPremium;
+      
+      audit.surplusLinesTaxAmount = (audit.netChange * audit.surplusLinesTaxRate) / 100;
+      audit.stampingFeeAmount = (audit.netChange * audit.stampingFeeRate) / 100;
     }
 
     // If updating status (e.g., Submit for Review)
@@ -79,6 +118,34 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
     return NextResponse.json({ success: true, audit });
   } catch (err: any) {
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
+}
+
+export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || (session.user as any).role !== "system_admin") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    await connectDB();
+    const { id } = params;
+
+    const audit = await Audit.findById(id);
+    if (!audit) {
+      return NextResponse.json({ error: "Audit not found" }, { status: 404 });
+    }
+
+    // Delete the audit and its activities
+    await Promise.all([
+      Audit.findByIdAndDelete(id),
+      AuditActivity.deleteMany({ auditId: id })
+    ]);
+
+    return NextResponse.json({ success: true, message: "Audit deleted successfully" });
+  } catch (err: any) {
+    console.error("Delete Audit Error:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
