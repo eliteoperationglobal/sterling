@@ -7290,6 +7290,18 @@ function generateCaliforniaFormPage3(data: ApplicationPacketData): string {
 	const agentName = data.agentName || '';
 	const agencyName = data.agencyName || '';
 
+	const _dateParts = (data.desiredCoverageDates || '').split(' - ').map((s: string) => s.trim());
+	const effDate = _dateParts[0] || '';
+	let effMonthYear = '';
+	if (effDate) {
+		const parts = effDate.split('/');
+		if (parts.length === 3) {
+			effMonthYear = `${parts[0]}/${parts[2].slice(-2)}`;
+		} else {
+			effMonthYear = effDate;
+		}
+	}
+
 	const body = `
 	<div class="ca-sl2-doc" style="page-break-inside: avoid;">
 	  <div class="ca-sl2-header">
@@ -7336,9 +7348,9 @@ function generateCaliforniaFormPage3(data: ApplicationPacketData): string {
 			</div>
 			
 			<div class="ca-sl2-table-row">
-			  <div class="ca-sl2-table-cell"><span class="ca-sl2-cell-label">MONTH, YEAR OF DECLINATION</span><span class="ca-sl2-input">&nbsp;&nbsp;03/2026</span></div>
-			  <div class="ca-sl2-table-cell"><span class="ca-sl2-cell-label">MONTH, YEAR OF DECLINATION</span><span class="ca-sl2-input">&nbsp;&nbsp;03/2026</span></div>
-			  <div class="ca-sl2-table-cell"><span class="ca-sl2-cell-label">MONTH, YEAR OF DECLINATION</span><span class="ca-sl2-input">&nbsp;&nbsp;03/2026</span></div>
+			  <div class="ca-sl2-table-cell"><span class="ca-sl2-cell-label">MONTH, YEAR OF DECLINATION</span><span class="ca-sl2-input">&nbsp;&nbsp;${effMonthYear}</span></div>
+			  <div class="ca-sl2-table-cell"><span class="ca-sl2-cell-label">MONTH, YEAR OF DECLINATION</span><span class="ca-sl2-input">&nbsp;&nbsp;${effMonthYear}</span></div>
+			  <div class="ca-sl2-table-cell"><span class="ca-sl2-cell-label">MONTH, YEAR OF DECLINATION</span><span class="ca-sl2-input">&nbsp;&nbsp;${effMonthYear}</span></div>
 			</div>
 			<div class="ca-sl2-table-row">
 			  <div class="ca-sl2-table-cell"><span class="ca-sl2-cell-label">FULL NAME OF ADMITTED INSURER</span><span class="ca-sl2-input">&nbsp;&nbsp;Travelers Cas Ins Co of Amer</span></div>

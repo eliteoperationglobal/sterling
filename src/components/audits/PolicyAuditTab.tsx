@@ -10,6 +10,7 @@ export default function PolicyAuditTab({ submissionId, policyNumber = "PENDING" 
   const [viewMode, setViewMode] = useState<"overview" | "edit">("overview");
 
   // Form states
+  const [estimatedExposure, setEstimatedExposure] = useState("");
   const [auditedExposure, setAuditedExposure] = useState("");
   const [rate, setRate] = useState("0.00");
   const [surplusTaxRate, setSurplusTaxRate] = useState("4.85");
@@ -26,6 +27,9 @@ export default function PolicyAuditTab({ submissionId, policyNumber = "PENDING" 
       const data = await res.json();
       if (data.success && data.audits && data.audits.length > 0) {
         setAudit(data.audits[0]);
+        if (data.audits[0].estimatedExposure !== undefined) {
+          setEstimatedExposure(data.audits[0].estimatedExposure.toString());
+        }
         if (data.audits[0].auditedExposure > 0) {
           setAuditedExposure(data.audits[0].auditedExposure.toString());
         }
@@ -44,11 +48,12 @@ export default function PolicyAuditTab({ submissionId, policyNumber = "PENDING" 
     setIsSaving(true);
     try {
       const payload: any = {
+        estimatedExposure: parseFloat(estimatedExposure) || 0,
         auditedExposure: parseFloat(auditedExposure) || 0,
         rate: parseFloat(rate) || 0,
         action: statusUpdate ? `Status updated to ${statusUpdate}` : "Saved draft values"
       };
-      
+
       if (statusUpdate) {
         payload.status = statusUpdate;
       }
@@ -59,11 +64,11 @@ export default function PolicyAuditTab({ submissionId, policyNumber = "PENDING" 
         body: JSON.stringify(payload)
       });
       const data = await res.json();
-      
+
       if (data.success) {
         toast.success(statusUpdate ? `Audit submitted for review!` : `Audit draft saved!`);
         setViewMode("overview");
-        fetchAudit(); 
+        fetchAudit();
       } else {
         toast.error(data.error || "Failed to update audit");
       }
@@ -89,7 +94,7 @@ export default function PolicyAuditTab({ submissionId, policyNumber = "PENDING" 
         <AlertCircle className="w-12 h-12 text-amber-500 mx-auto mb-4" />
         <h3 className="text-xl font-bold text-gray-900 mb-2">No Audit Record Found</h3>
         <p className="text-gray-500 mb-6">An audit has not been requested for this policy yet.</p>
-        <button 
+        <button
           onClick={async () => {
             const res = await fetch("/api/admin/audits", {
               method: "POST",
@@ -97,7 +102,7 @@ export default function PolicyAuditTab({ submissionId, policyNumber = "PENDING" 
               body: JSON.stringify({ submissionIds: [submissionId] })
             });
             const data = await res.json();
-            if(data.success) fetchAudit();
+            if (data.success) fetchAudit();
           }}
           className="px-6 py-3 bg-rose-600 text-white font-semibold rounded-lg hover:bg-rose-700 transition shadow-sm"
         >
@@ -109,24 +114,24 @@ export default function PolicyAuditTab({ submissionId, policyNumber = "PENDING" 
 
   // Formatting helpers
   const formatCurrency = (val: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(val);
-  const parseNum = (val: string) => parseFloat(val.replace(/[^0-9.-]+/g,"")) || 0;
+  const parseNum = (val: string) => parseFloat(val.replace(/[^0-9.-]+/g, "")) || 0;
 
   // Math variables
-  const estExposure = audit.estimatedExposure || 0;
+  const estExposure = parseNum(estimatedExposure);
   const originalPremium = (estExposure / 1000) * parseNum(rate);
   const currentAuditedExposure = parseNum(auditedExposure);
   const auditedPremium = (currentAuditedExposure / 1000) * parseNum(rate);
-  
+
   const exposureDiff = currentAuditedExposure - estExposure;
   const exposureDiffPercent = estExposure > 0 ? (exposureDiff / estExposure) * 100 : 0;
-  
+
   const premiumDifference = auditedPremium - originalPremium;
-  
+
   const slTax = premiumDifference * (parseNum(surplusTaxRate) / 100);
   const stampFee = premiumDifference * (parseNum(stampingFeeRate) / 100);
   const cFee = parseNum(carrierFee);
   const sFee = parseNum(sterlingFee);
-  
+
   const additionalPremiumDue = premiumDifference + slTax + stampFee + cFee + sFee;
 
   // Workflow Stages
@@ -143,7 +148,7 @@ export default function PolicyAuditTab({ submissionId, policyNumber = "PENDING" 
         {/* Header */}
         <div className="mb-6">
           <h2 className="text-[28px] font-bold text-slate-900 tracking-tight flex items-center gap-4">
-            <button 
+            <button
               onClick={() => setViewMode("overview")}
               className="p-1.5 hover:bg-gray-200 rounded-full transition-colors"
             >
@@ -161,10 +166,10 @@ export default function PolicyAuditTab({ submissionId, policyNumber = "PENDING" 
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
+
           {/* Left Column - Forms */}
           <div className="lg:col-span-2 space-y-6">
-            
+
             {/* Revenue Audit */}
             <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
               <div className="bg-[#f0f4f8] px-5 py-3 border-b border-slate-200 flex items-center gap-2">
@@ -175,9 +180,9 @@ export default function PolicyAuditTab({ submissionId, policyNumber = "PENDING" 
                 <div className="mb-5">
                   <label className="block text-xs font-semibold text-gray-500 mb-1.5">Audit Period</label>
                   <div className="relative w-64">
-                    <input 
-                      type="text" 
-                      readOnly 
+                    <input
+                      type="text"
+                      readOnly
                       value={`${new Date(audit.auditPeriodStart).toLocaleDateString("en-US")} - ${new Date(audit.auditPeriodEnd).toLocaleDateString("en-US")}`}
                       className="w-full bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-lg px-3 py-2 pr-10 outline-none"
                     />
@@ -187,19 +192,21 @@ export default function PolicyAuditTab({ submissionId, policyNumber = "PENDING" 
 
                 <div className="grid grid-cols-3 gap-6 items-start">
                   <div>
-                    <label className="block text-xs font-semibold text-gray-500 mb-1.5">Original Estimated Gross Revenue</label>
-                    <input 
-                      type="text" 
-                      readOnly 
-                      value={formatCurrency(estExposure)}
-                      className="w-full bg-slate-50 border border-slate-200 text-slate-700 text-sm font-medium rounded-lg px-3 py-2 outline-none"
+                    <label className="block text-xs font-semibold text-blue-600 mb-1.5 flex items-center gap-1">
+                      Original Estimated Gross Revenue
+                    </label>
+                    <input
+                      type="text"
+                      value={`$${parseNum(estimatedExposure).toLocaleString()}`}
+                      onChange={(e) => setEstimatedExposure(e.target.value.replace(/[^0-9]/g, ''))}
+                      className="w-full bg-white border border-blue-300 text-slate-900 text-sm font-semibold rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-200 transition-all"
                     />
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-gray-700 mb-1.5">Audited Gross Revenue</label>
                     <div className="relative">
-                      <input 
-                        type="text" 
+                      <input
+                        type="text"
                         value={`$${currentAuditedExposure.toLocaleString()}`}
                         onChange={(e) => setAuditedExposure(e.target.value.replace(/[^0-9]/g, ''))}
                         className="w-full bg-white border-2 border-emerald-500 text-slate-900 text-sm font-bold rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-emerald-200 transition-all"
@@ -216,9 +223,9 @@ export default function PolicyAuditTab({ submissionId, policyNumber = "PENDING" 
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-gray-500 mb-1.5">Difference</label>
-                    <input 
-                      type="text" 
-                      readOnly 
+                    <input
+                      type="text"
+                      readOnly
                       value={`${exposureDiff > 0 ? '+' : ''}${formatCurrency(exposureDiff)}`}
                       className="w-full bg-slate-50 border border-slate-200 text-slate-700 text-sm font-medium rounded-lg px-3 py-2 outline-none"
                     />
@@ -236,8 +243,8 @@ export default function PolicyAuditTab({ submissionId, policyNumber = "PENDING" 
               <div className="p-6 grid grid-cols-3 gap-6">
                 <div>
                   <label className="block text-xs font-semibold text-gray-500 mb-1.5">Rate per $1,000</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     value={`$${rate}`}
                     onChange={(e) => setRate(e.target.value.replace(/[^0-9.]/g, ''))}
                     className="w-full bg-slate-50 border border-slate-200 text-slate-700 text-sm font-medium rounded-lg px-3 py-2 outline-none focus:bg-white focus:border-blue-400"
@@ -246,8 +253,8 @@ export default function PolicyAuditTab({ submissionId, policyNumber = "PENDING" 
                 <div>
                   <label className="block text-xs font-semibold text-gray-500 mb-1.5">Surplus Lines Tax</label>
                   <div className="relative">
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       value={surplusTaxRate}
                       onChange={(e) => setSurplusTaxRate(e.target.value.replace(/[^0-9.]/g, ''))}
                       className="w-full bg-slate-50 border border-slate-200 text-slate-700 text-sm font-medium rounded-lg px-3 py-2 outline-none focus:bg-white focus:border-blue-400"
@@ -258,8 +265,8 @@ export default function PolicyAuditTab({ submissionId, policyNumber = "PENDING" 
                 <div>
                   <label className="block text-xs font-semibold text-gray-500 mb-1.5">Stamping Fee</label>
                   <div className="relative">
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       value={stampingFeeRate}
                       onChange={(e) => setStampingFeeRate(e.target.value.replace(/[^0-9.]/g, ''))}
                       className="w-full bg-slate-50 border border-slate-200 text-slate-700 text-sm font-medium rounded-lg px-3 py-2 outline-none focus:bg-white focus:border-blue-400"
@@ -269,8 +276,8 @@ export default function PolicyAuditTab({ submissionId, policyNumber = "PENDING" 
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-gray-500 mb-1.5">Carrier Fee</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     value={`$${carrierFee}`}
                     onChange={(e) => setCarrierFee(e.target.value.replace(/[^0-9.]/g, ''))}
                     className="w-full bg-slate-50 border border-slate-200 text-slate-700 text-sm font-medium rounded-lg px-3 py-2 outline-none focus:bg-white focus:border-blue-400"
@@ -278,8 +285,8 @@ export default function PolicyAuditTab({ submissionId, policyNumber = "PENDING" 
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-gray-500 mb-1.5">Sterling Service Fee</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     value={`$${sterlingFee}`}
                     onChange={(e) => setSterlingFee(e.target.value.replace(/[^0-9.]/g, ''))}
                     className="w-full bg-slate-50 border border-slate-200 text-slate-700 text-sm font-medium rounded-lg px-3 py-2 outline-none focus:bg-white focus:border-blue-400"
@@ -295,7 +302,7 @@ export default function PolicyAuditTab({ submissionId, policyNumber = "PENDING" 
                 <h3 className="font-bold text-amber-900 text-sm">Audit Notes</h3>
               </div>
               <div className="p-6 bg-[#fffdf8]">
-                <textarea 
+                <textarea
                   rows={4}
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
@@ -325,7 +332,7 @@ export default function PolicyAuditTab({ submissionId, policyNumber = "PENDING" 
                   <span>Audited Premium</span>
                   <span>{formatCurrency(auditedPremium)}</span>
                 </div>
-                
+
                 <div className="flex justify-between items-center text-sm font-bold text-rose-600 bg-rose-100/50 -mx-4 px-4 py-3 my-2 rounded-lg">
                   <span>Premium Difference</span>
                   <span>{formatCurrency(premiumDifference)}</span>
@@ -359,14 +366,14 @@ export default function PolicyAuditTab({ submissionId, policyNumber = "PENDING" 
               </div>
 
               <div className="mt-10 flex gap-3">
-                <button 
+                <button
                   onClick={() => updateAudit()}
                   disabled={isSaving}
                   className="w-1/3 py-3 px-4 bg-white border border-slate-300 text-slate-700 font-bold text-sm rounded-xl hover:bg-slate-50 transition-colors shadow-sm disabled:opacity-50"
                 >
                   Save Draft
                 </button>
-                <button 
+                <button
                   onClick={() => updateAudit("UNDERWRITER_REVIEW")}
                   disabled={isSaving}
                   className="w-2/3 py-3 px-4 bg-rose-600 text-white font-bold text-sm rounded-xl hover:bg-rose-700 transition-colors shadow-sm shadow-rose-200 disabled:opacity-50"
@@ -383,32 +390,32 @@ export default function PolicyAuditTab({ submissionId, policyNumber = "PENDING" 
 
   return (
     <div className="grid lg:grid-cols-3 gap-6 pb-12">
-      
+
       {/* LEFT COLUMN - Overview */}
       <div className="lg:col-span-2 space-y-6">
-        
+
         {/* Workflow Strip */}
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-[#e5ddd5]">
           <h3 className="text-[17px] font-bold text-gray-900 mb-8">Audit Workflow</h3>
           <div className="flex items-start justify-between relative px-2">
             <div className="absolute top-5 left-10 right-10 h-0.5 bg-gray-200 -z-10"></div>
-            
+
             {stages.map((stage, idx) => {
-              const isPast = ["FINALIZED", "APPROVED", "COMPLETE"].includes(audit.status) || 
-                             (audit.status === "UNDERWRITER_REVIEW" && idx < 2) ||
-                             (audit.status === "DOCS_RECEIVED" && idx < 1);
+              const isPast = ["FINALIZED", "APPROVED", "COMPLETE"].includes(audit.status) ||
+                (audit.status === "UNDERWRITER_REVIEW" && idx < 2) ||
+                (audit.status === "DOCS_RECEIVED" && idx < 1);
               const isCurrent = audit.status === stage.id || (audit.status === "APPROVED" && stage.id === "FINALIZED");
-              
+
               return (
                 <div key={stage.id} className="flex flex-col items-center w-1/4 text-center">
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-3 transition-colors
-                    ${isPast ? 'bg-emerald-500 text-white shadow-sm' : 
-                      isCurrent ? 'bg-rose-600 text-white ring-[6px] ring-rose-50' : 
-                      'bg-gray-100 text-gray-300 border-2 border-white'}`}
+                    ${isPast ? 'bg-emerald-500 text-white shadow-sm' :
+                      isCurrent ? 'bg-rose-600 text-white ring-[6px] ring-rose-50' :
+                        'bg-gray-100 text-gray-300 border-2 border-white'}`}
                   >
-                    {isPast ? <Check className="w-5 h-5 stroke-[3]" /> : 
-                     isCurrent ? <div className="w-3 h-3 rounded-full bg-white animate-pulse"></div> : 
-                     <div className="w-2.5 h-2.5 rounded-full bg-gray-300"></div>}
+                    {isPast ? <Check className="w-5 h-5 stroke-[3]" /> :
+                      isCurrent ? <div className="w-3 h-3 rounded-full bg-white animate-pulse"></div> :
+                        <div className="w-2.5 h-2.5 rounded-full bg-gray-300"></div>}
                   </div>
                   <h4 className={`font-bold text-[13px] ${isCurrent ? 'text-gray-900' : 'text-gray-600'}`}>{stage.label}</h4>
                   {isCurrent && <p className="text-[11px] font-bold text-rose-600 mt-1 uppercase tracking-wider">In Progress</p>}
@@ -423,13 +430,13 @@ export default function PolicyAuditTab({ submissionId, policyNumber = "PENDING" 
         {/* Audited Exposure */}
         <div className="bg-white p-7 rounded-2xl shadow-sm border border-[#e5ddd5]">
           <h3 className="text-[17px] font-bold text-gray-900 mb-6">Audited Exposure</h3>
-          
+
           <div className="grid grid-cols-4 gap-8">
             <div>
               <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wide mb-2">Estimated Gross Sales</p>
               <p className="text-2xl font-bold text-gray-900">{formatCurrency(estExposure)}</p>
             </div>
-            
+
             <div>
               <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wide mb-2">Audited Gross Sales</p>
               <p className="text-2xl font-bold text-gray-900">
@@ -447,7 +454,7 @@ export default function PolicyAuditTab({ submissionId, policyNumber = "PENDING" 
               <p className="text-2xl font-bold text-gray-900">{new Date(audit.auditPeriodStart).toLocaleDateString("en-US")}</p>
             </div>
           </div>
-          
+
           {/* Fees Summary */}
           <div className="mt-6 pt-5 border-t border-gray-100 grid grid-cols-4 gap-8">
             <div>
@@ -509,7 +516,7 @@ export default function PolicyAuditTab({ submissionId, policyNumber = "PENDING" 
 
       {/* RIGHT COLUMN */}
       <div className="space-y-6">
-        
+
         {/* Premium Reconciliation */}
         <div className="bg-[#fffdfb] rounded-2xl p-7 border border-[#e5ddd5] shadow-sm">
           <h3 className="text-[17px] font-bold text-slate-900 mb-6">Premium Reconciliation</h3>
@@ -525,7 +532,7 @@ export default function PolicyAuditTab({ submissionId, policyNumber = "PENDING" 
                 {audit.auditedExposure > 0 ? formatCurrency(auditedPremium) : "—"}
               </span>
             </div>
-            
+
             <div className="h-px bg-gray-200 my-4"></div>
 
             <div className="flex justify-between items-center">
@@ -537,12 +544,12 @@ export default function PolicyAuditTab({ submissionId, policyNumber = "PENDING" 
           </div>
 
           <div className="mt-8 flex gap-3">
-            <button 
+            <button
               className="w-1/3 py-2.5 px-4 bg-white border border-gray-300 text-gray-700 font-bold text-sm rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
             >
               Save Draft
             </button>
-            <button 
+            <button
               onClick={() => setViewMode("edit")}
               className="w-2/3 py-2.5 px-4 bg-blue-600 text-white font-bold text-sm rounded-lg hover:bg-blue-700 transition-colors shadow-sm shadow-blue-200"
             >

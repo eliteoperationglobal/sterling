@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import mongoose from "mongoose";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/authOptions";
 import connectDB from "@/lib/mongodb";
@@ -35,6 +36,13 @@ export async function GET(
     }
 
     await connectDB();
+
+    if (!mongoose.isValidObjectId(params.id)) {
+      return NextResponse.json(
+        { error: "Invalid submission ID format" },
+        { status: 400 }
+      );
+    }
 
     // Import models to ensure they're registered for populate
     await import("@/models/FormTemplate");

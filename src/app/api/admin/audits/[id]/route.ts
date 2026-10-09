@@ -21,8 +21,22 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       return NextResponse.json({ error: "Audit not found" }, { status: 404 });
     }
 
-    const { auditedExposure, rate, status, action } = body;
+    const { auditedExposure, estimatedExposure, rate, status, action } = body;
     let activityLogDetails = "";
+
+    // If updating estimated exposure
+    if (estimatedExposure !== undefined) {
+      const parsedEstExposure = parseFloat(estimatedExposure);
+      if (audit.estimatedExposure !== parsedEstExposure) {
+        activityLogDetails += `Updated original estimated exposure from $${audit.estimatedExposure} to $${parsedEstExposure}. `;
+        audit.estimatedExposure = parsedEstExposure;
+        
+        // Recalculate original deposit premium based on the new estimate
+        if (audit.rateBasis && audit.rate) {
+          audit.depositPremium = (parsedEstExposure / audit.rateBasis) * audit.rate;
+        }
+      }
+    }
 
     // If updating exposure and rate
     if (auditedExposure !== undefined && rate !== undefined) {

@@ -614,10 +614,15 @@ export default function AuditPage() {
                             <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                               <button 
                                 onClick={() => {
+                                  const targetId = audit.submissionId?._id || audit.submissionId;
+                                  if (!targetId) {
+                                    toast.error("This audit's original submission has been deleted.");
+                                    return;
+                                  }
                                   if (typeof window !== "undefined") {
                                     sessionStorage.setItem("sterling_admin_back_url", "/admin/audit");
                                   }
-                                  router.push(`/admin/submissions/${audit.submissionId}?tab=Audits`);
+                                  router.push(`/admin/submissions/${targetId}?tab=Audits`);
                                 }}
                                 className="px-3 py-1.5 text-xs font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 shadow-sm transition inline-block text-center"
                               >
