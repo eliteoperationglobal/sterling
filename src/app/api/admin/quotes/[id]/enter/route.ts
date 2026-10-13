@@ -75,6 +75,8 @@ export async function POST(
       policyFeeUSD,
       stampingFeePercent,
       stampingFeeAmountUSD,
+      slasTransactionFeePercent,
+      slasTransactionFeeAmountUSD,
       fireMarshalTaxPercent,
       fireMarshalTaxAmountUSD,
       fireMarshalFlatFeeUSD,
@@ -167,6 +169,7 @@ export async function POST(
     const carrierFees = parseFloat(carrierFeesUSD) || 0;
     const sterlingFees = parseFloat(sterlingInsuranceServicesFeesUSD) || 0;
     const stampingAmount = parseFloat(stampingFeeAmountUSD) || 0;
+    const slasAmount = parseFloat(slasTransactionFeeAmountUSD) || 0;
     const taxAmount = parseFloat(premiumTaxAmountUSD) || 0;
     const policyFee = parseFloat(policyFeeUSD) || 0;
     const fireMarshalAmount = parseFloat(fireMarshalTaxAmountUSD) || 0;
@@ -180,6 +183,7 @@ export async function POST(
       brokerFee +
       taxAmount +
       stampingAmount +   // ✅ ADD THIS
+      slasAmount +
       fireMarshalAmount +
       fireMarshalFlatFee + // ✅ ADD THIS
       filingFee +        // ✅ NEW
@@ -264,6 +268,11 @@ export async function POST(
         fireMarshalFlatFee > 0 ? fireMarshalFlatFee : undefined;
       existingQuote.stampingFeePerFilingUSD = filingFee || undefined;
       existingQuote.slaServiceChargeUSD = slaCharge || undefined;
+      existingQuote.slasTransactionFeePercent = slasTransactionFeePercent
+        ? parseFloat(slasTransactionFeePercent)
+        : undefined;
+      existingQuote.slasTransactionFeeAmountUSD =
+        slasAmount > 0 ? slasAmount : undefined;
       existingQuote.finalAmountUSD = finalAmountUSD;
       existingQuote.depositPremiumUSD = depositPremiumUSD;
       existingQuote.depositCarrierFeesUSD = depositCarrierFeesUSD;
@@ -325,6 +334,11 @@ export async function POST(
           fireMarshalFlatFee > 0 ? fireMarshalFlatFee : undefined,
         stampingFeePerFilingUSD: filingFee || undefined,
         slaServiceChargeUSD: slaCharge || undefined,
+        slasTransactionFeePercent: slasTransactionFeePercent
+          ? parseFloat(slasTransactionFeePercent)
+          : undefined,
+        slasTransactionFeeAmountUSD:
+          slasAmount > 0 ? slasAmount : undefined,
         depositPremiumUSD,
         depositCarrierFeesUSD,
         depositTaxUSD,
@@ -458,6 +472,8 @@ export async function POST(
         fireMarshalTaxAmountUSD: fireMarshalAmount > 0 ? fireMarshalAmount : undefined,
         stampingFeePerFilingUSD: filingFee > 0 ? filingFee : undefined,
         slaServiceChargeUSD: slaCharge > 0 ? slaCharge : undefined,
+        slasTransactionFeePercent: slasTransactionFeePercent ? parseFloat(slasTransactionFeePercent) : undefined,
+        slasTransactionFeeAmountUSD: slasAmount > 0 ? slasAmount : undefined,
         policyFeeUSD: policyFee > 0 ? policyFee : undefined,
         brokerFeeAmountUSD: brokerFee > 0 ? brokerFee : undefined,
         finalAmountUSD,

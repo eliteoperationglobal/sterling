@@ -65,6 +65,8 @@ export default function AdminQuotePage() {
   const [stampingFeeAmountUSD, setStampingFeeAmountUSD] = useState("");
   const [stampingFeePerFilingUSD, setStampingFeePerFilingUSD] = useState("");
   const [slaServiceChargeUSD, setSlaServiceChargeUSD] = useState("");
+  const [slasTransactionFeePercent, setSlasTransactionFeePercent] = useState("");
+  const [slasTransactionFeeAmountUSD, setSlasTransactionFeeAmountUSD] = useState("");
 
   // 🔥 Fire Marshal Tax
   const [fireMarshalTaxPercent, setFireMarshalTaxPercent] = useState("");
@@ -277,6 +279,8 @@ export default function AdminQuotePage() {
           stampingFeeAmountUSD: q.stampingFeeAmountUSD?.toString() || "",
           stampingFeePerFilingUSD: q.stampingFeePerFilingUSD?.toString() || "",
           slaServiceChargeUSD: q.slaServiceChargeUSD?.toString() || "",
+          slasTransactionFeePercent: q.slasTransactionFeePercent?.toString() || "",
+          slasTransactionFeeAmountUSD: q.slasTransactionFeeAmountUSD?.toString() || "",
           fireMarshalTaxPercent: q.fireMarshalTaxPercent?.toString() || "",
           fireMarshalTaxAmountUSD: q.fireMarshalTaxAmountUSD?.toString() || "",
           policyFeeUSD: q.policyFeeUSD?.toString() || "",
@@ -325,6 +329,8 @@ export default function AdminQuotePage() {
           setStampingFeeAmountUSD(s.stampingFeeAmountUSD);
           setStampingFeePerFilingUSD(s.stampingFeePerFilingUSD);
           setSlaServiceChargeUSD(s.slaServiceChargeUSD);
+          setSlasTransactionFeePercent(s.slasTransactionFeePercent);
+          setSlasTransactionFeeAmountUSD(s.slasTransactionFeeAmountUSD);
           setFireMarshalTaxPercent(s.fireMarshalTaxPercent);
           setFireMarshalTaxAmountUSD(s.fireMarshalTaxAmountUSD);
           setPolicyFeeUSD(s.policyFeeUSD);
@@ -432,6 +438,13 @@ export default function AdminQuotePage() {
           setPremiumTaxAmountUSD(data.taxAmount.toString());
           if (data.filingFee) setStampingFeePerFilingUSD(data.filingFee.toString());
           if (data.slaServiceCharge) setSlaServiceChargeUSD(data.slaServiceCharge.toString());
+          if (data.slasTransactionFeeRate) {
+            setSlasTransactionFeePercent(data.slasTransactionFeeRate.toString());
+            setSlasTransactionFeeAmountUSD(data.slasTransactionFeeAmount?.toString() || "");
+          } else {
+            setSlasTransactionFeePercent("");
+            setSlasTransactionFeeAmountUSD("");
+          }
         } else {
           // Fallback to manual entry if API fails
           console.warn("Tax calculator API failed, using manual entry");
@@ -460,6 +473,21 @@ export default function AdminQuotePage() {
       }
     }
   }, [premiumTaxPercent, combinedPremium]);
+
+  // Calculate SLAS transaction fee amount when fee percent is changed
+  useEffect(() => {
+    if (combinedPremium && slasTransactionFeePercent) {
+      const feePercent = parseFloat(slasTransactionFeePercent);
+      if (!isNaN(combinedPremium) && !isNaN(feePercent) && combinedPremium > 0) {
+        const feeAmount = (combinedPremium * feePercent) / 100;
+        setSlasTransactionFeeAmountUSD(feeAmount.toFixed(2));
+      } else {
+        setSlasTransactionFeeAmountUSD("");
+      }
+    } else if (!slasTransactionFeePercent) {
+      setSlasTransactionFeeAmountUSD("");
+    }
+  }, [slasTransactionFeePercent, combinedPremium]);
 
   // calculate stamping fees
   useEffect(() => {
@@ -558,6 +586,12 @@ export default function AdminQuotePage() {
     const fireMarshalFlatFee = parseFloat(fireMarshalFlatFeeUSD) || 0;
     const filingFee = parseFloat(stampingFeePerFilingUSD) || 0;
     const slaCharge = parseFloat(slaServiceChargeUSD) || 0;
+    const currentState = getStateCode(
+      (submission as any)?.state ||
+      (submission as any)?.clientContact?.businessAddress?.state ||
+      "CA"
+    );
+    const slasFee = currentState === 'OK' ? (parseFloat(slasTransactionFeeAmountUSD) || 0) : 0;
     const policyFee = parseCurrency(policyFeeUSD) || 0;
 
     const finalAmount =
@@ -567,6 +601,7 @@ export default function AdminQuotePage() {
       brokerFee +
       taxAmount +
       stampingAmount +
+      slasFee +
       fireMarshalAmount +
       fireMarshalFlatFee +
       policyFee +
@@ -580,6 +615,7 @@ export default function AdminQuotePage() {
       brokerFeeAmount: brokerFee,
       premiumTaxAmount: taxAmount,
       stampingFeeAmount: stampingAmount,
+      slasFeeAmount: slasFee,
       fireMarshalAmount,
       fireMarshalFlatFee,
       policyFeeAmount: policyFee,
@@ -595,6 +631,7 @@ export default function AdminQuotePage() {
     sterlingFees: breakdown?.sterlingFees || 0,
     surplusLinesTax: breakdown?.premiumTaxAmount || 0,
     stampingFee: breakdown?.stampingFeeAmount || 0,
+    slasFee: breakdown?.slasFeeAmount || 0,
     fireMarshalTax: breakdown?.fireMarshalAmount || 0,
     fireMarshalFlatFee: breakdown?.fireMarshalFlatFee || 0,
   };
@@ -901,6 +938,8 @@ export default function AdminQuotePage() {
       stampingFeeAmountUSD: state.stampingFeeAmountUSD ? parseCurrency(state.stampingFeeAmountUSD) : undefined,
       stampingFeePerFilingUSD: state.stampingFeePerFilingUSD ? parseCurrency(state.stampingFeePerFilingUSD) : undefined,
       slaServiceChargeUSD: state.slaServiceChargeUSD ? parseCurrency(state.slaServiceChargeUSD) : undefined,
+      slasTransactionFeePercent: state.slasTransactionFeePercent || undefined,
+      slasTransactionFeeAmountUSD: state.slasTransactionFeeAmountUSD ? parseCurrency(state.slasTransactionFeeAmountUSD) : undefined,
       fireMarshalTaxPercent: state.fireMarshalTaxPercent || undefined,
       fireMarshalTaxAmountUSD: state.fireMarshalTaxAmountUSD ? parseCurrency(state.fireMarshalTaxAmountUSD) : undefined,
       fireMarshalFlatFeeUSD: state.fireMarshalFlatFeeUSD ? parseCurrency(state.fireMarshalFlatFeeUSD) : undefined,
@@ -934,6 +973,10 @@ export default function AdminQuotePage() {
         premiumTaxAmountUSD,
         stampingFeePercent,
         stampingFeeAmountUSD,
+        stampingFeePerFilingUSD,
+        slaServiceChargeUSD,
+        slasTransactionFeePercent,
+        slasTransactionFeeAmountUSD,
         fireMarshalTaxPercent,
         fireMarshalTaxAmountUSD,
         fireMarshalFlatFeeUSD,
@@ -1021,6 +1064,10 @@ export default function AdminQuotePage() {
         premiumTaxAmountUSD,
         stampingFeePercent,
         stampingFeeAmountUSD,
+        stampingFeePerFilingUSD,
+        slaServiceChargeUSD,
+        slasTransactionFeePercent,
+        slasTransactionFeeAmountUSD,
         fireMarshalTaxPercent,
         fireMarshalTaxAmountUSD,
         fireMarshalFlatFeeUSD,
@@ -1155,6 +1202,10 @@ export default function AdminQuotePage() {
       premiumTaxAmountUSD,
       stampingFeePercent,
       stampingFeeAmountUSD,
+      stampingFeePerFilingUSD,
+      slaServiceChargeUSD,
+      slasTransactionFeePercent,
+      slasTransactionFeeAmountUSD,
       fireMarshalTaxPercent,
       fireMarshalTaxAmountUSD,
       fireMarshalFlatFeeUSD,
@@ -1192,6 +1243,10 @@ export default function AdminQuotePage() {
     setPolicyFeeUSD(nextState.policyFeeUSD || "");
     setStampingFeePercent(nextState.stampingFeePercent || "");
     setStampingFeeAmountUSD(nextState.stampingFeeAmountUSD || "");
+    setStampingFeePerFilingUSD(nextState.stampingFeePerFilingUSD || "");
+    setSlaServiceChargeUSD(nextState.slaServiceChargeUSD || "");
+    setSlasTransactionFeePercent(nextState.slasTransactionFeePercent || "");
+    setSlasTransactionFeeAmountUSD(nextState.slasTransactionFeeAmountUSD || "");
     setFireMarshalTaxPercent(nextState.fireMarshalTaxPercent || "");
     setFireMarshalTaxAmountUSD(nextState.fireMarshalTaxAmountUSD || "");
     setFireMarshalFlatFeeUSD(nextState.fireMarshalFlatFeeUSD || "");
@@ -1228,7 +1283,7 @@ export default function AdminQuotePage() {
 
     try {
       const pPremium = parseCurrency(carrierQuoteUSD);
-      const pTaxes = parseCurrency(premiumTaxAmountUSD) + parseCurrency(fireMarshalTaxAmountUSD) + parseCurrency(stampingFeeAmountUSD);
+      const pTaxes = parseCurrency(premiumTaxAmountUSD) + parseCurrency(fireMarshalTaxAmountUSD) + parseCurrency(stampingFeeAmountUSD) + parseCurrency(slasTransactionFeeAmountUSD);
       const pFees = parseCurrency(policyFeeUSD) + parseCurrency(carrierFeesUSD) + parseCurrency(sterlingFeesUSD) + parseCurrency(fireMarshalFlatFeeUSD) + parseCurrency(stampingFeePerFilingUSD) + parseCurrency(slaServiceChargeUSD);
 
       const response = await fetch("/api/finance/quote", {
@@ -1271,6 +1326,15 @@ export default function AdminQuotePage() {
   };
   const isReadyToSubmit = availablePolicies.some(isPolicyReady);
   const missingPolicies = availablePolicies.filter(type => !isPolicyReady(type));
+
+  const submissionStateCode = getStateCode(
+    (submission as any)?.state ||
+    (submission as any)?.clientContact?.businessAddress?.state ||
+    (submission as any)?.payload?.state ||
+    (submission as any)?.payload?.propertyState ||
+    "CA"
+  );
+  const isOklahoma = submissionStateCode === 'OK';
 
   const isCommercialProperty = (submission?.programId === 'apartment-buildings' || submission?.programName === 'Commercial Property' || submission?.programName === 'Apartment Building');
   const isManufacturer =
@@ -1706,6 +1770,65 @@ export default function AdminQuotePage() {
                     />
                   </div>
                 </div>
+
+                {/* SLAS Transaction Fee - Only for Oklahoma */}
+                {isOklahoma && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                        SLAS Transaction Fee (%)
+                        {calculatingTax && (
+                          <span className="text-xs text-blue-600 flex items-center gap-1">
+                            <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                            Calculating...
+                          </span>
+                        )}
+                        {!calculatingTax && slasTransactionFeePercent && (
+                          <span className="text-xs text-green-600 flex items-center gap-1">
+                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                            Auto-calculated
+                          </span>
+                        )}
+                      </label>
+                      <div className="flex gap-2">
+                        <input
+                          type="number"
+                          step="0.001"
+                          min="0"
+                          max="100"
+                          value={slasTransactionFeePercent}
+                          onChange={(e) => setSlasTransactionFeePercent(e.target.value)}
+                          className="flex-1 px-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-900 font-semibold focus:outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-100 transition-all hover:border-gray-300 !text-gray-900"
+                          placeholder="Auto-calculated"
+                        />
+                        <span className="text-gray-600 font-semibold self-center px-3">%</span>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Tax rate for Oklahoma (auto-calculated)
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-900 mb-2">
+                        SLAS Transaction Fee Amount (USD)
+                      </label>
+                      <div className="relative">
+                        <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-600 font-semibold">$</span>
+                        <input
+                          type="text"
+                          value={slasTransactionFeeAmountUSD ? formatCurrency(parseFloat(slasTransactionFeeAmountUSD), 2) : ''}
+                          readOnly
+                          className="w-full pl-10 pr-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl text-gray-900 font-semibold !text-gray-900"
+                          placeholder="Auto-calculated"
+                        />
+                      </div>
+                    </div>
+                  </>
+                )}
 
                 {/* Policy Fee */}
                 {/* <div>
@@ -2481,6 +2604,12 @@ export default function AdminQuotePage() {
                     <RatingRow label="Premium" value={formatCurrency(ratingData?.totalPremium || 0)} />
                     <RatingRow label="Carrier Fees" value={formatCurrency(ratingData?.carrierFees || 0)} />
                     <RatingRow label="Surplus Lines Tax (%)" value={formatCurrency(ratingData?.surplusLinesTax || 0)} />
+                    {isOklahoma && parseFloat(slasTransactionFeeAmountUSD || "0") > 0 && (
+                      <RatingRow
+                        label="SLAS Transaction Fee (%)"
+                        value={formatCurrency(parseFloat(slasTransactionFeeAmountUSD || "0"))}
+                      />
+                    )}
                     {ratingData.stampingFee > 0 && (
                       <RatingRow label="Stamping Fee (%)" value={formatCurrency(ratingData?.stampingFee || 0)} />)}
                     {parseFloat(stampingFeePerFilingUSD || "0") > 0 && (

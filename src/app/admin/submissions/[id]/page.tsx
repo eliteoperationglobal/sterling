@@ -2096,6 +2096,9 @@ export default function AdminSubmissionDetailsPage() {
                         <RatingRow label="Premium" value={formatCurrency(currentQuote.carrierQuoteUSD || 0)} />
                         <RatingRow label="Carrier Fees" value={formatCurrency(currentQuote.carrierFeesUSD || 0)} />
                         <RatingRow label="Surplus Lines Tax (%)" value={formatCurrency(currentQuote.premiumTaxAmountUSD || 0)} />
+                        {(currentQuote.slasTransactionFeeAmountUSD || 0) > 0 && (
+                          <RatingRow label="SLAS Transaction Fee (%)" value={formatCurrency(currentQuote.slasTransactionFeeAmountUSD || 0)} />
+                        )}
                         {(currentQuote.stampingFeeAmountUSD || 0) > 0 && (
                           <RatingRow label="Stamping Fee (%)" value={formatCurrency(currentQuote.stampingFeeAmountUSD || 0)} />
                         )}

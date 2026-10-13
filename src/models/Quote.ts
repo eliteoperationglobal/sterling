@@ -47,6 +47,8 @@ export interface IQuote extends Document {
   fireMarshalFlatFeeUSD?: number;
   stampingFeePerFilingUSD?: number;
   slaServiceChargeUSD?: number;
+  slasTransactionFeePercent?: number;
+  slasTransactionFeeAmountUSD?: number;
   depositPremiumUSD?: number;
   depositCarrierFeesUSD?: number;
   depositTaxUSD?: number;
@@ -171,6 +173,15 @@ const QuoteSchema: Schema = new Schema(
     },
 
     slaServiceChargeUSD: {
+      type: Number,
+      min: 0,
+    },
+    slasTransactionFeePercent: {
+      type: Number,
+      min: 0,
+      max: 100,
+    },
+    slasTransactionFeeAmountUSD: {
       type: Number,
       min: 0,
     },

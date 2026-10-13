@@ -6,6 +6,8 @@ import {
   calculateFireMarshalTax,
   getStampingFeePerFiling,
   getSLAServiceCharge, // ✅ NEW
+  getSlasTransactionFee,
+  calculateSlasTransactionFee,
 } from "@/lib/data/stateTaxRates";
 
 /**
@@ -43,11 +45,14 @@ export async function GET(request: NextRequest) {
 
     const filingFee = getStampingFeePerFiling(state);
     const slaServiceCharge = getSLAServiceCharge(state);
+    const slasFeeCalc = calculateSlasTransactionFee(premium, state);
 
     if (type === "stamping") {
       result = calculateStampingFee(premium, state);
     } else if (type === "firemarshal") {
       result = calculateFireMarshalTax(premium, state);
+    } else if (type === "slas") {
+      result = slasFeeCalc;
     } else {
       result = calculatePremiumTax(premium, state);
     }
@@ -62,10 +67,12 @@ export async function GET(request: NextRequest) {
       premium,
       taxRate: result.taxRate,
       taxAmount: result.taxAmount,
-      flatFee: result.flatFee || 0, // ✅ NEW: Flat fee for fire marshal
-      totalAmount: result.totalAmount || result.taxAmount, // ✅ NEW: Total amount
+      flatFee: (result as any).flatFee || 0, // ✅ NEW: Flat fee for fire marshal
+      totalAmount: (result as any).totalAmount || result.taxAmount, // ✅ NEW: Total amount
       filingFee, // ✅ NEW
       slaServiceCharge,
+      slasTransactionFeeRate: slasFeeCalc.taxRate,
+      slasTransactionFeeAmount: slasFeeCalc.taxAmount,
       success: true,
     });
   } catch (error: any) {
@@ -102,9 +109,12 @@ export async function POST(request: NextRequest) {
     }
 
     let result;
+    const slasFeeCalc = calculateSlasTransactionFee(premiumAmount, state);
 
     if (type === "stamping") {
       result = calculateStampingFee(premiumAmount, state);
+    } else if (type === "slas") {
+      result = slasFeeCalc;
     } else {
       result = calculatePremiumTax(premiumAmount, state);
     }
@@ -115,6 +125,8 @@ export async function POST(request: NextRequest) {
       premium: premiumAmount,
       taxRate: result.taxRate,
       taxAmount: result.taxAmount,
+      slasTransactionFeeRate: slasFeeCalc.taxRate,
+      slasTransactionFeeAmount: slasFeeCalc.taxAmount,
       success: true,
     });
   } catch (error: any) {

@@ -25,6 +25,7 @@ export interface StateTaxRate {
   fireMarshalFlatFee?: number;  // flat dollar amount (e.g. 20)
   stampingFeePerFiling?: number; // stamping fee per filing
   slaServiceCharge?: number; // sla service charge
+  slasTransactionFee?: number; // Oklahoma SLAS Transaction Fee (percentage, e.g. 0.175)
 }
 
 export const STATE_TAX_RATES: Record<string, StateTaxRate> = {
@@ -137,7 +138,7 @@ export const STATE_TAX_RATES: Record<string, StateTaxRate> = {
   OH: { state: "OH", stateName: "Ohio", taxRate: 5 },
 
   // Oklahoma
-  OK: { state: "OK", stateName: "Oklahoma", taxRate: 6 },
+  OK: { state: "OK", stateName: "Oklahoma", taxRate: 6, slasTransactionFee: 0.175 },
 
   // Oregon
   OR: { state: "OR", stateName: "Oregon", taxRate: 2, stampingFee: 0, fireMarshalRate: 0.30, slaServiceCharge: 10, },
@@ -334,4 +335,28 @@ export function getStampingFeePerFiling(state: string): number {
 export function getSLAServiceCharge(state: string): number {
   const stateData = getStateTaxData(state);
   return stateData?.slaServiceCharge || 0;
+}
+
+export function getSlasTransactionFee(state: string): number {
+  const stateData = getStateTaxData(state);
+  return stateData?.slasTransactionFee || 0;
+}
+
+export function calculateSlasTransactionFee(
+  premium: number,
+  state: string
+): {
+  taxRate: number;
+  taxAmount: number;
+  stateName: string;
+} {
+  const stateData = getStateTaxData(state);
+  const feeRate = stateData?.slasTransactionFee || 0;
+  const feeAmount = (premium * feeRate) / 100;
+
+  return {
+    taxRate: feeRate,
+    taxAmount: parseFloat(feeAmount.toFixed(2)),
+    stateName: stateData?.stateName || state,
+  };
 }
