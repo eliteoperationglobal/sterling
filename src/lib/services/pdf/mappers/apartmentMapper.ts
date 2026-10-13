@@ -201,6 +201,7 @@ export interface ApartmentPacketData {
     stampingFee?: string;
     stampingFeePerFiling?: string;
     slaServiceCharge?: string;
+    slasTransactionFee?: string;
     fireMarshalTax?: string;
     fireMarshalFlatFee?: string;
     totalCostOfPolicy?: string;
@@ -539,6 +540,7 @@ export function mapApartmentDataToPacketData(
         stampingFee: formatUSD(quote?.costs?.stampingFee ?? quote?.stampingFeeAmountUSD),
         stampingFeePerFiling: formatUSD(quote?.costs?.stampingFeePerFiling ?? quote?.stampingFeePerFilingUSD),
         slaServiceCharge: formatUSD(quote?.costs?.slaServiceCharge ?? quote?.slaServiceChargeUSD),
+        slasTransactionFee: formatUSD(quote?.costs?.slasTransactionFee ?? quote?.slasTransactionFeeAmountUSD),
         fireMarshalTax: formatUSD(quote?.costs?.fireMarshalTax ?? quote?.fireMarshalTaxAmountUSD),
         fireMarshalFlatFee: formatUSD(quote?.costs?.fireMarshalFlatFee ?? quote?.fireMarshalFlatFeeUSD),
         totalCostOfPolicy: formatUSD(quote?.costs?.totalCostOfPolicy ?? quote?.finalAmountUSD),

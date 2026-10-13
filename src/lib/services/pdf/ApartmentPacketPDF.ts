@@ -5811,6 +5811,12 @@ function generateInvoicePage(data: ApartmentPacketData): string {
 			<div class="invoice-label-page12">Surplus Lines Tax</div>
 			<div class="invoice-value-page12">${data.surplusLinesTax || '$0.00'}</div>
 		  </div>
+		  ${data.slasTransactionFee && parseFloat(data.slasTransactionFee.replace(/[\$,]/g, "")) > 0 ? `
+			<div class="invoice-row-page12">
+			  <div class="invoice-label-page12">SLAS Transaction Fee</div>
+			  <div class="invoice-value-page12">${data.slasTransactionFee}</div>
+			</div>
+		  ` : ''}
 		  ${data.stampingFee && parseFloat(data.stampingFee.replace(/[\$,]/g, "")) > 0 ? `
 			<div class="invoice-row-page12">
 			  <div class="invoice-label-page12">Stamping Fee</div>

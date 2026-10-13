@@ -223,6 +223,7 @@ export interface ApplicationPacketData {
 	fireMarshalFlatFee?: string; // NEW
 	stampingFeePerFiling?: string; // NEW
 	slaServiceCharge?: string;     // NEW
+	slasTransactionFee?: string;   // NEW
 	totalCostOfPolicy?: string;
 	depositPremium?: string;
 	depositAssociationDues?: string;
@@ -4858,6 +4859,12 @@ function generatePage12(data: ApplicationPacketData): string {
 			<div class="invoice-label-page12">Surplus Lines Tax</div>
 			<div class="invoice-value-page12">${data.surplusLinesTax || '$0.00'}</div>
 		  </div>
+		  ${data.slasTransactionFee && parseFloat(data.slasTransactionFee.replace(/[$,]/g, "")) > 0 ? `
+			<div class="invoice-row-page12">
+			  <div class="invoice-label-page12">SLAS Transaction Fee</div>
+			  <div class="invoice-value-page12">${data.slasTransactionFee}</div>
+			</div>
+		  ` : ''}
 		  ${data.stampingFee && parseFloat(data.stampingFee.replace(/[$,]/g, "")) > 0 ? `
 			<div class="invoice-row-page12">
 			  <div class="invoice-label-page12">Stamping Fee</div>
@@ -8146,6 +8153,7 @@ export function mapFormDataToPacketData(
 		fireMarshalFlatFee: formatUSD(quote?.fireMarshalFlatFeeUSD || 0),
 		stampingFeePerFiling: formatUSD(quote?.stampingFeePerFilingUSD),
 		slaServiceCharge: formatUSD(quote?.slaServiceChargeUSD),
+		slasTransactionFee: formatUSD(quote?.slasTransactionFeeAmountUSD ?? (quote?.costs as any)?.slasTransactionFee ?? (formData as any)?.slasTransactionFee),
 		totalCostOfPolicy: formatUSD(quote?.finalAmountUSD),
 
 		surplusLinesTax: formatUSD(quote?.premiumTaxAmountUSD),

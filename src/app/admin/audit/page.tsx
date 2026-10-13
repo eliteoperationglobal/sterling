@@ -35,6 +35,7 @@ export default function AuditPage() {
   const [newPhone, setNewPhone] = useState("");
   const [newPolicyNumber, setNewPolicyNumber] = useState("");
   const [newDate, setNewDate] = useState("");
+  const [newCarrier, setNewCarrier] = useState("");
   const [newAgency, setNewAgency] = useState("");
   const [newIndustry, setNewIndustry] = useState("");
 
@@ -203,7 +204,7 @@ export default function AuditPage() {
   };
 
   const handleCreateProfile = async () => {
-    if (!newClientName || !newEmail || !newPhone || !newAgency || !newIndustry) {
+    if (!newClientName || !newEmail || !newPhone || !newAgency || !newIndustry || !newCarrier) {
       toast.error("Please fill in all the required fields.");
       return;
     }
@@ -219,6 +220,7 @@ export default function AuditPage() {
           phone: newPhone,
           policyNumber: newPolicyNumber,
           date: newDate,
+          carrier: newCarrier,
           agencyName: newAgency,
           industry: newIndustry
         })
@@ -584,6 +586,9 @@ export default function AuditPage() {
                               {(audit.source === "MANUAL_AUDIT" || audit.submissionId?.payload?.source === "MANUAL_AUDIT") && (
                                 <span className="px-1.5 py-0.5 bg-gray-100 text-gray-500 text-[9px] font-bold rounded-sm border border-gray-200 uppercase tracking-wider" title="Created Manually">Manual</span>
                               )}
+                              {!audit.submissionId && audit.source !== "MANUAL_AUDIT" && (
+                                <span className="px-1.5 py-0.5 bg-rose-50 text-rose-600 text-[9px] font-bold rounded-sm border border-rose-200 uppercase tracking-wider" title="Original policy submission was deleted">Policy Deleted</span>
+                              )}
                             </div>
                             <p className="text-xs text-gray-500 font-mono mt-0.5">{audit.policyNumber}</p>
                           </td>
@@ -628,51 +633,34 @@ export default function AuditPage() {
                             <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                               <button
                                 onClick={() => {
-                                  // Check if it's a standalone manual audit (no submission ID)
-                                  if (audit.source === "MANUAL_AUDIT" && !audit.submissionId) {
-                                    if (typeof window !== "undefined") {
-                                      sessionStorage.setItem("sterling_admin_back_url", "/admin/audit");
-                                    }
-                                    router.push(`/admin/audits/${audit._id}`);
-                                    return;
-                                  }
-
-                                  const targetId = audit.submissionId?._id || audit.submissionId;
-                                  if (!targetId) {
-                                    toast.error("This audit's original submission has been deleted.");
-                                    return;
-                                  }
                                   if (typeof window !== "undefined") {
                                     sessionStorage.setItem("sterling_admin_back_url", "/admin/audit");
                                   }
-                                  router.push(`/admin/submissions/${targetId}?tab=Audits`);
+
+                                  const targetId = audit.submissionId?._id || (typeof audit.submissionId === "string" ? audit.submissionId : null);
+                                  // If manual audit or if original submission was deleted, view standalone audit page
+                                  if (!targetId || audit.source === "MANUAL_AUDIT" || audit.submissionId?.payload?.source === "MANUAL_AUDIT") {
+                                    router.push(`/admin/audits/${audit._id}`);
+                                  } else {
+                                    router.push(`/admin/submissions/${targetId}?tab=Audits`);
+                                  }
                                 }}
                                 className="px-3 py-1.5 text-xs font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 shadow-sm transition inline-block text-center"
                               >
                                 View
                               </button>
 
-                              {/* Show Delete button ONLY for standalone manual audits (no submission attached) */}
-                              {audit.source === "MANUAL_AUDIT" && !audit.submissionId && (
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setAuditToDelete(audit);
-                                    setDeleteModalOpen(true);
-                                  }}
-                                  className="p-1.5 text-gray-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition"
-                                  title="Delete Manual Audit"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </button>
-                              )}
-
-                              {/* Only show extra options if it's not a standalone manual audit */}
-                              {!(audit.source === "MANUAL_AUDIT" && !audit.submissionId) && (
-                                <button className="p-1.5 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition">
-                                  <MoreHorizontal className="w-4 h-4" />
-                                </button>
-                              )}
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setAuditToDelete(audit);
+                                  setDeleteModalOpen(true);
+                                }}
+                                className="p-1.5 text-gray-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition"
+                                title="Delete Audit"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
                             </div>
                           </td>
                         </tr>
@@ -934,6 +922,18 @@ export default function AuditPage() {
                     <Calendar className="w-5 h-5 text-gray-400 absolute right-3 top-3.5 pointer-events-none" />
                   </div>
                 </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Carrier</label>
+                  <select
+                    value={newCarrier}
+                    onChange={(e) => setNewCarrier(e.target.value)}
+                    className="w-full px-4 py-3 border border-[#e5ddd5] rounded-xl bg-[#fcfaf8] focus:ring-2 focus:ring-blue-500 outline-none text-gray-700"
+                  >
+                    <option value="">Select Carrier</option>
+                    <option value="Richmond National Insurance">Richmond National Insurance</option>
+                    <option value="Kinsale Insurance Company">Kinsale Insurance Company</option>
+                  </select>
+                </div>
                 <div className="md:col-span-2">
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Associated Agency</label>
                   <select
@@ -993,9 +993,9 @@ export default function AuditPage() {
               <div className="w-16 h-16 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <AlertCircle className="w-8 h-8 text-rose-600" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Delete Manual Audit?</h3>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Delete Audit?</h3>
               <p className="text-sm text-gray-500 mb-6">
-                Are you sure you want to permanently delete the audit for <strong className="text-gray-700">{auditToDelete.namedInsured}</strong>? This action cannot be undone and will erase all associated data and logs.
+                Are you sure you want to permanently delete the audit for <strong className="text-gray-700">{auditToDelete.namedInsured}</strong> ({auditToDelete.auditId})? This action cannot be undone and will erase all associated data and logs.
               </p>
 
               <div className="flex gap-3 w-full">
@@ -1015,7 +1015,7 @@ export default function AuditPage() {
                     try {
                       const res = await fetch(`/api/admin/audits/${auditToDelete._id}`, { method: "DELETE" });
                       if (res.ok) {
-                        toast.success("Manual audit deleted successfully");
+                        toast.success("Audit deleted successfully");
                         fetchAudits();
                         setDeleteModalOpen(false);
                       } else {

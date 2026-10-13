@@ -6,8 +6,9 @@ import {
   ArrowLeft, Edit3, Building, DollarSign, Calendar, 
   FileText, CheckCircle2, ShieldCheck, Download, Eye, Clock, 
   User, Mail, Phone, ExternalLink, ArrowUpRight, ArrowDownRight,
-  TrendingUp, AlertCircle, Receipt
+  TrendingUp, AlertCircle, Receipt, Loader2
 } from "lucide-react";
+import { toast } from "sonner";
 
 export default function CompleteAuditInfoPage() {
   const params = useParams();
@@ -17,6 +18,37 @@ export default function CompleteAuditInfoPage() {
   const [audit, setAudit] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  const handleDownloadInvoice = async () => {
+    if (!audit?._id || isDownloading) return;
+    setIsDownloading(true);
+    const toastId = toast.loading("Generating invoice PDF, please wait...");
+
+    try {
+      const response = await fetch(`/api/admin/audits/${audit._id}/invoice`);
+      if (!response.ok) {
+        throw new Error("Failed to generate PDF invoice");
+      }
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      const filename = `Invoice-${audit.auditId || audit.policyNumber || "Audit"}.pdf`;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      toast.success("Invoice PDF downloaded successfully!", { id: toastId });
+    } catch (err: any) {
+      console.error("PDF download error:", err);
+      toast.error(err.message || "Failed to download invoice PDF. Please try again.", { id: toastId });
+    } finally {
+      setIsDownloading(false);
+    }
+  };
 
   useEffect(() => {
     if (!auditIdParam) return;
@@ -163,14 +195,23 @@ export default function CompleteAuditInfoPage() {
               <Edit3 className="w-4 h-4 text-slate-500" />
               Edit Audit
             </button>
-            <a
-              href={`/api/admin/audits/${audit._id}/invoice`}
-              download
-              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-rose-600 rounded-xl hover:bg-rose-700 transition shadow-xs cursor-pointer"
+            <button
+              onClick={handleDownloadInvoice}
+              disabled={isDownloading}
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-rose-600 rounded-xl hover:bg-rose-700 disabled:bg-rose-400 disabled:cursor-not-allowed transition shadow-xs cursor-pointer"
             >
-              <Download className="w-4 h-4" />
-              Download Invoice
-            </a>
+              {isDownloading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Generating PDF...
+                </>
+              ) : (
+                <>
+                  <Download className="w-4 h-4" />
+                  Download Invoice
+                </>
+              )}
+            </button>
           </div>
         </div>
       </div>
@@ -578,14 +619,23 @@ export default function CompleteAuditInfoPage() {
 
               {/* Action buttons inside calculation card */}
               <div className="mt-8 pt-5 border-t border-rose-100 flex flex-col gap-2.5 print:hidden">
-                <a
-                  href={`/api/admin/audits/${audit._id}/invoice`}
-                  download
-                  className="w-full py-3 px-4 bg-rose-600 text-white font-bold text-sm rounded-xl hover:bg-rose-700 transition shadow-xs flex items-center justify-center gap-2 cursor-pointer"
+                <button
+                  onClick={handleDownloadInvoice}
+                  disabled={isDownloading}
+                  className="w-full py-3 px-4 bg-rose-600 text-white font-bold text-sm rounded-xl hover:bg-rose-700 disabled:bg-rose-400 disabled:cursor-not-allowed transition shadow-xs flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  <Download className="w-4 h-4" />
-                  Download Invoice (PDF)
-                </a>
+                  {isDownloading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Generating PDF...
+                    </>
+                  ) : (
+                    <>
+                      <Download className="w-4 h-4" />
+                      Download Invoice (PDF)
+                    </>
+                  )}
+                </button>
                 <button
                   onClick={() => router.push(`/admin/audits/${audit._id}`)}
                   className="w-full py-2.5 px-4 bg-white border border-slate-300 text-slate-700 font-bold text-sm rounded-xl hover:bg-slate-50 transition shadow-xs text-center cursor-pointer"

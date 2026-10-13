@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
     await connectDB();
 
     const body = await req.json();
-    const { clientName, email, phone, agencyName, industry, policyNumber, date } = body;
+    const { clientName, email, phone, agencyName, industry, policyNumber, date, carrier } = body;
 
     if (!clientName || !email || !phone) {
       return NextResponse.json({ error: "Client Name, Email, and Phone are required" }, { status: 400 });
@@ -24,12 +24,21 @@ export async function POST(req: NextRequest) {
 
     // 1. Try to find the associated agency if provided
     let agencyId = null;
-    if (agencyName) {
-      const agency = await Agency.findOne({ name: agencyName });
+    if (agencyName && typeof agencyName === "string" && agencyName.trim()) {
+      const trimmedAgency = agencyName.trim();
+      const escaped = trimmedAgency.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const agency = await Agency.findOne({ 
+        name: { $regex: new RegExp("^" + escaped + "$", "i") } 
+      });
       if (agency) {
         agencyId = agency._id;
       }
     }
+
+    // Handle carrier
+    const finalCarrier = (carrier && typeof carrier === "string" && carrier.trim())
+      ? carrier.trim()
+      : "Richmond National Insurance";
 
     // Handle policy number
     const submissionNumber = Math.floor(100000 + Math.random() * 900000);
@@ -81,7 +90,7 @@ export async function POST(req: NextRequest) {
       auditId,
       source: "MANUAL_AUDIT",
       policyNumber: finalPolicyNumber,
-      carrier: "Unknown Carrier", // To be filled by admin later
+      carrier: finalCarrier,
       program: industry || "General Liability",
       agencyId: agencyId,
       namedInsured: clientName,

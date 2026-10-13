@@ -32,8 +32,11 @@ export async function GET(req: NextRequest) {
     // Fetch audits, sort by dueDate ascending
     const audits = await Audit.find(query)
       .sort({ dueDate: 1 })
-      .populate("agencyId", "name")
-      .populate("submissionId", "payload")
+      .populate("agencyId")
+      .populate({
+        path: "submissionId",
+        populate: { path: "agencyId" }
+      })
       .lean();
     
     if ((submissionId || auditId) && audits.length > 0) {

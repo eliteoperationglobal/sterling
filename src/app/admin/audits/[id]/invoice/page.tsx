@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, Printer, Download } from "lucide-react";
+import { ArrowLeft, Printer, Download, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 export default function AuditInvoicePage() {
   const params = useParams();
@@ -12,6 +13,37 @@ export default function AuditInvoicePage() {
   const [audit, setAudit] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  const handleDownloadInvoice = async () => {
+    if (!audit?._id || isDownloading) return;
+    setIsDownloading(true);
+    const toastId = toast.loading("Generating invoice PDF, please wait...");
+
+    try {
+      const response = await fetch(`/api/admin/audits/${audit._id}/invoice`);
+      if (!response.ok) {
+        throw new Error("Failed to generate PDF invoice");
+      }
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      const filename = `Invoice-${audit.auditId || audit.policyNumber || "Audit"}.pdf`;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      toast.success("Invoice PDF downloaded successfully!", { id: toastId });
+    } catch (err: any) {
+      console.error("PDF download error:", err);
+      toast.error(err.message || "Failed to download invoice PDF. Please try again.", { id: toastId });
+    } finally {
+      setIsDownloading(false);
+    }
+  };
 
   useEffect(() => {
     if (!auditIdParam) return;
@@ -96,6 +128,30 @@ export default function AuditInvoicePage() {
   const applicantZip = payload.applicantZip || payload.zip || "";
   const cityStateZip = [applicantCity, applicantState].filter(Boolean).join(", ") + (applicantZip ? ` ${applicantZip}` : "");
 
+  // Dynamic Agency Details from audit.agencyId or submission.agencyId
+  const agency: any = (audit.agencyId && typeof audit.agencyId === "object" ? audit.agencyId : null) || (audit.submissionId as any)?.agencyId || null;
+  const agencyName = agency?.name || "Gamaty Insurance Agency LLC DBA Capital & Co Insurance Services";
+  const agencyStreet = agency?.address?.street || "5455 Wilshire Blvd. #1816";
+  const agencyCity = agency?.address?.city || "Los Angeles";
+  const agencyState = agency?.address?.state || "CA";
+  const agencyZip = agency?.address?.zip || "90036";
+  const agencyCityStateZip = [agencyCity, agencyState].filter(Boolean).join(", ") + (agencyZip ? ` ${agencyZip}` : "");
+  const agencyPhone = agency?.phone || "(310) 492-2007";
+  const agencyEmail = agency?.email || "CS@capcoinsurance.com";
+
+  const renderAgencyName = () => {
+    if (agencyName.includes(" DBA ")) {
+      const [legal, dba] = agencyName.split(" DBA ");
+      return (
+        <>
+          <div className="font-bold">{legal} DBA</div>
+          <div className="font-bold">{dba}</div>
+        </>
+      );
+    }
+    return <div className="font-bold">{agencyName}</div>;
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 py-6 px-4 print:bg-white print:p-0 print:m-0 print:min-h-0">
       {/* Print styles to guarantee exact 1-page fit and suppress browser headers/footers (URL & page numbers) */}
@@ -144,14 +200,23 @@ export default function AuditInvoicePage() {
         </button>
 
         <div className="flex items-center gap-2">
-          <a
-            href={`/api/admin/audits/${audit._id}/invoice`}
-            download
-            className="inline-flex items-center gap-1.5 px-4 py-2 bg-rose-600 text-white font-bold text-xs rounded hover:bg-rose-700 transition shadow-sm cursor-pointer"
+          <button
+            onClick={handleDownloadInvoice}
+            disabled={isDownloading}
+            className="inline-flex items-center gap-1.5 px-4 py-2 bg-rose-600 text-white font-bold text-xs rounded hover:bg-rose-700 disabled:bg-rose-400 disabled:cursor-not-allowed transition shadow-sm cursor-pointer"
           >
-            <Download className="w-3.5 h-3.5" />
-            Download PDF
-          </a>
+            {isDownloading ? (
+              <>
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                Generating PDF...
+              </>
+            ) : (
+              <>
+                <Download className="w-3.5 h-3.5" />
+                Download PDF
+              </>
+            )}
+          </button>
           <button
             onClick={() => window.print()}
             className="inline-flex items-center gap-1.5 px-4 py-2 bg-black text-white font-bold text-xs rounded hover:bg-slate-800 transition shadow-sm cursor-pointer"
@@ -179,12 +244,11 @@ export default function AuditInvoicePage() {
           </div>
 
           <div className="text-right">
-            <div className="font-bold">Gamaty Insurance Agency LLC DBA</div>
-            <div className="font-bold">Capital & Co Insurance Services</div>
-            <div>5455 Wilshire Blvd. #1816</div>
-            <div>Los Angeles, CA 90036</div>
-            <div>(310) 492-2007</div>
-            <div>CS@capcoinsurance.com</div>
+            {renderAgencyName()}
+            {agencyStreet && <div>{agencyStreet}</div>}
+            {agencyCityStateZip && <div>{agencyCityStateZip}</div>}
+            {agencyPhone && <div>{agencyPhone}</div>}
+            {agencyEmail && <div>{agencyEmail}</div>}
           </div>
         </div>
 

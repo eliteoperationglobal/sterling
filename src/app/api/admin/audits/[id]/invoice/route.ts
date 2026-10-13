@@ -17,9 +17,16 @@ export async function GET(
     }
 
     await connectDB();
+    await import("@/models/Agency");
     const { id } = params;
 
-    const audit = await Audit.findById(id).populate("submissionId").lean();
+    const audit = await Audit.findById(id)
+      .populate("agencyId")
+      .populate({
+        path: "submissionId",
+        populate: { path: "agencyId" }
+      })
+      .lean();
     if (!audit) {
       return NextResponse.json({ error: "Audit not found" }, { status: 404 });
     }
@@ -64,6 +71,23 @@ export async function GET(
     const appId = audit.auditId ? audit.auditId.replace("AUD-", "") : (audit._id as any).toString().slice(-6);
     const invoiceDate = new Date((audit as any).auditEffectiveDate || (audit as any).auditPeriodStart || (audit as any).createdAt).toLocaleDateString("en-US");
     const policyNumberStr = audit.policyNumber || "";
+
+    // Dynamic Agency Details from audit.agencyId or submission.agencyId
+    const agency: any = (audit as any).agencyId || ((audit.submissionId as any)?.agencyId) || null;
+    const agencyName = agency?.name || "Gamaty Insurance Agency LLC DBA Capital & Co Insurance Services";
+    const agencyAddress = agency?.address?.street || "5455 Wilshire Blvd. #1816";
+    const agencyCity = agency?.address?.city || "Los Angeles";
+    const agencyState = agency?.address?.state || "CA";
+    const agencyZip = agency?.address?.zip || "90036";
+    const agencyCityStateZip = [agencyCity, agencyState].filter(Boolean).join(", ") + (agencyZip ? ` ${agencyZip}` : "");
+    const agencyPhone = agency?.phone || "(310) 492-2007";
+    const agencyEmail = agency?.email || "CS@capcoinsurance.com";
+
+    let agencyNameHTML = `<div class="bold">${agencyName}</div>`;
+    if (agencyName.includes(" DBA ")) {
+      const [legal, dba] = agencyName.split(" DBA ");
+      agencyNameHTML = `<div class="bold">${legal} DBA</div><div class="bold">${dba}</div>`;
+    }
 
     const invoiceHTML = `
       <!DOCTYPE html>
@@ -155,12 +179,11 @@ export async function GET(
             <div>App ID: ${appId}</div>
           </div>
           <div class="header-right">
-            <div class="bold">Gamaty Insurance Agency LLC DBA</div>
-            <div class="bold">Capital & Co Insurance Services</div>
-            <div>5455 Wilshire Blvd. #1816</div>
-            <div>Los Angeles, CA 90036</div>
-            <div>(310) 492-2007</div>
-            <div>CS@capcoinsurance.com</div>
+            ${agencyNameHTML}
+            ${agencyAddress ? `<div>${agencyAddress}</div>` : ""}
+            ${agencyCityStateZip ? `<div>${agencyCityStateZip}</div>` : ""}
+            ${agencyPhone ? `<div>${agencyPhone}</div>` : ""}
+            ${agencyEmail ? `<div>${agencyEmail}</div>` : ""}
           </div>
         </div>
 

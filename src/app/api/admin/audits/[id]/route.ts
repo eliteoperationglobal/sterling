@@ -31,7 +31,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       stampingFeeRate, 
       auditNotes, 
       status, 
-      action 
+      action,
+      carrier
     } = body;
     let activityLogDetails = "";
 
@@ -87,6 +88,13 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     if (auditNotes !== undefined) {
       audit.auditNotes = auditNotes;
     }
+    if (carrier !== undefined && typeof carrier === "string" && carrier.trim()) {
+      const trimmedCarrier = carrier.trim();
+      if (audit.carrier !== trimmedCarrier) {
+        activityLogDetails += `Carrier changed from ${audit.carrier || "Unknown"} to ${trimmedCarrier}. `;
+        audit.carrier = trimmedCarrier;
+      }
+    }
 
     if (recalculateFinancials) {
       // Backend Premium Calculation (Security: Do not trust frontend calculations)
@@ -135,6 +143,15 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     const audit = await Audit.findById(id);
     if (!audit) {
       return NextResponse.json({ error: "Audit not found" }, { status: 404 });
+    }
+
+    // If it was attached to an old dummy manual submission, clean it up as well
+    if (audit.submissionId) {
+      const Submission = (await import("@/models/Submission")).default;
+      const sub = await Submission.findById(audit.submissionId);
+      if (sub && sub.payload?.source === "MANUAL_AUDIT") {
+        await Submission.findByIdAndDelete(audit.submissionId);
+      }
     }
 
     // Delete the audit and its activities

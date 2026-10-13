@@ -29,6 +29,7 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
   const [stampingFeeRate, setStampingFeeRate] = useState("");
   const [carrierFee, setCarrierFee] = useState("");
   const [sterlingFee, setSterlingFee] = useState("");
+  const [carrier, setCarrier] = useState("");
   const [notes, setNotes] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
@@ -49,6 +50,7 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
         setRate(data.audits[0].rate ? data.audits[0].rate.toString() : "");
         setCarrierFee(data.audits[0].carrierFee ? data.audits[0].carrierFee.toString() : "");
         setSterlingFee(data.audits[0].sterlingFee ? data.audits[0].sterlingFee.toString() : "");
+        if (data.audits[0].carrier) setCarrier(data.audits[0].carrier);
         if (data.audits[0].surplusLinesTaxRate !== undefined) setSurplusTaxRate(data.audits[0].surplusLinesTaxRate.toString());
         if (data.audits[0].stampingFeeRate !== undefined) setStampingFeeRate(data.audits[0].stampingFeeRate.toString());
         if (data.audits[0].auditNotes) setNotes(data.audits[0].auditNotes);
@@ -64,6 +66,7 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
     setIsSaving(true);
     try {
       const payload: any = {
+        carrier: carrier || audit.carrier,
         estimatedExposure: parseFloat(estimatedExposure) || 0,
         auditedExposure: parseFloat(auditedExposure) || 0,
         rate: parseFloat(rate) || 0,
@@ -107,6 +110,7 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
       try {
         setIsSaving(true);
         const payload: any = {
+          carrier: carrier || audit.carrier,
           estimatedExposure: parseFloat(estimatedExposure) || 0,
           auditedExposure: parseFloat(auditedExposure) || 0,
           rate: parseFloat(rate) || 0,
@@ -288,7 +292,7 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
             <span className="text-gray-300">|</span>
             <span className="flex items-center gap-2">Date: <strong className="text-gray-900">{new Date(audit.auditEffectiveDate || audit.auditPeriodStart).toLocaleDateString("en-US")}</strong></span>
             <span className="text-gray-300">|</span>
-            <span className="flex items-center gap-2">Carrier: <strong className="text-gray-900">{audit.carrier}</strong></span>
+            <span className="flex items-center gap-2">Carrier: <strong className="text-gray-900">{carrier || audit.carrier}</strong></span>
             <span className="text-gray-300">|</span>
             <span className="flex items-center gap-2">Audit ID: <strong className="text-gray-900">{audit.auditId}</strong></span>
           </div>
@@ -306,16 +310,29 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
                 <h3 className="font-bold text-slate-800 text-sm">Revenue Audit</h3>
               </div>
               <div className="p-6">
-                <div className="mb-5">
-                  <label className="block text-xs font-semibold text-gray-500 mb-1.5">Audit Period</label>
-                  <div className="relative w-64">
-                    <input
-                      type="text"
-                      readOnly
-                      value={`${new Date(audit.auditPeriodStart).toLocaleDateString("en-US")} - ${new Date(audit.auditPeriodEnd).toLocaleDateString("en-US")}`}
-                      className="w-full bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-lg px-3 py-2 pr-10 outline-none"
-                    />
-                    <Calendar className="w-4 h-4 text-slate-400 absolute right-3 top-2.5" />
+                <div className="mb-5 flex flex-wrap gap-6 items-center">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1.5">Audit Period</label>
+                    <div className="relative w-64">
+                      <input
+                        type="text"
+                        readOnly
+                        value={`${new Date(audit.auditPeriodStart).toLocaleDateString("en-US")} - ${new Date(audit.auditPeriodEnd).toLocaleDateString("en-US")}`}
+                        className="w-full bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-lg px-3 py-2 pr-10 outline-none"
+                      />
+                      <Calendar className="w-4 h-4 text-slate-400 absolute right-3 top-2.5" />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1.5">Carrier</label>
+                    <select
+                      value={carrier || audit.carrier || ""}
+                      onChange={(e) => setCarrier(e.target.value)}
+                      className="bg-white border border-slate-200 text-slate-800 font-semibold text-sm rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500 h-[38px] min-w-[240px]"
+                    >
+                      <option value="Richmond National Insurance">Richmond National Insurance</option>
+                      <option value="Kinsale Insurance Company">Kinsale Insurance Company</option>
+                    </select>
                   </div>
                 </div>
 

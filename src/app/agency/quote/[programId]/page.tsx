@@ -203,6 +203,20 @@ const initialFormData = {
   employersLiabilityWCLimit: "",
   combinedUnderlyingLosses: "0",
   auto: false,
+  addProfessionalPollutionLiability: false,
+  professionalOrPollutionType: "",
+  addPollutionLiability: false,
+  pollutionLiabilityLimit: "",
+  pollutionEmployersLiabilityWC: false,
+  pollutionEmployersLiabilityWCLimit: "",
+  pollutionCombinedUnderlyingLosses: "0",
+  pollutionAuto: false,
+  addProfessionalLiability: false,
+  professionalLiabilityLimit: "",
+  professionalEmployersLiabilityWC: false,
+  professionalEmployersLiabilityWCLimit: "",
+  professionalCombinedUnderlyingLosses: "0",
+  professionalAuto: false,
   addInlandMarineEquipment: false,
   addBuildersRisk: false,
   addEnvironmentalCoverage: null,
@@ -578,11 +592,26 @@ export default function QuoteFormPage() {
         const payload = result.submission.payload;
 
         // 👇 AUTO FILL FORM
-        setFormData((prev: any) => ({
-          ...prev,
-          ...payload,
-          classCodeWork: payload.classCodeWork || {},
-        }));
+        setFormData((prev: any) => {
+          let profPollutionType = payload.professionalOrPollutionType || "";
+          let addProfPol = payload.addProfessionalPollutionLiability;
+          if (addProfPol === undefined) {
+            if (payload.addPollutionLiability) {
+              addProfPol = true;
+              if (!profPollutionType) profPollutionType = "pollution";
+            } else if (payload.addProfessionalLiability) {
+              addProfPol = true;
+              if (!profPollutionType) profPollutionType = "professional";
+            }
+          }
+          return {
+            ...prev,
+            ...payload,
+            addProfessionalPollutionLiability: addProfPol,
+            professionalOrPollutionType: profPollutionType,
+            classCodeWork: payload.classCodeWork || {},
+          };
+        });
 
         // If the saved submission has a description (auto-generated or manually edited),
         // mark it as "edited" so the classCodeWork useEffect won't overwrite it.
@@ -3797,6 +3826,349 @@ export default function QuoteFormPage() {
               </div>
             )}
             {/* ================= END EXCESS QUESTIONS ================= */}
+
+            {/* Professional/Pollution Liability Coverage */}
+            <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200 mt-6">
+
+              {/* Header */}
+              <div className="bg-[#7A6F64] text-white px-6 py-3.5">
+                <h2 className="text-lg font-semibold">Add Professional/Pollution Liability coverage</h2>
+              </div>
+
+              <div className="px-8 pt-6 pb-7 space-y-7">
+
+                {/* Product info */}
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                  <h3 className="text-[18px] font-semibold tracking-tight">
+                    Add Professional/Pollution Liability
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    Covers General Liability, Auto, Employers Liability
+                  </p>
+                </div>
+
+                {/* Yes / No */}
+                <YesNoRadio
+                  label=""
+                  value={
+                    formData.addProfessionalPollutionLiability ??
+                    (formData.addPollutionLiability || formData.addProfessionalLiability)
+                  }
+                  onChange={(val) => {
+                    handleInputChange("addProfessionalPollutionLiability", val);
+                    if (!val) {
+                      handleInputChange("professionalOrPollutionType", "");
+                      handleInputChange("addPollutionLiability", false);
+                      handleInputChange("addProfessionalLiability", false);
+                    }
+                  }}
+                />
+
+                {/* Coverage Type Selection (opens after clicking Yes) */}
+                {(formData.addProfessionalPollutionLiability ||
+                  formData.addPollutionLiability ||
+                  formData.addProfessionalLiability) && (
+                    <div className="pt-2 border-t border-gray-200">
+                      <label className="block text-sm font-semibold text-gray-700 mb-3">
+                        Select Option
+                      </label>
+                      <div className="flex flex-wrap items-center gap-6">
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="radio"
+                            name="professionalOrPollutionType"
+                            value="professional"
+                            checked={formData.professionalOrPollutionType === "professional"}
+                            onChange={() => {
+                              handleInputChange("professionalOrPollutionType", "professional");
+                              handleInputChange("addProfessionalLiability", true);
+                              handleInputChange("addPollutionLiability", false);
+                            }}
+                            className="w-4 h-4 text-[#9A8B7A] border-gray-300 focus:ring-[#9A8B7A]"
+                          />
+                          <span className="text-sm font-medium text-gray-700">
+                            Professional Liability
+                          </span>
+                        </label>
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="radio"
+                            name="professionalOrPollutionType"
+                            value="pollution"
+                            checked={formData.professionalOrPollutionType === "pollution"}
+                            onChange={() => {
+                              handleInputChange("professionalOrPollutionType", "pollution");
+                              handleInputChange("addPollutionLiability", true);
+                              handleInputChange("addProfessionalLiability", false);
+                            }}
+                            className="w-4 h-4 text-[#9A8B7A] border-gray-300 focus:ring-[#9A8B7A]"
+                          />
+                          <span className="text-sm font-medium text-gray-700">
+                            Pollution Liability
+                          </span>
+                        </label>
+                      </div>
+                    </div>
+                  )}
+              </div>
+            </div>
+
+            {/* ================= POLLUTION QUESTIONS ================= */}
+            {Boolean(
+              (formData.addProfessionalPollutionLiability || formData.addPollutionLiability) &&
+              formData.professionalOrPollutionType === "pollution"
+            ) && (
+                <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200 mt-6">
+
+                  <div className="bg-[#7A6F64] text-white px-6 py-3.5">
+                    <h2 className="text-lg font-semibold">Pollution Questions</h2>
+                  </div>
+
+                  <div className="px-8 pt-6 pb-7 space-y-6">
+
+                    {/* Desired Effective Date */}
+                    <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
+                      <label className="text-sm font-medium text-gray-900">
+                        Desired Effective Date
+                      </label>
+                      <div></div>
+                      <input
+                        type="text"
+                        disabled
+                        placeholder="Same as GL effective date"
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded text-sm bg-gray-100 text-gray-500"
+                      />
+                    </div>
+
+                    {/* Pollution Limits */}
+                    <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
+                      <label className="text-sm font-medium text-gray-900">
+                        Pollution Limits
+                      </label>
+                      <div></div>
+                      <select
+                        value={formData.pollutionLiabilityLimit || ""}
+                        onChange={(e) =>
+                          handleInputChange("pollutionLiabilityLimit", e.target.value)
+                        }
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] text-sm bg-white"
+                      >
+                        <option value="">Select Limit</option>
+                        <option value="1,000,000">1M/1M</option>
+                        <option value="2,000,000">1M/2M</option>
+                      </select>
+                    </div>
+
+                    {/* Underlying policies */}
+                    <div className="space-y-3">
+                      <p className="text-sm font-medium text-gray-900">
+                        Underlying policies to be covered in addition to underlying GL policy
+                      </p>
+
+                      <YesNoRadio
+                        label="Employer’s Liability (Workers Comp)"
+                        value={formData.pollutionEmployersLiabilityWC}
+                        onChange={(val) =>
+                          handleInputChange("pollutionEmployersLiabilityWC", val)
+                        }
+                      />
+                      <YesNoRadio
+                        label="Auto"
+                        value={formData.pollutionAuto}
+                        onChange={(val) =>
+                          handleInputChange("pollutionAuto", val)
+                        }
+                      />
+                    </div>
+
+                    {/* Combined losses (ALWAYS visible, DISABLED) */}
+                    <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
+                      <label className="text-sm font-medium text-gray-900">
+                        Combined # of losses across all underlying policies in last 5 years
+                      </label>
+                      <div></div>
+                      <select
+                        value={formData.pollutionCombinedUnderlyingLosses}
+                        disabled={!formData.pollutionEmployersLiabilityWC}
+                        onChange={(e) =>
+                          handleInputChange(
+                            "pollutionCombinedUnderlyingLosses",
+                            e.target.value
+                          )
+                        }
+                        className={`w-full px-4 py-2.5 border border-gray-300 rounded text-sm ${formData.pollutionEmployersLiabilityWC
+                          ? "bg-white focus:ring-1 focus:ring-[#9A8B7A]"
+                          : "bg-gray-100 text-gray-500"
+                          }`}
+                      >
+                        <option value="0">0</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6+">6+</option>
+                      </select>
+                    </div>
+
+                    {/* Employer’s Liability Limits (ONLY when YES) */}
+                    {formData.pollutionEmployersLiabilityWC && (
+                      <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
+                        <label className="text-sm font-medium text-gray-900">
+                          Employer’s Liability (Workers Comp) Limits
+                        </label>
+                        <div></div>
+                        <select
+                          value={formData.pollutionEmployersLiabilityWCLimit || ""}
+                          onChange={(e) =>
+                            handleInputChange(
+                              "pollutionEmployersLiabilityWCLimit",
+                              e.target.value
+                            )
+                          }
+                          className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] text-sm bg-white"
+                        >
+                          <option value="">Select Limits</option>
+                          <option value="$100k/$500k/$100k">$100k / $500k / $100k</option>
+                          <option value="$500k/$500k/$500k">$500k / $500k / $500k</option>
+                          <option value="$1M/$1M/$1M">$1M / $1M / $1M</option>
+                        </select>
+                      </div>
+                    )}
+
+                  </div>
+                </div>
+              )}
+            {/* ================= END POLLUTION QUESTIONS ================= */}
+
+            {/* ================= PROFESSIONAL QUESTIONS ================= */}
+            {Boolean(
+              (formData.addProfessionalPollutionLiability || formData.addProfessionalLiability) &&
+              formData.professionalOrPollutionType === "professional"
+            ) && (
+                <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200 mt-6">
+
+                  <div className="bg-[#7A6F64] text-white px-6 py-3.5">
+                    <h2 className="text-lg font-semibold">Professional Questions</h2>
+                  </div>
+
+                  <div className="px-8 pt-6 pb-7 space-y-6">
+
+                    {/* Desired Effective Date */}
+                    <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
+                      <label className="text-sm font-medium text-gray-900">
+                        Desired Effective Date
+                      </label>
+                      <div></div>
+                      <input
+                        type="text"
+                        disabled
+                        placeholder="Same as GL effective date"
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded text-sm bg-gray-100 text-gray-500"
+                      />
+                    </div>
+
+                    {/* Professional Limits */}
+                    <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
+                      <label className="text-sm font-medium text-gray-900">
+                        Professional Limits
+                      </label>
+                      <div></div>
+                      <select
+                        value={formData.professionalLiabilityLimit || ""}
+                        onChange={(e) =>
+                          handleInputChange("professionalLiabilityLimit", e.target.value)
+                        }
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] text-sm bg-white"
+                      >
+                        <option value="">Select Limit</option>
+                        <option value="1,000,000">1M/1M</option>
+                        <option value="2,000,000">1M/2M</option>
+
+                      </select>
+                    </div>
+
+                    {/* Underlying policies */}
+                    <div className="space-y-3">
+                      <p className="text-sm font-medium text-gray-900">
+                        Underlying policies to be covered in addition to underlying GL policy
+                      </p>
+
+                      <YesNoRadio
+                        label="Employer’s Liability (Workers Comp)"
+                        value={formData.professionalEmployersLiabilityWC}
+                        onChange={(val) =>
+                          handleInputChange("professionalEmployersLiabilityWC", val)
+                        }
+                      />
+                      <YesNoRadio
+                        label="Auto"
+                        value={formData.professionalAuto}
+                        onChange={(val) =>
+                          handleInputChange("professionalAuto", val)
+                        }
+                      />
+                    </div>
+
+                    {/* Combined losses (ALWAYS visible, DISABLED) */}
+                    <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
+                      <label className="text-sm font-medium text-gray-900">
+                        Combined # of losses across all underlying policies in last 5 years
+                      </label>
+                      <div></div>
+                      <select
+                        value={formData.professionalCombinedUnderlyingLosses}
+                        disabled={!formData.professionalEmployersLiabilityWC}
+                        onChange={(e) =>
+                          handleInputChange(
+                            "professionalCombinedUnderlyingLosses",
+                            e.target.value
+                          )
+                        }
+                        className={`w-full px-4 py-2.5 border border-gray-300 rounded text-sm ${formData.professionalEmployersLiabilityWC
+                          ? "bg-white focus:ring-1 focus:ring-[#9A8B7A]"
+                          : "bg-gray-100 text-gray-500"
+                          }`}
+                      >
+                        <option value="0">0</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6+">6+</option>
+                      </select>
+                    </div>
+
+                    {/* Employer’s Liability Limits (ONLY when YES) */}
+                    {formData.professionalEmployersLiabilityWC && (
+                      <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
+                        <label className="text-sm font-medium text-gray-900">
+                          Employer’s Liability (Workers Comp) Limits
+                        </label>
+                        <div></div>
+                        <select
+                          value={formData.professionalEmployersLiabilityWCLimit || ""}
+                          onChange={(e) =>
+                            handleInputChange(
+                              "professionalEmployersLiabilityWCLimit",
+                              e.target.value
+                            )
+                          }
+                          className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] text-sm bg-white"
+                        >
+                          <option value="">Select Limits</option>
+                          <option value="$100k/$500k/$100k">$100k / $500k / $100k</option>
+                          <option value="$500k/$500k/$500k">$500k / $500k / $500k</option>
+                          <option value="$1M/$1M/$1M">$1M / $1M / $1M</option>
+                        </select>
+                      </div>
+                    )}
+
+                  </div>
+                </div>
+              )}
+            {/* ================= END PROFESSIONAL QUESTIONS ================= */}
 
 
 

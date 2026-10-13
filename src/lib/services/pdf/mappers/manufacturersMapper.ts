@@ -116,6 +116,7 @@ export interface ManufacturersPacketData {
     stampingFee?: string;
     stampingFeePerFiling?: string;
     slaServiceCharge?: string;
+    slasTransactionFee?: string;
     fireMarshalTax?: string;
     totalCostOfPolicy?: string;
     quoteType?: string;
@@ -380,6 +381,7 @@ export function mapManufacturersDataToPacketData(
         stampingFee: formatUSD(quote?.costs?.stampingFee ?? quote?.stampingFeeAmountUSD ?? submission?.quote?.costs?.stampingFee ?? safeData.stampingFee),
         stampingFeePerFiling: formatUSD(quote?.costs?.stampingFeePerFiling ?? quote?.stampingFeePerFilingUSD ?? submission?.quote?.costs?.stampingFeePerFiling ?? safeData.stampingFeePerFiling),
         slaServiceCharge: formatUSD(quote?.costs?.slaServiceCharge ?? quote?.slaServiceChargeUSD ?? submission?.quote?.costs?.slaServiceCharge ?? safeData.slaServiceCharge),
+        slasTransactionFee: formatUSD(quote?.costs?.slasTransactionFee ?? quote?.slasTransactionFeeAmountUSD ?? submission?.quote?.costs?.slasTransactionFee ?? safeData.slasTransactionFee),
         fireMarshalTax: formatUSD(quote?.costs?.fireMarshalTax ?? quote?.fireMarshalTaxAmountUSD ?? submission?.quote?.costs?.fireMarshalTax ?? safeData.fireMarshalTax),
         totalCostOfPolicy: formatUSD(quote?.costs?.totalCostOfPolicy ?? quote?.finalAmountUSD ?? submission?.quote?.costs?.totalCostOfPolicy ?? safeData.totalCostOfPolicy),
         quoteType: quote?.metadata?.type || quote?.policyType || submission?.quote?.metadata?.type || safeData.quoteType || "General Liability",

@@ -141,6 +141,7 @@ export interface ContractorsPacketData {
     stampingFee?: string;
     stampingFeePerFiling?: string;
     slaServiceCharge?: string;
+    slasTransactionFee?: string;
     fireMarshalTax?: string;
     totalCostOfPolicy?: string;
     quoteType?: string;
@@ -316,6 +317,7 @@ export function mapContractorsDataToPacketData(
         stampingFee: formatUSD(quote?.costs?.stampingFee ?? quote?.stampingFeeAmountUSD ?? submission?.quote?.costs?.stampingFee),
         stampingFeePerFiling: formatUSD(quote?.costs?.stampingFeePerFiling ?? quote?.stampingFeePerFilingUSD ?? submission?.quote?.costs?.stampingFeePerFiling),
         slaServiceCharge: formatUSD(quote?.costs?.slaServiceCharge ?? quote?.slaServiceChargeUSD ?? submission?.quote?.costs?.slaServiceCharge),
+        slasTransactionFee: formatUSD(quote?.costs?.slasTransactionFee ?? quote?.slasTransactionFeeAmountUSD ?? submission?.quote?.costs?.slasTransactionFee),
         fireMarshalTax: formatUSD(quote?.costs?.fireMarshalTax ?? quote?.fireMarshalTaxAmountUSD ?? submission?.quote?.costs?.fireMarshalTax),
         totalCostOfPolicy: formatUSD(quote?.costs?.totalCostOfPolicy ?? quote?.finalAmountUSD ?? submission?.quote?.costs?.totalCostOfPolicy),
         quoteType: quote?.metadata?.type || quote?.policyType || submission?.quote?.metadata?.type || "General Liability",
