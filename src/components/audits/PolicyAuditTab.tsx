@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { CheckCircle, Clock, FileText, AlertCircle, Save, ArrowLeft, Calendar, FileCheck, Check, Info, File as FileIcon, MoreHorizontal, Eye, UploadCloud, X, Download } from "lucide-react";
 import { toast } from "sonner";
 import { useCallback } from "react";
 
 export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "PENDING" }: { submissionId?: string, auditId?: string, policyNumber?: string }) {
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [audit, setAudit] = useState<any>(null);
   const [viewMode, setViewMode] = useState<"overview" | "edit">("overview");
@@ -97,6 +99,36 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handleNavigateComplete = async () => {
+    if (!audit || !audit._id) return;
+    if (viewMode === "edit") {
+      try {
+        setIsSaving(true);
+        const payload: any = {
+          estimatedExposure: parseFloat(estimatedExposure) || 0,
+          auditedExposure: parseFloat(auditedExposure) || 0,
+          rate: parseFloat(rate) || 0,
+          carrierFee: parseFloat(carrierFee) || 0,
+          sterlingFee: parseFloat(sterlingFee) || 0,
+          surplusLinesTaxRate: parseFloat(surplusTaxRate) || 0,
+          stampingFeeRate: parseFloat(stampingFeeRate) || 0,
+          auditNotes: notes,
+          action: "Saved draft before viewing complete info"
+        };
+        await fetch(`/api/admin/audits/${audit._id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+      } catch (err) {
+        console.error("Save draft before view error:", err);
+      } finally {
+        setIsSaving(false);
+      }
+    }
+    router.push(`/admin/audits/${audit._id}/complete`);
   };
 
   const handleFileUpload = useCallback(async (files: FileList | File[]) => {
@@ -389,7 +421,7 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-500 mb-1.5">Sterling Service Fee</label>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1.5">Premium Audit Service Fee</label>
                   <div className="relative">
                     <span className="absolute left-3 top-2 text-slate-400 font-medium">$</span>
                     <input
@@ -460,7 +492,7 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
                     <span>{formatCurrency(cFee)}</span>
                   </div>
                   <div className="flex justify-between items-center text-sm text-slate-600">
-                    <span>Sterling Service Fee</span>
+                    <span>Premium Audit Service Fee</span>
                     <span>{formatCurrency(sFee)}</span>
                   </div>
                 </div>
@@ -487,6 +519,18 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
                   className="w-2/3 py-3 px-4 bg-rose-600 text-white font-bold text-sm rounded-xl hover:bg-rose-700 transition-colors shadow-sm shadow-rose-200 disabled:opacity-50"
                 >
                   Submit for Underwriter Approval
+                </button>
+              </div>
+
+              <div className="mt-3 pt-3 border-t border-rose-200/60">
+                <button
+                  type="button"
+                  onClick={handleNavigateComplete}
+                  disabled={isSaving}
+                  className="w-full py-3 px-4 bg-emerald-600 text-white font-bold text-sm rounded-xl hover:bg-emerald-700 transition-all shadow-sm shadow-emerald-200 flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+                >
+                  <CheckCircle className="w-4 h-4" />
+                  Complete
                 </button>
               </div>
             </div>
@@ -566,7 +610,7 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
           {/* Fees Summary */}
           <div className="mt-6 pt-5 border-t border-gray-100 grid grid-cols-4 gap-8">
             <div>
-              <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wide mb-2">Sterling Service Fee</p>
+              <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wide mb-2">Premium Audit Service Fee</p>
               <p className="text-lg font-bold text-gray-900">${sterlingFee}</p>
             </div>
             <div>
