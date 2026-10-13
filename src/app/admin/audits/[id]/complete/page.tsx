@@ -206,6 +206,10 @@ export default function CompleteAuditInfoPage() {
                   <strong className="text-slate-800 font-semibold">{audit.policyNumber || "MANUAL AUDIT"}</strong>
                 </div>
                 <div>
+                  <span className="text-slate-400 font-medium">Date: </span>
+                  <strong className="text-slate-800 font-semibold">{formatDate(audit.auditEffectiveDate || audit.auditPeriodStart)}</strong>
+                </div>
+                <div>
                   <span className="text-slate-400 font-medium">Carrier: </span>
                   <strong className="text-slate-800 font-semibold">{audit.carrier || "Unknown Carrier"}</strong>
                 </div>
@@ -281,6 +285,13 @@ export default function CompleteAuditInfoPage() {
                 <div>
                   <label className="text-xs font-medium text-slate-400 uppercase tracking-wide block mb-1">Producing Agency</label>
                   <p className="font-medium text-slate-700">{audit.agencyId?.name || "Direct"}</p>
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-slate-400 uppercase tracking-wide block mb-1">Effective Date</label>
+                  <p className="font-medium text-slate-700 flex items-center gap-1.5">
+                    <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                    {formatDate(audit.auditEffectiveDate || audit.auditPeriodStart)}
+                  </p>
                 </div>
                 <div>
                   <label className="text-xs font-medium text-slate-400 uppercase tracking-wide block mb-1">Due Date</label>

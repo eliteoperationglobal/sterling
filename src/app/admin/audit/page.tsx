@@ -33,6 +33,8 @@ export default function AuditPage() {
   const [newClientName, setNewClientName] = useState("");
   const [newEmail, setNewEmail] = useState("");
   const [newPhone, setNewPhone] = useState("");
+  const [newPolicyNumber, setNewPolicyNumber] = useState("");
+  const [newDate, setNewDate] = useState("");
   const [newAgency, setNewAgency] = useState("");
   const [newIndustry, setNewIndustry] = useState("");
 
@@ -43,6 +45,13 @@ export default function AuditPage() {
     if (!match[2]) return match[1];
     if (!match[3]) return `(${match[1]}) ${match[2]}`;
     return `(${match[1]}) ${match[2]}-${match[3]}`;
+  };
+
+  const formatUSDate = (value: string) => {
+    const cleaned = ('' + value).replace(/\D/g, '').slice(0, 8);
+    if (cleaned.length <= 2) return cleaned;
+    if (cleaned.length <= 4) return `${cleaned.slice(0, 2)}/${cleaned.slice(2)}`;
+    return `${cleaned.slice(0, 2)}/${cleaned.slice(2, 4)}/${cleaned.slice(4)}`;
   };
 
   // Audits state for the queue
@@ -195,7 +204,7 @@ export default function AuditPage() {
 
   const handleCreateProfile = async () => {
     if (!newClientName || !newEmail || !newPhone || !newAgency || !newIndustry) {
-      toast.error("Please fill in all the fields.");
+      toast.error("Please fill in all the required fields.");
       return;
     }
 
@@ -208,6 +217,8 @@ export default function AuditPage() {
           clientName: newClientName,
           email: newEmail,
           phone: newPhone,
+          policyNumber: newPolicyNumber,
+          date: newDate,
           agencyName: newAgency,
           industry: newIndustry
         })
@@ -887,6 +898,41 @@ export default function AuditPage() {
                     maxLength={14}
                     className="w-full px-4 py-3 border border-[#e5ddd5] rounded-xl bg-[#fcfaf8] focus:ring-2 focus:ring-blue-500 outline-none"
                   />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Policy Number</label>
+                  <input
+                    type="text"
+                    value={newPolicyNumber}
+                    onChange={(e) => setNewPolicyNumber(e.target.value)}
+                    placeholder="e.g. POL-123456"
+                    className="w-full px-4 py-3 border border-[#e5ddd5] rounded-xl bg-[#fcfaf8] focus:ring-2 focus:ring-blue-500 outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Date (MM/DD/YYYY)</label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={newDate}
+                      onChange={(e) => setNewDate(formatUSDate(e.target.value))}
+                      placeholder="MM/DD/YYYY"
+                      maxLength={10}
+                      className="w-full px-4 py-3 border border-[#e5ddd5] rounded-xl bg-[#fcfaf8] focus:ring-2 focus:ring-blue-500 outline-none pr-11 text-gray-800"
+                    />
+                    <input
+                      type="date"
+                      aria-label="Pick date"
+                      className="absolute right-3 top-3.5 w-5 h-5 opacity-0 cursor-pointer z-10"
+                      onChange={(e) => {
+                        if (e.target.value) {
+                          const [y, m, d] = e.target.value.split('-');
+                          if (y && m && d) setNewDate(`${m}/${d}/${y}`);
+                        }
+                      }}
+                    />
+                    <Calendar className="w-5 h-5 text-gray-400 absolute right-3 top-3.5 pointer-events-none" />
+                  </div>
                 </div>
                 <div className="md:col-span-2">
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Associated Agency</label>

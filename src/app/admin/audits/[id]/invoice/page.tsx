@@ -173,6 +173,8 @@ export default function AuditInvoicePage() {
             {cityStateZip && <div>{cityStateZip}</div>}
             {audit.clientPhone && <div>{audit.clientPhone}</div>}
             {audit.clientEmail && <div>Email: {audit.clientEmail}</div>}
+            {audit.policyNumber && <div>Policy #: {audit.policyNumber}</div>}
+            <div>Date: {new Date(audit.auditEffectiveDate || audit.auditPeriodStart || audit.createdAt).toLocaleDateString("en-US")}</div>
             <div>App ID: {audit.auditId ? audit.auditId.replace("AUD-", "") : audit._id.slice(-6)}</div>
           </div>
 

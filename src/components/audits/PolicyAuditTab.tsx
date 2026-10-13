@@ -283,8 +283,10 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
             </button>
             Enter Audit Revenue
           </h2>
-          <div className="flex items-center gap-6 mt-2 ml-11 text-sm text-gray-500 font-medium">
-            <span className="flex items-center gap-2">Policy Number: <strong className="text-gray-900">{policyNumber}</strong></span>
+          <div className="flex flex-wrap items-center gap-6 mt-2 ml-11 text-sm text-gray-500 font-medium">
+            <span className="flex items-center gap-2">Policy Number: <strong className="text-gray-900">{audit.policyNumber || policyNumber}</strong></span>
+            <span className="text-gray-300">|</span>
+            <span className="flex items-center gap-2">Date: <strong className="text-gray-900">{new Date(audit.auditEffectiveDate || audit.auditPeriodStart).toLocaleDateString("en-US")}</strong></span>
             <span className="text-gray-300">|</span>
             <span className="flex items-center gap-2">Carrier: <strong className="text-gray-900">{audit.carrier}</strong></span>
             <span className="text-gray-300">|</span>
@@ -540,8 +542,53 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
     );
   }
 
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "COMPLETE":
+      case "APPROVED":
+        return "bg-emerald-50 text-emerald-700 border-emerald-200";
+      case "UNDERWRITER_REVIEW":
+        return "bg-amber-50 text-amber-700 border-amber-200";
+      case "DOCS_RECEIVED":
+        return "bg-indigo-50 text-indigo-700 border-indigo-200";
+      case "CANCELLED":
+        return "bg-rose-50 text-rose-700 border-rose-200";
+      default:
+        return "bg-blue-50 text-blue-700 border-blue-200";
+    }
+  };
+
   return (
-    <div className="grid lg:grid-cols-3 gap-6 pb-12">
+    <div className="space-y-6 pb-12">
+      {/* Overview Top Header */}
+      <div className="bg-white p-6 rounded-2xl shadow-sm border border-[#e5ddd5] flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-3 mb-1.5">
+            <h2 className="text-2xl font-bold text-gray-900">{audit.namedInsured || "Audit Details"}</h2>
+            {(audit.source === "MANUAL_AUDIT" || audit.submissionId?.payload?.source === "MANUAL_AUDIT") && (
+              <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs font-semibold rounded-md border border-gray-200">Manual</span>
+            )}
+          </div>
+          <div className="flex flex-wrap items-center gap-y-1.5 gap-x-5 text-sm text-gray-500 font-medium">
+            <span>Policy #: <strong className="text-gray-900">{audit.policyNumber || "—"}</strong></span>
+            <span className="text-gray-300">|</span>
+            <span>Date: <strong className="text-gray-900">{new Date(audit.auditEffectiveDate || audit.auditPeriodStart).toLocaleDateString("en-US")}</strong></span>
+            <span className="text-gray-300">|</span>
+            <span>Audit Period: <strong className="text-gray-900">{new Date(audit.auditPeriodStart).toLocaleDateString("en-US")} – {new Date(audit.auditPeriodEnd).toLocaleDateString("en-US")}</strong></span>
+            <span className="text-gray-300">|</span>
+            <span>Carrier: <strong className="text-gray-900">{audit.carrier || "Unknown"}</strong></span>
+            <span className="text-gray-300">|</span>
+            <span>Audit ID: <strong className="text-gray-900">{audit.auditId}</strong></span>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border ${getStatusBadge(audit.status)}`}>
+            {audit.status}
+          </span>
+        </div>
+      </div>
+
+      <div className="grid lg:grid-cols-3 gap-6">
 
       {/* LEFT COLUMN - Overview */}
       <div className="lg:col-span-2 space-y-6">
@@ -851,6 +898,7 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }

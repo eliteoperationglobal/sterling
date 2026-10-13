@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
     await connectDB();
 
     const body = await req.json();
-    const { clientName, email, phone, agencyName, industry } = body;
+    const { clientName, email, phone, agencyName, industry, policyNumber, date } = body;
 
     if (!clientName || !email || !phone) {
       return NextResponse.json({ error: "Client Name, Email, and Phone are required" }, { status: 400 });
@@ -31,23 +31,56 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Generate a random policy/submission number for the manual audit
+    // Handle policy number
     const submissionNumber = Math.floor(100000 + Math.random() * 900000);
+    const finalPolicyNumber = (policyNumber && typeof policyNumber === "string" && policyNumber.trim())
+      ? policyNumber.trim()
+      : `POL-${submissionNumber}`;
 
-    // 2. Create the Audit record directly
+    // Handle date (US format MM/DD/YYYY or standard Date string)
+    let effectiveDate = new Date();
+    let hasCustomDate = false;
+
+    if (date && typeof date === "string" && date.trim()) {
+      const trimmedDate = date.trim();
+      if (trimmedDate.includes("/")) {
+        const parts = trimmedDate.split("/").map(p => parseInt(p, 10));
+        // US format: MM/DD/YYYY
+        if (parts.length === 3 && parts[0] && parts[1] && parts[2]) {
+          const parsed = new Date(parts[2], parts[0] - 1, parts[1]);
+          if (!isNaN(parsed.getTime())) {
+            effectiveDate = parsed;
+            hasCustomDate = true;
+          }
+        }
+      } else if (!isNaN(Date.parse(trimmedDate))) {
+        effectiveDate = new Date(trimmedDate);
+        hasCustomDate = true;
+      }
+    }
+
     // Generate unique audit ID
-    const year = new Date().getFullYear();
+    const year = effectiveDate.getFullYear() || new Date().getFullYear();
     const uniqueSuffix = Math.floor(1000 + Math.random() * 9000);
     const auditId = `AUD-${year}-${uniqueSuffix}`;
 
-    const auditStart = new Date();
-    auditStart.setFullYear(auditStart.getFullYear() - 1); // Audit is usually for previous year
-    const auditEnd = new Date();
+    let auditStart: Date;
+    let auditEnd: Date;
+
+    if (hasCustomDate) {
+      auditStart = new Date(effectiveDate);
+      auditEnd = new Date(effectiveDate);
+      auditEnd.setFullYear(auditEnd.getFullYear() + 1);
+    } else {
+      auditStart = new Date();
+      auditStart.setFullYear(auditStart.getFullYear() - 1);
+      auditEnd = new Date();
+    }
 
     const newAudit = new Audit({
       auditId,
       source: "MANUAL_AUDIT",
-      policyNumber: `POL-${submissionNumber}`,
+      policyNumber: finalPolicyNumber,
       carrier: "Unknown Carrier", // To be filled by admin later
       program: industry || "General Liability",
       agencyId: agencyId,
@@ -65,7 +98,7 @@ export async function POST(req: NextRequest) {
       auditedExposure: 0,
       rate: 0,
       rateBasis: 1000,
-      auditEffectiveDate: new Date(),
+      auditEffectiveDate: effectiveDate,
       
       depositPremium: 0,
       auditedPremium: 0,

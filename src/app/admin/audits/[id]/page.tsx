@@ -24,7 +24,7 @@ export default function AdminAuditDetailsPage() {
         </button>
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-          <PolicyAuditTab auditId={auditId} policyNumber="MANUAL AUDIT" />
+          <PolicyAuditTab auditId={auditId} />
         </div>
       </div>
     </div>

@@ -62,6 +62,8 @@ export async function GET(
     const clientPhone = audit.clientPhone || payload.applicantPhone || payload.phone || "";
     const clientEmail = audit.clientEmail || payload.applicantEmail || payload.email || "";
     const appId = audit.auditId ? audit.auditId.replace("AUD-", "") : (audit._id as any).toString().slice(-6);
+    const invoiceDate = new Date((audit as any).auditEffectiveDate || (audit as any).auditPeriodStart || (audit as any).createdAt).toLocaleDateString("en-US");
+    const policyNumberStr = audit.policyNumber || "";
 
     const invoiceHTML = `
       <!DOCTYPE html>
@@ -148,6 +150,8 @@ export async function GET(
             ${cityStateZip ? `<div>${cityStateZip}</div>` : ""}
             ${clientPhone ? `<div>${clientPhone}</div>` : ""}
             ${clientEmail ? `<div>Email: ${clientEmail}</div>` : ""}
+            ${policyNumberStr ? `<div>Policy #: ${policyNumberStr}</div>` : ""}
+            <div>Date: ${invoiceDate}</div>
             <div>App ID: ${appId}</div>
           </div>
           <div class="header-right">
