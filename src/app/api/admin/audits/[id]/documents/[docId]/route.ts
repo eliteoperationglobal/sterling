@@ -40,7 +40,7 @@ export async function DELETE(
     }
 
     // 1. Find the document to get the fileUrl
-    const docToDelete = audit.documents.find((doc: any) => doc.documentId === docId);
+    const docToDelete = audit.documents.find((doc: any) => doc.documentId === docId || doc._id?.toString() === docId);
     if (!docToDelete) {
       return NextResponse.json({ error: "Document not found in database" }, { status: 404 });
     }
@@ -62,8 +62,24 @@ export async function DELETE(
       }
     }
 
-    // 3. Filter out the document with the matching ID
-    audit.documents = audit.documents.filter((doc: any) => doc.documentId !== docId);
+    // 3. If it was a named audit requirement (e.g. Tax Return), keep requirement slot and reset status to REQUESTED
+    const isRequirement = docToDelete.name === "Tax Return" || docToDelete.name === "Year-End P&L";
+    if (isRequirement) {
+      docToDelete.fileUrl = undefined;
+      docToDelete.fileName = undefined;
+      docToDelete.status = "REQUESTED";
+      docToDelete.uploadedAt = undefined;
+      docToDelete.uploadedBy = undefined;
+    } else {
+      audit.documents = audit.documents.filter((doc: any) => doc.documentId !== docId && doc._id?.toString() !== docId);
+    }
+
+    // If no documents with fileUrl remain and status was DOCS_RECEIVED, revert to REQUESTED
+    const hasRemainingFiles = audit.documents.some((d: any) => !!d.fileUrl);
+    if (!hasRemainingFiles && audit.status === "DOCS_RECEIVED") {
+      audit.status = "REQUESTED";
+    }
+
     await audit.save();
 
     // Log the deletion activity
@@ -85,3 +101,61 @@ export async function DELETE(
     );
   }
 }
+
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: { id: string, docId: string } }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const userRole = (session.user as any).role;
+    const isAdmin = userRole === "system_admin";
+
+    // Only system admins can verify or change document status
+    if (!isAdmin) {
+      return NextResponse.json({ error: "Forbidden: Admin access required" }, { status: 403 });
+    }
+
+    await connectDB();
+    const { id, docId } = params;
+    const body = await req.json();
+    const { status } = body;
+
+    const audit = await Audit.findById(id);
+    if (!audit) {
+      return NextResponse.json({ error: "Audit not found" }, { status: 404 });
+    }
+
+    const doc = audit.documents.find((d: any) => d.documentId === docId || d._id?.toString() === docId);
+    if (!doc) {
+      return NextResponse.json({ error: "Document not found" }, { status: 404 });
+    }
+
+    if (status) {
+      doc.status = status;
+      if (status === "VERIFIED") {
+        doc.verifiedAt = new Date();
+      }
+    }
+
+    await audit.save();
+
+    const AuditActivity = (await import("@/models/AuditActivity")).default;
+    await AuditActivity.create({
+      auditId: audit._id,
+      user: session.user.name || "Admin",
+      role: "System Admin",
+      activity: "Document Verified",
+      details: `Document "${doc.fileName || doc.name}" marked as ${status}`
+    });
+
+    return NextResponse.json({ success: true, audit });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message || "Failed to update document" }, { status: 500 });
+  }
+}
+

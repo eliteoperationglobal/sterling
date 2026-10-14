@@ -59,15 +59,37 @@ export async function POST(
     const fileUrl = await uploadToS3(buffer, key, file.type || "application/octet-stream");
 
     currentStep = "saving to database";
-    audit.documents.push({
-      documentId: `DOC-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-      name: file.name,
-      fileName: file.name,
-      fileUrl: fileUrl,
-      status: "RECEIVED",
-      uploadedAt: new Date(),
-      uploadedBy: session.user.name || (isAdmin ? "Admin" : "Agency User"),
-    });
+    const targetDocId = formData.get("documentId") as string | null;
+    let targetDoc: any = null;
+
+    if (targetDocId) {
+      targetDoc = audit.documents.find((d: any) => d.documentId === targetDocId || d._id?.toString() === targetDocId);
+    }
+
+    if (targetDoc) {
+      targetDoc.fileName = file.name;
+      targetDoc.fileUrl = fileUrl;
+      targetDoc.status = "RECEIVED";
+      targetDoc.uploadedAt = new Date();
+      targetDoc.uploadedBy = session.user.name || (isAdmin ? "Admin" : "Agency User");
+    } else {
+      audit.documents.push({
+        documentId: `DOC-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+        name: file.name,
+        fileName: file.name,
+        fileUrl: fileUrl,
+        status: "RECEIVED",
+        uploadedAt: new Date(),
+        uploadedBy: session.user.name || (isAdmin ? "Admin" : "Agency User"),
+      });
+    }
+
+    // Auto-advance workflow status from REQUESTED to DOCS_RECEIVED
+    let statusChanged = false;
+    if (audit.status === "REQUESTED") {
+      audit.status = "DOCS_RECEIVED";
+      statusChanged = true;
+    }
 
     await audit.save();
 
@@ -78,14 +100,26 @@ export async function POST(
       user: session.user.name || (isAdmin ? "Admin" : "Agency User"),
       role: isAdmin ? "System Admin" : "Agency",
       activity: "Document Uploaded",
-      details: `Uploaded document: ${file.name}`
+      details: targetDoc
+        ? `Uploaded document for requirement: ${targetDoc.name || file.name}`
+        : `Uploaded supporting document: ${file.name}`
     });
+
+    if (statusChanged) {
+      await AuditActivity.create({
+        auditId: audit._id,
+        user: session.user.name || (isAdmin ? "Admin" : "Agency User"),
+        role: isAdmin ? "System Admin" : "Agency",
+        activity: "Status Changed",
+        details: "Status changed to DOCS_RECEIVED after document upload"
+      });
+    }
 
     return NextResponse.json({ success: true, fileUrl, audit });
   } catch (error: any) {
     console.error("Admin audit file upload error:", error);
     return NextResponse.json(
-      { 
+      {
         error: `Failed during: ${currentStep} - ${error.message || "Timeout"}`,
         details: String(error),
         name: error.name

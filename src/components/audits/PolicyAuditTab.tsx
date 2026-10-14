@@ -1,13 +1,33 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle, Clock, FileText, AlertCircle, Save, ArrowLeft, Calendar, FileCheck, Check, Info, File as FileIcon, MoreHorizontal, Eye, UploadCloud, X, Download, Loader2, ExternalLink } from "lucide-react";
+import { useSession } from "next-auth/react";
+import { 
+  CheckCircle, 
+  Clock, 
+  FileText, 
+  AlertCircle, 
+  Save, 
+  ArrowLeft, 
+  Calendar, 
+  FileCheck, 
+  Check, 
+  Info, 
+  File as FileIcon, 
+  MoreHorizontal, 
+  Eye, 
+  UploadCloud, 
+  X, 
+  Download 
+} from "lucide-react";
 import { toast } from "sonner";
-import { useCallback } from "react";
 
 export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "PENDING" }: { submissionId?: string, auditId?: string, policyNumber?: string }) {
   const router = useRouter();
+  const { data: session } = useSession();
+  const isAdmin = (session?.user as any)?.role === "system_admin" || (typeof window !== "undefined" && window.location.pathname.startsWith("/admin"));
+
   const [loading, setLoading] = useState(true);
   const [audit, setAudit] = useState<any>(null);
   const [viewMode, setViewMode] = useState<"overview" | "edit">("overview");
@@ -15,14 +35,14 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
   // File Upload State
   const [isDragging, setIsDragging] = useState(false);
   const [uploadingDocs, setUploadingDocs] = useState(false);
+  const [targetDocId, setTargetDocId] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const rowFileInputRef = useRef<HTMLInputElement>(null);
 
   // Delete Modal State
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [docToDelete, setDocToDelete] = useState<string | null>(null);
   const [isDeletingDoc, setIsDeletingDoc] = useState(false);
-
-  // Download Invoice State
-  const [isDownloading, setIsDownloading] = useState(false);
 
   // Form states
   const [estimatedExposure, setEstimatedExposure] = useState("");
@@ -35,36 +55,6 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
   const [carrier, setCarrier] = useState("");
   const [notes, setNotes] = useState("");
   const [isSaving, setIsSaving] = useState(false);
-
-  const handleDownloadInvoice = async () => {
-    if (!audit?._id || isDownloading) return;
-    setIsDownloading(true);
-    const toastId = toast.loading("Generating invoice PDF, please wait...");
-
-    try {
-      const response = await fetch(`/api/admin/audits/${audit._id}/invoice`);
-      if (!response.ok) {
-        throw new Error("Failed to generate PDF invoice");
-      }
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      const filename = `Invoice-${audit.auditId || audit.policyNumber || "Audit"}.pdf`;
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-
-      toast.success("Invoice PDF downloaded successfully!", { id: toastId });
-    } catch (err: any) {
-      console.error("PDF download error:", err);
-      toast.error(err.message || "Failed to download invoice PDF. Please try again.", { id: toastId });
-    } finally {
-      setIsDownloading(false);
-    }
-  };
 
   const fetchAudit = async () => {
     setLoading(true);
@@ -173,7 +163,7 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
     }
   };
 
-  const handleFileUpload = useCallback(async (files: FileList | File[]) => {
+  const handleFileUpload = useCallback(async (files: FileList | File[], specificDocId?: string) => {
     if (!audit || !audit._id || !files || files.length === 0) return;
 
     const MAX_MB = 10;
@@ -188,11 +178,15 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
 
     try {
       setUploadingDocs(true);
+      const activeDocId = specificDocId || targetDocId;
       let successCount = 0;
 
       for (const file of filesArray) {
         const formData = new FormData();
         formData.append("file", file);
+        if (activeDocId) {
+          formData.append("documentId", activeDocId);
+        }
 
         const res = await fetch(`/api/admin/audits/${audit._id}/upload`, {
           method: "POST",
@@ -215,9 +209,46 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
       toast.error(err.message || "Failed to upload documents");
     } finally {
       setUploadingDocs(false);
+      setTargetDocId(null);
       setIsDragging(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      if (rowFileInputRef.current) rowFileInputRef.current.value = "";
     }
-  }, [audit]);
+  }, [audit, targetDocId]);
+
+  const triggerRowUpload = (docId: string) => {
+    setTargetDocId(docId);
+    if (rowFileInputRef.current) {
+      rowFileInputRef.current.value = "";
+      rowFileInputRef.current.click();
+    }
+  };
+
+  const handleRowFileSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0 && targetDocId) {
+      handleFileUpload(e.target.files, targetDocId);
+    }
+  };
+
+  const handleToggleVerify = async (docId: string, newStatus: "VERIFIED" | "RECEIVED") => {
+    if (!audit || !audit._id) return;
+    try {
+      const res = await fetch(`/api/admin/audits/${audit._id}/documents/${docId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success(`Document marked as ${newStatus}`);
+        fetchAudit();
+      } else {
+        toast.error(data.error || "Failed to update document status");
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update document status");
+    }
+  };
 
   const openDeleteModal = (docId: string) => {
     setDocToDelete(docId);
@@ -304,9 +335,16 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
   const additionalPremiumDue = premiumDifference + slTax + stampFee + cFee + sFee;
 
   // Workflow Stages
+  const docsReceivedActivity = audit.activities?.find((a: any) => 
+    a.activity === "Document Uploaded" || a.details?.includes("DOCS_RECEIVED")
+  );
+  const docsReceivedDate = docsReceivedActivity 
+    ? new Date(docsReceivedActivity.timestamp || docsReceivedActivity.createdAt).toLocaleDateString("en-US")
+    : (audit.status !== "REQUESTED" ? new Date().toLocaleDateString("en-US") : "Pending");
+
   const stages = [
     { id: "REQUESTED", label: "Requested", date: new Date(audit.createdAt).toLocaleDateString("en-US"), desc: "Audit requested by carrier" },
-    { id: "DOCS_RECEIVED", label: "Documents Received", date: "Pending", desc: "All required documents received" },
+    { id: "DOCS_RECEIVED", label: "Documents Received", date: audit.status !== "REQUESTED" ? docsReceivedDate : "Pending", desc: "All required documents received" },
     { id: "UNDERWRITER_REVIEW", label: "Underwriter Review", date: "Pending", desc: "Underwriter is reviewing documents and exposures" },
     { id: "FINALIZED", label: "Finalized", date: "Pending", desc: "Audit will be finalized after approval" }
   ];
@@ -601,15 +639,18 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
     switch (status) {
       case "COMPLETE":
       case "APPROVED":
+      case "FINALIZED":
         return "bg-emerald-50 text-emerald-700 border-emerald-200";
       case "UNDERWRITER_REVIEW":
-        return "bg-amber-50 text-amber-700 border-amber-200";
+        return "bg-purple-50 text-purple-700 border-purple-200";
       case "DOCS_RECEIVED":
-        return "bg-indigo-50 text-indigo-700 border-indigo-200";
+        return "bg-blue-50 text-blue-700 border-blue-200";
+      case "REQUESTED":
+        return "bg-amber-50 text-amber-700 border-amber-200";
       case "CANCELLED":
         return "bg-rose-50 text-rose-700 border-rose-200";
       default:
-        return "bg-blue-50 text-blue-700 border-blue-200";
+        return "bg-gray-100 text-gray-700 border-gray-200";
     }
   };
 
@@ -724,13 +765,26 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
 
         {/* Supporting Documents */}
         <div className="bg-white rounded-2xl shadow-sm border border-[#e5ddd5] overflow-hidden">
-          <div className="p-6 border-b border-gray-100 flex justify-between items-center">
-            <h3 className="text-[17px] font-bold text-gray-900">Supporting Documents</h3>
+          <div className="p-6 border-b border-gray-100 flex flex-wrap justify-between items-center gap-2">
+            <div>
+              <h3 className="text-[17px] font-bold text-gray-900">Supporting Documents</h3>
+              <p className="text-xs text-gray-500 mt-0.5">Upload required audit documents (Tax Returns, Year-End P&L statements)</p>
+            </div>
+            {audit.documents && audit.documents.length > 0 && (
+              <span className="text-xs font-semibold px-2.5 py-1 bg-gray-100 text-gray-700 rounded-full border border-gray-200">
+                {audit.documents.filter((d: any) => !!d.fileUrl).length} of {audit.documents.length} Uploaded
+              </span>
+            )}
           </div>
           
           <div className="p-6">
             <div
-              className={`border-2 border-dashed rounded-xl p-8 text-center transition-colors ${isDragging ? "border-blue-500 bg-blue-50/50" : "border-gray-300 hover:border-gray-400"} ${uploadingDocs ? "opacity-50 pointer-events-none" : ""}`}
+              onClick={() => fileInputRef.current?.click()}
+              className={`border-2 border-dashed rounded-xl p-8 text-center transition-all cursor-pointer ${
+                isDragging 
+                  ? "border-blue-500 bg-blue-50/50" 
+                  : "border-gray-300 hover:border-gray-400 hover:bg-gray-50/50"
+              } ${uploadingDocs && !targetDocId ? "opacity-50 pointer-events-none" : ""}`}
               onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
               onDragLeave={(e) => { e.preventDefault(); setIsDragging(false); }}
               onDrop={(e) => {
@@ -741,35 +795,58 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
                 }
               }}
             >
-              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm border border-gray-200">
-                <UploadCloud className="w-5 h-5 text-gray-600" />
+              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mx-auto mb-3 shadow-sm border border-gray-200">
+                <UploadCloud className="w-6 h-6 text-blue-600" />
               </div>
               <h4 className="text-[15px] font-bold text-gray-900 mb-1">Click or drag files here to upload</h4>
-              <p className="text-xs text-gray-500 mb-4">Support for PDF, DOC, ZIP up to 10MB</p>
+              <p className="text-xs text-gray-500 mb-4">Support for PDF, DOC, XLSX, CSV, ZIP up to 10MB</p>
               
-              <label className="cursor-pointer inline-flex items-center justify-center px-4 py-2 bg-white border border-gray-300 text-sm font-semibold text-gray-700 rounded-lg hover:bg-gray-50 transition shadow-sm">
+              <button 
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  fileInputRef.current?.click();
+                }}
+                className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-sm font-semibold text-gray-700 rounded-lg hover:bg-gray-50 transition shadow-sm"
+              >
+                <UploadCloud className="w-4 h-4 text-gray-500" />
                 <span>Select Files</span>
-                <input 
-                  type="file" 
-                  className="hidden" 
-                  multiple 
-                  onChange={(e) => {
-                    if (e.target.files) handleFileUpload(e.target.files);
-                  }}
-                />
-              </label>
+              </button>
               
-              {uploadingDocs && (
-                <p className="text-sm font-semibold text-blue-600 mt-4 animate-pulse">Uploading documents...</p>
+              <input 
+                ref={fileInputRef}
+                type="file" 
+                className="hidden" 
+                multiple 
+                onChange={(e) => {
+                  if (e.target.files && e.target.files.length > 0) {
+                    handleFileUpload(e.target.files);
+                  }
+                }}
+              />
+              
+              {uploadingDocs && !targetDocId && (
+                <div className="flex items-center justify-center gap-2 text-sm font-semibold text-blue-600 mt-4 animate-pulse">
+                  <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                  <span>Uploading documents...</span>
+                </div>
               )}
             </div>
           </div>
+
+          {/* Hidden input dedicated to row-level uploads */}
+          <input 
+            ref={rowFileInputRef}
+            type="file"
+            className="hidden"
+            onChange={handleRowFileSelected}
+          />
           
-          <div className="w-full">
+          <div className="w-full overflow-x-auto">
             <table className="w-full text-left">
               <thead>
-                <tr className="bg-gray-50/50">
-                  <th className="px-6 py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wide">Filename</th>
+                <tr className="bg-gray-50/70 border-y border-gray-100">
+                  <th className="px-6 py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wide">Document Type / Name</th>
                   <th className="px-6 py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wide">Uploaded On</th>
                   <th className="px-6 py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wide">Status</th>
                   <th className="px-6 py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wide text-right">Action</th>
@@ -779,39 +856,147 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
                 {(!audit.documents || audit.documents.length === 0) && (
                   <tr>
                     <td colSpan={4} className="px-6 py-8 text-center text-sm text-gray-500">
-                      No documents uploaded yet
+                      No documents requested or uploaded yet
                     </td>
                   </tr>
                 )}
-                {audit.documents?.map((doc: any, i: number) => (
-                  <tr key={i} className="hover:bg-gray-50/50 transition-colors">
-                    <td className="px-6 py-4">
-                      <div className="text-sm font-semibold text-gray-900 flex items-center gap-2">
-                        {doc.fileName || doc.name}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-500 font-medium">
-                      {new Date(doc.uploadedAt || audit.createdAt).toLocaleDateString("en-US")}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold border ${doc.status === 'VERIFIED' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-gray-100 text-gray-700 border-gray-200'}`}>
-                        {doc.status === 'VERIFIED' && <CheckCircle className="w-3.5 h-3.5" />} 
-                        {doc.status || "RECEIVED"}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-3">
-                        {doc.fileUrl && (
-                          <>
-                            <a href={`/api/download?url=${encodeURIComponent(doc.fileUrl)}`} className="text-sm font-bold text-gray-500 hover:text-gray-800 transition">Download</a>
-                            <a href={`/api/download?url=${encodeURIComponent(doc.fileUrl)}&view=true`} target="_blank" rel="noopener noreferrer" className="text-sm font-bold text-gray-500 hover:text-gray-800 transition">View</a>
-                          </>
+                {audit.documents?.map((doc: any, i: number) => {
+                  const hasFile = !!doc.fileUrl;
+                  const isRequested = !hasFile || doc.status === "REQUESTED";
+                  const isVerified = doc.status === "VERIFIED";
+                  const isRowUploading = uploadingDocs && targetDocId === doc.documentId;
+
+                  return (
+                    <tr key={doc.documentId || doc._id || i} className="hover:bg-gray-50/50 transition-colors">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
+                            hasFile ? "bg-blue-50 text-blue-600" : "bg-amber-50 text-amber-600"
+                          }`}>
+                            {hasFile ? <FileText className="w-5 h-5" /> : <Clock className="w-5 h-5" />}
+                          </div>
+                          <div>
+                            <div className="text-sm font-semibold text-gray-900">
+                              {doc.name || doc.fileName || "Supporting Document"}
+                            </div>
+                            {hasFile && doc.fileName && doc.fileName !== doc.name && (
+                              <p className="text-xs text-gray-500 truncate max-w-xs">{doc.fileName}</p>
+                            )}
+                            {doc.uploadedBy && (
+                              <p className="text-[11px] text-gray-400">Uploaded by: {doc.uploadedBy}</p>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-sm font-medium">
+                        {hasFile && doc.uploadedAt ? (
+                          <span className="text-gray-700">
+                            {new Date(doc.uploadedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                          </span>
+                        ) : (
+                          <span className="text-amber-600 font-semibold text-xs flex items-center gap-1.5">
+                            <Clock className="w-3.5 h-3.5" />
+                            Awaiting upload
+                          </span>
                         )}
-                        <button onClick={() => openDeleteModal(doc.documentId)} className="text-gray-400 hover:text-rose-600 transition"><X className="w-4 h-4" /></button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border ${
+                          isVerified 
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+                            : hasFile 
+                            ? 'bg-blue-50 text-blue-700 border-blue-200'
+                            : 'bg-amber-50 text-amber-700 border-amber-200'
+                        }`}>
+                          {isVerified ? (
+                            <CheckCircle className="w-3.5 h-3.5" />
+                          ) : hasFile ? (
+                            <FileCheck className="w-3.5 h-3.5" />
+                          ) : (
+                            <Clock className="w-3.5 h-3.5" />
+                          )}
+                          {doc.status || (hasFile ? "RECEIVED" : "REQUESTED")}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          {/* If not yet uploaded, show primary Upload button */}
+                          {isRequested && (
+                            <button
+                              type="button"
+                              onClick={() => triggerRowUpload(doc.documentId)}
+                              disabled={uploadingDocs}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg shadow-sm transition disabled:opacity-50"
+                            >
+                              <UploadCloud className="w-3.5 h-3.5" />
+                              {isRowUploading ? "Uploading..." : "Upload"}
+                            </button>
+                          )}
+
+                          {/* If file is uploaded, show View, Download, Replace & Admin Verify */}
+                          {hasFile && (
+                            <>
+                              <a 
+                                href={`/api/download?url=${encodeURIComponent(doc.fileUrl)}&view=true`} 
+                                target="_blank" 
+                                rel="noopener noreferrer" 
+                                className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                                title="View in new tab"
+                              >
+                                <Eye className="w-3.5 h-3.5" />
+                                <span>View</span>
+                              </a>
+                              <a 
+                                href={`/api/download?url=${encodeURIComponent(doc.fileUrl)}`} 
+                                className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                                title="Download"
+                              >
+                                <Download className="w-3.5 h-3.5" />
+                                <span>Download</span>
+                              </a>
+                              
+                              <button
+                                type="button"
+                                onClick={() => triggerRowUpload(doc.documentId)}
+                                disabled={uploadingDocs}
+                                className="inline-flex items-center gap-1 px-2 py-1.5 text-xs font-semibold text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition"
+                                title="Replace file"
+                              >
+                                <UploadCloud className="w-3.5 h-3.5" />
+                                <span className="hidden sm:inline">Replace</span>
+                              </button>
+
+                              {isAdmin && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleToggleVerify(doc.documentId, isVerified ? "RECEIVED" : "VERIFIED")}
+                                  className={`inline-flex items-center gap-1 px-2 py-1.5 text-xs font-bold rounded-lg transition ${
+                                    isVerified 
+                                      ? "text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200" 
+                                      : "text-gray-600 hover:text-emerald-700 hover:bg-emerald-50 border border-gray-200"
+                                  }`}
+                                  title={isVerified ? "Click to unmark verified" : "Click to verify"}
+                                >
+                                  <CheckCircle className="w-3.5 h-3.5" />
+                                  <span>{isVerified ? "Verified" : "Verify"}</span>
+                                </button>
+                              )}
+                            </>
+                          )}
+
+                          <button 
+                            type="button"
+                            onClick={() => openDeleteModal(doc.documentId)} 
+                            className="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition ml-1"
+                            title={hasFile ? "Delete uploaded file" : "Remove requirement"}
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -863,38 +1048,6 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
               Enter Audit Revenue
             </button>
           </div>
-
-          {/* Quick Invoice & Summary Actions when audited exposure entered */}
-          {audit.auditedExposure > 0 && (
-            <div className="mt-3 pt-3 border-t border-gray-200 flex flex-col gap-2">
-              <button
-                type="button"
-                onClick={handleDownloadInvoice}
-                disabled={isDownloading}
-                className="w-full py-2.5 px-4 bg-rose-600 text-white font-bold text-sm rounded-lg hover:bg-rose-700 transition-colors shadow-sm shadow-rose-200 flex items-center justify-center gap-2 disabled:bg-rose-400 disabled:cursor-not-allowed cursor-pointer"
-              >
-                {isDownloading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Generating PDF...
-                  </>
-                ) : (
-                  <>
-                    <Download className="w-4 h-4" />
-                    Download Invoice (PDF)
-                  </>
-                )}
-              </button>
-              <button
-                type="button"
-                onClick={handleNavigateComplete}
-                className="w-full py-2 px-4 bg-white border border-slate-300 text-slate-700 font-semibold text-xs rounded-lg hover:bg-slate-50 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
-              >
-                <FileText className="w-3.5 h-3.5 text-slate-500" />
-                View Complete Info & Summary
-              </button>
-            </div>
-          )}
         </div>
 
         {/* Audit Activity */}
@@ -952,13 +1105,14 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
               <div className="w-16 h-16 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <AlertCircle className="w-8 h-8 text-rose-600" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Delete Document?</h3>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Remove Document?</h3>
               <p className="text-sm text-gray-500 mb-6">
-                Are you sure you want to permanently delete this document? This action cannot be undone.
+                Are you sure you want to remove this document? Required documents will be reset to pending upload status.
               </p>
 
               <div className="flex gap-3 w-full">
                 <button
+                  type="button"
                   onClick={() => {
                     setDeleteModalOpen(false);
                     setDocToDelete(null);
@@ -969,6 +1123,7 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
                   Cancel
                 </button>
                 <button
+                  type="button"
                   onClick={confirmDeleteDocument}
                   disabled={isDeletingDoc}
                   className="flex-1 px-4 py-2.5 bg-rose-600 text-white font-bold rounded-xl hover:bg-rose-700 transition flex items-center justify-center gap-2"
@@ -979,7 +1134,7 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
                       Deleting...
                     </>
                   ) : (
-                    "Delete Document"
+                    "Remove Document"
                   )}
                 </button>
               </div>

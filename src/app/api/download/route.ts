@@ -94,7 +94,12 @@ export async function GET(req: NextRequest) {
         "documents.fileUrl": { $in: urlCandidates }
       };
       if (userRole === "agency_admin" || userRole === "agency_user") {
-        auditQuery.agencyId = (session.user as any).agencyId;
+        const agencyId = (session.user as any).agencyId;
+        const matchingSubIds = await Submission.find({ agencyId }).distinct("_id");
+        auditQuery.$or = [
+          { agencyId: agencyId },
+          { submissionId: { $in: matchingSubIds } }
+        ];
       }
       foundAudit = await Audit.findOne(auditQuery).lean();
     }
@@ -149,7 +154,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Customize filename to include client name
-    const clientName = finalSubmission?.clientContact?.name || foundAudit?.clientContact?.name || "???";
+    const clientName = finalSubmission?.clientContact?.name || foundAudit?.namedInsured || foundAudit?.clientContact?.name || "Client";
     
     // Check if it's a known policy doc or binder from either model
     const isBinder = 
