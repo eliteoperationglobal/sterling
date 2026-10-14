@@ -155,6 +155,19 @@ export async function GET(
       employeePayroll: (function (val: any) { if (!val) return "$0"; const s = String(val); return s.includes("$") ? s : "$" + Number(s.replace(/[^0-9.-]+/g, "")).toLocaleString('en-US'); })(formData.totalPayroll || formData.totalPayrollAmount || "0"),
       descriptionOfOperations: formData.carrierApprovedDescription || formData.classCodeWork?.description || formData.descriptionOfOperations || "",
       addExcessLiability: formData.addExcessLiability === true,
+      // Pollution & Professional Liability
+      addPollutionLiability: formData?.addPollutionLiability === true ||
+        String(formData?.addPollutionLiability) === 'true' ||
+        Boolean(formData?.pollutionLiabilityLimit) ||
+        ((formData?.addProfessionalPollutionLiability === true || String(formData?.addProfessionalPollutionLiability) === 'true') &&
+         formData?.professionalOrPollutionType === 'pollution'),
+      pollutionLiabilityLimit: formData?.pollutionLiabilityLimit ? formatToUSD(formData.pollutionLiabilityLimit) : undefined,
+      addProfessionalLiability: formData?.addProfessionalLiability === true ||
+        String(formData?.addProfessionalLiability) === 'true' ||
+        Boolean(formData?.professionalLiabilityLimit) ||
+        ((formData?.addProfessionalPollutionLiability === true || String(formData?.addProfessionalPollutionLiability) === 'true') &&
+         formData?.professionalOrPollutionType === 'professional'),
+      professionalLiabilityLimit: formData?.professionalLiabilityLimit ? formatToUSD(formData.professionalLiabilityLimit) : undefined,
     };
 
     // Generate HTML

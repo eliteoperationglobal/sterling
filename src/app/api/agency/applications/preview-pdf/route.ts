@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
     }
 
     const user = session.user as any;
-    const { programId, programName, formData, agencyInfo, excludePages8910 } = await req.json();
+    const { programId, programName, formData, agencyInfo, agencyId: reqAgencyId, excludePages8910 } = await req.json();
 
     if (!formData) {
       return NextResponse.json(
@@ -38,7 +38,10 @@ export async function POST(req: NextRequest) {
     let agency: any = null;
     try {
       await connectDB();
-      agency = await Agency.findById(user.agencyId);
+      const targetAgencyId = (user.role === "system_admin" && (reqAgencyId || formData?.agencyId))
+        ? (reqAgencyId || formData?.agencyId)
+        : user.agencyId;
+      agency = await Agency.findById(targetAgencyId);
     } catch (dbError: any) {
       console.warn("MongoDB connection failed for preview, using default agency info:", dbError.message);
       // Use default agency info or info from request

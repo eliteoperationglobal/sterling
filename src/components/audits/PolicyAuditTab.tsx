@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle, Clock, FileText, AlertCircle, Save, ArrowLeft, Calendar, FileCheck, Check, Info, File as FileIcon, MoreHorizontal, Eye, UploadCloud, X, Download } from "lucide-react";
+import { CheckCircle, Clock, FileText, AlertCircle, Save, ArrowLeft, Calendar, FileCheck, Check, Info, File as FileIcon, MoreHorizontal, Eye, UploadCloud, X, Download, Loader2, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { useCallback } from "react";
 
@@ -21,6 +21,9 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
   const [docToDelete, setDocToDelete] = useState<string | null>(null);
   const [isDeletingDoc, setIsDeletingDoc] = useState(false);
 
+  // Download Invoice State
+  const [isDownloading, setIsDownloading] = useState(false);
+
   // Form states
   const [estimatedExposure, setEstimatedExposure] = useState("");
   const [auditedExposure, setAuditedExposure] = useState("");
@@ -32,6 +35,36 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
   const [carrier, setCarrier] = useState("");
   const [notes, setNotes] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+
+  const handleDownloadInvoice = async () => {
+    if (!audit?._id || isDownloading) return;
+    setIsDownloading(true);
+    const toastId = toast.loading("Generating invoice PDF, please wait...");
+
+    try {
+      const response = await fetch(`/api/admin/audits/${audit._id}/invoice`);
+      if (!response.ok) {
+        throw new Error("Failed to generate PDF invoice");
+      }
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      const filename = `Invoice-${audit.auditId || audit.policyNumber || "Audit"}.pdf`;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      toast.success("Invoice PDF downloaded successfully!", { id: toastId });
+    } catch (err: any) {
+      console.error("PDF download error:", err);
+      toast.error(err.message || "Failed to download invoice PDF. Please try again.", { id: toastId });
+    } finally {
+      setIsDownloading(false);
+    }
+  };
 
   const fetchAudit = async () => {
     setLoading(true);
@@ -132,7 +165,12 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
         setIsSaving(false);
       }
     }
-    router.push(`/admin/audits/${audit._id}/complete`);
+    const isAgency = typeof window !== "undefined" && window.location.pathname.startsWith("/agency");
+    if (isAgency) {
+      router.push(`/agency/audits/${audit._id}/complete`);
+    } else {
+      router.push(`/admin/audits/${audit._id}/complete`);
+    }
   };
 
   const handleFileUpload = useCallback(async (files: FileList | File[]) => {
@@ -812,7 +850,9 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
 
           <div className="mt-8 flex gap-3">
             <button
-              className="w-1/3 py-2.5 px-4 bg-white border border-gray-300 text-gray-700 font-bold text-sm rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
+              onClick={() => updateAudit()}
+              disabled={isSaving}
+              className="w-1/3 py-2.5 px-4 bg-white border border-gray-300 text-gray-700 font-bold text-sm rounded-lg hover:bg-gray-50 transition-colors shadow-sm disabled:opacity-50"
             >
               Save Draft
             </button>
@@ -823,6 +863,38 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
               Enter Audit Revenue
             </button>
           </div>
+
+          {/* Quick Invoice & Summary Actions when audited exposure entered */}
+          {audit.auditedExposure > 0 && (
+            <div className="mt-3 pt-3 border-t border-gray-200 flex flex-col gap-2">
+              <button
+                type="button"
+                onClick={handleDownloadInvoice}
+                disabled={isDownloading}
+                className="w-full py-2.5 px-4 bg-rose-600 text-white font-bold text-sm rounded-lg hover:bg-rose-700 transition-colors shadow-sm shadow-rose-200 flex items-center justify-center gap-2 disabled:bg-rose-400 disabled:cursor-not-allowed cursor-pointer"
+              >
+                {isDownloading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Generating PDF...
+                  </>
+                ) : (
+                  <>
+                    <Download className="w-4 h-4" />
+                    Download Invoice (PDF)
+                  </>
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={handleNavigateComplete}
+                className="w-full py-2 px-4 bg-white border border-slate-300 text-slate-700 font-semibold text-xs rounded-lg hover:bg-slate-50 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <FileText className="w-3.5 h-3.5 text-slate-500" />
+                View Complete Info & Summary
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Audit Activity */}

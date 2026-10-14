@@ -69,6 +69,10 @@ export type ProposalData = {
   addExcessLiability?: boolean;
   excessLiabilityAmount?: number;
   excessLiabilityLimit?: string;
+  addPollutionLiability?: boolean;
+  pollutionLiabilityLimit?: string;
+  addProfessionalLiability?: boolean;
+  professionalLiabilityLimit?: string;
   isExcessOnlyProposal?: boolean;
   policyFeeUSD: number;
   brokerFeeAmountUSD: number;
@@ -374,6 +378,19 @@ export async function GET(
       carrierNameXL: url.searchParams.get("isExcessOnly") === "true" ? (allExcessCarriersStr || carrierNameXL) : carrierNameXL,
       excessLiabilityAmount: xsQuote?.finalAmountUSD ?? undefined,
       excessLiabilityLimit: (xsQuote?.limits?.excessLimit || formData.excessLiabilityLimit) ? extractLimits(xsQuote?.limits?.excessLimit || formData.excessLiabilityLimit)[0] : undefined,
+      // Pollution & Professional Liability
+      addPollutionLiability: formData?.addPollutionLiability === true ||
+        String(formData?.addPollutionLiability) === 'true' ||
+        Boolean(formData?.pollutionLiabilityLimit) ||
+        ((formData?.addProfessionalPollutionLiability === true || String(formData?.addProfessionalPollutionLiability) === 'true') &&
+         formData?.professionalOrPollutionType === 'pollution'),
+      pollutionLiabilityLimit: formData?.pollutionLiabilityLimit ? formatToUSD(formData.pollutionLiabilityLimit) : undefined,
+      addProfessionalLiability: formData?.addProfessionalLiability === true ||
+        String(formData?.addProfessionalLiability) === 'true' ||
+        Boolean(formData?.professionalLiabilityLimit) ||
+        ((formData?.addProfessionalPollutionLiability === true || String(formData?.addProfessionalPollutionLiability) === 'true') &&
+         formData?.professionalOrPollutionType === 'professional'),
+      professionalLiabilityLimit: formData?.professionalLiabilityLimit ? formatToUSD(formData.professionalLiabilityLimit) : undefined,
     };
 
     const isApartment = submission.programId === "apartment-buildings" || 

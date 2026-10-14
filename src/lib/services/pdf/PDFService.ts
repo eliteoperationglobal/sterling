@@ -296,6 +296,18 @@ export const PDFService = {
                 : "$0",
               classCode: formData.carrierApprovedDescription || "General Contractor",
               addExcessLiability: formData.addExcessLiability === true,
+              addPollutionLiability: formData.addPollutionLiability === true ||
+                String(formData.addPollutionLiability) === "true" ||
+                Boolean(formData.pollutionLiabilityLimit) ||
+                ((formData.addProfessionalPollutionLiability === true || String(formData.addProfessionalPollutionLiability) === "true") &&
+                 formData.professionalOrPollutionType === "pollution"),
+              pollutionLiabilityLimit: formData.pollutionLiabilityLimit ? (formData.pollutionLiabilityLimit.includes("$") ? formData.pollutionLiabilityLimit : `$${formData.pollutionLiabilityLimit}`) : undefined,
+              addProfessionalLiability: formData.addProfessionalLiability === true ||
+                String(formData.addProfessionalLiability) === "true" ||
+                Boolean(formData.professionalLiabilityLimit) ||
+                ((formData.addProfessionalPollutionLiability === true || String(formData.addProfessionalPollutionLiability) === "true") &&
+                 formData.professionalOrPollutionType === "professional"),
+              professionalLiabilityLimit: formData.professionalLiabilityLimit ? (formData.professionalLiabilityLimit.includes("$") ? formData.professionalLiabilityLimit : `$${formData.professionalLiabilityLimit}`) : undefined,
             };
             htmlContent = generateProposalHTML(proposalData as any);
           }

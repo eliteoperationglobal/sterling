@@ -17,13 +17,19 @@ export async function GET(req: NextRequest) {
         }
 
         const user = session.user as any;
-        if (!user.agencyId) {
+        const requestedAgencyId = req.nextUrl.searchParams.get("agencyId");
+        let targetAgencyId = user.agencyId;
+        if (user.role === "system_admin" && requestedAgencyId) {
+            targetAgencyId = requestedAgencyId;
+        }
+
+        if (!targetAgencyId) {
             return NextResponse.json({ error: "No agency found for user" }, { status: 400 });
         }
 
         await connectDB();
 
-        const agents = await User.find({ agencyId: user.agencyId })
+        const agents = await User.find({ agencyId: targetAgencyId })
             .select("_id name email role")
             .sort({ name: 1 })
             .lean();

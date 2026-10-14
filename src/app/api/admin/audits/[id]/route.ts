@@ -8,17 +8,34 @@ import AuditActivity from "@/models/AuditActivity";
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session || !session.user || (session.user as any).role !== "system_admin") {
+    if (!session || !session.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const userRole = (session.user as any).role;
+    const isAdmin = userRole === "system_admin";
+    const userAgencyId = (session.user as any).agencyId ? String((session.user as any).agencyId) : null;
+
+    if (!isAdmin && !userAgencyId) {
+      return NextResponse.json({ error: "Forbidden: No associated agency found" }, { status: 403 });
     }
 
     await connectDB();
     const { id } = params;
     const body = await req.json();
 
-    const audit = await Audit.findById(id);
+    const audit = await Audit.findById(id).populate("submissionId");
     if (!audit) {
       return NextResponse.json({ error: "Audit not found" }, { status: 404 });
+    }
+
+    // 101% Multi-tenant security check:
+    if (!isAdmin) {
+      const auditAgencyId = audit.agencyId ? String(audit.agencyId) : null;
+      const subAgencyId = (audit.submissionId as any)?.agencyId ? String((audit.submissionId as any).agencyId) : null;
+      if (auditAgencyId !== userAgencyId && subAgencyId !== userAgencyId) {
+        return NextResponse.json({ error: "Forbidden: You do not have access to update this audit" }, { status: 403 });
+      }
     }
 
     const { 
@@ -117,9 +134,9 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     if (activityLogDetails) {
       await AuditActivity.create({
         auditId: audit._id,
-        user: session.user.name || "Admin",
-        role: "System Admin",
-        activity: action || "Audit Updated",
+        user: session.user.name || (isAdmin ? "Admin" : "Agency User"),
+        role: isAdmin ? "System Admin" : "Agency",
+        activity: action || (isAdmin ? "Audit Updated" : "Audit Updated by Agency"),
         details: activityLogDetails.trim()
       });
     }
@@ -133,8 +150,12 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session || !session.user || (session.user as any).role !== "system_admin") {
+    if (!session || !session.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    if ((session.user as any).role !== "system_admin") {
+      return NextResponse.json({ error: "Forbidden - Admin access required to delete audits" }, { status: 403 });
     }
 
     await connectDB();

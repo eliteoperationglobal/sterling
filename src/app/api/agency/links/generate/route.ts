@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
     }
 
     const user = session.user as any;
-    const { programId, agentName } = await req.json();
+    const { programId, agentName, agencyId: reqAgencyId } = await req.json();
 
     if (!programId || !agentName) {
       return NextResponse.json({ error: "Missing required fields: programId and agentName" }, { status: 400 });
@@ -25,7 +25,8 @@ export async function POST(req: NextRequest) {
 
     await connectDB();
 
-    const agency = await Agency.findById(user.agencyId);
+    const targetAgencyId = (user.role === "system_admin" && reqAgencyId) ? reqAgencyId : user.agencyId;
+    const agency = await Agency.findById(targetAgencyId);
     if (!agency) {
       return NextResponse.json({ error: "Agency not found" }, { status: 404 });
     }

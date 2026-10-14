@@ -66,6 +66,18 @@ interface ApplicationPacketData {
   medPayLimit: string;
   selfInsuredRetention: string;
 
+  // Excess Liability Coverage
+  addExcessLiability?: boolean | string;
+  excessLiabilityLimit?: string;
+
+  // Pollution Liability Coverage
+  addPollutionLiability?: boolean | string;
+  pollutionLiabilityLimit?: string;
+
+  // Professional Liability Coverage
+  addProfessionalLiability?: boolean | string;
+  professionalLiabilityLimit?: string;
+
   // Class Code & Gross Receipts
   classCode: string;
   grossReceipts: string;
@@ -473,6 +485,33 @@ function generatePage2(data: ApplicationPacketData): string {
             <tr><td><strong>Self-Insured Retention:</strong></td><td>${data.selfInsuredRetention}</td></tr>
           </table>
         </div>
+        
+        ${(String(data.addExcessLiability) === 'true') && data.excessLiabilityLimit ? `
+        <div class="coverages-section-page2">
+          <div class="section-title-underline-page2"><strong>EXCESS LIABILITY COVERAGE</strong></div>
+          <table class="coverages-table-page2">
+            <tr><td><strong>Excess Limit:</strong></td><td>${data.excessLiabilityLimit}</td></tr>
+          </table>
+        </div>
+        ` : ''}
+
+        ${((String(data.addPollutionLiability) === 'true' || data.addPollutionLiability === true) && data.pollutionLiabilityLimit) ? `
+        <div class="coverages-section-page2">
+          <div class="section-title-underline-page2"><strong>POLLUTION LIABILITY COVERAGE</strong></div>
+          <table class="coverages-table-page2">
+            <tr><td><strong>Pollution Limit:</strong></td><td>${data.pollutionLiabilityLimit}</td></tr>
+          </table>
+        </div>
+        ` : ''}
+
+        ${((String(data.addProfessionalLiability) === 'true' || data.addProfessionalLiability === true) && data.professionalLiabilityLimit) ? `
+        <div class="coverages-section-page2">
+          <div class="section-title-underline-page2"><strong>PROFESSIONAL LIABILITY COVERAGE</strong></div>
+          <table class="coverages-table-page2">
+            <tr><td><strong>Professional Limit:</strong></td><td>${data.professionalLiabilityLimit}</td></tr>
+          </table>
+        </div>
+        ` : ''}
         
         <div class="section-divider-page2"></div>
         

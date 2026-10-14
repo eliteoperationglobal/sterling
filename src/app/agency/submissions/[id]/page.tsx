@@ -24,6 +24,7 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { signOut } from "next-auth/react";
 import { toast } from "sonner";
+import PolicyAuditTab from "@/components/audits/PolicyAuditTab";
 
 
 interface SubmissionDetails {
@@ -637,6 +638,13 @@ function SubmissionDetailsContent() {
       router.replace(`/agency/submissions/${submissionId}`, { scroll: false });
     }
   }, [searchParams, router, submissionId]);
+
+  useEffect(() => {
+    const tabParam = searchParams?.get("tab");
+    if (tabParam) {
+      setActiveTab(tabParam);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -2027,7 +2035,7 @@ function SubmissionDetailsContent() {
         <div className="bg-white px-4 md:px-8 py-6 border-t border-gray-200">
           {/* Tabs */}
           <div className="flex items-center gap-6 md:gap-10 text-[14px] mb-6 border-b overflow-x-auto whitespace-nowrap" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-            {["Notes", "Status History", "Contact Information", "Rating Information"].map(
+            {["Notes", "Status History", "Contact Information", "Rating Information", "Audits"].map(
               (tab) => (
                 <button
                   key={tab}
@@ -2342,6 +2350,12 @@ function SubmissionDetailsContent() {
                   </div>
                 </div>
               )}
+            </div>
+          )}
+
+          {activeTab === "Audits" && (
+            <div className="animate-in fade-in duration-300">
+              <PolicyAuditTab submissionId={submissionId as string} />
             </div>
           )}
         </div>

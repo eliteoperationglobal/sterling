@@ -1,11 +1,10 @@
 "use client";
 
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useEffect, useState, useRef } from "react";
-import { signOut } from "next-auth/react";
-import { Bell, Menu } from "lucide-react";
+import { useEffect, useState, useRef, useMemo } from "react";
+import { Bell, Menu, ShoppingBag, X, Check, ArrowRight, Loader2 } from "lucide-react";
 import NotificationWidget from "@/components/NotificationWidget";
 import MobileNav from "@/components/layout/MobileNav";
 
@@ -39,6 +38,112 @@ export default function AdminDashboard() {
   const [notifLoading, setNotifLoading] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
+
+  // Agency selection modal for Marketplace
+  const [isAgencyModalOpen, setIsAgencyModalOpen] = useState(false);
+  const [agencies, setAgencies] = useState<any[]>([]);
+  const [agenciesLoading, setAgenciesLoading] = useState(false);
+  const [selectedAgencyId, setSelectedAgencyId] = useState("");
+
+  const fetchAgencies = async () => {
+    if (agencies.length > 0) return;
+    try {
+      setAgenciesLoading(true);
+      const res = await fetch("/api/admin/agencies");
+      const data = await res.json();
+      if (data.success && Array.isArray(data.agencies)) {
+        setAgencies(data.agencies);
+      }
+    } catch (err) {
+      console.error("Error fetching agencies:", err);
+    } finally {
+      setAgenciesLoading(false);
+    }
+  };
+
+  const handleOpenMarketplaceModal = () => {
+    setIsAgencyModalOpen(true);
+    fetchAgencies();
+  };
+
+  // Only the 6 allowed agencies for this popup as requested
+  const POPUP_ALLOWED_AGENCIES = useMemo(
+    () => [
+      {
+        displayName: "Titan Commercial Insurance Solutions",
+        match: (a: any) =>
+          a.name?.toLowerCase().includes("titan") ||
+          a.email?.toLowerCase().includes("titan"),
+      },
+      {
+        displayName: "Texas Commercial Liability Services",
+        match: (a: any) =>
+          a.name?.toLowerCase().includes("texas commercial") ||
+          a.email?.toLowerCase().includes("texascomm"),
+      },
+      {
+        displayName: "SJJ Insurance Services",
+        match: (a: any) =>
+          (a.name?.toLowerCase().includes("sjj") && !a.name?.toLowerCase().includes("sij")) ||
+          a.email?.toLowerCase().includes("sjjinsurance"),
+      },
+      {
+        displayName: "Patrick Arias Insurance",
+        match: (a: any) =>
+          a.name?.toLowerCase().includes("patrick arias") ||
+          a.email?.toLowerCase().includes("patrickarias"),
+      },
+      {
+        displayName: "Capco Insurance Agency",
+        match: (a: any) =>
+          a.name?.toLowerCase().includes("capco") ||
+          a.name?.toLowerCase().includes("capital & co") ||
+          a.name?.toLowerCase().includes("gamaty") ||
+          a.email?.toLowerCase().includes("capcoinsurance"),
+      },
+      {
+        displayName: "Blue Angel Insurance",
+        match: (a: any) =>
+          a.name?.toLowerCase().includes("blue angel") ||
+          a.name?.toLowerCase().includes("blue angle") ||
+          a.email?.toLowerCase().includes("blueangel"),
+      },
+    ],
+    []
+  );
+
+  const allowedPopupAgencies = useMemo(() => {
+    if (!agencies || agencies.length === 0) return [];
+    const list: any[] = [];
+    for (const item of POPUP_ALLOWED_AGENCIES) {
+      const found = agencies.find((a) => item.match(a));
+      if (found) {
+        list.push({
+          ...found,
+          displayName: item.displayName,
+        });
+      }
+    }
+    return list;
+  }, [agencies, POPUP_ALLOWED_AGENCIES]);
+
+  const handleContinueToMarketplace = () => {
+    if (!selectedAgencyId) return;
+    const selectedAgency =
+      allowedPopupAgencies.find((a) => a._id === selectedAgencyId) ||
+      agencies.find((a) => a._id === selectedAgencyId);
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("adminActingAgencyId", selectedAgencyId);
+      if (selectedAgency?.displayName || selectedAgency?.name) {
+        sessionStorage.setItem("adminActingAgencyName", selectedAgency.displayName || selectedAgency.name);
+      }
+      if (selectedAgency?.email) {
+        sessionStorage.setItem("adminActingAgencyEmail", selectedAgency.email);
+      }
+    }
+    setIsAgencyModalOpen(false);
+    router.push(`/agency/marketplace?agencyId=${selectedAgencyId}`);
+  };
 
   const getNotificationTag = (type: string) => {
     switch (type) {
@@ -418,6 +523,7 @@ export default function AdminDashboard() {
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Administrative Actions</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {[
+                { title: "Marketplace", desc: "Select an agency to access marketplace & submit applications", href: "#", onClick: handleOpenMarketplaceModal, icon: "M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z", gradient: "from-[#9A8B7A] to-[#7A6F64]", badge: null },
                 { title: "Things To Do", desc: "Organized pending tasks & overdue subjectives", href: "/admin/things-to-do", icon: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2M9 14l2 2 4-4", gradient: "from-[#9A8B7A] to-[#7A6F64]", badge: null },
                 { title: "All Submissions", desc: "View and manage all submissions", href: "/admin/submissions", icon: "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z", gradient: "from-blue-600 to-blue-700", badge: stats.totalSubmissions },
                 { title: "Quote Requests", desc: "Applications waiting for quotes", href: "/admin/quote-requests", icon: "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z", gradient: "from-sky-600 to-sky-700", badge: stats.quoteRequests, urgent: stats.quoteRequests > 0 },
@@ -425,46 +531,156 @@ export default function AdminDashboard() {
                 { title: "Bind Requests", desc: "Approve binding requests", href: "/admin/bind-requests", icon: "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z", gradient: "from-orange-600 to-orange-700", badge: stats.bindRequests, urgent: stats.bindRequests > 0 },
                 { title: "Bound Policies", desc: "View all bound policies", href: "/admin/bound-policies", icon: "M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z", gradient: "from-emerald-600 to-emerald-700", badge: stats.boundPolicies },
                 { title: "Audit", desc: "Audit existing policies or create new ones", href: "/admin/audit", icon: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M15 12a3 3 0 11-6 0 3 3 0 016 0z", gradient: "from-amber-600 to-amber-700", badge: null },
-              ].map((action) => (
-                <Link
-                  key={action.title}
-                  href={action.href}
-                  className={`group relative bg-white rounded-2xl border ${action.urgent ? 'border-orange-200 bg-orange-50/30' : 'border-[#e5ddd5]'} p-8 hover:border-gray-300 hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col gap-5`}
-                >
-                  <div className={`absolute top-0 right-0 w-40 h-40 bg-gradient-to-br ${action.gradient} opacity-[0.04] group-hover:opacity-[0.10] transition-opacity rounded-full -mr-10 -mt-10`}></div>
+              ].map((action: any) => {
+                const cardContent = (
+                  <>
+                    <div className={`absolute top-0 right-0 w-40 h-40 bg-gradient-to-br ${action.gradient} opacity-[0.04] group-hover:opacity-[0.10] transition-opacity rounded-full -mr-10 -mt-10`}></div>
 
-                  <div className="relative flex items-start justify-between">
-                    <div className={`flex-shrink-0 w-16 h-16 bg-gradient-to-br ${action.gradient} rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-300`}>
-                      <svg className="w-9 h-9 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d={action.icon} />
+                    <div className="relative flex items-start justify-between">
+                      <div className={`flex-shrink-0 w-16 h-16 bg-gradient-to-br ${action.gradient} rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-300`}>
+                        <svg className="w-9 h-9 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d={action.icon} />
+                        </svg>
+                      </div>
+                      {action.badge != null && action.badge > 0 && (
+                        <span className={`inline-flex items-center px-3 py-1 rounded-lg text-sm font-bold ${action.urgent ? 'bg-rose-100 text-rose-700' : 'bg-blue-100 text-blue-700'}`}>
+                          {action.badge}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="relative">
+                      <h3 className="text-lg font-bold text-gray-900 mb-1">{action.title}</h3>
+                      <p className="text-sm text-gray-500">{action.desc}</p>
+                    </div>
+
+                    <div className="relative flex items-center gap-1 text-sm font-semibold text-gray-400 group-hover:text-gray-700 transition-colors">
+                      Go to {action.title}
+                      <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                       </svg>
                     </div>
-                    {action.badge != null && action.badge > 0 && (
-                      <span className={`inline-flex items-center px-3 py-1 rounded-lg text-sm font-bold ${action.urgent ? 'bg-rose-100 text-rose-700' : 'bg-blue-100 text-blue-700'}`}>
-                        {action.badge}
-                      </span>
-                    )}
-                  </div>
+                  </>
+                );
 
-                  <div className="relative">
-                    <h3 className="text-lg font-bold text-gray-900 mb-1">{action.title}</h3>
-                    <p className="text-sm text-gray-500">{action.desc}</p>
-                  </div>
+                if (action.onClick) {
+                  return (
+                    <button
+                      key={action.title}
+                      type="button"
+                      onClick={action.onClick}
+                      className={`group relative bg-white text-left rounded-2xl border ${action.urgent ? 'border-orange-200 bg-orange-50/30' : 'border-[#e5ddd5]'} p-8 hover:border-gray-300 hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col gap-5`}
+                    >
+                      {cardContent}
+                    </button>
+                  );
+                }
 
-                  <div className="relative flex items-center gap-1 text-sm font-semibold text-gray-400 group-hover:text-gray-700 transition-colors">
-                    Go to {action.title}
-                    <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </div>
-                </Link>
-              ))}
+                return (
+                  <Link
+                    key={action.title}
+                    href={action.href}
+                    className={`group relative bg-white rounded-2xl border ${action.urgent ? 'border-orange-200 bg-orange-50/30' : 'border-[#e5ddd5]'} p-8 hover:border-gray-300 hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col gap-5`}
+                  >
+                    {cardContent}
+                  </Link>
+                );
+              })}
             </div>
           </div>
         </div>
       </main>
-      {/* ⭐ Cancel Requests Section */}
 
+      {/* Agency Selection Mini Popup / Modal */}
+      {isAgencyModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border border-[#e5ddd5] flex flex-col max-h-[88vh] animate-in zoom-in-95 duration-200">
+            {/* Header */}
+            <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between bg-gradient-to-r from-[#fcfbf9] to-[#f5f0e8]/50">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#9A8B7A] to-[#7A6F64] flex items-center justify-center text-white shadow-md">
+                  <ShoppingBag className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900">Select Agency</h3>
+                  <p className="text-xs text-gray-500">Choose an agency to access the marketplace on their behalf</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsAgencyModalOpen(false)}
+                className="text-gray-400 hover:text-gray-600 p-1.5 rounded-lg hover:bg-gray-100 transition"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Agency List */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-2 max-h-[380px]">
+              {agenciesLoading ? (
+                <div className="py-12 flex flex-col items-center justify-center text-center">
+                  <Loader2 className="w-8 h-8 text-[#9A8B7A] animate-spin mb-2" />
+                  <p className="text-sm text-gray-500 font-medium">Loading agencies...</p>
+                </div>
+              ) : allowedPopupAgencies.length === 0 ? (
+                <div className="py-12 text-center text-sm text-gray-500">
+                  No agencies found
+                </div>
+              ) : (
+                allowedPopupAgencies.map((agency) => {
+                  const isSelected = selectedAgencyId === agency._id;
+                  return (
+                    <div
+                      key={agency._id}
+                      onClick={() => setSelectedAgencyId(agency._id)}
+                      className={`px-4 py-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between gap-3 ${isSelected
+                        ? "border-[#9A8B7A] bg-[#f5f0e8]/70 shadow-sm ring-1 ring-[#9A8B7A]"
+                        : "border-gray-200 hover:border-gray-300 hover:bg-gray-50/70"
+                        }`}
+                    >
+                      <span className={`text-sm truncate ${isSelected ? "text-gray-900 font-semibold" : "text-gray-800 font-medium"}`}>
+                        {agency.displayName || agency.name}
+                      </span>
+
+                      <div className="flex-shrink-0">
+                        <div
+                          className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all ${isSelected
+                            ? "border-[#9A8B7A] bg-[#9A8B7A] text-white"
+                            : "border-gray-300 bg-white"
+                            }`}
+                        >
+                          {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="px-6 py-4 border-t border-gray-100 bg-gray-50/50 flex items-center justify-between gap-3">
+              <button
+                type="button"
+                onClick={() => setIsAgencyModalOpen(false)}
+                className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 rounded-xl transition"
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                disabled={!selectedAgencyId}
+                onClick={handleContinueToMarketplace}
+                className="px-5 py-2.5 text-sm font-semibold text-white bg-[#9A8B7A] hover:bg-[#7A6F64] rounded-xl shadow-md transition disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                <span>Continue</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

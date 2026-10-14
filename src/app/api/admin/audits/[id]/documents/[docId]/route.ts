@@ -15,16 +15,28 @@ export async function DELETE(
     }
 
     const userRole = (session.user as any).role;
-    if (userRole !== "system_admin") {
-      return NextResponse.json({ error: "Forbidden - Admin access required" }, { status: 403 });
+    const isAdmin = userRole === "system_admin";
+    const userAgencyId = (session.user as any).agencyId ? String((session.user as any).agencyId) : null;
+
+    if (!isAdmin && !userAgencyId) {
+      return NextResponse.json({ error: "Forbidden: No associated agency found" }, { status: 403 });
     }
 
     await connectDB();
     const { id, docId } = params;
 
-    const audit = await Audit.findById(id);
+    const audit = await Audit.findById(id).populate("submissionId");
     if (!audit) {
       return NextResponse.json({ error: "Audit not found" }, { status: 404 });
+    }
+
+    // 101% Multi-tenant security check:
+    if (!isAdmin) {
+      const auditAgencyId = audit.agencyId ? String(audit.agencyId) : null;
+      const subAgencyId = (audit.submissionId as any)?.agencyId ? String((audit.submissionId as any).agencyId) : null;
+      if (auditAgencyId !== userAgencyId && subAgencyId !== userAgencyId) {
+        return NextResponse.json({ error: "Forbidden: You do not have access to delete documents from this audit" }, { status: 403 });
+      }
     }
 
     // 1. Find the document to get the fileUrl
@@ -53,6 +65,16 @@ export async function DELETE(
     // 3. Filter out the document with the matching ID
     audit.documents = audit.documents.filter((doc: any) => doc.documentId !== docId);
     await audit.save();
+
+    // Log the deletion activity
+    const AuditActivity = (await import("@/models/AuditActivity")).default;
+    await AuditActivity.create({
+      auditId: audit._id,
+      user: session.user.name || (isAdmin ? "Admin" : "Agency User"),
+      role: isAdmin ? "System Admin" : "Agency",
+      activity: "Document Deleted",
+      details: `Removed document: ${docToDelete.fileName || docToDelete.name || "document"}`
+    });
 
     return NextResponse.json({ success: true, message: "Document deleted successfully", audit });
   } catch (error: any) {

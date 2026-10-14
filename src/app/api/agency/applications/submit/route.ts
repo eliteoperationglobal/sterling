@@ -109,7 +109,7 @@ export async function POST(req: NextRequest) {
     }
 
     const user = session.user as any;
-    const { programId, programName, formData, carrierEmail } = await req.json();
+    const { programId, programName, formData, carrierEmail, agencyId: reqAgencyId } = await req.json();
 
 
 
@@ -147,8 +147,12 @@ export async function POST(req: NextRequest) {
 
     await connectDB();
 
-    // Get agency details
-    const agency = await Agency.findById(user.agencyId);
+    // Get agency details (supports system_admin impersonating selected agency)
+    const targetAgencyId = (user.role === "system_admin" && (reqAgencyId || formData?.agencyId))
+      ? (reqAgencyId || formData?.agencyId)
+      : user.agencyId;
+
+    const agency = await Agency.findById(targetAgencyId);
     if (!agency) {
       return NextResponse.json({ error: "Agency not found" }, { status: 404 });
     }
@@ -182,8 +186,8 @@ export async function POST(req: NextRequest) {
     // Create submission (application)
     const submission = await Submission.create({
       applicationNumber,
-      agencyId: user.agencyId,
-      agentId: user.id || undefined,
+      agencyId: targetAgencyId,
+      agentId: user.role === "system_admin" ? undefined : (user.id || undefined),
       agentName: formData.agentName || user.name || user.email || undefined,
       templateId: null,
       payload: normalizedPayload,
@@ -217,7 +221,7 @@ export async function POST(req: NextRequest) {
           details: {
             applicationNumber,
             programName,
-            agencyId: user.agencyId,
+            agencyId: targetAgencyId,
             clientName: formData.companyName || formData.applicantName || "Unknown",
           },
         }

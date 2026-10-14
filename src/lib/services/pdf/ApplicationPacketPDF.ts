@@ -11,7 +11,9 @@ export interface ApplicationPacketData {
 	applicationId: string;
 	submissionId: string;
 	formDate: string;
-	addExcessLiability: string;
+	addExcessLiability: string | boolean;
+	addPollutionLiability?: string | boolean;
+	addProfessionalLiability?: string | boolean;
 	yearsOfExperienceTrade?: number;
 	// Agency Information
 	agencyName: string;
@@ -80,6 +82,12 @@ export interface ApplicationPacketData {
 
 	// Excess Liability Coverage
 	excessLiabilityLimit?: string;
+
+	// Pollution Liability Coverage
+	pollutionLiabilityLimit?: string;
+
+	// Professional Liability Coverage
+	professionalLiabilityLimit?: string;
 
 	// Class Code & Gross Receipts
 	classCode: string;
@@ -3774,7 +3782,14 @@ function generatePage2(data: ApplicationPacketData): string {
 				<!-- Quote Information -->
 				<div>
 					<div class="section-title-page2">Quote Information</div>
-					<div class="quote-detail-page2">${String(data.addExcessLiability) === 'true' ? 'General & Excess Liability' : data.quoteType}</div>
+					<div class="quote-detail-page2">${(() => {
+			const coverages: string[] = ['General'];
+			if (String(data.addExcessLiability) === 'true') coverages.push('Excess');
+			if (String(data.addPollutionLiability) === 'true' || data.addPollutionLiability === true) coverages.push('Pollution');
+			if (String(data.addProfessionalLiability) === 'true' || data.addProfessionalLiability === true) coverages.push('Professional');
+			if (coverages.length > 1) return `${coverages.join(' & ')} Liability`;
+			return data.quoteType || 'General Liability';
+		})()}</div>
 					<div class="quote-detail-page2">${data.carrierName}</div>
 					<div class="quote-detail-page2">${data.coverageType}</div>
 					<div class="quote-detail-page2">
@@ -3837,12 +3852,36 @@ function generatePage2(data: ApplicationPacketData): string {
 			</div>
 
 			${(String(data.addExcessLiability) === 'true') && data.excessLiabilityLimit ? `
-			<div>
+			<div class="coverages-section-page2">
 				<div class="section-title-underline-page2">EXCESS LIABILITY COVERAGE</div>
 				<table class="coverages-table-page2">
 					<tr>
 						<td><strong>Excess Limit:</strong></td>
 						<td>${data.excessLiabilityLimit}</td>
+					</tr>
+				</table>
+			</div>
+			` : ''}
+
+			${((String(data.addPollutionLiability) === 'true' || data.addPollutionLiability === true) && data.pollutionLiabilityLimit) ? `
+			<div class="coverages-section-page2">
+				<div class="section-title-underline-page2">POLLUTION LIABILITY COVERAGE</div>
+				<table class="coverages-table-page2">
+					<tr>
+						<td><strong>Pollution Limit:</strong></td>
+						<td>${data.pollutionLiabilityLimit}</td>
+					</tr>
+				</table>
+			</div>
+			` : ''}
+
+			${((String(data.addProfessionalLiability) === 'true' || data.addProfessionalLiability === true) && data.professionalLiabilityLimit) ? `
+			<div class="coverages-section-page2">
+				<div class="section-title-underline-page2">PROFESSIONAL LIABILITY COVERAGE</div>
+				<table class="coverages-table-page2">
+					<tr>
+						<td><strong>Professional Limit:</strong></td>
+						<td>${data.professionalLiabilityLimit}</td>
 					</tr>
 				</table>
 			</div>
@@ -4986,7 +5025,7 @@ function generatePage12(data: ApplicationPacketData): string {
 		  </div>
 		  </div>
 		</div> -->
-	  		<div style="text-align: center; margin-top: 62px;">
+			<div style="text-align: center; margin-top: 62px;">
 				<strong style="font-size: 20px;">Sterling Insurance Services</strong>
 				<p>5455 Wilshire Blvd. #1816,<br>Los Angeles, CA 90036</p>
 				<p>(310) 492-2007</p>
@@ -7876,12 +7915,27 @@ export function mapFormDataToPacketData(
 	// console.log("Include State Forms:", includeStateForms);
 
 	const addExcessLiability = formData?.addExcessLiability || false;
+	const addPollutionLiability = formData?.addPollutionLiability === true ||
+		String(formData?.addPollutionLiability) === 'true' ||
+		Boolean(formData?.pollutionLiabilityLimit) ||
+		Boolean(quote?.limits?.pollutionLimit || quote?.limits?.pollutionLiabilityLimit) ||
+		((formData?.addProfessionalPollutionLiability === true || String(formData?.addProfessionalPollutionLiability) === 'true') &&
+			(formData?.professionalOrPollutionType === 'pollution' || (!formData?.professionalOrPollutionType && !formData?.addProfessionalLiability)));
+	const addProfessionalLiability = formData?.addProfessionalLiability === true ||
+		String(formData?.addProfessionalLiability) === 'true' ||
+		Boolean(formData?.professionalLiabilityLimit) ||
+		Boolean(quote?.limits?.professionalLimit || quote?.limits?.professionalLiabilityLimit) ||
+		((formData?.addProfessionalPollutionLiability === true || String(formData?.addProfessionalPollutionLiability) === 'true') &&
+			formData?.professionalOrPollutionType === 'professional');
+
 	return {
 		// Application Metadata
 		applicationId: formData.applicationId || submissionId.substring(0, 7) || '0000000',
 		submissionId: submissionId,
 		formDate: formDate,
 		addExcessLiability: addExcessLiability,
+		addPollutionLiability: addPollutionLiability,
+		addProfessionalLiability: addProfessionalLiability,
 		// Agency Information
 		agencyName: agency?.name || 'Gamaty Insurance Agency LLC DBA Capital & Co Insurance Services',
 		agentName: formData.agentName,
@@ -8000,9 +8054,41 @@ export function mapFormDataToPacketData(
 		excessLiabilityLimit: (() => {
 			const val = quote?.limits?.excessLimit || formData.excessLiabilityLimit;
 			if (!val) return undefined;
-			const str = String(val).replace(/[$,]/g, '');
+			let s = String(val).trim();
+			if (s.toLowerCase().endsWith('m') && !s.includes('/')) {
+				const numPart = s.slice(0, -1).replace(/[$,]/g, '').trim();
+				const num = Number(numPart);
+				if (!isNaN(num)) return `$${(num * 1000000).toLocaleString('en-US')}`;
+			}
+			const str = s.replace(/[$,]/g, '');
 			const num = Number(str);
-			return isNaN(num) ? (String(val).includes('$') ? String(val) : `$${val}`) : `$${num.toLocaleString('en-US')}`;
+			return isNaN(num) ? (s.includes('$') ? s : `$${s}`) : `$${num.toLocaleString('en-US')}`;
+		})(),
+		pollutionLiabilityLimit: (() => {
+			const val = quote?.limits?.pollutionLimit || quote?.limits?.pollutionLiabilityLimit || formData.pollutionLiabilityLimit;
+			if (!val) return undefined;
+			let s = String(val).trim();
+			if (s.toLowerCase().endsWith('m') && !s.includes('/')) {
+				const numPart = s.slice(0, -1).replace(/[$,]/g, '').trim();
+				const num = Number(numPart);
+				if (!isNaN(num)) return `$${(num * 1000000).toLocaleString('en-US')}`;
+			}
+			const str = s.replace(/[$,]/g, '');
+			const num = Number(str);
+			return isNaN(num) ? (s.includes('$') ? s : `$${s}`) : `$${num.toLocaleString('en-US')}`;
+		})(),
+		professionalLiabilityLimit: (() => {
+			const val = quote?.limits?.professionalLimit || quote?.limits?.professionalLiabilityLimit || formData.professionalLiabilityLimit;
+			if (!val) return undefined;
+			let s = String(val).trim();
+			if (s.toLowerCase().endsWith('m') && !s.includes('/')) {
+				const numPart = s.slice(0, -1).replace(/[$,]/g, '').trim();
+				const num = Number(numPart);
+				if (!isNaN(num)) return `$${(num * 1000000).toLocaleString('en-US')}`;
+			}
+			const str = s.replace(/[$,]/g, '');
+			const num = Number(str);
+			return isNaN(num) ? (s.includes('$') ? s : `$${s}`) : `$${num.toLocaleString('en-US')}`;
 		})(),
 
 		// Class Code & Gross Receipts

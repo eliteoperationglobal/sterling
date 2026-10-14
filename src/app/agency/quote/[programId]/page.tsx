@@ -227,28 +227,71 @@ export default function QuoteFormPage() {
   const userName = session?.user?.name || "Agent";
   const email = session?.user?.email || "";
   const agencyName = (session?.user as any)?.agencyName || "";
+  const isAdmin = (session?.user as any)?.role === "system_admin";
+
+  const router = useRouter();
+  const params = useParams();
+  const programId = params.programId as string;
+  const searchParams = useSearchParams();
+
+  const agencyIdParam = searchParams.get("agencyId");
+  const [effectiveAgencyId, setEffectiveAgencyId] = useState<string | null>(null);
+  const [actingAgency, setActingAgency] = useState<any>(null);
+  const [dbAgents, setDbAgents] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (isAdmin) {
+      const storedId = agencyIdParam || (typeof window !== "undefined" ? sessionStorage.getItem("adminActingAgencyId") : null);
+      if (storedId) {
+        setEffectiveAgencyId(storedId);
+        fetch(`/api/agency/me?agencyId=${storedId}`)
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.agency) setActingAgency(data.agency);
+          })
+          .catch((err) => console.error("Error fetching agency details:", err));
+
+        fetch(`/api/agency/agents?agencyId=${storedId}`)
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.agents && Array.isArray(data.agents)) {
+              setDbAgents(data.agents.map((a: any) => a.name));
+            }
+          })
+          .catch((err) => console.error("Error fetching agents:", err));
+      }
+    }
+  }, [isAdmin, agencyIdParam]);
+
+  const effectiveAgencyName = isAdmin
+    ? (actingAgency?.name || (typeof window !== "undefined" ? sessionStorage.getItem("adminActingAgencyName") : "") || "")
+    : agencyName;
+
+  const effectiveEmail = isAdmin
+    ? (actingAgency?.email || (typeof window !== "undefined" ? sessionStorage.getItem("adminActingAgencyEmail") : "") || "")
+    : email;
 
   const isCapco =
-    agencyName.includes("Capital & Co") ||
-    agencyName.includes("Capco") ||
-    email.includes("capcoinsurance") ||
-    email === "admin@agency1.com" ||
+    effectiveAgencyName.includes("Capital & Co") ||
+    effectiveAgencyName.includes("Capco") ||
+    effectiveEmail.includes("capcoinsurance") ||
+    effectiveEmail === "admin@agency1.com" ||
     userName.includes("Gamaty");
 
   const isBlueAngel =
-    agencyName.includes("Blue Angel") || email === "admin@blueangel.com";
+    effectiveAgencyName.includes("Blue Angel") || effectiveEmail === "admin@blueangel.com";
 
   const isSJJ =
-    agencyName.includes("SJJ") || email === "admin@sjjinsurance.com";
+    effectiveAgencyName.includes("SJJ") || effectiveEmail === "admin@sjjinsurance.com";
 
   const isPatrickArias =
-    agencyName.includes("Patrick Arias") || email.includes("patrickariasinsurance");
+    effectiveAgencyName.includes("Patrick Arias") || effectiveEmail.includes("patrickariasinsurance");
 
   const isTitan =
-    agencyName.toLowerCase().includes("titan") || email.includes("solutions@titaninssolutions.com");
+    effectiveAgencyName.toLowerCase().includes("titan") || effectiveEmail.includes("solutions@titaninssolutions.com");
 
   const isTexas =
-    agencyName.toLowerCase().includes("texas commercial") || email.includes("texascomm@services.com");
+    effectiveAgencyName.toLowerCase().includes("texas commercial") || effectiveEmail.includes("texascomm@services.com");
 
   const CAPCO_AGENTS = ["Eidan Gamaty", "Moshe Gamaty", "Michael Gamaty", "Yoav Anatian", "Jake Weiner", "Benjamin Solender", "Michal Kraut", "Jonathan Akwa", "Juan Montoya"];
   const BLUE_ANGEL_AGENTS = ["Max Mintz"];
@@ -256,11 +299,9 @@ export default function QuoteFormPage() {
   const PATRICK_ARIAS_AGENTS = ["Patrick Arias"];
   const TITAN_AGENTS = ["Judah Cohen"];
 
-  const agentOptionsList = isCapco ? CAPCO_AGENTS : isBlueAngel ? BLUE_ANGEL_AGENTS : isSJJ ? SJJ_AGENTS : isPatrickArias ? PATRICK_ARIAS_AGENTS : isTitan ? TITAN_AGENTS : isTexas ? CAPCO_AGENTS : [];
-  const router = useRouter();
-  const params = useParams();
-  const programId = params.programId as string;
-  const searchParams = useSearchParams();
+  const defaultAgents = isCapco ? CAPCO_AGENTS : isBlueAngel ? BLUE_ANGEL_AGENTS : isSJJ ? SJJ_AGENTS : isPatrickArias ? PATRICK_ARIAS_AGENTS : isTitan ? TITAN_AGENTS : isTexas ? CAPCO_AGENTS : [];
+  const agentOptionsList = Array.from(new Set([...defaultAgents, ...dbAgents]));
+
   const mode = searchParams.get("mode");
   const isViewMode = mode === "view";
   const isEditMode = mode === "edit";
@@ -1185,6 +1226,7 @@ export default function QuoteFormPage() {
             programId,
             programName: "Advantage Contractor GL",
             formData,
+            agencyId: (isAdmin && effectiveAgencyId) ? effectiveAgencyId : undefined,
           }),
         });
       }
@@ -1210,6 +1252,8 @@ export default function QuoteFormPage() {
           } else {
             window.location.href = `/agency/submissions/${submissionId}?updated=true`;
           }
+        } else if ((session?.user as any)?.role === "system_admin") {
+          window.location.href = data.submissionId ? `/admin/submissions/${data.submissionId}` : "/admin/submissions";
         } else {
           window.location.href = "/agency/dashboard";
         }
@@ -1239,6 +1283,7 @@ export default function QuoteFormPage() {
           programName: 'Advantage Contractor GL',
           formData,
           excludePages8910: true,
+          agencyId: (isAdmin && effectiveAgencyId) ? effectiveAgencyId : undefined,
         }),
       });
 
@@ -1468,6 +1513,29 @@ export default function QuoteFormPage() {
 
       {/* Main Content */}
       <div className="max-w-[950px] mx-auto px-2 md:px-6 py-4 md:py-8 mt-2 md:mt-4">
+        {isAdmin && actingAgency && (
+          <div className="mb-6 p-4 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-between shadow-sm">
+            <div className="flex items-center gap-3">
+              <span className="p-2 rounded-lg bg-amber-100 text-amber-800 text-xs font-bold uppercase tracking-wider">
+                Admin Mode
+              </span>
+              <div>
+                <p className="text-sm font-semibold text-amber-900">
+                  Submitting Application on behalf of: <span className="underline">{actingAgency.name}</span>
+                </p>
+                <p className="text-xs text-amber-700">
+                  Agency Code: {actingAgency.producerCode || "N/A"} {actingAgency.email ? `• ${actingAgency.email}` : ""}
+                </p>
+              </div>
+            </div>
+            <Link
+              href={`/agency/marketplace${effectiveAgencyId ? `?agencyId=${effectiveAgencyId}` : ""}`}
+              className="text-xs font-medium text-amber-800 hover:text-amber-900 bg-amber-100 hover:bg-amber-200 px-3 py-1.5 rounded-lg transition-colors"
+            >
+              Back to Programs
+            </Link>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-8 md:space-y-10">
           <fieldset disabled={isViewMode} className={isViewMode ? "opacity-90 pointer-events-none" : ""}>

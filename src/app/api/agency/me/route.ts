@@ -14,7 +14,12 @@ export async function GET(req: NextRequest) {
         }
 
         await connectDB();
-        const agencyId = (session.user as any).agencyId;
+        const user = session.user as any;
+        let agencyId = user.agencyId;
+        const requestedAgencyId = req.nextUrl.searchParams.get("agencyId");
+        if (user.role === "system_admin" && requestedAgencyId) {
+            agencyId = requestedAgencyId;
+        }
 
         if (!agencyId) {
             return NextResponse.json({ error: "Agency ID not found in session" }, { status: 400 });

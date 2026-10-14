@@ -65,6 +65,10 @@ export interface ProposalData {
 	addExcessLiability?: boolean;
 	excessLiabilityAmount?: number;
 	excessLiabilityLimit?: string;
+	addPollutionLiability?: boolean;
+	pollutionLiabilityLimit?: string;
+	addProfessionalLiability?: boolean;
+	professionalLiabilityLimit?: string;
 	policyFeeUSD?: number;
 	brokerFeeAmountUSD?: number;
 	finalAmountUSD?: number;
@@ -692,6 +696,18 @@ export function generateProposalHTML(data: ProposalData): string {
 								<td style="border:1px solid #9AAFC5; border-top:none; border-left:none; padding:0.52em 0.5em; text-align:center;">${data.excessLiabilityLimit || (data.excessLiabilityAmount ? `$${Number(data.excessLiabilityAmount).toLocaleString('en-US')}` : "")}</td>
 							</tr>
 							` : ""}
+							${((String(data?.addPollutionLiability) === 'true' || data?.addPollutionLiability === true) && data?.pollutionLiabilityLimit) ? `
+							<tr>
+								<td style="border:1px solid #9AAFC5; border-top:none; padding:0.52em 0.5em; text-align:center;">Pollution Liability</td>
+								<td style="border:1px solid #9AAFC5; border-top:none; border-left:none; padding:0.52em 0.5em; text-align:center;">${data.pollutionLiabilityLimit}</td>
+							</tr>
+							` : ""}
+							${((String(data?.addProfessionalLiability) === 'true' || data?.addProfessionalLiability === true) && data?.professionalLiabilityLimit) ? `
+							<tr>
+								<td style="border:1px solid #9AAFC5; border-top:none; padding:0.52em 0.5em; text-align:center;">Professional Liability</td>
+								<td style="border:1px solid #9AAFC5; border-top:none; border-left:none; padding:0.52em 0.5em; text-align:center;">${data.professionalLiabilityLimit}</td>
+							</tr>
+							` : ""}
 						</tbody>
 					</table>
 				</div>
@@ -707,7 +723,7 @@ export function generateProposalHTML(data: ProposalData): string {
 							</tr>
 							<tr>
 								<td style="width:1%;white-space:nowrap;text-align:left;padding:0.22em 0.6em 0.22em 0;vertical-align:top;"><span class="pdf24new_21 pdf24new_11 pdf24new_12" style="word-spacing:-0.0075em;">Policy Form:</span></td>
-								<td style="text-align:left;padding:0.22em 0 0.22em 0.6em;vertical-align:top;"><span class="pdf24new_22 pdf24new_11 pdf24new_09">${data.isExcessOnlyProposal ? "Excess Liability" : `General Liability ${String(data?.addExcessLiability) === 'true' ? "&amp; Excess Liability" : ""}`}</span></td>
+								<td style="text-align:left;padding:0.22em 0 0.22em 0.6em;vertical-align:top;"><span class="pdf24new_22 pdf24new_11 pdf24new_09">${data.isExcessOnlyProposal ? "Excess Liability" : `General Liability ${String(data?.addExcessLiability) === 'true' ? "&amp; Excess Liability" : ""}${String(data?.addPollutionLiability) === 'true' || data?.addPollutionLiability === true ? "&amp; Pollution Liability" : ""}${String(data?.addProfessionalLiability) === 'true' || data?.addProfessionalLiability === true ? "&amp; Professional Liability" : ""}`}</span></td>
 							</tr>
 							<tr>
 								<td style="width:1%;white-space:nowrap;text-align:left;padding:0.22em 0.6em 0.22em 0;vertical-align:top;"><span class="pdf24new_21 pdf24new_11 pdf24new_12" style="word-spacing:-0.0139em;">Active Owners:</span></td>

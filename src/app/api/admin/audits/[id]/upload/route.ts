@@ -16,18 +16,36 @@ export async function POST(
     }
 
     const userRole = (session.user as any).role;
-    if (userRole !== "system_admin") {
-      return NextResponse.json({ error: "Forbidden - Admin access required" }, { status: 403 });
+    const isAdmin = userRole === "system_admin";
+    const userAgencyId = (session.user as any).agencyId ? String((session.user as any).agencyId) : null;
+
+    if (!isAdmin && !userAgencyId) {
+      return NextResponse.json({ error: "Forbidden: No associated agency found" }, { status: 403 });
     }
 
     currentStep = "parsing form data";
-    
     const formData = await req.formData();
     const file = formData.get("file") as File;
     const auditId = params.id;
 
     if (!file) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
+    }
+
+    currentStep = "connecting to database and verifying audit";
+    await connectDB();
+    const audit = await Audit.findById(auditId).populate("submissionId");
+    if (!audit) {
+      return NextResponse.json({ error: "Audit not found" }, { status: 404 });
+    }
+
+    // 101% Multi-tenant security check:
+    if (!isAdmin) {
+      const auditAgencyId = audit.agencyId ? String(audit.agencyId) : null;
+      const subAgencyId = (audit.submissionId as any)?.agencyId ? String((audit.submissionId as any).agencyId) : null;
+      if (auditAgencyId !== userAgencyId && subAgencyId !== userAgencyId) {
+        return NextResponse.json({ error: "Forbidden: You do not have access to this audit" }, { status: 403 });
+      }
     }
 
     currentStep = "preparing file buffer";
@@ -40,15 +58,6 @@ export async function POST(
     const { uploadToS3 } = await import("@/lib/s3");
     const fileUrl = await uploadToS3(buffer, key, file.type || "application/octet-stream");
 
-    currentStep = "connecting to database";
-    await connectDB();
-    
-    currentStep = "finding audit record";
-    const audit = await Audit.findById(auditId);
-    if (!audit) {
-      return NextResponse.json({ error: "Audit not found" }, { status: 404 });
-    }
-
     currentStep = "saving to database";
     audit.documents.push({
       documentId: `DOC-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
@@ -57,10 +66,20 @@ export async function POST(
       fileUrl: fileUrl,
       status: "RECEIVED",
       uploadedAt: new Date(),
-      uploadedBy: session.user.name || "Admin",
+      uploadedBy: session.user.name || (isAdmin ? "Admin" : "Agency User"),
     });
 
     await audit.save();
+
+    // Log the upload activity
+    const AuditActivity = (await import("@/models/AuditActivity")).default;
+    await AuditActivity.create({
+      auditId: audit._id,
+      user: session.user.name || (isAdmin ? "Admin" : "Agency User"),
+      role: isAdmin ? "System Admin" : "Agency",
+      activity: "Document Uploaded",
+      details: `Uploaded document: ${file.name}`
+    });
 
     return NextResponse.json({ success: true, fileUrl, audit });
   } catch (error: any) {
