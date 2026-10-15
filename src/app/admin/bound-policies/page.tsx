@@ -65,6 +65,32 @@ interface BoundPolicy {
     policyType?: string;
     status: string;
   } | null;
+  professionalQuote?: {
+    _id: string;
+    carrierId: string;
+    carrierName: string;
+    carrierQuoteUSD: number;
+    premiumTaxAmountUSD?: number;
+    policyFeeUSD?: number;
+    brokerFeeAmountUSD: number;
+    finalAmountUSD: number;
+    policyNumber?: string;
+    policyType?: string;
+    status: string;
+  } | null;
+  pollutionQuote?: {
+    _id: string;
+    carrierId: string;
+    carrierName: string;
+    carrierQuoteUSD: number;
+    premiumTaxAmountUSD?: number;
+    policyFeeUSD?: number;
+    brokerFeeAmountUSD: number;
+    finalAmountUSD: number;
+    policyNumber?: string;
+    policyType?: string;
+    status: string;
+  } | null;
   createdAt: string;
 }
 
@@ -434,6 +460,76 @@ export default function AdminBoundPoliciesPage() {
                             <div>
                               <p className="text-xs text-gray-500 font-medium mb-1">Broker Fee</p>
                               <p className="text-sm font-bold text-gray-900">${policy.excessQuote.brokerFeeAmountUSD.toLocaleString('en-US')}</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Professional Liability Row — only shown when present */}
+                      {policy.professionalQuote && (
+                        <div>
+                          <p className="text-xs font-bold text-[#9A8B7A] uppercase tracking-wider mb-1.5">Professional Liability</p>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-gradient-to-br from-blue-50/60 to-indigo-50/40 rounded-xl border border-blue-200/60">
+                            {policy.professionalQuote.policyNumber && (
+                              <div>
+                                <p className="text-xs text-gray-500 font-medium mb-1">Policy Number</p>
+                                <p className="text-sm font-bold text-gray-900">{policy.professionalQuote.policyNumber}</p>
+                              </div>
+                            )}
+                            <div>
+                              <p className="text-xs text-gray-500 font-medium mb-1">Carrier Quote</p>
+                              <p className="text-sm font-bold text-gray-900">${policy.professionalQuote.carrierQuoteUSD.toLocaleString('en-US')}</p>
+                            </div>
+                            {policy.professionalQuote.premiumTaxAmountUSD && (
+                              <div>
+                                <p className="text-xs text-gray-500 font-medium mb-1">Premium Tax</p>
+                                <p className="text-sm font-bold text-gray-900">${policy.professionalQuote.premiumTaxAmountUSD.toFixed(2)}</p>
+                              </div>
+                            )}
+                            {policy.professionalQuote.policyFeeUSD && (
+                              <div>
+                                <p className="text-xs text-gray-500 font-medium mb-1">Policy Fee</p>
+                                <p className="text-sm font-bold text-gray-900">${policy.professionalQuote.policyFeeUSD.toFixed(2)}</p>
+                              </div>
+                            )}
+                            <div>
+                              <p className="text-xs text-gray-500 font-medium mb-1">Broker Fee</p>
+                              <p className="text-sm font-bold text-gray-900">${policy.professionalQuote.brokerFeeAmountUSD.toLocaleString('en-US')}</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Pollution Liability Row — only shown when present */}
+                      {policy.pollutionQuote && (
+                        <div>
+                          <p className="text-xs font-bold text-[#9A8B7A] uppercase tracking-wider mb-1.5">Pollution Liability</p>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-gradient-to-br from-emerald-50/60 to-teal-50/40 rounded-xl border border-emerald-200/60">
+                            {policy.pollutionQuote.policyNumber && (
+                              <div>
+                                <p className="text-xs text-gray-500 font-medium mb-1">Policy Number</p>
+                                <p className="text-sm font-bold text-gray-900">{policy.pollutionQuote.policyNumber}</p>
+                              </div>
+                            )}
+                            <div>
+                              <p className="text-xs text-gray-500 font-medium mb-1">Carrier Quote</p>
+                              <p className="text-sm font-bold text-gray-900">${policy.pollutionQuote.carrierQuoteUSD.toLocaleString('en-US')}</p>
+                            </div>
+                            {policy.pollutionQuote.premiumTaxAmountUSD && (
+                              <div>
+                                <p className="text-xs text-gray-500 font-medium mb-1">Premium Tax</p>
+                                <p className="text-sm font-bold text-gray-900">${policy.pollutionQuote.premiumTaxAmountUSD.toFixed(2)}</p>
+                              </div>
+                            )}
+                            {policy.pollutionQuote.policyFeeUSD && (
+                              <div>
+                                <p className="text-xs text-gray-500 font-medium mb-1">Policy Fee</p>
+                                <p className="text-sm font-bold text-gray-900">${policy.pollutionQuote.policyFeeUSD.toFixed(2)}</p>
+                              </div>
+                            )}
+                            <div>
+                              <p className="text-xs text-gray-500 font-medium mb-1">Broker Fee</p>
+                              <p className="text-sm font-bold text-gray-900">${policy.pollutionQuote.brokerFeeAmountUSD.toLocaleString('en-US')}</p>
                             </div>
                           </div>
                         </div>

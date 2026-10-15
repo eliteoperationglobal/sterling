@@ -80,6 +80,8 @@ export default function AdminQuotePage() {
   const [medicalExpenseLimit, setMedicalExpenseLimit] = useState("Not Applicable");
   const [deductible, setDeductible] = useState("");
   const [excessLimit, setExcessLimit] = useState(""); // New: Excess limits
+  const [professionalLimit, setProfessionalLimit] = useState("");
+  const [pollutionLimit, setPollutionLimit] = useState("");
 
   // Property details
   const [propertyBuildingLimit, setPropertyBuildingLimit] = useState("");
@@ -112,7 +114,7 @@ export default function AdminQuotePage() {
   const [success, setSuccess] = useState(false);
 
   // --- Multi-Policy State ---
-  const [currentPolicyType, setCurrentPolicyType] = useState<"GENERAL_LIABILITY" | "EXCESS_LIABILITY">("GENERAL_LIABILITY");
+  const [currentPolicyType, setCurrentPolicyType] = useState<string>("GENERAL_LIABILITY");
   const [availablePolicies, setAvailablePolicies] = useState<string[]>(["GENERAL_LIABILITY"]);
   const [policyStates, setPolicyStates] = useState<Record<string, any>>({});
   const [policiesStatus, setPoliciesStatus] = useState<Record<string, "complete" | "incomplete">>({ "GENERAL_LIABILITY": "incomplete" });
@@ -168,6 +170,12 @@ export default function AdminQuotePage() {
       if (formData.addExcessLiability || formData.addGeneralLiability) {
         avails.push("EXCESS_LIABILITY");
       }
+      if (formData.addProfessionalLiability || formData.professionalOrPollutionType === "professional") {
+        avails.push("PROFESSIONAL_LIABILITY");
+      }
+      if (formData.addPollutionLiability || formData.professionalOrPollutionType === "pollution") {
+        avails.push("POLLUTION_LIABILITY");
+      }
       setAvailablePolicies(avails);
 
       // Initialize status from submission if available
@@ -180,6 +188,8 @@ export default function AdminQuotePage() {
       } else {
         const statuses: Record<string, "complete" | "incomplete"> = { "GENERAL_LIABILITY": "incomplete" };
         if (formData.addExcessLiability) statuses["EXCESS_LIABILITY"] = "incomplete";
+        if (formData.addProfessionalLiability || formData.professionalOrPollutionType === "professional") statuses["PROFESSIONAL_LIABILITY"] = "incomplete";
+        if (formData.addPollutionLiability || formData.professionalOrPollutionType === "pollution") statuses["POLLUTION_LIABILITY"] = "incomplete";
         setPoliciesStatus(statuses);
       }
       // Get broker fee from form
@@ -196,6 +206,12 @@ export default function AdminQuotePage() {
 
         if (formData.excessLiabilityLimit) {
           setExcessLimit(formData.excessLiabilityLimit);
+        }
+        if (formData.professionalLiabilityLimit) {
+          setProfessionalLimit(formData.professionalLiabilityLimit);
+        }
+        if (formData.pollutionLiabilityLimit) {
+          setPollutionLimit(formData.pollutionLiabilityLimit);
         }
         // Fire Legal Limit and Medical Expense Limit may have dollar signs
         if (formData.fireLegalLimit) {
@@ -290,6 +306,8 @@ export default function AdminQuotePage() {
           medicalExpenseLimit: q.limits?.medicalExpenseLimit || "Not Applicable",
           deductible: q.limits?.deductible || "",
           excessLimit: q.limits?.excessLimit || "",
+          professionalLimit: q.limits?.professionalLimit || "",
+          pollutionLimit: q.limits?.pollutionLimit || "",
           propertyBuildingLimit: q.limits?.propertyBuildingLimit || "",
           propertyBppLimit: q.limits?.propertyBppLimit || "",
           propertyBusinessIncomeLimit: q.limits?.propertyBusinessIncomeLimit || "",
@@ -311,6 +329,14 @@ export default function AdminQuotePage() {
           loadedStates[pt] = quoteToState(q);
         }
         setPolicyStates(loadedStates);
+
+        setAvailablePolicies(prev => {
+          const availsSet = new Set(prev);
+          subData.quotes.forEach((q: any) => {
+            if (q.policyType) availsSet.add(q.policyType);
+          });
+          return Array.from(availsSet);
+        });
 
         // Pre-populate the active (GL) tab's live form fields
         const glQuote = subData.quotes.find((q: any) =>
@@ -921,6 +947,8 @@ export default function AdminQuotePage() {
       medicalExpenseLimit: state.medicalExpenseLimit || undefined,
       deductible: state.deductible || undefined,
       excessLimit: state.excessLimit || undefined,
+      professionalLimit: state.professionalLimit || undefined,
+      pollutionLimit: state.pollutionLimit || undefined,
       propertyBuildingLimit: state.propertyBuildingLimit || undefined,
       propertyBppLimit: state.propertyBppLimit || undefined,
       propertyBusinessIncomeLimit: state.propertyBusinessIncomeLimit || undefined,
@@ -1116,7 +1144,7 @@ export default function AdminQuotePage() {
 
         const data = await response.json();
         if (!response.ok) {
-          throw new Error(`${type === "EXCESS_LIABILITY" ? "Excess Liability" : "General Liability"}: ${data.error || "Failed to create quote"}`);
+          throw new Error(`${getPolicyLabel(type)}: ${data.error || "Failed to create quote"}`);
         }
       }
 
@@ -1191,7 +1219,7 @@ export default function AdminQuotePage() {
   }
 
   // Policy Switching Logic
-  const handlePolicySwitch = (newType: "GENERAL_LIABILITY" | "EXCESS_LIABILITY") => {
+  const handlePolicySwitch = (newType: string) => {
     // 1. Save current state to storage
     const currentState = {
       selectedCarrierId,
@@ -1216,6 +1244,8 @@ export default function AdminQuotePage() {
       medicalExpenseLimit,
       deductible,
       excessLimit,
+      professionalLimit,
+      pollutionLimit,
       propertyBuildingLimit,
       propertyBppLimit,
       propertyBusinessIncomeLimit,
@@ -1256,6 +1286,8 @@ export default function AdminQuotePage() {
     setMedicalExpenseLimit(nextState.medicalExpenseLimit || (submission?.payload?.medicalExpenseLimit || "Not Applicable"));
     setDeductible(nextState.deductible || (submission?.payload?.deductible || ""));
     setExcessLimit(nextState.excessLimit || (submission?.payload?.excessLiabilityLimit || ""));
+    setProfessionalLimit(nextState.professionalLimit || (submission?.payload?.professionalLiabilityLimit || ""));
+    setPollutionLimit(nextState.pollutionLimit || (submission?.payload?.pollutionLiabilityLimit || ""));
     setPropertyBuildingLimit(nextState.propertyBuildingLimit || (submission?.payload?.propertyLimit || ""));
     setPropertyBppLimit(nextState.propertyBppLimit || (submission?.payload?.propertyBppLimit || ""));
     setPropertyBusinessIncomeLimit(nextState.propertyBusinessIncomeLimit || (submission?.payload?.propertyBusinessIncomeLimit || ""));
@@ -1359,15 +1391,22 @@ export default function AdminQuotePage() {
       if (isContractorsEquipment) return "Inland Marine";
       if (isBuildersRisk) return "Builders Risk";
       return "General Liability";
-    } else {
+    } else if (type === "EXCESS_LIABILITY") {
       if (isCommercialProperty) return "General Liability";
       return "Excess Liability";
+    } else if (type === "PROFESSIONAL_LIABILITY") {
+      return "Professional Liability";
+    } else if (type === "POLLUTION_LIABILITY") {
+      return "Pollution Liability";
     }
+    return type;
   };
 
   const isPropertyPolicy = currentPolicyType === "GENERAL_LIABILITY" && isCommercialProperty;
   const showGLLimits = (currentPolicyType === "GENERAL_LIABILITY" && !isCommercialProperty) || (currentPolicyType === "EXCESS_LIABILITY" && isCommercialProperty);
   const showExcessLimits = currentPolicyType === "EXCESS_LIABILITY" && !isCommercialProperty;
+  const showProfessionalLimits = currentPolicyType === "PROFESSIONAL_LIABILITY";
+  const showPollutionLimits = currentPolicyType === "POLLUTION_LIABILITY";
 
   return (
     <div className="min-h-screen bg-[#f5f1eb]">
@@ -2250,6 +2289,50 @@ export default function AdminQuotePage() {
                       <option value="2M">2M</option>
                       <option value="3M">3M</option>
                       <option value="4M">4M</option>
+                      <option value="5M">5M</option>
+                    </select>
+                  </div>
+                )}
+
+                {/* Professional Limits */}
+                {showProfessionalLimits && (
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-900 mb-2">
+                      Professional Limits
+                    </label>
+                    <select
+                      value={professionalLimit}
+                      onChange={(e) => setProfessionalLimit(e.target.value)}
+                      className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-900 font-semibold focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all hover:border-gray-300 !text-gray-900"
+                    >
+                      <option value="">-- Select Professional Limit --</option>
+                      <option value="1,000,000">1M/1M</option>
+                      <option value="2,000,000">1M/2M</option>
+                      <option value="1M">1M</option>
+                      <option value="2M">2M</option>
+                      <option value="3M">3M</option>
+                      <option value="5M">5M</option>
+                    </select>
+                  </div>
+                )}
+
+                {/* Pollution Limits */}
+                {showPollutionLimits && (
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-900 mb-2">
+                      Pollution Limits
+                    </label>
+                    <select
+                      value={pollutionLimit}
+                      onChange={(e) => setPollutionLimit(e.target.value)}
+                      className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-900 font-semibold focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all hover:border-gray-300 !text-gray-900"
+                    >
+                      <option value="">-- Select Pollution Limit --</option>
+                      <option value="1,000,000">1M/1M</option>
+                      <option value="2,000,000">1M/2M</option>
+                      <option value="1M">1M</option>
+                      <option value="2M">2M</option>
+                      <option value="3M">3M</option>
                       <option value="5M">5M</option>
                     </select>
                   </div>

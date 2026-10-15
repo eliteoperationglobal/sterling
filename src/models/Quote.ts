@@ -22,12 +22,16 @@ export interface ILimits {
   propertyBusinessIncomeLimit?: string;
   propertyDeductible?: string;
   propertyCoinsurance?: string;
+  professionalLimit?: string;
+  pollutionLimit?: string;
 }
+
+export type PolicyType = 'GENERAL_LIABILITY' | 'EXCESS_LIABILITY' | 'PROFESSIONAL_LIABILITY' | 'POLLUTION_LIABILITY';
 
 export interface IQuote extends Document {
   submissionId: mongoose.Types.ObjectId;
   carrierId: mongoose.Types.ObjectId;
-  policyType?: 'GENERAL_LIABILITY' | 'EXCESS_LIABILITY'; // Which policy this quote belongs to
+  policyType?: PolicyType; // Which policy this quote belongs to
 
   // Premium breakdown
   carrierQuoteUSD: number;
@@ -111,6 +115,8 @@ const LimitsSchema: Schema = new Schema({
   propertyBusinessIncomeLimit: String,
   propertyDeductible: String,
   propertyCoinsurance: String,
+  professionalLimit: String,
+  pollutionLimit: String,
 }, { _id: false });
 
 const QuoteSchema: Schema = new Schema(
@@ -128,7 +134,7 @@ const QuoteSchema: Schema = new Schema(
     },
     policyType: {
       type: String,
-      enum: ['GENERAL_LIABILITY', 'EXCESS_LIABILITY'],
+      enum: ['GENERAL_LIABILITY', 'EXCESS_LIABILITY', 'PROFESSIONAL_LIABILITY', 'POLLUTION_LIABILITY'],
       default: 'GENERAL_LIABILITY',
     },
     // Premium breakdown

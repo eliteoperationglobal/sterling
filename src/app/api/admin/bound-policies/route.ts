@@ -80,6 +80,8 @@ export async function GET(req: NextRequest) {
       const submissionQuotes = quoteMap.get(submission._id.toString()) || [];
       const glQuote = submissionQuotes.find((q: any) => q.policyType === 'GENERAL_LIABILITY') || submissionQuotes.find((q: any) => !q.policyType) || submissionQuotes[0] || null;
       const xlQuote = submissionQuotes.find((q: any) => q.policyType === 'EXCESS_LIABILITY') || null;
+      const plQuote = submissionQuotes.find((q: any) => q.policyType === 'PROFESSIONAL_LIABILITY') || null;
+      const pollutionQuote = submissionQuotes.find((q: any) => q.policyType === 'POLLUTION_LIABILITY') || null;
       return {
         _id: submission._id.toString(),
         clientContact: submission.clientContact,
@@ -112,6 +114,8 @@ export async function GET(req: NextRequest) {
         paymentMethod: submission.paymentMethod,
         quote: mapQuote(glQuote),
         excessQuote: mapQuote(xlQuote),
+        professionalQuote: mapQuote(plQuote),
+        pollutionQuote: mapQuote(pollutionQuote),
         createdAt: submission.createdAt,
       };
     });

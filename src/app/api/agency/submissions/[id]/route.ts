@@ -303,14 +303,42 @@ export async function PATCH(
       const GL_OPTIONAL_ADDED = (!oldPayload.addGeneralLiability) && (body.payload.addGeneralLiability === true);
       const GL_OPTIONAL_REMOVED = (oldPayload.addGeneralLiability === true) && (body.payload.addGeneralLiability === false);
 
-      // 🗑️ CLEANUP: If Excess Liability or Optional GL is toggled OFF
+      const PL_ADDED = (!oldPayload.addProfessionalLiability && oldPayload.professionalOrPollutionType !== "professional") &&
+        (body.payload.addProfessionalLiability === true || body.payload.professionalOrPollutionType === "professional");
+      const PL_REMOVED = (oldPayload.addProfessionalLiability === true || oldPayload.professionalOrPollutionType === "professional") &&
+        (body.payload.addProfessionalLiability === false && body.payload.professionalOrPollutionType !== "professional");
+
+      const POLLUTION_ADDED = (!oldPayload.addPollutionLiability && oldPayload.professionalOrPollutionType !== "pollution") &&
+        (body.payload.addPollutionLiability === true || body.payload.professionalOrPollutionType === "pollution");
+      const POLLUTION_REMOVED = (oldPayload.addPollutionLiability === true || oldPayload.professionalOrPollutionType === "pollution") &&
+        (body.payload.addPollutionLiability === false && body.payload.professionalOrPollutionType !== "pollution");
+
+      // 🗑️ CLEANUP: If Excess Liability, Professional Liability, Pollution Liability, or Optional GL is toggled OFF
       if (body.payload.addExcessLiability === false || body.payload.addGeneralLiability === false) {
         console.log(`[Cleanup] Removing EXCESS_LIABILITY quotes for submission ${params.id}`);
         await Quote.deleteMany({
           submissionId: params.id,
           policyType: "EXCESS_LIABILITY"
         });
+      }
 
+      if (PL_REMOVED) {
+        console.log(`[Cleanup] Removing PROFESSIONAL_LIABILITY quotes for submission ${params.id}`);
+        await Quote.deleteMany({
+          submissionId: params.id,
+          policyType: "PROFESSIONAL_LIABILITY"
+        });
+      }
+
+      if (POLLUTION_REMOVED) {
+        console.log(`[Cleanup] Removing POLLUTION_LIABILITY quotes for submission ${params.id}`);
+        await Quote.deleteMany({
+          submissionId: params.id,
+          policyType: "POLLUTION_LIABILITY"
+        });
+      }
+
+      if (body.payload.addExcessLiability === false || body.payload.addGeneralLiability === false || PL_REMOVED || POLLUTION_REMOVED) {
         // Ensure the submission status is consistent
         const remainingQuotesCount = await Quote.countDocuments({ submissionId: params.id });
         const currentStatus = submission.status as any;
@@ -319,20 +347,31 @@ export async function PATCH(
         }
       }
 
-      // 🔔 NOTIFICATIONS: If Excess Liability or Optional GL was just ADDED
+      // 🔔 NOTIFICATIONS: If any policy was just ADDED
+      const newlyAddedPolicies: { name: string; key: string }[] = [];
       if (XS_ADDED || GL_OPTIONAL_ADDED) {
-        const policyName = GL_OPTIONAL_ADDED ? "General Liability" : "Excess Liability";
-        console.log(`[Notification] ${policyName} ADDED for submission ${params.id}`);
+        newlyAddedPolicies.push({
+          name: GL_OPTIONAL_ADDED ? "General Liability" : "Excess Liability",
+          key: GL_OPTIONAL_ADDED ? "GENERAL_LIABILITY_OPTIONAL" : "EXCESS_LIABILITY"
+        });
+      }
+      if (PL_ADDED) {
+        newlyAddedPolicies.push({ name: "Professional Liability", key: "PROFESSIONAL_LIABILITY" });
+      }
+      if (POLLUTION_ADDED) {
+        newlyAddedPolicies.push({ name: "Pollution Liability", key: "POLLUTION_LIABILITY" });
+      }
+
+      for (const policy of newlyAddedPolicies) {
+        console.log(`[Notification] ${policy.name} ADDED for submission ${params.id}`);
         
-        // Revert status to SUBMITTED so it shows up in "Quote Requests" list for admins
-        // BUT ONLY IF NOT BOUND. If it's BOUND, we keep it BOUND and set hasNewEdits = true.
         const currentStatus = submission.status as any;
         if (currentStatus === "QUOTED") {
           submission.status = "SUBMITTED";
         }
 
         if (currentStatus === "BOUND") {
-          console.log(`[PATCH] Setting hasNewEdits = true because new policy ${policyName} was added to bound submission ${params.id}`);
+          console.log(`[PATCH] Setting hasNewEdits = true because new policy ${policy.name} was added to bound submission ${params.id}`);
           submission.hasNewEdits = true;
           await Submission.findByIdAndUpdate(params.id, { $set: { hasNewEdits: true } });
         }
@@ -340,7 +379,7 @@ export async function PATCH(
         await logActivity(
           createActivityLogData(
             "APPROVAL_REQUESTED",
-            `Policy Added: ${policyName} (Quote Required)`,
+            `Policy Added: ${policy.name} (Quote Required)`,
             {
               submissionId: submission._id.toString(),
               user: {
@@ -350,7 +389,7 @@ export async function PATCH(
                 role: (session.user as any).role || "agency",
               },
               details: {
-                addedPolicy: GL_OPTIONAL_ADDED ? "GENERAL_LIABILITY_OPTIONAL" : "EXCESS_LIABILITY",
+                addedPolicy: policy.key,
                 requestId: submission.submissionNumber
               },
             }
@@ -374,6 +413,46 @@ export async function PATCH(
               },
               details: {
                 removedPolicy: "EXCESS_LIABILITY"
+              },
+            }
+          )
+        );
+      }
+      if (PL_REMOVED) {
+        await logActivity(
+          createActivityLogData(
+            "SUBMISSION_UPDATED",
+            "Policy Removed: Professional Liability",
+            {
+              submissionId: submission._id.toString(),
+              user: {
+                id: (session.user as any).id,
+                name: (session.user as any).name || (session.user as any).email,
+                email: (session.user as any).email,
+                role: (session.user as any).role || "agency",
+              },
+              details: {
+                removedPolicy: "PROFESSIONAL_LIABILITY"
+              },
+            }
+          )
+        );
+      }
+      if (POLLUTION_REMOVED) {
+        await logActivity(
+          createActivityLogData(
+            "SUBMISSION_UPDATED",
+            "Policy Removed: Pollution Liability",
+            {
+              submissionId: submission._id.toString(),
+              user: {
+                id: (session.user as any).id,
+                name: (session.user as any).name || (session.user as any).email,
+                email: (session.user as any).email,
+                role: (session.user as any).role || "agency",
+              },
+              details: {
+                removedPolicy: "POLLUTION_LIABILITY"
               },
             }
           )

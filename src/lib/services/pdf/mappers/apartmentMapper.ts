@@ -190,7 +190,7 @@ export interface ApartmentPacketData {
     // Financial fields for Proposal & Invoice
     quoteType?: string;
     coverageType?: string;
-    policyType?: "GENERAL_LIABILITY" | "EXCESS_LIABILITY";
+    policyType?: string;
     policyLabel?: string;
     programName?: string;
     carrierName?: string;

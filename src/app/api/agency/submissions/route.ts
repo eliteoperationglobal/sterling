@@ -116,6 +116,8 @@ export async function GET(req: NextRequest) {
       estimatedPremium: number | null;
       hasGeneral: boolean;
       hasExcess: boolean;
+      hasProfessional: boolean;
+      hasPollution: boolean;
       quoteEffectiveDate: string | null;
       quotePolicyNumber: string | null;
     }> = {};
@@ -133,6 +135,8 @@ export async function GET(req: NextRequest) {
       let kinsaleTotal = 0;
       let hasGeneral = false;
       let hasExcess = false;
+      let hasProfessional = false;
+      let hasPollution = false;
       let quoteEffectiveDate: string | null = null;
       let quotePolicyNumber: string | null = null;
 
@@ -145,6 +149,8 @@ export async function GET(req: NextRequest) {
 
         if (policyType === "GENERAL_LIABILITY") hasGeneral = true;
         if (policyType === "EXCESS_LIABILITY") hasExcess = true;
+        if (policyType === "PROFESSIONAL_LIABILITY") hasProfessional = true;
+        if (policyType === "POLLUTION_LIABILITY") hasPollution = true;
 
         if (carrierName.includes("richmond")) {
           richmondTotal += amount;
@@ -173,6 +179,8 @@ export async function GET(req: NextRequest) {
         estimatedPremium: richmondTotal || kinsaleTotal || null,
         hasGeneral,
         hasExcess,
+        hasProfessional,
+        hasPollution,
         quoteEffectiveDate,
         quotePolicyNumber
       };
@@ -217,6 +225,8 @@ export async function GET(req: NextRequest) {
         estimatedPremium: null,
         hasGeneral: false,
         hasExcess: false,
+        hasProfessional: false,
+        hasPollution: false,
         quoteEffectiveDate: null,
         quotePolicyNumber: null
       };
@@ -245,6 +255,8 @@ export async function GET(req: NextRequest) {
         estimatedPremium: totals.estimatedPremium,
         hasGeneral: totals.hasGeneral || false,
         hasExcess: totals.hasExcess || false,
+        hasProfessional: totals.hasProfessional || false,
+        hasPollution: totals.hasPollution || false,
         agentName: sub.payload?.agentName?.trim() || sub.agentName?.trim() || null,
         agentId: sub.agentId ? sub.agentId.toString() : null,
         effectiveDate: totals.quoteEffectiveDate || sub.payload?.effectiveDate || null,

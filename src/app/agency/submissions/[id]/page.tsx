@@ -96,7 +96,7 @@ interface SubmissionDetails {
   quotes: Array<{
     _id: string;
     submissionId: string;
-    policyType?: 'GENERAL_LIABILITY' | 'EXCESS_LIABILITY';
+    policyType?: 'GENERAL_LIABILITY' | 'EXCESS_LIABILITY' | 'PROFESSIONAL_LIABILITY' | 'POLLUTION_LIABILITY';
     carrierId: {
       _id: string;
       name: string;
@@ -185,7 +185,7 @@ function SubmissionDetailsContent() {
   const [noteFilters, setNoteFilters] = useState<string[]>(["Underwriter"]);
   const [emailHistory, setEmailHistory] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState("Notes");
-  const [currentPolicyType, setCurrentPolicyType] = useState<"GENERAL_LIABILITY" | "EXCESS_LIABILITY">("GENERAL_LIABILITY");
+  const [currentPolicyType, setCurrentPolicyType] = useState<string>("GENERAL_LIABILITY");
   const [selectedCarrierId, setSelectedCarrierId] = useState<string | null>(null);
   const [availablePolicies, setAvailablePolicies] = useState<string[]>(["GENERAL_LIABILITY"]);
   const [checkedDocs, setCheckedDocs] = useState<Record<string, boolean>>({});
@@ -226,6 +226,8 @@ function SubmissionDetailsContent() {
 
   const [bindSelectedCarrierIdGL, setBindSelectedCarrierIdGL] = useState<string | null>(null);
   const [bindSelectedCarrierIdXL, setBindSelectedCarrierIdXL] = useState<string | null>(null);
+  const [bindSelectedCarrierIdPL, setBindSelectedCarrierIdPL] = useState<string | null>(null);
+  const [bindSelectedCarrierIdPollution, setBindSelectedCarrierIdPollution] = useState<string | null>(null);
   const [paymentAuthModalOpen, setPaymentAuthModalOpen] = useState(false);
   const [paymentAuthConfirmed, setPaymentAuthConfirmed] = useState(false);
   const [paymentAuthData, setPaymentAuthData] = useState({
@@ -347,9 +349,31 @@ function SubmissionDetailsContent() {
       avails.add("EXCESS_LIABILITY");
     }
 
+    // Also add Professional Liability if requested
+    if (
+      data?.submission?.payload?.addProfessionalLiability ||
+      data?.submission?.payload?.professionalOrPollutionType === "professional"
+    ) {
+      avails.add("PROFESSIONAL_LIABILITY");
+    }
+
+    // Also add Pollution Liability if requested
+    if (
+      data?.submission?.payload?.addPollutionLiability ||
+      data?.submission?.payload?.professionalOrPollutionType === "pollution"
+    ) {
+      avails.add("POLLUTION_LIABILITY");
+    }
+
     const types = Array.from(avails);
     // Fix the "jumping buttons" issue by ensuring a consistent order
-    types.sort((a, b) => (a === "GENERAL_LIABILITY" ? -1 : 1));
+    const policyOrder: Record<string, number> = {
+      GENERAL_LIABILITY: 1,
+      EXCESS_LIABILITY: 2,
+      PROFESSIONAL_LIABILITY: 3,
+      POLLUTION_LIABILITY: 4,
+    };
+    types.sort((a, b) => (policyOrder[a] || 99) - (policyOrder[b] || 99));
 
     setAvailablePolicies(types as string[]);
 
@@ -495,7 +519,7 @@ function SubmissionDetailsContent() {
     "h-[42px] px-6 rounded-md text-sm font-semibold bg-[#9A8B7A] text-white transition-all duration-200 hover:bg-[#8a6f4d]";
 
   const handleRequestBind = async () => {
-    if (!bindSelectedCarrierIdGL && !bindSelectedCarrierIdXL) {
+    if (!bindSelectedCarrierIdGL && !bindSelectedCarrierIdXL && !bindSelectedCarrierIdPL && !bindSelectedCarrierIdPollution) {
       toast.error("Please select at least one carrier.");
       return;
     }
@@ -506,6 +530,12 @@ function SubmissionDetailsContent() {
     }
     if (bindSelectedCarrierIdXL) {
       quotesToBind.push({ policyType: "EXCESS_LIABILITY", carrierId: bindSelectedCarrierIdXL });
+    }
+    if (bindSelectedCarrierIdPL) {
+      quotesToBind.push({ policyType: "PROFESSIONAL_LIABILITY", carrierId: bindSelectedCarrierIdPL });
+    }
+    if (bindSelectedCarrierIdPollution) {
+      quotesToBind.push({ policyType: "POLLUTION_LIABILITY", carrierId: bindSelectedCarrierIdPollution });
     }
 
     try {
@@ -526,6 +556,8 @@ function SubmissionDetailsContent() {
       setBindModalOpen(false);
       setBindSelectedCarrierIdGL(null);
       setBindSelectedCarrierIdXL(null);
+      setBindSelectedCarrierIdPL(null);
+      setBindSelectedCarrierIdPollution(null);
       fetchSubmission();
     } catch (err: any) {
       toast.error(err.message);
@@ -852,10 +884,15 @@ function SubmissionDetailsContent() {
       if (isContractorsEquipment) return "Inland Marine";
       if (isBuildersRisk) return "Builders Risk";
       return "General Liability";
-    } else {
+    } else if (type === "EXCESS_LIABILITY") {
       if (isCommercialProperty) return "General Liability";
       return "Excess Liability";
+    } else if (type === "PROFESSIONAL_LIABILITY") {
+      return "Professional Liability";
+    } else if (type === "POLLUTION_LIABILITY") {
+      return "Pollution Liability";
     }
+    return type;
   };
 
   const boundQuote = (quotes || []).find((q: any) => q.status === "BOUND");
@@ -978,7 +1015,7 @@ function SubmissionDetailsContent() {
 
             {/* Only show XL selector if XL is NOT already bound or requested */}
             {availablePolicies.includes("EXCESS_LIABILITY") && !data.quotes?.some(q => q.policyType === "EXCESS_LIABILITY" && (q.status === "BOUND" || q.status === "BIND_REQUESTED")) && data.quotes?.some(q => q.policyType === "EXCESS_LIABILITY") && (
-              <div className="mb-6">
+              <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   {getPolicyLabel("EXCESS_LIABILITY")} Carrier
                 </label>
@@ -997,6 +1034,47 @@ function SubmissionDetailsContent() {
               </div>
             )}
 
+            {/* Only show PL selector if PL is NOT already bound or requested */}
+            {availablePolicies.includes("PROFESSIONAL_LIABILITY") && !data.quotes?.some(q => q.policyType === "PROFESSIONAL_LIABILITY" && (q.status === "BOUND" || q.status === "BIND_REQUESTED")) && data.quotes?.some(q => q.policyType === "PROFESSIONAL_LIABILITY") && (
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {getPolicyLabel("PROFESSIONAL_LIABILITY")} Carrier
+                </label>
+                <select
+                  value={bindSelectedCarrierIdPL || ""}
+                  onChange={(e) => setBindSelectedCarrierIdPL(e.target.value)}
+                  className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-black focus:border-black block p-3 outline-none transition-all"
+                >
+                  <option value="">Do not bind {getPolicyLabel("PROFESSIONAL_LIABILITY")}...</option>
+                  {data.quotes?.filter(q => q.policyType === "PROFESSIONAL_LIABILITY" && q.status !== "BOUND").map((quote) => (
+                    <option key={quote._id} value={quote.carrierId?._id}>
+                      {quote.carrierId?.name || "Unknown Carrier"}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {/* Only show Pollution selector if Pollution is NOT already bound or requested */}
+            {availablePolicies.includes("POLLUTION_LIABILITY") && !data.quotes?.some(q => q.policyType === "POLLUTION_LIABILITY" && (q.status === "BOUND" || q.status === "BIND_REQUESTED")) && data.quotes?.some(q => q.policyType === "POLLUTION_LIABILITY") && (
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {getPolicyLabel("POLLUTION_LIABILITY")} Carrier
+                </label>
+                <select
+                  value={bindSelectedCarrierIdPollution || ""}
+                  onChange={(e) => setBindSelectedCarrierIdPollution(e.target.value)}
+                  className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-black focus:border-black block p-3 outline-none transition-all"
+                >
+                  <option value="">Do not bind {getPolicyLabel("POLLUTION_LIABILITY")}...</option>
+                  {data.quotes?.filter(q => q.policyType === "POLLUTION_LIABILITY" && q.status !== "BOUND").map((quote) => (
+                    <option key={quote._id} value={quote.carrierId?._id}>
+                      {quote.carrierId?.name || "Unknown Carrier"}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             <div className="flex justify-end gap-3 mt-4">
               <button
@@ -1004,6 +1082,8 @@ function SubmissionDetailsContent() {
                   setBindModalOpen(false);
                   setBindSelectedCarrierIdGL(null);
                   setBindSelectedCarrierIdXL(null);
+                  setBindSelectedCarrierIdPL(null);
+                  setBindSelectedCarrierIdPollution(null);
                 }}
                 className="px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-xl transition-colors"
               >
@@ -1011,8 +1091,8 @@ function SubmissionDetailsContent() {
               </button>
               <button
                 onClick={handleRequestBind}
-                disabled={!bindSelectedCarrierIdGL && !bindSelectedCarrierIdXL}
-                className={`px-5 py-2.5 text-sm font-medium text-white rounded-xl transition-all ${(bindSelectedCarrierIdGL || bindSelectedCarrierIdXL)
+                disabled={!bindSelectedCarrierIdGL && !bindSelectedCarrierIdXL && !bindSelectedCarrierIdPL && !bindSelectedCarrierIdPollution}
+                className={`px-5 py-2.5 text-sm font-medium text-white rounded-xl transition-all ${(bindSelectedCarrierIdGL || bindSelectedCarrierIdXL || bindSelectedCarrierIdPL || bindSelectedCarrierIdPollution)
                   ? "bg-[#9A8B7A] hover:bg-[#8a6f4d] shadow-md"
                   : "bg-gray-300 cursor-not-allowed"
                   }`}

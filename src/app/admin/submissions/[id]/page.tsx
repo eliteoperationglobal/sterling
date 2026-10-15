@@ -295,7 +295,7 @@ export default function AdminSubmissionDetailsPage() {
   const [profileOpen, setProfileOpen] = useState(false);
   const [ratingData, setRatingData] = useState<any>(null);
   const [selectedCarrierId, setSelectedCarrierId] = useState<string | null>(null);
-  const [currentPolicyType, setCurrentPolicyType] = useState<"GENERAL_LIABILITY" | "EXCESS_LIABILITY">("GENERAL_LIABILITY");
+  const [currentPolicyType, setCurrentPolicyType] = useState<string>("GENERAL_LIABILITY");
   const [availablePolicies, setAvailablePolicies] = useState<string[]>([]);
   const [ratingLoading, setRatingLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -469,10 +469,24 @@ export default function AdminSubmissionDetailsPage() {
         if (!types.includes("EXCESS_LIABILITY")) types.push("EXCESS_LIABILITY");
       }
 
+      // Also add from payload if professional liability was requested
+      if (data?.submission?.payload?.addProfessionalLiability || data?.submission?.payload?.professionalOrPollutionType === "professional") {
+        if (!types.includes("PROFESSIONAL_LIABILITY")) types.push("PROFESSIONAL_LIABILITY");
+      }
 
+      // Also add from payload if pollution liability was requested
+      if (data?.submission?.payload?.addPollutionLiability || data?.submission?.payload?.professionalOrPollutionType === "pollution") {
+        if (!types.includes("POLLUTION_LIABILITY")) types.push("POLLUTION_LIABILITY");
+      }
 
       // Fix the "jumping buttons" issue by ensuring a consistent order
-      types.sort((a, b) => (a === "GENERAL_LIABILITY" ? -1 : 1));
+      const policyOrder: Record<string, number> = {
+        GENERAL_LIABILITY: 1,
+        EXCESS_LIABILITY: 2,
+        PROFESSIONAL_LIABILITY: 3,
+        POLLUTION_LIABILITY: 4,
+      };
+      types.sort((a, b) => (policyOrder[a] || 99) - (policyOrder[b] || 99));
 
       setAvailablePolicies(types as string[]);
 
@@ -866,10 +880,15 @@ export default function AdminSubmissionDetailsPage() {
       if (isContractorsEquipment) return "Inland Marine";
       if (isBuildersRisk) return "Builders Risk";
       return "General Liability";
-    } else {
+    } else if (type === "EXCESS_LIABILITY") {
       if (isCommercialProperty) return "General Liability";
       return "Excess Liability";
+    } else if (type === "PROFESSIONAL_LIABILITY") {
+      return "Professional Liability";
+    } else if (type === "POLLUTION_LIABILITY") {
+      return "Pollution Liability";
     }
+    return type;
   };
 
   const statusHistory = [

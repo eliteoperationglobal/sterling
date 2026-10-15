@@ -158,8 +158,8 @@ export async function POST(
     const existingQuote = await Quote.findOne({
       submissionId,
       carrierId,
-      ...(policyType === 'EXCESS_LIABILITY'
-        ? { policyType: 'EXCESS_LIABILITY' }
+      ...(policyType && policyType !== 'GENERAL_LIABILITY'
+        ? { policyType }
         : { policyType: { $in: [null, 'GENERAL_LIABILITY'] } }
       )
     });
@@ -296,7 +296,7 @@ export async function POST(
       existingQuote.carrierReference = carrierReference || undefined;
       existingQuote.specialNotes = specialNotes || undefined;
       existingQuote.customDocuments = customDocuments || [];
-      existingQuote.policyType = policyType === 'EXCESS_LIABILITY' ? 'EXCESS_LIABILITY' : 'GENERAL_LIABILITY';
+      existingQuote.policyType = policyType || 'GENERAL_LIABILITY';
       // 🛑 PROTECTION: If the quote is already BOUND, do NOT downgrade it to POSTED.
       if (existingQuote.status !== "BOUND") {
         existingQuote.status = "POSTED";
@@ -359,7 +359,7 @@ export async function POST(
         carrierReference: carrierReference || undefined,
         specialNotes: specialNotes || undefined,
         customDocuments: customDocuments || [],
-        policyType: policyType === 'EXCESS_LIABILITY' ? 'EXCESS_LIABILITY' : 'GENERAL_LIABILITY',
+        policyType: policyType || 'GENERAL_LIABILITY',
         status: "POSTED", // Posted to broker
         enteredByAdminId: (session.user as any).id,
         enteredAt: new Date(),
@@ -382,7 +382,7 @@ export async function POST(
       hasNewEdits: false,
     };
 
-    if (policyType !== 'EXCESS_LIABILITY') {
+    if (!policyType || policyType === 'GENERAL_LIABILITY') {
       if (effectiveDate) {
         updateFields["payload.effectiveDate"] = effectiveDate;
         updateFields.effectiveDate = new Date(effectiveDate);

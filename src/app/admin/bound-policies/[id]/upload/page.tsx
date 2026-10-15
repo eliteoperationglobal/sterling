@@ -403,7 +403,11 @@ export default function UploadFinalDocumentsPage() {
             
             <div className="grid sm:grid-cols-2 gap-5 max-w-2xl mx-auto">
               {boundQuotes.map((q) => {
-                const displayName = q.policyType === "EXCESS_LIABILITY" 
+                const displayName = q.policyType === "PROFESSIONAL_LIABILITY"
+                  ? "Professional Liability"
+                  : q.policyType === "POLLUTION_LIABILITY"
+                  ? "Pollution Liability"
+                  : q.policyType === "EXCESS_LIABILITY"
                   ? (submission?.programId === 'apartment-buildings' || submission?.programName?.includes("Property") || submission?.programName?.includes("Apartment") ? "General Liability" : "Excess Liability")
                   : (submission?.programId === 'apartment-buildings' || submission?.programName?.includes("Property") || submission?.programName?.includes("Apartment") ? "Property" : "General Liability");
 
@@ -446,7 +450,11 @@ export default function UploadFinalDocumentsPage() {
                   >
                     {boundQuotes.map((q) => (
                       <option key={q._id} value={q._id}>
-                        {q.policyType === "EXCESS_LIABILITY" 
+                        {q.policyType === "PROFESSIONAL_LIABILITY"
+                          ? "Professional Liability"
+                          : q.policyType === "POLLUTION_LIABILITY"
+                          ? "Pollution Liability"
+                          : q.policyType === "EXCESS_LIABILITY" 
                           ? (submission?.programId === 'apartment-buildings' || submission?.programName?.includes("Property") || submission?.programName?.includes("Apartment") ? "General Liability" : "Excess Liability")
                           : (submission?.programId === 'apartment-buildings' || submission?.programName?.includes("Property") || submission?.programName?.includes("Apartment") ? "Property" : "General Liability")
                         } - {q.carrierId?.name || "Carrier"}

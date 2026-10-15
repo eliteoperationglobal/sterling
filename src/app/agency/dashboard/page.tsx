@@ -32,6 +32,8 @@ interface Submission {
   agentId?: string | null;
   hasGeneral?: boolean;
   hasExcess?: boolean;
+  hasProfessional?: boolean;
+  hasPollution?: boolean;
   effectiveDate?: string | null;
   effectiveCancellationDate?: string | null;
   cancelRequested?: boolean;
@@ -881,10 +883,15 @@ function AgencyDashboardContent() {
                             {sub.industry === "Construction Equipment" || sub.industry === "Contractors Equipment" ? "Inland Marine" :
                               sub.industry === "Apartment Building" || sub.industry === "Commercial Property" ? "Property" :
                               sub.industry === "Manufacturers" || (sub.industry && sub.industry.toLowerCase().includes("manufacturer")) ? "Manufacturers" :
-                              sub.industry === "Builders Risk" ? "Builders Risk" : (
-                                sub.hasGeneral && sub.hasExcess ? "General & Excess Liability" :
-                                  sub.hasExcess ? "Excess Liability" : "General Liability"
-                              )}
+                              sub.industry === "Builders Risk" ? "Builders Risk" : (() => {
+                                const parts = [];
+                                if (sub.hasGeneral) parts.push("General");
+                                if (sub.hasExcess) parts.push("Excess");
+                                if (sub.hasProfessional) parts.push("Professional");
+                                if (sub.hasPollution) parts.push("Pollution");
+                                if (parts.length > 0) return parts.join(" & ") + " Liability";
+                                return "General Liability";
+                              })()}
                           </>
                         )}
                       </td>

@@ -184,10 +184,15 @@ export default function AdminBindRequestsPage() {
       if (isContractorsEquipment) return "Inland Marine";
       if (isBuildersRisk) return "Builders Risk";
       return "General Liability";
-    } else {
+    } else if (type === "EXCESS_LIABILITY") {
       if (isCommercialProperty) return "General Liability";
       return "Excess Liability";
+    } else if (type === "PROFESSIONAL_LIABILITY") {
+      return "Professional Liability";
+    } else if (type === "POLLUTION_LIABILITY") {
+      return "Pollution Liability";
     }
+    return type;
   };
 
   const handleApprove = (submissionId: string) => {

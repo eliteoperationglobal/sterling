@@ -1336,7 +1336,11 @@ export interface PolicyBoundEmailData {
 export function generatePolicyBoundEmailHTML(data: PolicyBoundEmailData): string {
   const portalUrl = getBaseUrl();
   
-  let displayType = data.policyType === "GENERAL_LIABILITY" ? "General Liability" : (data.policyType === "EXCESS_LIABILITY" ? "Excess Liability" : data.policyType);
+  let displayType = data.policyType === "GENERAL_LIABILITY" ? "General Liability"
+    : data.policyType === "EXCESS_LIABILITY" ? "Excess Liability"
+    : data.policyType === "PROFESSIONAL_LIABILITY" ? "Professional Liability"
+    : data.policyType === "POLLUTION_LIABILITY" ? "Pollution Liability"
+    : data.policyType;
   
   if (data.programName === "Commercial Property" || data.programName === "Apartment Building") {
     if (data.policyType === "GENERAL_LIABILITY") displayType = "Property";
@@ -1437,7 +1441,11 @@ export function generatePolicyBoundEmailHTML(data: PolicyBoundEmailData): string
 export async function sendPolicyBoundEmailToBroker(data: PolicyBoundEmailData): Promise<boolean> {
   const html = generatePolicyBoundEmailHTML(data);
   
-  let displayType = data.policyType === "GENERAL_LIABILITY" ? "General Liability" : (data.policyType === "EXCESS_LIABILITY" ? "Excess Liability" : data.policyType);
+  let displayType = data.policyType === "GENERAL_LIABILITY" ? "General Liability"
+    : data.policyType === "EXCESS_LIABILITY" ? "Excess Liability"
+    : data.policyType === "PROFESSIONAL_LIABILITY" ? "Professional Liability"
+    : data.policyType === "POLLUTION_LIABILITY" ? "Pollution Liability"
+    : data.policyType;
   if (data.programName === "Commercial Property" || data.programName === "Apartment Building") {
     if (data.policyType === "GENERAL_LIABILITY") displayType = "Property";
     if (data.policyType === "EXCESS_LIABILITY") displayType = "General Liability";
