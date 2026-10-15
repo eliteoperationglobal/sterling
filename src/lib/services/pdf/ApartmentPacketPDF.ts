@@ -5790,7 +5790,25 @@ function generateInvoicePage(data: ApartmentPacketData): string {
 		  </div>
 		</div>
 		<div style="text-align: center;">
-			<strong>${data.policyLabel || (data.policyType === 'GENERAL_LIABILITY' ? 'General Liability' : 'Excess Liability')} - ${data.carrierName}</strong>
+			<strong>${data.policyLabel || (() => {
+				const norm = (data.policyType || '').toUpperCase().trim();
+				switch (norm) {
+					case 'PROFESSIONAL_LIABILITY':
+					case 'PROFESSIONAL':
+						return 'Professional Liability';
+					case 'POLLUTION_LIABILITY':
+					case 'POLLUTION':
+						return 'Pollution Liability';
+					case 'EXCESS_LIABILITY':
+					case 'EXCESS':
+						return 'Excess Liability';
+					case 'GENERAL_LIABILITY':
+					case 'GL':
+						return 'General Liability';
+					default:
+						return 'General Liability';
+				}
+			})()}${data.carrierName ? ` - ${data.carrierName}` : ''}</strong>
 		</div>
 		
 		<div class="invoice-section-page12">

@@ -61,6 +61,7 @@ export interface ApplicationPacketData {
 	// Quote Information
 	quoteType: string;
 	policyType?: string;
+	policyLabel?: string;
 	carrierName: string;
 	coverageType: string;
 	desiredCoverageDates: string;
@@ -4877,7 +4878,26 @@ function generatePage12(data: ApplicationPacketData): string {
 		  </div>
 		</div>
 		<div style="text-align: center;">
-			<strong>${data.policyType === 'GENERAL_LIABILITY' ? 'General Liability' : 'Excess Liability'} - ${data.carrierName}</strong>
+			<strong>${(() => {
+				if (data.policyLabel) return data.policyLabel;
+				const norm = (data.policyType || '').toUpperCase().trim();
+				switch (norm) {
+					case 'PROFESSIONAL_LIABILITY':
+					case 'PROFESSIONAL':
+						return 'Professional Liability';
+					case 'POLLUTION_LIABILITY':
+					case 'POLLUTION':
+						return 'Pollution Liability';
+					case 'EXCESS_LIABILITY':
+					case 'EXCESS':
+						return 'Excess Liability';
+					case 'GENERAL_LIABILITY':
+					case 'GL':
+						return 'General Liability';
+					default:
+						return data.quoteType || 'General Liability';
+				}
+			})()}${data.carrierName ? ` - ${data.carrierName}` : ''}</strong>
 		</div>
 		
 		<div class="invoice-section-page12">
@@ -7986,9 +8006,23 @@ export function mapFormDataToPacketData(
 			: [],
 
 		// Quote Information
-		quoteType: quote?.type || 'General Liability',
+		quoteType: quote?.type || (() => {
+			const type = quote?.policyType;
+			if (type === 'PROFESSIONAL_LIABILITY') return 'Professional Liability';
+			if (type === 'POLLUTION_LIABILITY') return 'Pollution Liability';
+			if (type === 'EXCESS_LIABILITY') return 'Excess Liability';
+			return 'General Liability';
+		})(),
 		policyType: quote?.policyType || 'GENERAL_LIABILITY',
-		carrierName: quote?.carrierId?.name || '',
+		policyLabel: (() => {
+			const type = quote?.policyType;
+			if (type === 'PROFESSIONAL_LIABILITY') return 'Professional Liability';
+			if (type === 'POLLUTION_LIABILITY') return 'Pollution Liability';
+			if (type === 'EXCESS_LIABILITY') return 'Excess Liability';
+			if (type === 'GENERAL_LIABILITY') return 'General Liability';
+			return quote?.type || 'General Liability';
+		})(),
+		carrierName: quote?.carrierId?.name || quote?.carrierName || quote?.metadata?.carrierName || '',
 		coverageType: quote?.coverageType || 'Manuscript Occurrence',
 		desiredCoverageDates: coverageDates,
 

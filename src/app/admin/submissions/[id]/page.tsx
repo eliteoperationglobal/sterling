@@ -1314,7 +1314,7 @@ export default function AdminSubmissionDetailsPage() {
                   )}
                   {submission.status !== "SUBMITTED" && (
                     <button
-                      onClick={() => window.open(`/api/admin/submissions/${submissionId}/invoice?quoteId=${currentQuote?._id || ""}`, "_blank")}
+                      onClick={() => window.open(`/api/admin/submissions/${submissionId}/invoice?quoteId=${currentQuote?._id || ""}&policyType=${currentPolicyType || ""}`, "_blank")}
                       className={iscOutlineBtn}
                     >
                       Invoice

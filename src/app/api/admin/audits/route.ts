@@ -23,7 +23,21 @@ export async function GET(req: NextRequest) {
     }
 
     await connectDB();
-    await import("@/models/Agency"); 
+    const Agency = (await import("@/models/Agency")).default;
+    
+    // Resolve all matching agency IDs for this user (handles sibling/duplicate agency docs by name)
+    let allUserAgencyIds: string[] = userAgencyId ? [userAgencyId] : [];
+    if (!isAdmin && userAgencyId) {
+      const userAgency = await Agency.findById(userAgencyId).lean();
+      const agencyName = (userAgency as any)?.name || (session.user as any)?.agencyName;
+      if (agencyName && typeof agencyName === "string" && agencyName.trim()) {
+        const escaped = agencyName.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const siblingAgencies = await Agency.find({
+          name: { $regex: new RegExp("^" + escaped + "$", "i") }
+        }).distinct("_id");
+        allUserAgencyIds = Array.from(new Set([...allUserAgencyIds, ...siblingAgencies.map((id: any) => String(id))]));
+      }
+    }
     
     const searchParams = req.nextUrl.searchParams;
     const submissionId = searchParams.get("submissionId");
@@ -33,7 +47,7 @@ export async function GET(req: NextRequest) {
     if (submissionId) {
       // 101% Multi-tenant check: if agency user, verify submission belongs to their agency
       if (!isAdmin) {
-        const submission = await Submission.findOne({ _id: submissionId, agencyId: userAgencyId }).lean();
+        const submission = await Submission.findOne({ _id: submissionId, agencyId: { $in: allUserAgencyIds } }).lean();
         if (!submission) {
           return NextResponse.json({ error: "Forbidden: Submission not found or does not belong to your agency" }, { status: 403 });
         }
@@ -44,9 +58,27 @@ export async function GET(req: NextRequest) {
       query._id = auditId;
     }
 
+    const source = searchParams.get("source");
+    if (source) {
+      query.source = source;
+    }
+
     // If agency user and no specific submissionId/auditId requested, scope strictly to their agencyId
     if (!isAdmin && !submissionId && !auditId) {
-      query.agencyId = userAgencyId;
+      const agencySubIds = await Submission.find({ agencyId: { $in: allUserAgencyIds } }).distinct("_id");
+      const { default: mongoose } = await import("mongoose");
+      const agencyObjectIds = allUserAgencyIds.map(id => {
+        try {
+          return new mongoose.Types.ObjectId(id);
+        } catch {
+          return id;
+        }
+      });
+      query.$or = [
+        { agencyId: { $in: allUserAgencyIds } },
+        { agencyId: { $in: agencyObjectIds } },
+        { submissionId: { $in: agencySubIds } }
+      ];
     }
     
     // Fetch audits, sort by dueDate ascending
@@ -65,7 +97,7 @@ export async function GET(req: NextRequest) {
       const auditAgencyId = foundAudit.agencyId?._id ? String(foundAudit.agencyId._id) : (foundAudit.agencyId ? String(foundAudit.agencyId) : null);
       const subAgencyId = foundAudit.submissionId?.agencyId?._id ? String(foundAudit.submissionId.agencyId._id) : (foundAudit.submissionId?.agencyId ? String(foundAudit.submissionId.agencyId) : null);
 
-      if (auditAgencyId !== userAgencyId && subAgencyId !== userAgencyId) {
+      if (!allUserAgencyIds.includes(auditAgencyId || "") && !allUserAgencyIds.includes(subAgencyId || "")) {
         return NextResponse.json({ error: "Forbidden: You do not have access to this audit" }, { status: 403 });
       }
     }
@@ -105,6 +137,21 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No submissions provided" }, { status: 400 });
     }
     
+    // Resolve all matching agency IDs for this user
+    let allUserAgencyIds: string[] = userAgencyId ? [userAgencyId] : [];
+    if (!isAdmin && userAgencyId) {
+      const Agency = (await import("@/models/Agency")).default;
+      const userAgency = await Agency.findById(userAgencyId).lean();
+      const agencyName = (userAgency as any)?.name || (session.user as any)?.agencyName;
+      if (agencyName && typeof agencyName === "string" && agencyName.trim()) {
+        const escaped = agencyName.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const siblingAgencies = await Agency.find({
+          name: { $regex: new RegExp("^" + escaped + "$", "i") }
+        }).distinct("_id");
+        allUserAgencyIds = Array.from(new Set([...allUserAgencyIds, ...siblingAgencies.map((id: any) => String(id))]));
+      }
+    }
+
     const newAudits = [];
     const activities = [];
     
@@ -115,7 +162,7 @@ export async function POST(req: NextRequest) {
       // 101% Multi-tenant check: agency user can only start audit for their own submission
       if (!isAdmin) {
         const subAgencyId = submission.agencyId?._id ? String(submission.agencyId._id) : (submission.agencyId ? String(submission.agencyId) : null);
-        if (subAgencyId !== userAgencyId) {
+        if (!allUserAgencyIds.includes(subAgencyId || "")) {
           continue; // skip unauthorized submissions
         }
       }

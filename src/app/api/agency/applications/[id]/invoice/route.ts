@@ -78,13 +78,18 @@ export async function GET(
 
     const url = new URL(req.url);
     const quoteId = url.searchParams.get("quoteId");
+    const policyTypeParam = url.searchParams.get("policyType");
 
     // Get quote if available (for invoice page)
     let quote: any = null;
     try {
       if (quoteId) {
         quote = await Quote.findById(quoteId).populate("carrierId", "name");
-      } else {
+      }
+      if (!quote && policyTypeParam) {
+        quote = await Quote.findOne({ submissionId: submission._id, policyType: policyTypeParam }).populate("carrierId", "name");
+      }
+      if (!quote) {
         quote = await Quote.findOne({ submissionId: submission._id }).populate("carrierId", "name");
       }
       if (quote) {
@@ -219,15 +224,26 @@ export async function GET(
     // Return PDF as response
     try {
       console.log("📄 [PDF Download] Returning PDF response...");
-      const policyLabel = isApartment
-        ? (quote?.policyType === 'EXCESS_LIABILITY' ? 'General-Liability' : 'Commercial-Property')
-        : isContractors ? 'Equipment'
-          : isBuildersRisk ? 'Builders-Risk' : 'Invoice';
+      const getPolicyLabelForFilename = (type?: string) => {
+        const norm = (type || "").toUpperCase().trim();
+        if (isApartment) {
+          if (norm === "PROFESSIONAL_LIABILITY" || norm === "PROFESSIONAL") return "Professional-Liability";
+          if (norm === "POLLUTION_LIABILITY" || norm === "POLLUTION") return "Pollution-Liability";
+          return norm === "EXCESS_LIABILITY" || norm === "EXCESS" ? "General-Liability" : "Commercial-Property";
+        }
+        if (isContractors) return "Equipment";
+        if (isBuildersRisk) return "Builders-Risk";
+        if (isManufacturers) return "Manufacturers";
+        if (norm === "PROFESSIONAL_LIABILITY" || norm === "PROFESSIONAL") return "Professional-Liability";
+        if (norm === "POLLUTION_LIABILITY" || norm === "POLLUTION") return "Pollution-Liability";
+        if (norm === "EXCESS_LIABILITY" || norm === "EXCESS") return "Excess-Liability";
+        return "General-Liability";
+      };
 
-      const customerName = formData.companyName || formData.applicantName || submission.clientContact?.name || "Invoice";
-      const filename = isApartment || isContractors || isBuildersRisk
-        ? `${customerName}-${policyLabel}-Invoice.pdf`
-        : `${customerName}-Invoice.pdf`;
+      const policyLabel = getPolicyLabelForFilename(quote?.policyType || policyTypeParam);
+      const customerName = (formData.companyName || formData.applicantName || submission.clientContact?.name || "Client")
+        .replace(/[^a-zA-Z0-9-_\s]/g, "").trim().replace(/\s+/g, "-");
+      const filename = `${customerName}-${policyLabel}-Invoice.pdf`;
 
       return new NextResponse(new Uint8Array(pdfBuffer), {
         headers: {

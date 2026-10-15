@@ -94,10 +94,22 @@ export async function GET(req: NextRequest) {
         "documents.fileUrl": { $in: urlCandidates }
       };
       if (userRole === "agency_admin" || userRole === "agency_user") {
-        const agencyId = (session.user as any).agencyId;
-        const matchingSubIds = await Submission.find({ agencyId }).distinct("_id");
+        const userAgencyId = String((session.user as any).agencyId);
+        const Agency = (await import("@/models/Agency")).default;
+        const userAgency = await Agency.findById(userAgencyId).lean();
+        const agencyName = (userAgency as any)?.name || (session.user as any)?.agencyName;
+        let allUserAgencyIds: string[] = [userAgencyId];
+        if (agencyName && typeof agencyName === "string" && agencyName.trim()) {
+          const escaped = agencyName.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          const siblingAgencies = await Agency.find({
+            name: { $regex: new RegExp("^" + escaped + "$", "i") }
+          }).distinct("_id");
+          allUserAgencyIds = Array.from(new Set([...allUserAgencyIds, ...siblingAgencies.map((id: any) => String(id))]));
+        }
+
+        const matchingSubIds = await Submission.find({ agencyId: { $in: allUserAgencyIds } }).distinct("_id");
         auditQuery.$or = [
-          { agencyId: agencyId },
+          { agencyId: { $in: allUserAgencyIds } },
           { submissionId: { $in: matchingSubIds } }
         ];
       }

@@ -976,7 +976,7 @@ export default function AdminQuotePage() {
       sterlingInsuranceServicesFeesUSD: state.sterlingFeesUSD ? parseCurrency(state.sterlingFeesUSD) : undefined,
       brokerFeeAmountUSD: brokerFeeFromForm || undefined,
       limits: Object.values(limits).some(Boolean) ? limits : undefined,
-      endorsements: (state.selectedEndorsements || []).length > 0 ? state.selectedEndorsements : undefined,
+      endorsements: (!isPropertyPolicy && policyType === "GENERAL_LIABILITY" && (state.selectedEndorsements || []).length > 0) ? state.selectedEndorsements : undefined,
       effectiveDate: state.effectiveDate || undefined,
       expirationDate: state.expirationDate || undefined,
       policyNumber: state.policyNumber || undefined,
@@ -2088,7 +2088,7 @@ export default function AdminQuotePage() {
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  {isPropertyPolicy
+                  {isPropertyPolicy || currentPolicyType === "EXCESS_LIABILITY" || currentPolicyType === "PROFESSIONAL_LIABILITY" || currentPolicyType === "POLLUTION_LIABILITY"
                     ? "Coverage limits are pre-filled from the application form. You can edit if needed."
                     : "Policy limits and endorsements are pre-filled from the application form. You can edit if needed."}
                 </p>
@@ -2356,7 +2356,10 @@ export default function AdminQuotePage() {
             </div>
 
             {/* Endorsements Section */}
-            {!isPropertyPolicy && currentPolicyType !== "EXCESS_LIABILITY" && (
+            {!isPropertyPolicy && 
+              currentPolicyType !== "EXCESS_LIABILITY" && 
+              currentPolicyType !== "PROFESSIONAL_LIABILITY" && 
+              currentPolicyType !== "POLLUTION_LIABILITY" && (
               <div className="bg-gradient-to-br from-indigo-50 to-blue-50 rounded-xl p-6 border border-indigo-200/60">
                 <h3 className="text-lg font-bold text-gray-900 mb-2 flex items-center gap-2">
                   <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-blue-500 rounded-lg flex items-center justify-center">

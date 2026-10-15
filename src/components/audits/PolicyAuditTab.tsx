@@ -349,7 +349,7 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
     { id: "FINALIZED", label: "Finalized", date: "Pending", desc: "Audit will be finalized after approval" }
   ];
 
-  if (viewMode === "edit") {
+  if (viewMode === "edit" && isAdmin) {
     return (
       <div className="bg-[#fcfbf9] -m-6 p-6 min-h-[800px]">
         {/* Header */}
@@ -1033,21 +1033,33 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
             </div>
           </div>
 
-          <div className="mt-8 flex gap-3">
-            <button
-              onClick={() => updateAudit()}
-              disabled={isSaving}
-              className="w-1/3 py-2.5 px-4 bg-white border border-gray-300 text-gray-700 font-bold text-sm rounded-lg hover:bg-gray-50 transition-colors shadow-sm disabled:opacity-50"
-            >
-              Save Draft
-            </button>
-            <button
-              onClick={() => setViewMode("edit")}
-              className="w-2/3 py-2.5 px-4 bg-blue-600 text-white font-bold text-sm rounded-lg hover:bg-blue-700 transition-colors shadow-sm shadow-blue-200"
-            >
-              Enter Audit Revenue
-            </button>
-          </div>
+          {isAdmin ? (
+            <div className="mt-8 flex gap-3">
+              <button
+                type="button"
+                onClick={() => updateAudit()}
+                disabled={isSaving}
+                className="w-1/3 py-2.5 px-4 bg-white border border-gray-300 text-gray-700 font-bold text-sm rounded-lg hover:bg-gray-50 transition-colors shadow-sm disabled:opacity-50"
+              >
+                Save Draft
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode("edit")}
+                className="w-2/3 py-2.5 px-4 bg-blue-600 text-white font-bold text-sm rounded-lg hover:bg-blue-700 transition-colors shadow-sm shadow-blue-200"
+              >
+                Enter Audit Revenue
+              </button>
+            </div>
+          ) : (
+            <div className="mt-6 pt-4 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500 font-medium bg-gray-50/70 p-3 rounded-xl border border-gray-200">
+              <span className="flex items-center gap-1.5 text-gray-600">
+                <Info className="w-4 h-4 text-gray-400 shrink-0" />
+                Audit calculations managed by Underwriter
+              </span>
+              <span className="font-semibold text-gray-700 uppercase tracking-wider text-[10px] bg-white px-2 py-0.5 rounded border border-gray-200">Read-Only</span>
+            </div>
+          )}
         </div>
 
         {/* Audit Activity */}

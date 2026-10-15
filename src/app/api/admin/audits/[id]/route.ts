@@ -31,11 +31,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
     // 101% Multi-tenant security check:
     if (!isAdmin) {
-      const auditAgencyId = audit.agencyId ? String(audit.agencyId) : null;
-      const subAgencyId = (audit.submissionId as any)?.agencyId ? String((audit.submissionId as any).agencyId) : null;
-      if (auditAgencyId !== userAgencyId && subAgencyId !== userAgencyId) {
-        return NextResponse.json({ error: "Forbidden: You do not have access to update this audit" }, { status: 403 });
-      }
+      return NextResponse.json({ error: "Forbidden: Agency users have read-only access and cannot modify audit financials" }, { status: 403 });
     }
 
     const { 

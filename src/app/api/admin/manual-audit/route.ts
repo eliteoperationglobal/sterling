@@ -27,11 +27,28 @@ export async function POST(req: NextRequest) {
     if (agencyName && typeof agencyName === "string" && agencyName.trim()) {
       const trimmedAgency = agencyName.trim();
       const escaped = trimmedAgency.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      const agency = await Agency.findOne({ 
+      const matchingAgencies = await Agency.find({ 
         name: { $regex: new RegExp("^" + escaped + "$", "i") } 
-      });
-      if (agency) {
-        agencyId = agency._id;
+      }).lean();
+
+      if (matchingAgencies.length === 1) {
+        agencyId = matchingAgencies[0]._id;
+      } else if (matchingAgencies.length > 1) {
+        // Pick the active agency that has registered users or submissions
+        const User = (await import("@/models/User")).default;
+        const Submission = (await import("@/models/Submission")).default;
+        let bestAgency = matchingAgencies[0];
+        let maxScore = -1;
+        for (const ag of matchingAgencies) {
+          const userCount = await User.countDocuments({ agencyId: ag._id });
+          const subCount = await Submission.countDocuments({ agencyId: ag._id });
+          const score = userCount * 10 + subCount;
+          if (score > maxScore) {
+            maxScore = score;
+            bestAgency = ag;
+          }
+        }
+        agencyId = bestAgency._id;
       }
     }
 

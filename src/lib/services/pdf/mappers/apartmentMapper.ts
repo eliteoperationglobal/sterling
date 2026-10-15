@@ -510,6 +510,8 @@ export function mapApartmentDataToPacketData(
         programName: submission?.programName || "Commercial Property",
         quoteType: (() => {
             const type = quote?.policyType || "GENERAL_LIABILITY";
+            if (type === "PROFESSIONAL_LIABILITY") return "Professional Liability";
+            if (type === "POLLUTION_LIABILITY") return "Pollution Liability";
             const isApartment = submission?.programId === 'apartment-buildings' || 
                                submission?.programName?.toLowerCase().includes("apartment building") || 
                                submission?.programName?.toLowerCase().includes("commercial property");
@@ -523,6 +525,8 @@ export function mapApartmentDataToPacketData(
         policyType: quote?.metadata?.type || quote?.policyType || "GENERAL_LIABILITY",
         policyLabel: (() => {
             const type = quote?.policyType || "GENERAL_LIABILITY";
+            if (type === "PROFESSIONAL_LIABILITY") return "Professional Liability";
+            if (type === "POLLUTION_LIABILITY") return "Pollution Liability";
             const isApartment = submission?.programId === 'apartment-buildings' || 
                                submission?.programName?.toLowerCase().includes("apartment building") || 
                                submission?.programName?.toLowerCase().includes("commercial property");

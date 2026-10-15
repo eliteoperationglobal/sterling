@@ -41,9 +41,21 @@ export async function POST(
 
     // 101% Multi-tenant security check:
     if (!isAdmin) {
+      const Agency = (await import("@/models/Agency")).default;
+      const userAgency = await Agency.findById(userAgencyId).lean();
+      const agencyName = (userAgency as any)?.name || (session.user as any)?.agencyName;
+      let allUserAgencyIds: string[] = [userAgencyId];
+      if (agencyName && typeof agencyName === "string" && agencyName.trim()) {
+        const escaped = agencyName.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const siblingAgencies = await Agency.find({
+          name: { $regex: new RegExp("^" + escaped + "$", "i") }
+        }).distinct("_id");
+        allUserAgencyIds = Array.from(new Set([...allUserAgencyIds, ...siblingAgencies.map((id: any) => String(id))]));
+      }
+
       const auditAgencyId = audit.agencyId ? String(audit.agencyId) : null;
       const subAgencyId = (audit.submissionId as any)?.agencyId ? String((audit.submissionId as any).agencyId) : null;
-      if (auditAgencyId !== userAgencyId && subAgencyId !== userAgencyId) {
+      if (!allUserAgencyIds.includes(auditAgencyId || "") && !allUserAgencyIds.includes(subAgencyId || "")) {
         return NextResponse.json({ error: "Forbidden: You do not have access to this audit" }, { status: 403 });
       }
     }

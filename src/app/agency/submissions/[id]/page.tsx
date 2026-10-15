@@ -1482,7 +1482,7 @@ function SubmissionDetailsContent() {
                   <button
                     onClick={() =>
                       window.open(
-                        `/api/agency/applications/${submissionId}/invoice?quoteId=${currentQuote?._id || ''}`,
+                        `/api/agency/applications/${submissionId}/invoice?quoteId=${currentQuote?._id || ''}&policyType=${currentPolicyType || ''}`,
                         "_blank"
                       )
                     }
@@ -1648,7 +1648,7 @@ function SubmissionDetailsContent() {
                   <button
                     onClick={() =>
                       window.open(
-                        `/api/agency/applications/${submissionId}/invoice?quoteId=${currentQuote?._id || ''}`,
+                        `/api/agency/applications/${submissionId}/invoice?quoteId=${currentQuote?._id || ''}&policyType=${currentPolicyType || ''}`,
                         "_blank"
                       )
                     }
