@@ -96,6 +96,7 @@ export async function GET(
 
     const appId = audit.auditId ? audit.auditId.replace("AUD-", "") : (audit._id as any).toString().slice(-6);
     const policyNumberStr = audit.policyNumber || "PENDING";
+    const carrierStr = audit.carrier || (audit.submissionId as any)?.carrier || (audit.submissionId as any)?.payload?.carrier || "";
 
     // Dynamic Agency Details from audit.agencyId or submission.agencyId
     const agency: any = (audit as any).agencyId || ((audit.submissionId as any)?.agencyId) || null;
@@ -130,7 +131,7 @@ export async function GET(
           
           @page {
             size: letter portrait;
-            margin: 18mm 20mm 18mm 20mm;
+            margin: 10mm 15mm 10mm 15mm;
           }
           * {
             box-sizing: border-box;
@@ -139,96 +140,109 @@ export async function GET(
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
           }
-          body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            color: #0f172a;
+          html, body {
             background: #ffffff;
-            font-size: 14px;
-            line-height: 1.5;
+            color: #0f172a;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            font-size: 13px;
+            line-height: 1.45;
+            height: 100%;
+          }
+          .invoice-container {
+            width: 100%;
+            min-height: 900px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            page-break-inside: avoid;
+            break-inside: avoid;
+          }
+          .invoice-body {
+            flex: 1;
           }
           .header {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 34px;
+            margin-bottom: 22px;
           }
           .header-left {
             text-align: left;
           }
           .insured-name {
-            font-size: 18.5px;
+            font-size: 18px;
             font-weight: 800;
             color: #0f172a;
             text-transform: uppercase;
             letter-spacing: 0.2px;
-            margin-bottom: 6px;
+            margin-bottom: 3px;
           }
           .meta-line {
-            font-size: 13.5px;
+            font-size: 13px;
             font-weight: 500;
             color: #334155;
-            line-height: 1.6;
+            line-height: 1.45;
           }
           .header-right {
             text-align: right;
-            font-size: 13.5px;
+            font-size: 13px;
             font-weight: 500;
             color: #334155;
-            line-height: 1.6;
+            line-height: 1.45;
           }
           .agency-name-bold {
-            font-size: 14.5px;
+            font-size: 14px;
             font-weight: 800;
             color: #0f172a;
-            line-height: 1.35;
+            line-height: 1.3;
           }
 
           /* SECTION 1: REVENUE & EXPOSURE AUDIT */
           .section-exposure {
-            margin-bottom: 30px;
+            margin-bottom: 20px;
           }
           .section-heading {
-            font-size: 16px;
+            font-size: 15.5px;
             font-weight: 800;
             color: #0f172a;
             text-transform: uppercase;
-            letter-spacing: 0.4px;
-            margin-bottom: 3px;
+            letter-spacing: 0.3px;
+            margin-bottom: 2px;
           }
           .section-subheading {
-            font-size: 13px;
+            font-size: 12.5px;
             font-weight: 500;
             color: #475569;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
           }
           .exposure-box {
             background: #f8fafc;
             border: 1px solid #e2e8f0;
             border-radius: 8px;
-            padding: 4px 22px;
+            padding: 0 18px;
           }
           .exposure-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 13px 0;
+            padding: 8px 0;
           }
           .exposure-row:not(:last-child) {
             border-bottom: 1px solid #e2e8f0;
           }
           .exposure-title {
-            font-size: 14.5px;
+            font-size: 13.5px;
             font-weight: 700;
             color: #0f172a;
           }
           .exposure-desc {
-            font-size: 12.5px;
+            font-size: 11.5px;
             font-weight: 500;
             color: #64748b;
-            margin-top: 2px;
+            margin-top: 1px;
           }
           .exposure-value {
-            font-size: 15.5px;
+            font-size: 15px;
             font-weight: 700;
             color: #0f172a;
             text-align: right;
@@ -237,30 +251,30 @@ export async function GET(
 
           /* SECTION 2: ADDITIONAL AUDIT CHARGES */
           .charges-section {
-            margin-bottom: 26px;
+            margin-bottom: 16px;
           }
           .charges-title {
-            font-size: 14.5px;
+            font-size: 14px;
             font-weight: 800;
             color: #0f172a;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.4px;
             border-bottom: 2px solid #0f172a;
-            padding-bottom: 7px;
-            margin-bottom: 10px;
+            padding-bottom: 5px;
+            margin-bottom: 6px;
           }
           .charges-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 8.5px 0;
-            font-size: 14px;
+            padding: 5px 0;
+            font-size: 13px;
             font-weight: 500;
             color: #1e293b;
           }
           .charges-value {
             font-weight: 700;
-            font-size: 14.5px;
+            font-size: 13.5px;
             color: #0f172a;
             text-align: right;
             font-feature-settings: 'tnum';
@@ -271,105 +285,136 @@ export async function GET(
             background: #f1f5f9;
             border: 1.5px solid #cbd5e1;
             border-radius: 8px;
-            padding: 18px 24px;
+            padding: 13px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-top: 24px;
+            margin-top: 14px;
           }
           .total-label {
-            font-size: 14.5px;
+            font-size: 13.5px;
             font-weight: 800;
             color: #0f172a;
             letter-spacing: 0.4px;
             text-transform: uppercase;
           }
           .total-amount {
-            font-size: 23px;
+            font-size: 21px;
             font-weight: 900;
             color: #0f172a;
             font-feature-settings: 'tnum';
           }
+          .sterling-footer {
+            text-align: center;
+            margin-top: auto;
+            padding-top: 24px;
+            padding-bottom: 4px;
+            font-size: 12.5px;
+            color: #334155;
+            line-height: 1.45;
+            page-break-inside: avoid;
+            break-inside: avoid;
+          }
+          .sterling-footer-title {
+            font-size: 16px;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 3px;
+          }
         </style>
       </head>
       <body>
-        <!-- HEADER -->
-        <div class="header">
-          <div class="header-left">
-            <div class="insured-name">${audit.namedInsured || "Insured"}</div>
-            ${clientContactLine ? `<div class="meta-line">${clientContactLine}</div>` : ""}
-            ${policyNumberStr ? `<div class="meta-line">Policy #: ${policyNumberStr}</div>` : ""}
-            ${effectiveDatesStr ? `<div class="meta-line">Policy Effective Dates ${effectiveDatesStr}</div>` : ""}
-            <div class="meta-line">App ID: ${appId}</div>
-          </div>
-          <div class="header-right">
-            ${agencyNameHTML}
-            ${agencyAddress ? `<div>${agencyAddress}</div>` : ""}
-            ${agencyCityStateZip ? `<div>${agencyCityStateZip}</div>` : ""}
-            ${agencyContactLine ? `<div>${agencyContactLine}</div>` : ""}
-          </div>
-        </div>
-
-        <!-- SECTION 1: REVENUE & EXPOSURE AUDIT -->
-        <div class="section-exposure">
-          <div class="section-heading">REVENUE & EXPOSURE AUDIT</div>
-          <div class="section-subheading">Rating basis: per $${rateBasis.toLocaleString()} of revenue</div>
-          
-          <div class="exposure-box">
-            <div class="exposure-row">
-              <div>
-                <div class="exposure-title">Original Estimated Exposure</div>
-                <div class="exposure-desc">Initial policy basis</div>
+        <div class="invoice-container">
+          <div class="invoice-body">
+            <!-- HEADER -->
+            <div class="header">
+              <div class="header-left">
+                <div class="insured-name">${audit.namedInsured || "Insured"}</div>
+                ${clientContactLine ? `<div class="meta-line">${clientContactLine}</div>` : ""}
+                ${policyNumberStr ? `<div class="meta-line">Policy #: ${policyNumberStr}</div>` : ""}
+                ${carrierStr ? `<div class="meta-line">Carrier: ${carrierStr}</div>` : ""}
+                ${effectiveDatesStr ? `<div class="meta-line">Policy Effective Dates ${effectiveDatesStr}</div>` : ""}
+                <div class="meta-line">App ID: ${appId}</div>
               </div>
-              <div class="exposure-value">${formatCurrency(estExposure)}</div>
-            </div>
-            <div class="exposure-row">
-              <div>
-                <div class="exposure-title">Audited Gross Revenue</div>
-                <div class="exposure-desc">Verified actual basis</div>
+              <div class="header-right">
+                ${agencyNameHTML}
+                ${agencyAddress ? `<div>${agencyAddress}</div>` : ""}
+                ${agencyCityStateZip ? `<div>${agencyCityStateZip}</div>` : ""}
+                ${agencyContactLine ? `<div>${agencyContactLine}</div>` : ""}
               </div>
-              <div class="exposure-value">${formatCurrency(auditedExposure)}</div>
             </div>
-            <div class="exposure-row">
-              <div>
-                <div class="exposure-title">Exposure Variance</div>
-                <div class="exposure-desc">${pctChangeStr}</div>
+
+            <!-- SECTION 1: REVENUE & EXPOSURE AUDIT -->
+            <div class="section-exposure">
+              <div class="section-heading">REVENUE & EXPOSURE AUDIT</div>
+              <div class="section-subheading">Rating basis: per $${rateBasis.toLocaleString()} of revenue</div>
+              
+              <div class="exposure-box">
+                <div class="exposure-row">
+                  <div>
+                    <div class="exposure-title">Original Estimated Exposure</div>
+                    <div class="exposure-desc">Initial policy basis</div>
+                  </div>
+                  <div class="exposure-value">${formatCurrency(estExposure)}</div>
+                </div>
+                <div class="exposure-row">
+                  <div>
+                    <div class="exposure-title">Audited Gross Revenue</div>
+                    <div class="exposure-desc">Verified actual basis</div>
+                  </div>
+                  <div class="exposure-value">${formatCurrency(auditedExposure)}</div>
+                </div>
+                <div class="exposure-row">
+                  <div>
+                    <div class="exposure-title">Exposure Variance</div>
+                    <div class="exposure-desc">${pctChangeStr}</div>
+                  </div>
+                  <div class="exposure-value">${varianceAmountStr}</div>
+                </div>
               </div>
-              <div class="exposure-value">${varianceAmountStr}</div>
+            </div>
+
+            <!-- SECTION 2: ADDITIONAL AUDIT CHARGES -->
+            <div class="charges-section">
+              <div class="charges-title">ADDITIONAL AUDIT CHARGES</div>
+              
+              <div class="charges-row">
+                <span>Premium</span>
+                <span class="charges-value">${formatCurrency(premiumDifference)}</span>
+              </div>
+              <div class="charges-row">
+                <span>Premium Audit Service Fee</span>
+                <span class="charges-value">${formatCurrency(sterlingFee)}</span>
+              </div>
+              <div class="charges-row">
+                <span>Surplus Lines Tax</span>
+                <span class="charges-value">${formatCurrency(slTax)}</span>
+              </div>
+              <div class="charges-row">
+                <span>Stamping Fee</span>
+                <span class="charges-value">${formatCurrency(stampFee)}</span>
+              </div>
+              <div class="charges-row">
+                <span>Premium Audit Administration Fees</span>
+                <span class="charges-value">${formatCurrency(carrierFee)}</span>
+              </div>
+
+              <!-- TOTAL BOX -->
+              <div class="total-box">
+                <span class="total-label">TOTAL ADDITIONAL PREMIUM DUE*</span>
+                <span class="total-amount">${formatCurrency(additionalPremiumDue)}</span>
+              </div>
             </div>
           </div>
-        </div>
 
-        <!-- SECTION 2: ADDITIONAL AUDIT CHARGES -->
-        <div class="charges-section">
-          <div class="charges-title">ADDITIONAL AUDIT CHARGES</div>
-          
-          <div class="charges-row">
-            <span>Premium</span>
-            <span class="charges-value">${formatCurrency(premiumDifference)}</span>
-          </div>
-          ${carrierFee > 0 ? `
-          <div class="charges-row">
-            <span>Carrier Policy Fee</span>
-            <span class="charges-value">${formatCurrency(carrierFee)}</span>
-          </div>` : ""}
-          <div class="charges-row">
-            <span>Premium Audit Service Fee</span>
-            <span class="charges-value">${formatCurrency(sterlingFee)}</span>
-          </div>
-          <div class="charges-row">
-            <span>Surplus Lines Tax</span>
-            <span class="charges-value">${formatCurrency(slTax)}</span>
-          </div>
-          <div class="charges-row">
-            <span>Stamping Fee</span>
-            <span class="charges-value">${formatCurrency(stampFee)}</span>
-          </div>
-
-          <!-- TOTAL BOX -->
-          <div class="total-box">
-            <span class="total-label">TOTAL ADDITIONAL PREMIUM DUE*</span>
-            <span class="total-amount">${formatCurrency(additionalPremiumDue)}</span>
+          <!-- FOOTER: STERLING INSURANCE SERVICES INFO AT BOTTOM CENTER -->
+          <div class="sterling-footer">
+            <div class="sterling-footer-title">Sterling Insurance Services</div>
+            <div>5455 Wilshire Blvd. #1816,</div>
+            <div>Los Angeles, CA 90036</div>
+            <div>(310) 492-2007</div>
+            <div>info@SterlingInsurancePartners.com</div>
+            <div>License Number: 6015632</div>
           </div>
         </div>
       </body>

@@ -79,7 +79,7 @@ export default function AgencyAuditInvoicePage() {
 
   const returnBack = () => {
     if (audit?._id) {
-      router.push(`/agency/audits/${audit._id}/complete`);
+      router.push(`/agency/audits/${audit._id}`);
     } else {
       router.back();
     }
@@ -147,6 +147,7 @@ export default function AgencyAuditInvoicePage() {
 
   const appId = audit.auditId ? audit.auditId.replace("AUD-", "") : audit._id.slice(-6);
   const policyNumberStr = audit.policyNumber || "PENDING";
+  const carrierStr = audit.carrier || (audit.submissionId as any)?.carrier || (audit.submissionId as any)?.payload?.carrier || "";
 
   // Dynamic Agency Details from audit.agencyId or submission.agencyId
   const agency: any = (audit.agencyId && typeof audit.agencyId === "object" ? audit.agencyId : null) || (audit.submissionId as any)?.agencyId || null;
@@ -177,13 +178,14 @@ export default function AgencyAuditInvoicePage() {
   return (
     <div className="min-h-screen bg-slate-50 py-6 px-4 print:bg-white print:p-0 print:m-0 print:min-h-0">
       {/* Print styles to guarantee exact 1-page fit and suppress browser headers/footers (URL & page numbers) */}
-      <style dangerouslySetInnerHTML={{ __html: `
+      <style dangerouslySetInnerHTML={{
+        __html: `
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
         
         @media print {
           @page {
             size: letter portrait;
-            margin: 0; /* Suppresses Chrome/browser default URL header and footer 1/1 */
+            margin: 8mm 12mm;
           }
           html, body {
             background: #ffffff !important;
@@ -191,8 +193,7 @@ export default function AgencyAuditInvoicePage() {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
             margin: 0 !important;
             padding: 0 !important;
-            height: auto !important;
-            overflow: visible !important;
+            height: 100% !important;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
           }
@@ -202,13 +203,18 @@ export default function AgencyAuditInvoicePage() {
           .invoice-sheet {
             width: 100% !important;
             max-width: 100% !important;
+            min-height: 920px !important;
             margin: 0 !important;
-            padding: 14mm 18mm !important;
+            padding: 4mm 6mm !important;
             box-sizing: border-box !important;
             border: none !important;
             box-shadow: none !important;
             page-break-inside: avoid !important;
             page-break-after: avoid !important;
+            break-inside: avoid !important;
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: space-between !important;
           }
         }
       `}} />
@@ -220,7 +226,7 @@ export default function AgencyAuditInvoicePage() {
           className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white text-slate-700 font-semibold text-xs rounded border border-slate-300 hover:bg-slate-100 transition shadow-xs cursor-pointer"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
-          Back to Summary
+          Back to Audit
         </button>
 
         <div className="flex items-center gap-2">
@@ -252,104 +258,117 @@ export default function AgencyAuditInvoicePage() {
       </div>
 
       {/* INVOICE SHEET (Pixel-Perfect Reference Format matching client PDF) */}
-      <div className="invoice-sheet max-w-[760px] mx-auto bg-white border border-slate-200 p-8 sm:p-12 text-[#0f172a] font-['Inter',sans-serif] text-[14px] leading-relaxed shadow-sm print:p-0 print:border-none print:shadow-none">
+      <div className="invoice-sheet max-w-[760px] min-h-[960px] mx-auto bg-white border border-slate-200 p-8 sm:p-10 text-[#0f172a] font-['Inter',sans-serif] text-[13.5px] leading-relaxed shadow-sm print:p-0 print:border-none print:shadow-none flex flex-col justify-between">
         
-        {/* HEADER */}
-        <div className="flex justify-between items-start mb-9 text-[13.5px] leading-relaxed">
-          <div className="text-left">
-            <h1 className="text-[18.5px] font-extrabold text-[#0f172a] uppercase tracking-wide mb-1.5">
-              {audit.namedInsured || "Insured"}
-            </h1>
-            {clientContactLine && <div className="text-[#334155] font-medium leading-relaxed">{clientContactLine}</div>}
-            {policyNumberStr && <div className="text-[#334155] font-medium leading-relaxed">Policy #: {policyNumberStr}</div>}
-            {effectiveDatesStr && <div className="text-[#334155] font-medium leading-relaxed">Policy Effective Dates {effectiveDatesStr}</div>}
-            <div className="text-[#334155] font-medium leading-relaxed">App ID: {appId}</div>
+        <div>
+          {/* HEADER */}
+          <div className="flex justify-between items-start mb-6 text-[13px] leading-relaxed">
+            <div className="text-left">
+              <h1 className="text-[18px] font-extrabold text-[#0f172a] uppercase tracking-wide mb-1.5">
+                {audit.namedInsured || "Insured"}
+              </h1>
+              {clientContactLine && <div className="text-[#334155] font-medium leading-relaxed">{clientContactLine}</div>}
+              {policyNumberStr && <div className="text-[#334155] font-medium leading-relaxed">Policy #: {policyNumberStr}</div>}
+              {carrierStr && <div className="text-[#334155] font-medium leading-relaxed">Carrier: {carrierStr}</div>}
+              {effectiveDatesStr && <div className="text-[#334155] font-medium leading-relaxed">Policy Effective Dates {effectiveDatesStr}</div>}
+              <div className="text-[#334155] font-medium leading-relaxed">App ID: {appId}</div>
+            </div>
+
+            <div className="text-right text-[13px] leading-relaxed">
+              {renderAgencyName()}
+              {agencyStreet && <div className="text-[#334155] font-medium">{agencyStreet}</div>}
+              {agencyCityStateZip && <div className="text-[#334155] font-medium">{agencyCityStateZip}</div>}
+              {agencyContactLine && <div className="text-[#334155] font-medium">{agencyContactLine}</div>}
+            </div>
           </div>
 
-          <div className="text-right text-[13.5px] leading-relaxed">
-            {renderAgencyName()}
-            {agencyStreet && <div className="text-[#334155] font-medium">{agencyStreet}</div>}
-            {agencyCityStateZip && <div className="text-[#334155] font-medium">{agencyCityStateZip}</div>}
-            {agencyContactLine && <div className="text-[#334155] font-medium">{agencyContactLine}</div>}
+          {/* SECTION 1: REVENUE & EXPOSURE AUDIT */}
+          <div className="mb-6">
+            <h2 className="text-[15.5px] font-extrabold text-[#0f172a] uppercase tracking-wide mb-1">
+              REVENUE & EXPOSURE AUDIT
+            </h2>
+            <p className="text-[12.5px] text-[#475569] font-medium mb-3">
+              Rating basis: per ${(rateBasis || 1000).toLocaleString()} of revenue
+            </p>
+
+            <div className="bg-[#f8fafc] border border-slate-200 rounded-lg px-5 py-0.5">
+              <div className="flex justify-between items-center py-2.5 border-b border-slate-200">
+                <div>
+                  <div className="text-[13.5px] font-bold text-[#0f172a]">Original Estimated Exposure</div>
+                  <div className="text-[11.5px] text-[#64748b] font-medium mt-0.5">Initial policy basis</div>
+                </div>
+                <div className="text-[15px] font-bold text-[#0f172a] tabular-nums">{formatCurrency(estExposure)}</div>
+              </div>
+
+              <div className="flex justify-between items-center py-2.5 border-b border-slate-200">
+                <div>
+                  <div className="text-[13.5px] font-bold text-[#0f172a]">Audited Gross Revenue</div>
+                  <div className="text-[11.5px] text-[#64748b] font-medium mt-0.5">Verified actual basis</div>
+                </div>
+                <div className="text-[15px] font-bold text-[#0f172a] tabular-nums">{formatCurrency(auditedExposure)}</div>
+              </div>
+
+              <div className="flex justify-between items-center py-2.5">
+                <div>
+                  <div className="text-[13.5px] font-bold text-[#0f172a]">Exposure Variance</div>
+                  <div className="text-[11.5px] text-[#64748b] font-medium mt-0.5">{pctChangeStr}</div>
+                </div>
+                <div className="text-[15px] font-bold text-[#0f172a] tabular-nums">{varianceAmountStr}</div>
+              </div>
+            </div>
+          </div>
+
+          {/* SECTION 2: ADDITIONAL AUDIT CHARGES */}
+          <div className="mb-5">
+            <h2 className="text-[14px] font-extrabold text-[#0f172a] uppercase tracking-wider border-b-2 border-[#0f172a] pb-1.5 mb-2.5">
+              ADDITIONAL AUDIT CHARGES
+            </h2>
+
+            <div className="space-y-0.5">
+              <div className="flex justify-between py-1.5 text-[13px] text-[#1e293b] font-medium">
+                <span>Premium</span>
+                <span className="font-bold text-[13.5px] text-[#0f172a] tabular-nums">{formatCurrency(premiumDifference)}</span>
+              </div>
+              <div className="flex justify-between py-1.5 text-[13px] text-[#1e293b] font-medium">
+                <span>Premium Audit Service Fee</span>
+                <span className="font-bold text-[13.5px] text-[#0f172a] tabular-nums">{formatCurrency(sterlingFee)}</span>
+              </div>
+              <div className="flex justify-between py-1.5 text-[13px] text-[#1e293b] font-medium">
+                <span>Surplus Lines Tax</span>
+                <span className="font-bold text-[13.5px] text-[#0f172a] tabular-nums">{formatCurrency(slTax)}</span>
+              </div>
+              <div className="flex justify-between py-1.5 text-[13px] text-[#1e293b] font-medium">
+                <span>Stamping Fee</span>
+                <span className="font-bold text-[13.5px] text-[#0f172a] tabular-nums">{formatCurrency(stampFee)}</span>
+              </div>
+              <div className="flex justify-between py-1.5 text-[13px] text-[#1e293b] font-medium">
+                <span>Premium Audit Administration Fees</span>
+                <span className="font-bold text-[13.5px] text-[#0f172a] tabular-nums">{formatCurrency(carrierFee)}</span>
+              </div>
+            </div>
+
+            {/* TOTAL DUE BOX */}
+            <div className="bg-[#f1f5f9] border-[1.5px] border-slate-300 rounded-lg px-5 py-3.5 flex justify-between items-center mt-4">
+              <span className="text-[13.5px] font-extrabold text-[#0f172a] tracking-wide uppercase">
+                TOTAL ADDITIONAL PREMIUM DUE*
+              </span>
+              <span className="text-[21px] font-black text-[#0f172a] tabular-nums">
+                {formatCurrency(additionalPremiumDue)}
+              </span>
+            </div>
           </div>
         </div>
 
-        {/* SECTION 1: REVENUE & EXPOSURE AUDIT */}
-        <div className="mb-8">
-          <h2 className="text-[16px] font-extrabold text-[#0f172a] uppercase tracking-wide mb-1">
-            REVENUE & EXPOSURE AUDIT
-          </h2>
-          <p className="text-[13px] text-[#475569] font-medium mb-3.5">
-            Rating basis: per ${(rateBasis || 1000).toLocaleString()} of revenue
-          </p>
-
-          <div className="bg-[#f8fafc] border border-slate-200 rounded-lg px-6 py-1">
-            <div className="flex justify-between items-center py-3 border-b border-slate-200">
-              <div>
-                <div className="text-[14.5px] font-bold text-[#0f172a]">Original Estimated Exposure</div>
-                <div className="text-[12.5px] text-[#64748b] font-medium mt-0.5">Initial policy basis</div>
-              </div>
-              <div className="text-[15.5px] font-bold text-[#0f172a] tabular-nums">{formatCurrency(estExposure)}</div>
-            </div>
-
-            <div className="flex justify-between items-center py-3 border-b border-slate-200">
-              <div>
-                <div className="text-[14.5px] font-bold text-[#0f172a]">Audited Gross Revenue</div>
-                <div className="text-[12.5px] text-[#64748b] font-medium mt-0.5">Verified actual basis</div>
-              </div>
-              <div className="text-[15.5px] font-bold text-[#0f172a] tabular-nums">{formatCurrency(auditedExposure)}</div>
-            </div>
-
-            <div className="flex justify-between items-center py-3">
-              <div>
-                <div className="text-[14.5px] font-bold text-[#0f172a]">Exposure Variance</div>
-                <div className="text-[12.5px] text-[#64748b] font-medium mt-0.5">{pctChangeStr}</div>
-              </div>
-              <div className="text-[15.5px] font-bold text-[#0f172a] tabular-nums">{varianceAmountStr}</div>
-            </div>
-          </div>
-        </div>
-
-        {/* SECTION 2: ADDITIONAL AUDIT CHARGES */}
-        <div className="mb-6">
-          <h2 className="text-[14.5px] font-extrabold text-[#0f172a] uppercase tracking-wider border-b-2 border-[#0f172a] pb-2 mb-3">
-            ADDITIONAL AUDIT CHARGES
-          </h2>
-
-          <div className="space-y-0.5">
-            <div className="flex justify-between py-2 text-[14px] text-[#1e293b] font-medium">
-              <span>Premium</span>
-              <span className="font-bold text-[14.5px] text-[#0f172a] tabular-nums">{formatCurrency(premiumDifference)}</span>
-            </div>
-            {carrierFee > 0 && (
-              <div className="flex justify-between py-2 text-[14px] text-[#1e293b] font-medium">
-                <span>Carrier Policy Fee</span>
-                <span className="font-bold text-[14.5px] text-[#0f172a] tabular-nums">{formatCurrency(carrierFee)}</span>
-              </div>
-            )}
-            <div className="flex justify-between py-2 text-[14px] text-[#1e293b] font-medium">
-              <span>Premium Audit Service Fee</span>
-              <span className="font-bold text-[14.5px] text-[#0f172a] tabular-nums">{formatCurrency(sterlingFee)}</span>
-            </div>
-            <div className="flex justify-between py-2 text-[14px] text-[#1e293b] font-medium">
-              <span>Surplus Lines Tax</span>
-              <span className="font-bold text-[14.5px] text-[#0f172a] tabular-nums">{formatCurrency(slTax)}</span>
-            </div>
-            <div className="flex justify-between py-2 text-[14px] text-[#1e293b] font-medium">
-              <span>Stamping Fee</span>
-              <span className="font-bold text-[14.5px] text-[#0f172a] tabular-nums">{formatCurrency(stampFee)}</span>
-            </div>
-          </div>
-
-          {/* TOTAL DUE BOX */}
-          <div className="bg-[#f1f5f9] border-[1.5px] border-slate-300 rounded-lg px-6 py-4.5 flex justify-between items-center mt-6">
-            <span className="text-[14.5px] font-extrabold text-[#0f172a] tracking-wide uppercase">
-              TOTAL ADDITIONAL PREMIUM DUE*
-            </span>
-            <span className="text-[23px] font-black text-[#0f172a] tabular-nums">
-              {formatCurrency(additionalPremiumDue)}
-            </span>
-          </div>
+        {/* FOOTER: STERLING INSURANCE SERVICES INFO AT BOTTOM CENTER */}
+        <div className="text-center mt-auto pt-8 pb-2 text-[#334155] text-[12.5px] leading-relaxed">
+          <strong className="block text-[16px] font-bold text-[#0f172a] mb-1">
+            Sterling Insurance Services
+          </strong>
+          <p>5455 Wilshire Blvd. #1816,</p>
+          <p>Los Angeles, CA 90036</p>
+          <p>(310) 492-2007</p>
+          <p>info@SterlingInsurancePartners.com</p>
+          <p>License Number: 6015632</p>
         </div>
 
       </div>
