@@ -142,6 +142,27 @@ export default function AdminQuotePage() {
     "Notice of Cancellation to Third Parties",
   ];
 
+  // Inland Marine (Contractors Equipment) specific details
+  const [scheduledEquipment, setScheduledEquipment] = useState("");
+  const [unscheduledTools, setUnscheduledTools] = useState("");
+  const [leasedRentedEquipment, setLeasedRentedEquipment] = useState("");
+  const [newlyAcquiredEquipment, setNewlyAcquiredEquipment] = useState("25,000");
+  const [totalInsuredValue, setTotalInsuredValue] = useState("");
+  const [inlandMarineDeductibles, setInlandMarineDeductibles] = useState<Array<{ description: string; amount: string }>>([
+    { description: "", amount: "1,500" }
+  ]);
+  const [coinsurance, setCoinsurance] = useState("90%");
+  const [valuation, setValuation] = useState("Actual Cash Value");
+  const [inlandMarineEndorsements, setInlandMarineEndorsements] = useState<string[]>([]);
+
+  const availableInlandMarineEndorsements = [
+    "Acts of Terrorism (TRIA) - $1,500",
+    "Rental Reimbursement",
+    "Loss Payee / Additional Insured",
+    "Waiver of Subrogation",
+    "Notice of Cancellation to Third Parties",
+  ];
+
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/signin");
@@ -154,11 +175,39 @@ export default function AdminQuotePage() {
     }
   }, [status, session, router]);
 
+  const isContractorsEquipment = useMemo(() => {
+    return (
+      ['inland-marine', 'contractors-equipment'].includes(submission?.programId || '') ||
+      ['Equipment', 'Construction Equipment', 'Contractors Equipment', 'Inland Marine'].includes(submission?.programName || '') ||
+      (submission?.templateId?.subtype || '').toLowerCase().includes('equipment') ||
+      (submission?.templateId?.industry || '').toLowerCase().includes('equipment') ||
+      (submission?.payload?.programId || '') === 'contractors-equipment' ||
+      (submission?.payload?.policyType || '').toLowerCase().includes('inland marine') ||
+      (submission?.payload?.policyType || '').toLowerCase().includes('contractors equipment') ||
+      (submission?.payload?.programName || '').toLowerCase().includes('contractors equipment')
+    );
+  }, [submission]);
+
+  const isContractorsPolicy = currentPolicyType === "GENERAL_LIABILITY" && isContractorsEquipment;
+
   useEffect(() => {
     if (status === "authenticated" && submissionId) {
       fetchData();
     }
   }, [status, submissionId]);
+
+  // Auto-calculate Total Insured Value for Inland Marine
+  useEffect(() => {
+    if (isContractorsEquipment) {
+      const s = parseCurrency(scheduledEquipment) || 0;
+      const u = parseCurrency(unscheduledTools) || 0;
+      const l = parseCurrency(leasedRentedEquipment) || 0;
+      const total = s + u + l;
+      if (total > 0) {
+        setTotalInsuredValue(formatCurrencyInput(total.toString()));
+      }
+    }
+  }, [scheduledEquipment, unscheduledTools, leasedRentedEquipment, isContractorsEquipment]);
 
   // Auto-populate limits, endorsements, and broker fee from application form
   useEffect(() => {
@@ -240,9 +289,50 @@ export default function AdminQuotePage() {
         if (formEndorsements.length > 0) {
           setSelectedEndorsements(formEndorsements);
         }
+
+        // Specific auto-population for Inland Marine / Contractors Equipment
+        if (isContractorsEquipment) {
+          const heavy = parseFloat(String(formData.heavyLimit || "").replace(/[^0-9.]/g, "")) || 0;
+          const light = parseFloat(String(formData.lightMedLimit || "").replace(/[^0-9.]/g, "")) || 0;
+          const itemsTotal = Array.isArray(formData.lightMedItems) || Array.isArray(formData.heavyItems)
+            ? [...(formData.lightMedItems || []), ...(formData.heavyItems || [])].reduce((sum: number, it: any) => sum + (parseFloat(String(it?.valuation || "").replace(/[^0-9.]/g, "")) || 0), 0)
+            : 0;
+
+          const schedVal = formData.scheduledEquipmentLimit
+            ? parseCurrency(formData.scheduledEquipmentLimit)
+            : (heavy + light > 0 ? (heavy + light) : itemsTotal);
+
+          if (schedVal > 0) setScheduledEquipment(formatCurrencyInput(schedVal.toString()));
+
+          const misc = formData.miscToolsLimit ? parseCurrency(formData.miscToolsLimit) : 25000;
+          if (misc > 0) setUnscheduledTools(formatCurrencyInput(misc.toString()));
+
+          const rented = formData.rentedEquipLimit ? parseCurrency(formData.rentedEquipLimit) : 500000;
+          if (rented > 0) setLeasedRentedEquipment(formatCurrencyInput(rented.toString()));
+
+          const newly = formData.newlyAcquiredLimit || formData.newlyAcquiredEquipmentLimit ? parseCurrency(formData.newlyAcquiredLimit || formData.newlyAcquiredEquipmentLimit) : 25000;
+          if (newly > 0) setNewlyAcquiredEquipment(formatCurrencyInput(newly.toString()));
+
+          if (formData.coinsurance) setCoinsurance(formData.coinsurance);
+          if (formData.valuation) setValuation(formData.valuation);
+
+          // Inland Marine Endorsements: Keep unselected by default
+          setInlandMarineEndorsements([]);
+
+          // Inland Marine Deductible: Single row with empty description as requested
+          const formDeductible = formData.deductible ? formatCurrencyInput(formData.deductible.replace(/[$,]/g, '')) : "1,500";
+          setInlandMarineDeductibles([{ description: "", amount: formDeductible || "1,500" }]);
+
+          // Pre-populate Subjective Lines if empty
+          setCustomDocuments([
+            "Prior to binding, please confirm how and where the equipment is stored when not in use. Is it fenced, locked, or GPS tracked?",
+            "Please provide loss runs for 21/22 policy year.",
+            "Please provide five years of currently valued loss runs."
+          ]);
+        }
       }
     }
-  }, [submission, hasExistingQuotes]);
+  }, [submission, hasExistingQuotes, isContractorsEquipment]);
 
   // Apply renter-quote specific defaults when opened from "Renter Quote" action
   useEffect(() => {
@@ -312,6 +402,16 @@ export default function AdminQuotePage() {
           propertyBppLimit: q.limits?.propertyBppLimit || "",
           propertyBusinessIncomeLimit: q.limits?.propertyBusinessIncomeLimit || "",
           propertyDeductible: q.limits?.propertyDeductible || "",
+          // Inland Marine fields
+          scheduledEquipment: q.limits?.scheduledEquipment || "",
+          unscheduledTools: q.limits?.unscheduledTools || "",
+          leasedRentedEquipment: q.limits?.leasedRentedEquipment || "",
+          newlyAcquiredEquipment: q.limits?.newlyAcquiredEquipment || "",
+          totalInsuredValue: q.limits?.totalInsuredValue || "",
+          inlandMarineDeductibles: q.limits?.inlandMarineDeductibles?.length ? q.limits.inlandMarineDeductibles : [{ description: "", amount: "1,500" }],
+          coinsurance: q.limits?.coinsurance || "90%",
+          valuation: q.limits?.valuation || "Actual Cash Value",
+          inlandMarineEndorsements: q.endorsements || [],
           selectedEndorsements: q.endorsements || [],
           effectiveDate: q.effectiveDate ? new Date(q.effectiveDate).toISOString().split("T")[0] : "",
           expirationDate: q.expirationDate ? new Date(q.expirationDate).toISOString().split("T")[0] : "",
@@ -370,6 +470,20 @@ export default function AdminQuotePage() {
           setPropertyBppLimit(s.propertyBppLimit);
           setPropertyBusinessIncomeLimit(s.propertyBusinessIncomeLimit);
           setPropertyDeductible(s.propertyDeductible);
+          // Set Inland Marine specific states
+          if (s.scheduledEquipment) setScheduledEquipment(s.scheduledEquipment);
+          if (s.unscheduledTools) setUnscheduledTools(s.unscheduledTools);
+          if (s.leasedRentedEquipment) setLeasedRentedEquipment(s.leasedRentedEquipment);
+          if (s.newlyAcquiredEquipment) setNewlyAcquiredEquipment(s.newlyAcquiredEquipment);
+          if (s.totalInsuredValue) setTotalInsuredValue(s.totalInsuredValue);
+          if (s.inlandMarineDeductibles && s.inlandMarineDeductibles.length > 0) {
+            setInlandMarineDeductibles(s.inlandMarineDeductibles);
+          }
+          if (s.coinsurance) setCoinsurance(s.coinsurance);
+          if (s.valuation) setValuation(s.valuation);
+          if (s.inlandMarineEndorsements && s.inlandMarineEndorsements.length > 0) {
+            setInlandMarineEndorsements(s.inlandMarineEndorsements);
+          }
           setSelectedEndorsements(s.selectedEndorsements);
           setEffectiveDate(s.effectiveDate);
           setExpirationDate(s.expirationDate);
@@ -753,6 +867,16 @@ export default function AdminQuotePage() {
     propertyBppLimit,
     propertyBusinessIncomeLimit,
     propertyDeductible,
+    // Inland Marine
+    scheduledEquipment,
+    unscheduledTools,
+    leasedRentedEquipment,
+    newlyAcquiredEquipment,
+    totalInsuredValue,
+    inlandMarineDeductibles,
+    coinsurance,
+    valuation,
+    inlandMarineEndorsements,
     selectedEndorsements,
     effectiveDate,
     expirationDate,
@@ -773,6 +897,8 @@ export default function AdminQuotePage() {
     policyFeeUSD,
     carrierFeesUSD,
     sterlingFeesUSD,
+    stampingFeePercent,
+    stampingFeeAmountUSD,
     fireMarshalTaxPercent,
     fireMarshalTaxAmountUSD,
     generalLiabilityLimit,
@@ -785,6 +911,15 @@ export default function AdminQuotePage() {
     propertyBppLimit,
     propertyBusinessIncomeLimit,
     propertyDeductible,
+    scheduledEquipment,
+    unscheduledTools,
+    leasedRentedEquipment,
+    newlyAcquiredEquipment,
+    totalInsuredValue,
+    inlandMarineDeductibles,
+    coinsurance,
+    valuation,
+    inlandMarineEndorsements,
     selectedEndorsements,
     effectiveDate,
     expirationDate,
@@ -904,6 +1039,33 @@ export default function AdminQuotePage() {
           if (draftData.excessLimit !== undefined && draftData.excessLimit !== null && draftData.excessLimit !== "") {
             setExcessLimit(String(draftData.excessLimit));
           }
+          if (draftData.scheduledEquipment !== undefined && draftData.scheduledEquipment !== null && draftData.scheduledEquipment !== "") {
+            setScheduledEquipment(String(draftData.scheduledEquipment));
+          }
+          if (draftData.unscheduledTools !== undefined && draftData.unscheduledTools !== null && draftData.unscheduledTools !== "") {
+            setUnscheduledTools(String(draftData.unscheduledTools));
+          }
+          if (draftData.leasedRentedEquipment !== undefined && draftData.leasedRentedEquipment !== null && draftData.leasedRentedEquipment !== "") {
+            setLeasedRentedEquipment(String(draftData.leasedRentedEquipment));
+          }
+          if (draftData.newlyAcquiredEquipment !== undefined && draftData.newlyAcquiredEquipment !== null && draftData.newlyAcquiredEquipment !== "") {
+            setNewlyAcquiredEquipment(String(draftData.newlyAcquiredEquipment));
+          }
+          if (draftData.totalInsuredValue !== undefined && draftData.totalInsuredValue !== null && draftData.totalInsuredValue !== "") {
+            setTotalInsuredValue(String(draftData.totalInsuredValue));
+          }
+          if (draftData.inlandMarineDeductibles && Array.isArray(draftData.inlandMarineDeductibles)) {
+            setInlandMarineDeductibles(draftData.inlandMarineDeductibles);
+          }
+          if (draftData.coinsurance !== undefined && draftData.coinsurance !== null && draftData.coinsurance !== "") {
+            setCoinsurance(String(draftData.coinsurance));
+          }
+          if (draftData.valuation !== undefined && draftData.valuation !== null && draftData.valuation !== "") {
+            setValuation(String(draftData.valuation));
+          }
+          if (draftData.inlandMarineEndorsements && Array.isArray(draftData.inlandMarineEndorsements)) {
+            setInlandMarineEndorsements(draftData.inlandMarineEndorsements);
+          }
           if (draftData.selectedEndorsements !== undefined && Array.isArray(draftData.selectedEndorsements)) {
             setSelectedEndorsements(draftData.selectedEndorsements);
           }
@@ -940,7 +1102,17 @@ export default function AdminQuotePage() {
 
   // Build API payload from a policy state object (used for multi-policy submit)
   const buildPolicyPayload = (state: any, policyType: string) => {
-    const limits = {
+    const isContractors = isContractorsEquipment && policyType === "GENERAL_LIABILITY";
+    const limits = isContractors ? {
+      scheduledEquipment: state.scheduledEquipment || undefined,
+      unscheduledTools: state.unscheduledTools || undefined,
+      leasedRentedEquipment: state.leasedRentedEquipment || undefined,
+      newlyAcquiredEquipment: state.newlyAcquiredEquipment || undefined,
+      totalInsuredValue: state.totalInsuredValue || undefined,
+      inlandMarineDeductibles: state.inlandMarineDeductibles || undefined,
+      coinsurance: state.coinsurance || undefined,
+      valuation: state.valuation || undefined,
+    } : {
       generalLiability: state.generalLiabilityLimit || undefined,
       aggregateLimit: state.aggregateLimit || undefined,
       fireLegalLimit: state.fireLegalLimit || undefined,
@@ -976,7 +1148,9 @@ export default function AdminQuotePage() {
       sterlingInsuranceServicesFeesUSD: state.sterlingFeesUSD ? parseCurrency(state.sterlingFeesUSD) : undefined,
       brokerFeeAmountUSD: brokerFeeFromForm || undefined,
       limits: Object.values(limits).some(Boolean) ? limits : undefined,
-      endorsements: (!isPropertyPolicy && policyType === "GENERAL_LIABILITY" && (state.selectedEndorsements || []).length > 0) ? state.selectedEndorsements : undefined,
+      endorsements: isContractors
+        ? (state.inlandMarineEndorsements || [])
+        : ((!isPropertyPolicy && policyType === "GENERAL_LIABILITY" && (state.selectedEndorsements || []).length > 0) ? state.selectedEndorsements : undefined),
       effectiveDate: state.effectiveDate || undefined,
       expirationDate: state.expirationDate || undefined,
       policyNumber: state.policyNumber || undefined,
@@ -1019,6 +1193,16 @@ export default function AdminQuotePage() {
         propertyBppLimit,
         propertyBusinessIncomeLimit,
         propertyDeductible,
+        // Inland Marine
+        scheduledEquipment,
+        unscheduledTools,
+        leasedRentedEquipment,
+        newlyAcquiredEquipment,
+        totalInsuredValue,
+        inlandMarineDeductibles,
+        coinsurance,
+        valuation,
+        inlandMarineEndorsements,
         selectedEndorsements,
         effectiveDate,
         expirationDate,
@@ -1110,6 +1294,16 @@ export default function AdminQuotePage() {
         propertyBppLimit,
         propertyBusinessIncomeLimit,
         propertyDeductible,
+        // Inland Marine
+        scheduledEquipment,
+        unscheduledTools,
+        leasedRentedEquipment,
+        newlyAcquiredEquipment,
+        totalInsuredValue,
+        inlandMarineDeductibles,
+        coinsurance,
+        valuation,
+        inlandMarineEndorsements,
         selectedEndorsements,
         effectiveDate,
         expirationDate,
@@ -1250,6 +1444,16 @@ export default function AdminQuotePage() {
       propertyBppLimit,
       propertyBusinessIncomeLimit,
       propertyDeductible,
+      // Inland Marine
+      scheduledEquipment,
+      unscheduledTools,
+      leasedRentedEquipment,
+      newlyAcquiredEquipment,
+      totalInsuredValue,
+      inlandMarineDeductibles,
+      coinsurance,
+      valuation,
+      inlandMarineEndorsements,
       selectedEndorsements,
       effectiveDate,
       expirationDate,
@@ -1292,6 +1496,18 @@ export default function AdminQuotePage() {
     setPropertyBppLimit(nextState.propertyBppLimit || (submission?.payload?.propertyBppLimit || ""));
     setPropertyBusinessIncomeLimit(nextState.propertyBusinessIncomeLimit || (submission?.payload?.propertyBusinessIncomeLimit || ""));
     setPropertyDeductible(nextState.propertyDeductible || (submission?.payload?.propertyDeductible || ""));
+    // Inland Marine
+    setScheduledEquipment(nextState.scheduledEquipment || "");
+    setUnscheduledTools(nextState.unscheduledTools || "");
+    setLeasedRentedEquipment(nextState.leasedRentedEquipment || "");
+    setNewlyAcquiredEquipment(nextState.newlyAcquiredEquipment || "");
+    setTotalInsuredValue(nextState.totalInsuredValue || "");
+    setInlandMarineDeductibles(nextState.inlandMarineDeductibles || [
+      { description: "", amount: "1,500" }
+    ]);
+    setCoinsurance(nextState.coinsurance || "90%");
+    setValuation(nextState.valuation || "Actual Cash Value");
+    setInlandMarineEndorsements(nextState.inlandMarineEndorsements || []);
     setSelectedEndorsements(nextState.selectedEndorsements || []);
     setEffectiveDate(nextState.effectiveDate || "");
     setExpirationDate(nextState.expirationDate || "");
@@ -1375,10 +1591,6 @@ export default function AdminQuotePage() {
     (submission?.programName || '').toLowerCase().includes('manufacturer') ||
     ((submission as any)?.industry || submission.templateId?.industry || '').toLowerCase().includes('manufacturer');
 
-  const isContractorsEquipment =
-    ['inland-marine', 'contractors-equipment'].includes(submission?.programId || '') ||
-    ['Equipment', 'Construction Equipment', 'Contractors Equipment'].includes(submission?.programName || '');
-
   const isBuildersRisk =
     submission?.programId === 'builders-risk' ||
     submission?.programName === 'Builders Risk' ||
@@ -1403,7 +1615,7 @@ export default function AdminQuotePage() {
   };
 
   const isPropertyPolicy = currentPolicyType === "GENERAL_LIABILITY" && isCommercialProperty;
-  const showGLLimits = (currentPolicyType === "GENERAL_LIABILITY" && !isCommercialProperty) || (currentPolicyType === "EXCESS_LIABILITY" && isCommercialProperty);
+  const showGLLimits = !isContractorsPolicy && ((currentPolicyType === "GENERAL_LIABILITY" && !isCommercialProperty) || (currentPolicyType === "EXCESS_LIABILITY" && isCommercialProperty));
   const showExcessLimits = currentPolicyType === "EXCESS_LIABILITY" && !isCommercialProperty;
   const showProfessionalLimits = currentPolicyType === "PROFESSIONAL_LIABILITY";
   const showPollutionLimits = currentPolicyType === "POLLUTION_LIABILITY";
@@ -1537,12 +1749,14 @@ export default function AdminQuotePage() {
                     <span className="font-semibold text-gray-900">
                       {submission.payload?.companyName || submission.payload?.applicantName || submission.payload?.namedInsured || submission.clientContact.name}
                     </span>
-                    {submission.programName ? (
+                    {isContractorsEquipment ? (
+                      <> (Contractors Equipment)</>
+                    ) : submission.programName ? (
                       <> ({
                         submission.programName === "Advantage Contractor GL"
                           ? "Construction"
                           : submission.programName === "Construction Equipment"
-                            ? "Equipment"
+                            ? "Contractors Equipment"
                             : (submission.programName === "Manufacturers / Distributors" || (submission.programName || "").toLowerCase().includes("manufacturer") || submission.programId === "manufacturers")
                               ? "Manufacturing"
                               : submission.programName
@@ -2072,317 +2286,505 @@ export default function AdminQuotePage() {
               </div>
             </div>
 
-            {/* Policy Limits Section */}
-            <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl p-6 border border-amber-200/60">
-              <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <div className="w-8 h-8 bg-gradient-to-br from-amber-500 to-orange-500 rounded-lg flex items-center justify-center">
-                  <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                  </svg>
+            {/* Policy Limits or Insured Values Section */}
+            {isContractorsPolicy ? (
+              <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl p-6 border border-amber-200/60">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                    <div className="w-8 h-8 bg-gradient-to-br from-amber-500 to-orange-500 rounded-lg flex items-center justify-center shadow-sm">
+                      <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    </div>
+                    Insured Values
+                    <span className="bg-red-500 text-white text-[10px] font-extrabold px-1.5 py-0.5 rounded tracking-wide uppercase">NEW</span>
+                  </h3>
                 </div>
-                {isPropertyPolicy ? "Coverage Limits" : "Policy Limits"}
-              </h3>
 
-              <div className="mb-4 p-3 bg-amber-100/50 rounded-lg border border-amber-200">
-                <p className="text-xs text-amber-800 font-medium flex items-center gap-2">
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  {isPropertyPolicy || currentPolicyType === "EXCESS_LIABILITY" || currentPolicyType === "PROFESSIONAL_LIABILITY" || currentPolicyType === "POLLUTION_LIABILITY"
-                    ? "Coverage limits are pre-filled from the application form. You can edit if needed."
-                    : "Policy limits and endorsements are pre-filled from the application form. You can edit if needed."}
-                </p>
+                <div className="mb-6 p-3 bg-amber-100/60 rounded-lg border border-amber-200/80">
+                  <p className="text-xs text-amber-900 font-medium flex items-center gap-2">
+                    <svg className="w-4 h-4 text-amber-700 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Insured values are pre-filled from the application / equipment schedule. You can edit if needed.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Scheduled Equipment */}
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="text-sm font-semibold text-gray-900">Scheduled Equipment</label>
+                      <button
+                        type="button"
+                        onClick={() => document.getElementById('support-doc-upload')?.click()}
+                        className="inline-flex items-center gap-1 text-xs font-semibold text-amber-800 hover:text-amber-900 bg-amber-100/80 hover:bg-amber-200 px-2 py-0.5 rounded border border-amber-300 transition-colors shadow-sm"
+                      >
+                        <span className="text-[10px]">⬆</span> Upload Equipment Schedule
+                      </button>
+                    </div>
+                    <div className="relative">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-semibold">$</span>
+                      <input
+                        type="text"
+                        value={scheduledEquipment}
+                        onChange={(e) => setScheduledEquipment(formatCurrencyInput(e.target.value))}
+                        className="w-full pl-10 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-900 font-semibold focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all hover:border-gray-300"
+                        placeholder="0"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Unscheduled Tools & Equipment */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-900 mb-2">Unscheduled Tools & Equipment</label>
+                    <div className="relative">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-semibold">$</span>
+                      <input
+                        type="text"
+                        value={unscheduledTools}
+                        onChange={(e) => setUnscheduledTools(formatCurrencyInput(e.target.value))}
+                        className="w-full pl-10 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-900 font-semibold focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all hover:border-gray-300"
+                        placeholder="0"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Leased / Rented Equipment */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-900 mb-2">Leased / Rented Equipment</label>
+                    <div className="relative">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-semibold">$</span>
+                      <input
+                        type="text"
+                        value={leasedRentedEquipment}
+                        onChange={(e) => setLeasedRentedEquipment(formatCurrencyInput(e.target.value))}
+                        className="w-full pl-10 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-900 font-semibold focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all hover:border-gray-300"
+                        placeholder="0"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Newly Acquired Equipment */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-900 mb-2">Newly Acquired Equipment</label>
+                    <div className="relative">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-semibold">$</span>
+                      <input
+                        type="text"
+                        value={newlyAcquiredEquipment}
+                        onChange={(e) => setNewlyAcquiredEquipment(formatCurrencyInput(e.target.value))}
+                        className="w-full pl-10 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-900 font-semibold focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all hover:border-gray-300"
+                        placeholder="0"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Total Insured Value */}
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-semibold text-gray-900 mb-2">
+                      Total Insured Value <span className="text-xs text-gray-500 font-normal uppercase tracking-wider">(AUTO-CALCULATED)</span>
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold">$</span>
+                      <input
+                        type="text"
+                        value={totalInsuredValue}
+                        readOnly
+                        className="w-full pl-10 pr-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl text-gray-900 font-bold focus:outline-none"
+                        placeholder="0"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Deductible (Tiered) */}
+                  <div className="md:col-span-2 space-y-3 pt-2">
+                    <div className="flex items-center gap-2">
+                      <label className="text-sm font-semibold text-gray-900">Deductible</label>
+                      <span className="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded border border-amber-300">
+                        CAN BE SPLIT / TIERED
+                      </span>
+                    </div>
+                    <div className="space-y-2">
+                      {inlandMarineDeductibles.map((item, idx) => (
+                        <div key={idx} className="flex items-center gap-3">
+                          <input
+                            type="text"
+                            value={item.description}
+                            onChange={(e) => {
+                              const updated = [...inlandMarineDeductibles];
+                              updated[idx].description = e.target.value;
+                              setInlandMarineDeductibles(updated);
+                            }}
+                            placeholder="Tier description (e.g. Equipment valued Under $100,000)"
+                            className="flex-1 px-4 py-2.5 bg-white border-2 border-gray-200 rounded-xl text-gray-900 font-medium text-sm focus:outline-none focus:border-amber-500"
+                          />
+                          <div className="relative w-48">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-semibold text-sm">$</span>
+                            <input
+                              type="text"
+                              value={item.amount}
+                              onChange={(e) => {
+                                const updated = [...inlandMarineDeductibles];
+                                updated[idx].amount = formatCurrencyInput(e.target.value);
+                                setInlandMarineDeductibles(updated);
+                              }}
+                              placeholder="1,500"
+                              className="w-full pl-7 pr-3 py-2.5 bg-white border-2 border-gray-200 rounded-xl text-gray-900 font-semibold text-sm focus:outline-none focus:border-amber-500"
+                            />
+                          </div>
+                          {inlandMarineDeductibles.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setInlandMarineDeductibles(inlandMarineDeductibles.filter((_, i) => i !== idx));
+                              }}
+                              className="p-2.5 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition-colors"
+                              title="Remove tier"
+                            >
+                              ✕
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setInlandMarineDeductibles([...inlandMarineDeductibles, { description: "", amount: "" }]);
+                      }}
+                      className="inline-flex items-center gap-1 text-sm font-semibold text-amber-700 hover:text-amber-800"
+                    >
+                      <span>+</span> Add Deductible
+                    </button>
+                  </div>
+
+                  {/* Coinsurance & Valuation */}
+                  <div className="pt-2">
+                    <label className="block text-sm font-semibold text-gray-900 mb-2">Coinsurance</label>
+                    <select
+                      value={coinsurance}
+                      onChange={(e) => setCoinsurance(e.target.value)}
+                      className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-900 font-semibold focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all hover:border-gray-300"
+                    >
+                      <option value="90%">90%</option>
+                      <option value="80%">80%</option>
+                      <option value="100%">100%</option>
+                      <option value="Nil / None">Nil / None</option>
+                    </select>
+                  </div>
+
+                  <div className="pt-2">
+                    <label className="block text-sm font-semibold text-gray-900 mb-2">Valuation</label>
+                    <select
+                      value={valuation}
+                      onChange={(e) => setValuation(e.target.value)}
+                      className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-900 font-semibold focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all hover:border-gray-300"
+                    >
+                      <option value="Actual Cash Value">Actual Cash Value</option>
+                      <option value="Replacement Cost">Replacement Cost</option>
+                      <option value="Agreed Value">Agreed Value</option>
+                    </select>
+                  </div>
+                </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {isPropertyPolicy && (
-                  <>
+            ) : (
+              <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl p-6 border border-amber-200/60">
+                <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <div className="w-8 h-8 bg-gradient-to-br from-amber-500 to-orange-500 rounded-lg flex items-center justify-center">
+                    <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    </svg>
+                  </div>
+                  {isPropertyPolicy ? "Coverage Limits" : "Policy Limits"}
+                </h3>
+
+                <div className="mb-4 p-3 bg-amber-100/50 rounded-lg border border-amber-200">
+                  <p className="text-xs text-amber-800 font-medium flex items-center gap-2">
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    {isPropertyPolicy || currentPolicyType === "EXCESS_LIABILITY" || currentPolicyType === "PROFESSIONAL_LIABILITY" || currentPolicyType === "POLLUTION_LIABILITY"
+                      ? "Coverage limits are pre-filled from the application form. You can edit if needed."
+                      : "Policy limits and endorsements are pre-filled from the application form. You can edit if needed."}
+                  </p>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {isPropertyPolicy && (
+                    <>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-900 mb-2">
+                          Building Limit
+                        </label>
+                        <div className="relative">
+                          <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-600 font-semibold">$</span>
+                          <input
+                            type="text"
+                            value={propertyBuildingLimit ? formatCurrencyInput(propertyBuildingLimit) : ''}
+                            onChange={(e) => setPropertyBuildingLimit(formatCurrencyInput(e.target.value))}
+                            onBlur={(e) => {
+                              if (e.target.value.trim() === '') {
+                                setPropertyBuildingLimit('');
+                                return;
+                              }
+                              const parsed = parseCurrency(e.target.value);
+                              setPropertyBuildingLimit(!isNaN(parsed) && parsed >= 0 ? parsed.toString() : '');
+                            }}
+                            className="w-full pl-10 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-900 font-semibold focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all hover:border-gray-300 !text-gray-900"
+                            placeholder="0"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-900 mb-2">
+                          Business Personal Property (BPP) Limit
+                        </label>
+                        <div className="relative">
+                          <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-600 font-semibold">$</span>
+                          <input
+                            type="text"
+                            value={propertyBppLimit ? formatCurrencyInput(propertyBppLimit) : ''}
+                            onChange={(e) => setPropertyBppLimit(formatCurrencyInput(e.target.value))}
+                            onBlur={(e) => {
+                              if (e.target.value.trim() === '') {
+                                setPropertyBppLimit('');
+                                return;
+                              }
+                              const parsed = parseCurrency(e.target.value);
+                              setPropertyBppLimit(!isNaN(parsed) && parsed >= 0 ? parsed.toString() : '');
+                            }}
+                            className="w-full pl-10 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-900 font-semibold focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all hover:border-gray-300 !text-gray-900"
+                            placeholder="0"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-900 mb-2">
+                          Business Income Limit
+                        </label>
+                        <div className="relative">
+                          <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-600 font-semibold">$</span>
+                          <input
+                            type="text"
+                            value={propertyBusinessIncomeLimit ? formatCurrencyInput(propertyBusinessIncomeLimit) : ''}
+                            onChange={(e) => setPropertyBusinessIncomeLimit(formatCurrencyInput(e.target.value))}
+                            onBlur={(e) => {
+                              if (e.target.value.trim() === '') {
+                                setPropertyBusinessIncomeLimit('');
+                                return;
+                              }
+                              const parsed = parseCurrency(e.target.value);
+                              setPropertyBusinessIncomeLimit(!isNaN(parsed) && parsed >= 0 ? parsed.toString() : '');
+                            }}
+                            className="w-full pl-10 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-900 font-semibold focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all hover:border-gray-300 !text-gray-900"
+                            placeholder="0"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-900 mb-2">
+                          Deductible
+                        </label>
+                        <div className="relative">
+                          <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-600 font-semibold">$</span>
+                          <input
+                            type="text"
+                            value={propertyDeductible ? formatCurrencyInput(propertyDeductible) : ''}
+                            onChange={(e) => setPropertyDeductible(formatCurrencyInput(e.target.value))}
+                            onBlur={(e) => {
+                              const parsed = parseCurrency(e.target.value);
+                              setPropertyDeductible(parsed > 0 ? parsed.toString() : '');
+                            }}
+                            className="w-full pl-10 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-900 font-semibold focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all hover:border-gray-300 !text-gray-900"
+                            placeholder="0"
+                          />
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {/* Change 2: General Liability Limit - Dropdown (GL only) */}
+                  {showGLLimits && (
                     <div>
                       <label className="block text-sm font-semibold text-gray-900 mb-2">
-                        Building Limit
+                        General Liability Limit <span className="text-xs text-gray-500 font-normal">(from application)</span>
                       </label>
-                      <div className="relative">
-                        <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-600 font-semibold">$</span>
-                        <input
-                          type="text"
-                          value={propertyBuildingLimit ? formatCurrencyInput(propertyBuildingLimit) : ''}
-                          onChange={(e) => setPropertyBuildingLimit(formatCurrencyInput(e.target.value))}
-                          onBlur={(e) => {
-                            if (e.target.value.trim() === '') {
-                              setPropertyBuildingLimit('');
-                              return;
-                            }
-                            const parsed = parseCurrency(e.target.value);
-                            setPropertyBuildingLimit(!isNaN(parsed) && parsed >= 0 ? parsed.toString() : '');
-                          }}
-                          className="w-full pl-10 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-900 font-semibold focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all hover:border-gray-300 !text-gray-900"
-                          placeholder="0"
-                        />
-                      </div>
+                      <select
+                        value={generalLiabilityLimit}
+                        onChange={(e) => setGeneralLiabilityLimit(e.target.value)}
+                        className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-900 font-semibold focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all hover:border-gray-300 !text-gray-900"
+                      >
+                        <option value="1M/1M/1M">1M/1M/1M</option>
+                        <option value="1M/2M/1M">1M/2M/1M</option>
+                        <option value="1M/2M/2M">1M/2M/2M</option>
+                      </select>
                     </div>
+                  )}
+
+                  {/* Change 4: Fire Legal Limit / Med Pay / Deductible - GL only */}
+                  {showGLLimits && (
                     <div>
                       <label className="block text-sm font-semibold text-gray-900 mb-2">
-                        Business Personal Property (BPP) Limit
+                        Fire Legal Limit <span className="text-xs text-gray-500 font-normal">(from application)</span>
                       </label>
-                      <div className="relative">
-                        <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-600 font-semibold">$</span>
-                        <input
-                          type="text"
-                          value={propertyBppLimit ? formatCurrencyInput(propertyBppLimit) : ''}
-                          onChange={(e) => setPropertyBppLimit(formatCurrencyInput(e.target.value))}
-                          onBlur={(e) => {
-                            if (e.target.value.trim() === '') {
-                              setPropertyBppLimit('');
-                              return;
-                            }
-                            const parsed = parseCurrency(e.target.value);
-                            setPropertyBppLimit(!isNaN(parsed) && parsed >= 0 ? parsed.toString() : '');
-                          }}
-                          className="w-full pl-10 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-900 font-semibold focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all hover:border-gray-300 !text-gray-900"
-                          placeholder="0"
-                        />
-                      </div>
+                      <select
+                        value={fireLegalLimit}
+                        onChange={(e) => setFireLegalLimit(e.target.value)}
+                        className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-900 font-semibold focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all hover:border-gray-300 !text-gray-900"
+                      >
+                        <option value="">-- Select Fire Legal Limit --</option>
+                        <option value="$50,000">$50,000</option>
+                        <option value="$100,000">$100,000</option>
+                      </select>
                     </div>
+                  )}
+
+                  {showGLLimits && (
                     <div>
                       <label className="block text-sm font-semibold text-gray-900 mb-2">
-                        Business Income Limit
+                        Med Pay Limit <span className="text-xs text-gray-500 font-normal">(from application)</span>
                       </label>
-                      <div className="relative">
-                        <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-600 font-semibold">$</span>
-                        <input
-                          type="text"
-                          value={propertyBusinessIncomeLimit ? formatCurrencyInput(propertyBusinessIncomeLimit) : ''}
-                          onChange={(e) => setPropertyBusinessIncomeLimit(formatCurrencyInput(e.target.value))}
-                          onBlur={(e) => {
-                            if (e.target.value.trim() === '') {
-                              setPropertyBusinessIncomeLimit('');
-                              return;
-                            }
-                            const parsed = parseCurrency(e.target.value);
-                            setPropertyBusinessIncomeLimit(!isNaN(parsed) && parsed >= 0 ? parsed.toString() : '');
-                          }}
-                          className="w-full pl-10 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-900 font-semibold focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all hover:border-gray-300 !text-gray-900"
-                          placeholder="0"
-                        />
-                      </div>
+                      <select
+                        value={medicalExpenseLimit}
+                        onChange={(e) => setMedicalExpenseLimit(e.target.value)}
+                        className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-900 font-semibold focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all hover:border-gray-300 !text-gray-900"
+                      >
+                        <option value="Not Applicable">Not Applicable</option>
+                        <option value="2500">$2,500</option>
+                        <option value="5000">$5,000</option>
+                        <option value="10000">$10,000</option>
+                      </select>
                     </div>
+                  )}
+
+                  {showGLLimits && (
                     <div>
                       <label className="block text-sm font-semibold text-gray-900 mb-2">
                         Deductible
                       </label>
-                      <div className="relative">
-                        <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-600 font-semibold">$</span>
-                        <input
-                          type="text"
-                          value={propertyDeductible ? formatCurrencyInput(propertyDeductible) : ''}
-                          onChange={(e) => setPropertyDeductible(formatCurrencyInput(e.target.value))}
-                          onBlur={(e) => {
-                            const parsed = parseCurrency(e.target.value);
-                            setPropertyDeductible(parsed > 0 ? parsed.toString() : '');
-                          }}
-                          className="w-full pl-10 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-900 font-semibold focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all hover:border-gray-300 !text-gray-900"
-                          placeholder="0"
-                        />
-                      </div>
+                      <select
+                        value={deductible}
+                        onChange={(e) => setDeductible(e.target.value)}
+                        className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-900 font-semibold focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all hover:border-gray-300 !text-gray-900"
+                      >
+                        <option value="">-- Select Deductible --</option>
+                        <option value="10000">$10,000</option>
+                        <option value="5000">$5,000</option>
+                        <option value="2500">$2,500</option>
+                        <option value="1000">$1,000</option>
+                      </select>
                     </div>
-                  </>
-                )}
+                  )}
 
-                {/* Change 2: General Liability Limit - Dropdown (GL only) */}
-                {showGLLimits && (
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-900 mb-2">
-                      General Liability Limit <span className="text-xs text-gray-500 font-normal">(from application)</span>
-                    </label>
-                    <select
-                      value={generalLiabilityLimit}
-                      onChange={(e) => setGeneralLiabilityLimit(e.target.value)}
-                      className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-900 font-semibold focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all hover:border-gray-300 !text-gray-900"
-                    >
-                      <option value="1M/1M/1M">1M/1M/1M</option>
-                      <option value="1M/2M/1M">1M/2M/1M</option>
-                      <option value="1M/2M/2M">1M/2M/2M</option>
-                    </select>
-                  </div>
-                )}
+                  {/* Excess Limits - XS tab only */}
+                  {showExcessLimits && (
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-900 mb-2">
+                        Excess Limits
+                      </label>
+                      <select
+                        value={excessLimit}
+                        onChange={(e) => setExcessLimit(e.target.value)}
+                        className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-900 font-semibold focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all hover:border-gray-300 !text-gray-900"
+                      >
+                        <option value="">-- Select Excess Limit --</option>
+                        <option value="1M">1M</option>
+                        <option value="2M">2M</option>
+                        <option value="3M">3M</option>
+                        <option value="4M">4M</option>
+                        <option value="5M">5M</option>
+                      </select>
+                    </div>
+                  )}
 
-                {/* <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-2">
-                    Aggregate Limit <span className="text-xs text-gray-500 font-normal">(from application)</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={aggregateLimit}
-                    onChange={(e) => setAggregateLimit(e.target.value)}
-                    className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-900 font-semibold focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all hover:border-gray-300 !text-gray-900"
-                    placeholder="e.g., 2M"
-                  />
-                </div> */}
+                  {/* Professional Limits */}
+                  {showProfessionalLimits && (
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-900 mb-2">
+                        Professional Limits
+                      </label>
+                      <select
+                        value={professionalLimit}
+                        onChange={(e) => setProfessionalLimit(e.target.value)}
+                        className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-900 font-semibold focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all hover:border-gray-300 !text-gray-900"
+                      >
+                        <option value="">-- Select Professional Limit --</option>
+                        <option value="1,000,000">1M/1M</option>
+                        <option value="2,000,000">1M/2M</option>
+                        <option value="1M">1M</option>
+                        <option value="2M">2M</option>
+                        <option value="3M">3M</option>
+                        <option value="5M">5M</option>
+                      </select>
+                    </div>
+                  )}
 
-                {/* Change 4: Fire Legal Limit / Med Pay / Deductible - GL only */}
-                {showGLLimits && (
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-900 mb-2">
-                      Fire Legal Limit <span className="text-xs text-gray-500 font-normal">(from application)</span>
-                    </label>
-                    <select
-                      value={fireLegalLimit}
-                      onChange={(e) => setFireLegalLimit(e.target.value)}
-                      className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-900 font-semibold focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all hover:border-gray-300 !text-gray-900"
-                    >
-                      <option value="">-- Select Fire Legal Limit --</option>
-                      <option value="$50,000">$50,000</option>
-                      <option value="$100,000">$100,000</option>
-                    </select>
-                  </div>
-                )}
-
-                {showGLLimits && (
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-900 mb-2">
-                      Med Pay Limit <span className="text-xs text-gray-500 font-normal">(from application)</span>
-                    </label>
-                    <select
-                      value={medicalExpenseLimit}
-                      onChange={(e) => setMedicalExpenseLimit(e.target.value)}
-                      className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-900 font-semibold focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all hover:border-gray-300 !text-gray-900"
-                    >
-                      <option value="Not Applicable">Not Applicable</option>
-                      <option value="2500">$2,500</option>
-                      <option value="5000">$5,000</option>
-                      <option value="10000">$10,000</option>
-                    </select>
-                  </div>
-                )}
-
-                {showGLLimits && (
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-900 mb-2">
-                      Deductible
-                    </label>
-                    <select
-                      value={deductible}
-                      onChange={(e) => setDeductible(e.target.value)}
-                      className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-900 font-semibold focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all hover:border-gray-300 !text-gray-900"
-                    >
-                      <option value="">-- Select Deductible --</option>
-                      <option value="10000">$10,000</option>
-                      <option value="5000">$5,000</option>
-                      <option value="2500">$2,500</option>
-                      <option value="1000">$1,000</option>
-                    </select>
-                  </div>
-                )}
-
-                {/* Excess Limits - XS tab only */}
-                {showExcessLimits && (
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-900 mb-2">
-                      Excess Limits
-                    </label>
-                    <select
-                      value={excessLimit}
-                      onChange={(e) => setExcessLimit(e.target.value)}
-                      className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-900 font-semibold focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all hover:border-gray-300 !text-gray-900"
-                    >
-                      <option value="">-- Select Excess Limit --</option>
-                      <option value="1M">1M</option>
-                      <option value="2M">2M</option>
-                      <option value="3M">3M</option>
-                      <option value="4M">4M</option>
-                      <option value="5M">5M</option>
-                    </select>
-                  </div>
-                )}
-
-                {/* Professional Limits */}
-                {showProfessionalLimits && (
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-900 mb-2">
-                      Professional Limits
-                    </label>
-                    <select
-                      value={professionalLimit}
-                      onChange={(e) => setProfessionalLimit(e.target.value)}
-                      className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-900 font-semibold focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all hover:border-gray-300 !text-gray-900"
-                    >
-                      <option value="">-- Select Professional Limit --</option>
-                      <option value="1,000,000">1M/1M</option>
-                      <option value="2,000,000">1M/2M</option>
-                      <option value="1M">1M</option>
-                      <option value="2M">2M</option>
-                      <option value="3M">3M</option>
-                      <option value="5M">5M</option>
-                    </select>
-                  </div>
-                )}
-
-                {/* Pollution Limits */}
-                {showPollutionLimits && (
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-900 mb-2">
-                      Pollution Limits
-                    </label>
-                    <select
-                      value={pollutionLimit}
-                      onChange={(e) => setPollutionLimit(e.target.value)}
-                      className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-900 font-semibold focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all hover:border-gray-300 !text-gray-900"
-                    >
-                      <option value="">-- Select Pollution Limit --</option>
-                      <option value="1,000,000">1M/1M</option>
-                      <option value="2,000,000">1M/2M</option>
-                      <option value="1M">1M</option>
-                      <option value="2M">2M</option>
-                      <option value="3M">3M</option>
-                      <option value="5M">5M</option>
-                    </select>
-                  </div>
-                )}
-                {/* ACORD 131 Button for Excess Liability */}
-                {showExcessLimits && (
-                  <div className="md:col-span-2 pt-2">
-                    <button
-                      type="button"
-                      onClick={() => window.open(`/api/admin/submissions/${submissionId}/acord131`, "_blank")}
-                      className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 border border-blue-200 rounded-lg text-sm font-bold hover:bg-blue-100 transition-colors"
-                    >
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
-                      Generate App Packet
-                    </button>
-                  </div>
-                )}
+                  {/* Pollution Limits */}
+                  {showPollutionLimits && (
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-900 mb-2">
+                        Pollution Limits
+                      </label>
+                      <select
+                        value={pollutionLimit}
+                        onChange={(e) => setPollutionLimit(e.target.value)}
+                        className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-900 font-semibold focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all hover:border-gray-300 !text-gray-900"
+                      >
+                        <option value="">-- Select Pollution Limit --</option>
+                        <option value="1,000,000">1M/1M</option>
+                        <option value="2,000,000">1M/2M</option>
+                        <option value="1M">1M</option>
+                        <option value="2M">2M</option>
+                        <option value="3M">3M</option>
+                        <option value="5M">5M</option>
+                      </select>
+                    </div>
+                  )}
+                  {/* ACORD 131 Button for Excess Liability */}
+                  {showExcessLimits && (
+                    <div className="md:col-span-2 pt-2">
+                      <button
+                        type="button"
+                        onClick={() => window.open(`/api/admin/submissions/${submissionId}/acord131`, "_blank")}
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 border border-blue-200 rounded-lg text-sm font-bold hover:bg-blue-100 transition-colors"
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        Generate App Packet
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Endorsements Section */}
-            {!isPropertyPolicy && 
-              currentPolicyType !== "EXCESS_LIABILITY" && 
-              currentPolicyType !== "PROFESSIONAL_LIABILITY" && 
-              currentPolicyType !== "POLLUTION_LIABILITY" && (
-              <div className="bg-gradient-to-br from-indigo-50 to-blue-50 rounded-xl p-6 border border-indigo-200/60">
+            {isContractorsPolicy ? (
+              <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl p-6 border border-indigo-200/60">
                 <h3 className="text-lg font-bold text-gray-900 mb-2 flex items-center gap-2">
-                  <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-blue-500 rounded-lg flex items-center justify-center">
+                  <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center shadow-sm">
                     <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </div>
-                  Included Endorsements
+                  Included Endorsements / Coverages
+                  <span className="bg-red-500 text-white text-[10px] font-extrabold px-1.5 py-0.5 rounded tracking-wide uppercase">NEW</span>
                 </h3>
                 <p className="text-xs text-gray-600 mb-4">
-                  Pre-filled from application form. You can modify if needed.
+                  Mark the extra options. Pre-filled from application form. You can modify if needed.
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {availableEndorsements.map((endorsement) => (
+                  {availableInlandMarineEndorsements.map((endorsement) => (
                     <label key={endorsement} className="flex items-center gap-3 cursor-pointer p-3 bg-white rounded-lg border-2 border-gray-200 hover:border-indigo-300 hover:shadow-md transition-all">
                       <input
                         type="checkbox"
-                        checked={selectedEndorsements.includes(endorsement)}
+                        checked={inlandMarineEndorsements.includes(endorsement)}
                         onChange={(e) => {
                           if (e.target.checked) {
-                            setSelectedEndorsements([...selectedEndorsements, endorsement]);
+                            setInlandMarineEndorsements([...inlandMarineEndorsements, endorsement]);
                           } else {
-                            setSelectedEndorsements(selectedEndorsements.filter((e) => e !== endorsement));
+                            setInlandMarineEndorsements(inlandMarineEndorsements.filter((x) => x !== endorsement));
                           }
                         }}
                         className="w-5 h-5 text-indigo-600 border-2 border-gray-300 rounded focus:ring-indigo-500 focus:ring-2 transition"
@@ -2392,6 +2794,44 @@ export default function AdminQuotePage() {
                   ))}
                 </div>
               </div>
+            ) : (
+              !isPropertyPolicy &&
+              currentPolicyType !== "EXCESS_LIABILITY" &&
+              currentPolicyType !== "PROFESSIONAL_LIABILITY" &&
+              currentPolicyType !== "POLLUTION_LIABILITY" && (
+                <div className="bg-gradient-to-br from-indigo-50 to-blue-50 rounded-xl p-6 border border-indigo-200/60">
+                  <h3 className="text-lg font-bold text-gray-900 mb-2 flex items-center gap-2">
+                    <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-blue-500 rounded-lg flex items-center justify-center">
+                      <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    Included Endorsements
+                  </h3>
+                  <p className="text-xs text-gray-600 mb-4">
+                    Pre-filled from application form. You can modify if needed.
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {availableEndorsements.map((endorsement) => (
+                      <label key={endorsement} className="flex items-center gap-3 cursor-pointer p-3 bg-white rounded-lg border-2 border-gray-200 hover:border-indigo-300 hover:shadow-md transition-all">
+                        <input
+                          type="checkbox"
+                          checked={selectedEndorsements.includes(endorsement)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedEndorsements([...selectedEndorsements, endorsement]);
+                            } else {
+                              setSelectedEndorsements(selectedEndorsements.filter((e) => e !== endorsement));
+                            }
+                          }}
+                          className="w-5 h-5 text-indigo-600 border-2 border-gray-300 rounded focus:ring-indigo-500 focus:ring-2 transition"
+                        />
+                        <span className="text-sm text-gray-900 font-medium">{endorsement}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )
             )}
 
             {/* Policy Details Section */}
@@ -2689,7 +3129,7 @@ export default function AdminQuotePage() {
                   <div className="flex flex-col gap-5 flex-grow mb-8 bg-white/60 p-4 rounded-lg">
                     <RatingRow label="Premium" value={formatCurrency(ratingData?.totalPremium || 0)} />
                     <RatingRow label="Carrier Fees" value={formatCurrency(ratingData?.carrierFees || 0)} />
-                    <RatingRow label="Surplus Lines Tax (%)" value={formatCurrency(ratingData?.surplusLinesTax || 0)} />
+                    <RatingRow label={premiumTaxPercent ? `Surplus Lines Tax (${premiumTaxPercent}%)` : "Surplus Lines Tax (%)"} value={formatCurrency(ratingData?.surplusLinesTax || 0)} />
                     {isOklahoma && parseFloat(slasTransactionFeeAmountUSD || "0") > 0 && (
                       <RatingRow
                         label="SLAS Transaction Fee (%)"
@@ -2697,7 +3137,7 @@ export default function AdminQuotePage() {
                       />
                     )}
                     {ratingData.stampingFee > 0 && (
-                      <RatingRow label="Stamping Fee (%)" value={formatCurrency(ratingData?.stampingFee || 0)} />)}
+                      <RatingRow label={stampingFeePercent ? `Stamping Fee (${stampingFeePercent}%)` : "Stamping Fee (%)"} value={formatCurrency(ratingData?.stampingFee || 0)} />)}
                     {parseFloat(stampingFeePerFilingUSD || "0") > 0 && (
                       <RatingRow
                         label="PA Flat Fee"

@@ -407,7 +407,7 @@ export async function GET(
             </div>
           </div>
 
-          <!-- FOOTER: STERLING INSURANCE SERVICES INFO AT BOTTOM CENTER -->
+          <!-- FOOTER: STERLING INSURANCE SERVICES INFO AT BOTTOM CENTER 
           <div class="sterling-footer">
             <div class="sterling-footer-title">Sterling Insurance Services</div>
             <div>5455 Wilshire Blvd. #1816,</div>
@@ -415,7 +415,7 @@ export async function GET(
             <div>(310) 492-2007</div>
             <div>info@SterlingInsurancePartners.com</div>
             <div>License Number: 6015632</div>
-          </div>
+          </div> -->
         </div>
       </body>
       </html>

@@ -858,9 +858,26 @@ export default function AdminSubmissionDetailsPage() {
     submission?.programName === 'Commercial Property' ||
     submission?.programName === 'Apartment Building';
 
-  const isContractorsEquipment =
-    ["inland-marine", "contractors-equipment"].includes(submission?.programId || "") ||
-    ["Equipment", "Construction Equipment", "Contractors Equipment"].includes(submission?.programName || "");
+  const isContractorsEquipment = (() => {
+    const pid = (submission?.programId || "").toLowerCase();
+    const pname = (submission?.programName || "").toLowerCase();
+    const tid = (submission?.templateId || "").toLowerCase();
+    const payload = submission?.payload || {};
+
+    return (
+      pid.includes("inland") ||
+      pid.includes("marine") ||
+      pid.includes("equipment") ||
+      pid.includes("contractor") ||
+      pname.includes("inland") ||
+      pname.includes("marine") ||
+      pname.includes("contractor") ||
+      pname.includes("equipment") ||
+      tid.includes("equipment") ||
+      tid.includes("inland") ||
+      Boolean(payload?.scheduledEquipmentLimit || payload?.heavyEquipment || payload?.lightMedEquipment || payload?.heavyLimit || payload?.miscToolsLimit || payload?.rentedEquipLimit)
+    );
+  })();
 
   const isManufacturer =
     submission?.programId === 'manufacturers' ||
@@ -1639,6 +1656,35 @@ export default function AdminSubmissionDetailsPage() {
               )}
 
             </div>
+
+            {isContractorsEquipment && currentQuote?.limits && (
+              <div className="col-span-1 md:col-span-2 pt-4 border-t border-gray-100 grid grid-cols-2 sm:grid-cols-4 gap-4 bg-amber-50/50 p-4 rounded-xl border border-amber-200/60">
+                {currentQuote.limits.totalInsuredValue && (
+                  <div>
+                    <span className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">Total Insured Value</span>
+                    <span className="font-bold text-gray-900 text-[15px]">{currentQuote.limits.totalInsuredValue}</span>
+                  </div>
+                )}
+                {currentQuote.limits.scheduledEquipment && (
+                  <div>
+                    <span className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">Scheduled Equipment</span>
+                    <span className="font-bold text-gray-900 text-[15px]">{currentQuote.limits.scheduledEquipment}</span>
+                  </div>
+                )}
+                {currentQuote.limits.coinsurance && (
+                  <div>
+                    <span className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">Coinsurance</span>
+                    <span className="font-bold text-gray-900 text-[15px]">{currentQuote.limits.coinsurance}</span>
+                  </div>
+                )}
+                {currentQuote.limits.valuation && (
+                  <div>
+                    <span className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">Valuation</span>
+                    <span className="font-bold text-gray-900 text-[15px]">{currentQuote.limits.valuation}</span>
+                  </div>
+                )}
+              </div>
+            )}
 
           </div>
         </div>

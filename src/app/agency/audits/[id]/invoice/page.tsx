@@ -360,7 +360,7 @@ export default function AgencyAuditInvoicePage() {
         </div>
 
         {/* FOOTER: STERLING INSURANCE SERVICES INFO AT BOTTOM CENTER */}
-        <div className="text-center mt-auto pt-8 pb-2 text-[#334155] text-[12.5px] leading-relaxed">
+        {/* <div className="text-center mt-auto pt-8 pb-2 text-[#334155] text-[12.5px] leading-relaxed">
           <strong className="block text-[16px] font-bold text-[#0f172a] mb-1">
             Sterling Insurance Services
           </strong>
@@ -369,7 +369,7 @@ export default function AgencyAuditInvoicePage() {
           <p>(310) 492-2007</p>
           <p>info@SterlingInsurancePartners.com</p>
           <p>License Number: 6015632</p>
-        </div>
+        </div> */}
 
       </div>
     </div>

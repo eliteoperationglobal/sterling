@@ -24,6 +24,15 @@ export interface ILimits {
   propertyCoinsurance?: string;
   professionalLimit?: string;
   pollutionLimit?: string;
+  // Inland Marine / Contractors Equipment
+  scheduledEquipment?: string;
+  unscheduledTools?: string;
+  leasedRentedEquipment?: string;
+  newlyAcquiredEquipment?: string;
+  totalInsuredValue?: string;
+  inlandMarineDeductibles?: Array<{ description: string; amount: string }>;
+  coinsurance?: string;
+  valuation?: string;
 }
 
 export type PolicyType = 'GENERAL_LIABILITY' | 'EXCESS_LIABILITY' | 'PROFESSIONAL_LIABILITY' | 'POLLUTION_LIABILITY';
@@ -117,6 +126,21 @@ const LimitsSchema: Schema = new Schema({
   propertyCoinsurance: String,
   professionalLimit: String,
   pollutionLimit: String,
+  // Inland Marine / Contractors Equipment
+  scheduledEquipment: String,
+  unscheduledTools: String,
+  leasedRentedEquipment: String,
+  newlyAcquiredEquipment: String,
+  totalInsuredValue: String,
+  inlandMarineDeductibles: [
+    {
+      description: String,
+      amount: String,
+      _id: false,
+    }
+  ],
+  coinsurance: String,
+  valuation: String,
 }, { _id: false });
 
 const QuoteSchema: Schema = new Schema(
