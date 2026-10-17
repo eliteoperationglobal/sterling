@@ -63,6 +63,7 @@ export default function AuditPage() {
   const [carrierFilter, setCarrierFilter] = useState("All Carriers");
   const [typeFilter, setTypeFilter] = useState("All Types");
   const [sourceFilter, setSourceFilter] = useState("All Sources");
+  const [dueSoonFilter, setDueSoonFilter] = useState(false);
   const [dueDateStart, setDueDateStart] = useState("");
   const [dueDateEnd, setDueDateEnd] = useState("");
 
@@ -79,7 +80,27 @@ export default function AuditPage() {
   };
 
   const filteredAudits = audits.filter(audit => {
-    if (statusFilter !== "All Statuses" && audit.status !== statusFilter) return false;
+    if (statusFilter === "OPEN") {
+      const s = (audit.status || "").trim().toUpperCase();
+      if (s === "COMPLETE" || s === "CANCELLED") return false;
+    } else if (statusFilter !== "All Statuses" && audit.status !== statusFilter) {
+      return false;
+    }
+
+    if (dueSoonFilter) {
+      if (!audit.dueDate) return false;
+      const d = new Date(audit.dueDate);
+      if (isNaN(d.getTime())) return false;
+      const s = (audit.status || "").trim().toUpperCase();
+      if (s === "COMPLETE" || s === "CANCELLED") return false;
+      const tStart = new Date();
+      tStart.setHours(0, 0, 0, 0);
+      const in14End = new Date(tStart);
+      in14End.setDate(in14End.getDate() + 14);
+      in14End.setHours(23, 59, 59, 999);
+      if (d < tStart || d > in14End) return false;
+    }
+
     if (carrierFilter !== "All Carriers" && audit.carrier !== carrierFilter && audit.carrier !== "Unknown") return false;
     if (typeFilter !== "All Types" && getDisplayProgramName(audit.program) !== typeFilter) return false;
 
@@ -243,26 +264,89 @@ export default function AuditPage() {
   };
 
   // Computations for Audit Queue Dashboard
-  const openAudits = audits.filter(a => a.status !== "COMPLETE" && a.status !== "CANCELLED");
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+
+  const in14DaysEnd = new Date(todayStart);
+  in14DaysEnd.setDate(in14DaysEnd.getDate() + 14);
+  in14DaysEnd.setHours(23, 59, 59, 999);
+
+  const openAudits = audits.filter(a => {
+    const s = (a.status || "").trim().toUpperCase();
+    return s !== "COMPLETE" && s !== "CANCELLED";
+  });
+  const completedAudits = audits.filter(a => (a.status || "").trim().toUpperCase() === "COMPLETE");
+
   const dueIn14Days = openAudits.filter(a => {
+    if (!a.dueDate) return false;
     const dueDate = new Date(a.dueDate);
-    const in14Days = new Date();
-    in14Days.setDate(in14Days.getDate() + 14);
-    return dueDate <= in14Days;
+    if (isNaN(dueDate.getTime())) return false;
+    return dueDate >= todayStart && dueDate <= in14DaysEnd;
   }).length;
 
+  const overdueAudits = openAudits.filter(a => {
+    if (!a.dueDate) return false;
+    const dueDate = new Date(a.dueDate);
+    if (isNaN(dueDate.getTime())) return false;
+    return dueDate < todayStart;
+  }).length;
+
+  // Find nearest upcoming due days among open audits for transparent sublabel
+  const upcomingOpenDays = openAudits
+    .map(a => {
+      if (!a.dueDate) return null;
+      const d = new Date(a.dueDate);
+      if (isNaN(d.getTime())) return null;
+      return Math.ceil((d.getTime() - todayStart.getTime()) / (1000 * 3600 * 24));
+    })
+    .filter((days): days is number => days !== null && days >= 0);
+
+  const nearestDueDays = upcomingOpenDays.length > 0 ? Math.min(...upcomingOpenDays) : null;
+
+  // Documents received across all audits in the queue
   let docsTotal = 0;
   let docsReceived = 0;
-  openAudits.forEach(a => {
+  let openDocsTotal = 0;
+  let openDocsReceived = 0;
+
+  audits.forEach(a => {
+    const isAuditOpen = (a.status || "").trim().toUpperCase() !== "COMPLETE" && (a.status || "").trim().toUpperCase() !== "CANCELLED";
     if (a.documents && a.documents.length > 0) {
       docsTotal += a.documents.length;
-      docsReceived += a.documents.filter((d: any) => d.status === "RECEIVED" || d.status === "VERIFIED").length;
+      const rec = a.documents.filter((d: any) => 
+        d.status === "RECEIVED" || d.status === "VERIFIED" || d.status === "WAIVED" || (!!d.fileUrl && d.status !== "REJECTED")
+      ).length;
+      docsReceived += rec;
+
+      if (isAuditOpen) {
+        openDocsTotal += a.documents.length;
+        openDocsReceived += rec;
+      }
     }
   });
-  const docsReceivedPercent = docsTotal > 0 ? Math.round((docsReceived / docsTotal) * 100) : 0;
 
+  const docsReceivedPercent = docsTotal > 0 ? Math.round((docsReceived / docsTotal) * 100) : 0;
+  const openPendingDocs = openDocsTotal - openDocsReceived;
+
+  // Pure Additional Premium Issued computation (Premium Difference without taxes and fees)
   const additionalPremiumIssued = audits.reduce((acc, a) => {
-    return acc + (a.netChange > 0 ? a.netChange : 0); // Simplified logic
+    const rateBasis = Number(a.rateBasis) || 1000;
+    const rate = Number(a.rate) || 0;
+    const estExp = Number(a.estimatedExposure) || 0;
+    const audExp = Number(a.auditedExposure) || 0;
+
+    if (audExp <= 0 || rate <= 0) {
+      return acc + (Number(a.netChange) > 0 ? Number(a.netChange) : 0);
+    }
+
+    const depPrem = Number(a.depositPremium) > 0 ? Number(a.depositPremium) : (estExp / rateBasis) * rate;
+    const audPrem = Number(a.auditedPremium) > 0 ? Number(a.auditedPremium) : (audExp / rateBasis) * rate;
+    const premDiff = audPrem - depPrem;
+
+    if (premDiff <= 0) return acc;
+
+    // Strictly pure Premium Difference (excluding taxes & fees)
+    return acc + premDiff;
   }, 0);
 
   const getStatusPillColor = (status: string) => {
@@ -403,23 +487,54 @@ export default function AuditPage() {
 
             {/* Summary Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-              <div className="bg-white rounded-2xl border border-[#e5ddd5] p-5 shadow-sm flex items-center gap-4">
+              <div 
+                onClick={() => setStatusFilter(prev => prev === "OPEN" ? "All Statuses" : "OPEN")}
+                className={`bg-white rounded-2xl border p-5 shadow-sm flex items-center gap-4 cursor-pointer transition-all hover:shadow-md ${
+                  statusFilter === "OPEN" ? "border-blue-500 ring-2 ring-blue-100" : "border-[#e5ddd5]"
+                }`}
+                title="Click to toggle filter for Open Audits"
+              >
                 <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center flex-shrink-0">
                   <FileText className="w-6 h-6 text-blue-600" />
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-500 mb-0.5">Open Audits</p>
                   <p className="text-2xl font-bold text-gray-900">{openAudits.length}</p>
+                  <p className="text-[11px] text-gray-400 font-medium mt-0.5">
+                    {openAudits.length === 0
+                      ? `All ${audits.length} Audits Completed`
+                      : `${openAudits.length} Active of ${audits.length} Total (${completedAudits.length} Completed)`
+                    }
+                  </p>
                 </div>
               </div>
 
-              <div className="bg-white rounded-2xl border border-[#e5ddd5] p-5 shadow-sm flex items-center gap-4">
+              <div 
+                onClick={() => setDueSoonFilter(prev => !prev)}
+                className={`bg-white rounded-2xl border p-5 shadow-sm flex items-center gap-4 cursor-pointer transition-all hover:shadow-md ${
+                  dueSoonFilter ? "border-amber-500 ring-2 ring-amber-100" : "border-[#e5ddd5]"
+                }`}
+                title="Click to toggle filter for audits due in 14 days"
+              >
                 <div className="w-12 h-12 bg-amber-50 rounded-full flex items-center justify-center flex-shrink-0">
                   <Calendar className="w-6 h-6 text-amber-600" />
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-500 mb-0.5">Due in Next 14 Days</p>
                   <p className="text-2xl font-bold text-gray-900">{dueIn14Days}</p>
+                  <p className="text-[11px] text-gray-400 font-medium mt-0.5">
+                    {overdueAudits > 0 ? (
+                      <span className="text-rose-600 font-bold">{overdueAudits} Overdue</span>
+                    ) : openAudits.length === 0 ? (
+                      "All Audits Completed"
+                    ) : dueIn14Days > 0 ? (
+                      `${dueIn14Days} Due Soon`
+                    ) : nearestDueDays !== null ? (
+                      `Next due in ${nearestDueDays} days`
+                    ) : (
+                      "All on Schedule"
+                    )}
+                  </p>
                 </div>
               </div>
 
@@ -430,6 +545,13 @@ export default function AuditPage() {
                 <div>
                   <p className="text-sm font-medium text-gray-500 mb-0.5">Documents Received</p>
                   <p className="text-2xl font-bold text-gray-900">{docsReceivedPercent}%</p>
+                  <p className="text-[11px] text-gray-400 font-medium mt-0.5">
+                    {openAudits.length > 0 && openPendingDocs > 0 ? (
+                      <span>{docsReceived} of {docsTotal} Documents ({openPendingDocs} pending in open)</span>
+                    ) : (
+                      <span>{docsReceived} of {docsTotal} Documents</span>
+                    )}
+                  </p>
                 </div>
               </div>
 
@@ -439,7 +561,12 @@ export default function AuditPage() {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-500 mb-0.5">Additional Premium Issued</p>
-                  <p className="text-2xl font-bold text-gray-900">${additionalPremiumIssued.toLocaleString()}</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    ${additionalPremiumIssued.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </p>
+                  <p className="text-[11px] text-gray-400 font-medium mt-0.5">
+                    Net Premium Difference
+                  </p>
                 </div>
               </div>
             </div>
@@ -454,6 +581,7 @@ export default function AuditPage() {
                   onChange={(e) => setStatusFilter(e.target.value)}
                 >
                   <option value="All Statuses">All Statuses</option>
+                  <option value="OPEN">Open Audits</option>
                   <option value="REQUESTED">Requested</option>
                   <option value="DOCS_RECEIVED">Docs Received</option>
                   <option value="UNDERWRITER_REVIEW">Underwriter Review</option>
@@ -536,6 +664,7 @@ export default function AuditPage() {
                   onClick={() => {
                     setSearchQuery("");
                     setStatusFilter("All Statuses");
+                    setDueSoonFilter(false);
                     setCarrierFilter("All Carriers");
                     setTypeFilter("All Types");
                     setSourceFilter("All Sources");
@@ -572,11 +701,14 @@ export default function AuditPage() {
                   ) : (
                     filteredAudits.map((audit) => {
                       const docsTotal = audit.documents?.length || 0;
-                      const docsReceived = audit.documents?.filter((d: any) => d.status === "RECEIVED" || d.status === "VERIFIED").length || 0;
+                      const docsReceived = audit.documents?.filter((d: any) => 
+                        d.status === "RECEIVED" || d.status === "VERIFIED" || d.status === "WAIVED" || (!!d.fileUrl && d.status !== "REJECTED")
+                      ).length || 0;
 
-                      const dueDateObj = new Date(audit.dueDate);
-                      const daysLeft = Math.ceil((dueDateObj.getTime() - Date.now()) / (1000 * 3600 * 24));
-                      const isOverdue = daysLeft < 0;
+                      const dueDateObj = audit.dueDate ? new Date(audit.dueDate) : null;
+                      const isValidDueDate = !!dueDateObj && !isNaN(dueDateObj.getTime());
+                      const daysLeft = isValidDueDate ? Math.ceil((dueDateObj.getTime() - todayStart.getTime()) / (1000 * 3600 * 24)) : null;
+                      const isOverdue = daysLeft !== null && daysLeft < 0;
 
                       return (
                         <tr key={audit._id} className="hover:bg-gray-50 transition-colors group">
@@ -605,7 +737,7 @@ export default function AuditPage() {
                             <p className="font-bold text-sm text-gray-900">
                               {audit.auditedExposure > 0 ? `$${audit.auditedExposure.toLocaleString()}` : "Pending"}
                             </p>
-                            <p className="text-xs text-gray-500 mt-0.5">Est. ${audit.estimatedExposure?.toLocaleString()}</p>
+                            <p className="text-xs text-gray-500 mt-0.5">Est. ${audit.estimatedExposure?.toLocaleString() || "0"}</p>
                           </td>
                           <td className="px-6 py-4">
                             <div className="flex items-center justify-between text-xs text-gray-600 mb-1">
@@ -624,9 +756,15 @@ export default function AuditPage() {
                             </span>
                           </td>
                           <td className="px-6 py-4">
-                            <p className="text-sm text-gray-700">{dueDateObj.toLocaleDateString("en-US")}</p>
+                            <p className="text-sm text-gray-700">{isValidDueDate ? dueDateObj.toLocaleDateString("en-US") : "—"}</p>
                             <p className={`text-xs mt-0.5 ${isOverdue ? 'text-red-600 font-semibold' : 'text-gray-500'}`}>
-                              {isOverdue ? `Overdue by ${Math.abs(daysLeft)} days` : `in ${daysLeft} days`}
+                              {daysLeft === null
+                                ? ""
+                                : isOverdue
+                                ? `Overdue by ${Math.abs(daysLeft)} days`
+                                : daysLeft === 0
+                                ? "Due today"
+                                : `in ${daysLeft} days`}
                             </p>
                           </td>
                           <td className="px-6 py-4 text-right">

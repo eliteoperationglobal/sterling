@@ -48,26 +48,22 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       carrier
     } = body;
     let activityLogDetails = "";
+    let recalculateFinancials = false;
 
     // If updating estimated exposure
     if (estimatedExposure !== undefined) {
-      const parsedEstExposure = parseFloat(estimatedExposure);
+      const parsedEstExposure = parseFloat(estimatedExposure) || 0;
       if (audit.estimatedExposure !== parsedEstExposure) {
         activityLogDetails += `Updated original estimated exposure from $${audit.estimatedExposure} to $${parsedEstExposure}. `;
         audit.estimatedExposure = parsedEstExposure;
-        
-        // Recalculate original deposit premium based on the new estimate
-        if (audit.rateBasis && audit.rate) {
-          audit.depositPremium = (parsedEstExposure / audit.rateBasis) * audit.rate;
-        }
+        recalculateFinancials = true;
       }
     }
 
     // If updating other fields
-    let recalculateFinancials = false;
 
     if (auditedExposure !== undefined) {
-      const parsedExposure = parseFloat(auditedExposure);
+      const parsedExposure = parseFloat(auditedExposure) || 0;
       if (audit.auditedExposure !== parsedExposure) {
         activityLogDetails += `Updated audited exposure to $${parsedExposure}. `;
         audit.auditedExposure = parsedExposure;
@@ -76,7 +72,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     }
 
     if (rate !== undefined) {
-      const parsedRate = parseFloat(rate);
+      const parsedRate = parseFloat(rate) || 0;
       if (audit.rate !== parsedRate) {
         activityLogDetails += `Updated rate to ${parsedRate}. `;
         audit.rate = parsedRate;
@@ -85,17 +81,17 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     }
 
     if (carrierFee !== undefined && audit.carrierFee !== carrierFee) {
-      audit.carrierFee = carrierFee;
+      audit.carrierFee = parseFloat(carrierFee) || 0;
     }
     if (sterlingFee !== undefined && audit.sterlingFee !== sterlingFee) {
-      audit.sterlingFee = sterlingFee;
+      audit.sterlingFee = parseFloat(sterlingFee) || 0;
     }
     if (surplusLinesTaxRate !== undefined && audit.surplusLinesTaxRate !== surplusLinesTaxRate) {
-      audit.surplusLinesTaxRate = surplusLinesTaxRate;
+      audit.surplusLinesTaxRate = parseFloat(surplusLinesTaxRate) || 0;
       recalculateFinancials = true;
     }
     if (stampingFeeRate !== undefined && audit.stampingFeeRate !== stampingFeeRate) {
-      audit.stampingFeeRate = stampingFeeRate;
+      audit.stampingFeeRate = parseFloat(stampingFeeRate) || 0;
       recalculateFinancials = true;
     }
     if (auditNotes !== undefined) {
@@ -109,13 +105,17 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       }
     }
 
-    if (recalculateFinancials) {
+    if (recalculateFinancials || !audit.depositPremium) {
       // Backend Premium Calculation (Security: Do not trust frontend calculations)
-      audit.auditedPremium = (audit.auditedExposure / (audit.rateBasis || 1000)) * audit.rate;
+      const basis = audit.rateBasis || 1000;
+      const currentRate = audit.rate || 0;
+
+      audit.depositPremium = ((audit.estimatedExposure || 0) / basis) * currentRate;
+      audit.auditedPremium = ((audit.auditedExposure || 0) / basis) * currentRate;
       audit.netChange = audit.auditedPremium - audit.depositPremium;
       
-      audit.surplusLinesTaxAmount = (audit.netChange * audit.surplusLinesTaxRate) / 100;
-      audit.stampingFeeAmount = (audit.netChange * audit.stampingFeeRate) / 100;
+      audit.surplusLinesTaxAmount = audit.netChange > 0 ? (audit.netChange * (audit.surplusLinesTaxRate || 0)) / 100 : 0;
+      audit.stampingFeeAmount = audit.netChange > 0 ? (audit.netChange * (audit.stampingFeeRate || 0)) / 100 : 0;
     }
 
     // If updating status (e.g., Submit for Review)
