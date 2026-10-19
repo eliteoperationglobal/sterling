@@ -82,10 +82,25 @@ export async function POST(req: Request) {
       feesAmount, 
       insuredName, 
       state = "CA",
-      zip = "90210" 
+      zip = "90210",
+      policyType = "GENERAL_LIABILITY" 
     } = body;
 
-    console.log("[AIS API] Fetching quote for premium:", premiumAmount);
+    // Official AIS Coverage Codes from PFC 205 Dictionary (e.g. 19 = GEN LIAB)
+    const AIS_COVERAGE_CODES: Record<string, string> = {
+      GENERAL_LIABILITY: "19",       // 19: GEN LIAB (G/L)
+      PROPERTY: "37",                // 37: PROPERTY (PROP)
+      EXCESS_LIABILITY: "17",        // 17: EXCESS LIAB (EXLIA)
+      PROFESSIONAL_LIABILITY: "29",  // 29: PROF LIAB (PROFL)
+      POLLUTION_LIABILITY: "68",     // 68: POLLUTION (POLL)
+      UMBRELLA: "12",                // 12: UMBRELLA (UMB)
+      COMMERCIAL_PACKAGE: "18",      // 18: PACKAGE (PKG)
+      CYBER: "67",                   // 67: CYBER LIABILITY (CYLIA)
+    };
+
+    const selectedCoverageCode = AIS_COVERAGE_CODES[policyType] || "19";
+
+    console.log("[AIS API] Fetching quote for premium:", premiumAmount, "coverageCode:", selectedCoverageCode);
 
     // 1. Get the Access Token securely
     const accessToken = await getAISToken();
@@ -133,8 +148,8 @@ export async function POST(req: Request) {
       policies: [
         {
           policyNumber: "TBD",
-          policyInsuranceCompanyNumber: "7X31", // Valid code from client CSV (Accredited Specialty)
-          policyCoverageTypeCode: "GL", // Try 'GL' (General Liability) instead of 99
+          policyInsuranceCompanyNumber: process.env.AIS_COMPANY_CODE || "7X31", // Valid code from client CSV (Accredited Specialty)
+          policyCoverageTypeCode: selectedCoverageCode, // Valid 2-digit code from client dictionary (19 for General Liability)
           policyInceptionDate: policyInceptionDate,
           policyTerm: "12",
           policyPremiumAmount: Number(premiumAmount).toFixed(2),

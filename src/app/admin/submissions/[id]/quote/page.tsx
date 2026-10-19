@@ -1543,6 +1543,7 @@ export default function AdminQuotePage() {
           feesAmount: pFees.toString(),
           insuredName: submission?.payload?.companyName || submission?.payload?.applicantName || submission?.payload?.namedInsured || submission?.clientContact?.name || "Client",
           state: getStateCode((submission as any)?.state || (submission as any)?.clientContact?.businessAddress?.state || "CA"),
+          policyType: currentPolicyType,
         }),
       });
 

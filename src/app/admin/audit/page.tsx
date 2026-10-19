@@ -55,6 +55,32 @@ export default function AuditPage() {
     return `${cleaned.slice(0, 2)}/${cleaned.slice(2, 4)}/${cleaned.slice(4)}`;
   };
 
+  const handleDateSessionSelect = (session: "25-26" | "26-27") => {
+    const targetYear = session === "25-26" ? "2025" : "2026";
+    if (newDate && newDate.includes("/")) {
+      const parts = newDate.split("/");
+      const m = parts[0] || "10";
+      const d = parts[1] || "20";
+      setNewDate(`${m.padStart(2, '0')}/${d.padStart(2, '0')}/${targetYear}`);
+    } else {
+      const now = new Date();
+      const m = String(now.getMonth() + 1).padStart(2, "0");
+      const d = String(now.getDate()).padStart(2, "0");
+      setNewDate(`${m}/${d}/${targetYear}`);
+    }
+  };
+
+  const isSessionActiveInForm = (session: "25-26" | "26-27") => {
+    if (!newDate) return false;
+    if (session === "25-26") {
+      return newDate.endsWith("2025") || newDate.endsWith("/25");
+    }
+    if (session === "26-27") {
+      return newDate.endsWith("2026") || newDate.endsWith("/26");
+    }
+    return false;
+  };
+
   // Audits state for the queue
   const [audits, setAudits] = useState<any[]>([]);
   const [loadingAudits, setLoadingAudits] = useState(false);
@@ -1036,7 +1062,35 @@ export default function AuditPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Date (MM/DD/YYYY)</label>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-sm font-semibold text-gray-700">Date (MM/DD/YYYY)</label>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => handleDateSessionSelect("25-26")}
+                        className={`px-2.5 py-0.5 text-xs font-bold rounded-lg border transition-all cursor-pointer ${
+                          isSessionActiveInForm("25-26")
+                            ? "bg-amber-100 text-amber-900 border-amber-300 ring-1 ring-amber-300 shadow-xs"
+                            : "bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200 hover:text-gray-900"
+                        }`}
+                        title="Set year to 2025 (2025–2026 Session)"
+                      >
+                        25-26
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDateSessionSelect("26-27")}
+                        className={`px-2.5 py-0.5 text-xs font-bold rounded-lg border transition-all cursor-pointer ${
+                          isSessionActiveInForm("26-27")
+                            ? "bg-amber-100 text-amber-900 border-amber-300 ring-1 ring-amber-300 shadow-xs"
+                            : "bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200 hover:text-gray-900"
+                        }`}
+                        title="Set year to 2026 (2026–2027 Session)"
+                      >
+                        26-27
+                      </button>
+                    </div>
+                  </div>
                   <div className="relative">
                     <input
                       type="text"

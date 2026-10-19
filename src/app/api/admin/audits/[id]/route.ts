@@ -45,10 +45,38 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       auditNotes, 
       status, 
       action,
-      carrier
+      carrier,
+      auditPeriodStart,
+      auditPeriodEnd
     } = body;
     let activityLogDetails = "";
     let recalculateFinancials = false;
+
+    // If updating audit period
+    if (auditPeriodStart !== undefined && auditPeriodStart) {
+      const parsedStart = new Date(auditPeriodStart);
+      if (!isNaN(parsedStart.getTime())) {
+        const oldStartStr = audit.auditPeriodStart ? new Date(audit.auditPeriodStart).toLocaleDateString("en-US") : "N/A";
+        const newStartStr = parsedStart.toLocaleDateString("en-US");
+        if (oldStartStr !== newStartStr) {
+          activityLogDetails += `Audit period start changed from ${oldStartStr} to ${newStartStr}. `;
+        }
+        audit.auditPeriodStart = parsedStart;
+        audit.auditEffectiveDate = parsedStart;
+      }
+    }
+
+    if (auditPeriodEnd !== undefined && auditPeriodEnd) {
+      const parsedEnd = new Date(auditPeriodEnd);
+      if (!isNaN(parsedEnd.getTime())) {
+        const oldEndStr = audit.auditPeriodEnd ? new Date(audit.auditPeriodEnd).toLocaleDateString("en-US") : "N/A";
+        const newEndStr = parsedEnd.toLocaleDateString("en-US");
+        if (oldEndStr !== newEndStr) {
+          activityLogDetails += `Audit period end changed from ${oldEndStr} to ${newEndStr}. `;
+        }
+        audit.auditPeriodEnd = parsedEnd;
+      }
+    }
 
     // If updating estimated exposure
     if (estimatedExposure !== undefined) {

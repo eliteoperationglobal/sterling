@@ -61,6 +61,56 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
   const [notes, setNotes] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
+  // Editable Audit Period States
+  const [periodStart, setPeriodStart] = useState("");
+  const [periodEnd, setPeriodEnd] = useState("");
+
+  const toInputDate = (dateVal: any) => {
+    if (!dateVal) return "";
+    const d = new Date(dateVal);
+    if (isNaN(d.getTime())) return "";
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  };
+
+  const handlePeriodStartChange = (newStart: string) => {
+    setPeriodStart(newStart);
+    if (newStart) {
+      const parts = newStart.split("-").map(p => parseInt(p, 10));
+      if (parts.length === 3 && parts[0] && parts[1] && parts[2]) {
+        // Automatically default End Date to exactly +1 year
+        const endYear = parts[0] + 1;
+        const mm = String(parts[1]).padStart(2, "0");
+        const dd = String(parts[2]).padStart(2, "0");
+        setPeriodEnd(`${endYear}-${mm}-${dd}`);
+      }
+    }
+  };
+
+  const handleSetSession = (session: "25-26" | "26-27") => {
+    const currentStart = periodStart ? new Date(periodStart) : (audit?.auditPeriodStart ? new Date(audit.auditPeriodStart) : new Date());
+    const m = !isNaN(currentStart.getTime()) ? currentStart.getMonth() + 1 : 10;
+    const d = !isNaN(currentStart.getTime()) ? currentStart.getDate() : 20;
+
+    const startYear = session === "25-26" ? 2025 : 2026;
+    const endYear = session === "25-26" ? 2026 : 2027;
+
+    const mm = String(m).padStart(2, "0");
+    const dd = String(d).padStart(2, "0");
+
+    setPeriodStart(`${startYear}-${mm}-${dd}`);
+    setPeriodEnd(`${endYear}-${mm}-${dd}`);
+  };
+
+  const isSessionActive = (session: "25-26" | "26-27") => {
+    if (!periodStart) return false;
+    const d = new Date(periodStart);
+    if (isNaN(d.getTime())) return false;
+    return session === "25-26" ? d.getFullYear() === 2025 : d.getFullYear() === 2026;
+  };
+
   const fetchAudit = async () => {
     setLoading(true);
     try {
@@ -68,20 +118,28 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
       const res = await fetch(`/api/admin/audits?${queryParam}`);
       const data = await res.json();
       if (data.success && data.audits && data.audits.length > 0) {
-        setAudit(data.audits[0]);
-        if (data.audits[0].estimatedExposure !== undefined) {
-          setEstimatedExposure(data.audits[0].estimatedExposure.toString());
+        const found = data.audits[0];
+        setAudit(found);
+        if (found.estimatedExposure !== undefined) {
+          setEstimatedExposure(found.estimatedExposure.toString());
         }
-        if (data.audits[0].auditedExposure > 0) {
-          setAuditedExposure(data.audits[0].auditedExposure.toString());
+        if (found.auditedExposure > 0) {
+          setAuditedExposure(found.auditedExposure.toString());
         }
-        setRate(data.audits[0].rate ? data.audits[0].rate.toString() : "");
-        setCarrierFee(data.audits[0].carrierFee ? data.audits[0].carrierFee.toString() : "");
-        setSterlingFee(data.audits[0].sterlingFee ? data.audits[0].sterlingFee.toString() : "");
-        if (data.audits[0].carrier) setCarrier(data.audits[0].carrier);
-        if (data.audits[0].surplusLinesTaxRate !== undefined) setSurplusTaxRate(data.audits[0].surplusLinesTaxRate.toString());
-        if (data.audits[0].stampingFeeRate !== undefined) setStampingFeeRate(data.audits[0].stampingFeeRate.toString());
-        if (data.audits[0].auditNotes) setNotes(data.audits[0].auditNotes);
+        setRate(found.rate ? found.rate.toString() : "");
+        setCarrierFee(found.carrierFee ? found.carrierFee.toString() : "");
+        setSterlingFee(found.sterlingFee ? found.sterlingFee.toString() : "");
+        if (found.carrier) setCarrier(found.carrier);
+        if (found.surplusLinesTaxRate !== undefined) setSurplusTaxRate(found.surplusLinesTaxRate.toString());
+        if (found.stampingFeeRate !== undefined) setStampingFeeRate(found.stampingFeeRate.toString());
+        if (found.auditNotes) setNotes(found.auditNotes);
+
+        if (found.auditPeriodStart) {
+          setPeriodStart(toInputDate(found.auditPeriodStart));
+        }
+        if (found.auditPeriodEnd) {
+          setPeriodEnd(toInputDate(found.auditPeriodEnd));
+        }
       }
     } catch (err) {
       console.error(err);
@@ -103,6 +161,8 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
         surplusLinesTaxRate: parseFloat(surplusTaxRate) || 0,
         stampingFeeRate: parseFloat(stampingFeeRate) || 0,
         auditNotes: notes,
+        auditPeriodStart: periodStart ? new Date(periodStart) : audit.auditPeriodStart,
+        auditPeriodEnd: periodEnd ? new Date(periodEnd) : audit.auditPeriodEnd,
         action: statusUpdate ? `Status updated to ${statusUpdate}` : "Saved draft values"
       };
 
@@ -176,6 +236,8 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
         surplusLinesTaxRate: parseFloat(surplusTaxRate) || 0,
         stampingFeeRate: parseFloat(stampingFeeRate) || 0,
         auditNotes: notes,
+        auditPeriodStart: periodStart ? new Date(periodStart) : audit.auditPeriodStart,
+        auditPeriodEnd: periodEnd ? new Date(periodEnd) : audit.auditPeriodEnd,
         status: "COMPLETE",
         action: "Audit marked Complete & Invoice ready"
       };
@@ -573,7 +635,11 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
           <div className="flex flex-wrap items-center gap-6 mt-2 ml-11 text-sm text-gray-500 font-medium">
             <span className="flex items-center gap-2">Policy Number: <strong className="text-gray-900">{audit.policyNumber || policyNumber}</strong></span>
             <span className="text-gray-300">|</span>
-            <span className="flex items-center gap-2">Date: <strong className="text-gray-900">{new Date(audit.auditEffectiveDate || audit.auditPeriodStart).toLocaleDateString("en-US")}</strong></span>
+            <span className="flex items-center gap-2">
+              Date: <strong className="text-gray-900">
+                {new Date(periodStart ? `${periodStart}T00:00:00` : audit.auditEffectiveDate || audit.auditPeriodStart).toLocaleDateString("en-US")}
+              </strong>
+            </span>
             <span className="text-gray-300">|</span>
             <span className="flex items-center gap-2">Carrier: <strong className="text-gray-900">{carrier || audit.carrier}</strong></span>
             <span className="text-gray-300">|</span>
@@ -595,15 +661,55 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
               <div className="p-6">
                 <div className="mb-5 flex flex-wrap gap-6 items-center">
                   <div>
-                    <label className="block text-xs font-semibold text-gray-500 mb-1.5">Audit Period</label>
-                    <div className="relative w-64">
-                      <input
-                        type="text"
-                        readOnly
-                        value={`${new Date(audit.auditPeriodStart).toLocaleDateString("en-US")} - ${new Date(audit.auditPeriodEnd).toLocaleDateString("en-US")}`}
-                        className="w-full bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-lg px-3 py-2 pr-10 outline-none"
-                      />
-                      <Calendar className="w-4 h-4 text-slate-400 absolute right-3 top-2.5" />
+                    <div className="flex items-center justify-between gap-3 mb-1.5">
+                      <label className="block text-xs font-semibold text-gray-700">Audit Period</label>
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => handleSetSession("25-26")}
+                          className={`px-2.5 py-0.5 text-[11px] font-bold rounded-md border transition-all cursor-pointer ${
+                            isSessionActive("25-26")
+                              ? "bg-amber-100 text-amber-900 border-amber-300 ring-1 ring-amber-300 shadow-xs"
+                              : "bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200"
+                          }`}
+                          title="Switch to 2025 – 2026 session"
+                        >
+                          25-26
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleSetSession("26-27")}
+                          className={`px-2.5 py-0.5 text-[11px] font-bold rounded-md border transition-all cursor-pointer ${
+                            isSessionActive("26-27")
+                              ? "bg-amber-100 text-amber-900 border-amber-300 ring-1 ring-amber-300 shadow-xs"
+                              : "bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200"
+                          }`}
+                          title="Switch to 2026 – 2027 session"
+                        >
+                          26-27
+                        </button>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="relative">
+                        <input
+                          type="date"
+                          value={periodStart}
+                          onChange={(e) => handlePeriodStartChange(e.target.value)}
+                          className="bg-white border border-slate-300 text-slate-800 text-xs font-semibold rounded-lg px-2.5 py-2 outline-none focus:ring-2 focus:ring-blue-500 shadow-xs h-[38px]"
+                          title="Start Date"
+                        />
+                      </div>
+                      <span className="text-gray-400 font-bold text-xs">–</span>
+                      <div className="relative">
+                        <input
+                          type="date"
+                          value={periodEnd}
+                          onChange={(e) => setPeriodEnd(e.target.value)}
+                          className="bg-white border border-slate-300 text-slate-800 text-xs font-semibold rounded-lg px-2.5 py-2 outline-none focus:ring-2 focus:ring-blue-500 shadow-xs h-[38px]"
+                          title="End Date"
+                        />
+                      </div>
                     </div>
                   </div>
                   <div>
