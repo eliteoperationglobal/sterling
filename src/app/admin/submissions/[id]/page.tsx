@@ -861,20 +861,34 @@ export default function AdminSubmissionDetailsPage() {
   const isContractorsEquipment = (() => {
     const pid = (submission?.programId || "").toLowerCase();
     const pname = (submission?.programName || "").toLowerCase();
-    const tid = (submission?.templateId || "").toLowerCase();
+    const tid = typeof submission?.templateId === "string"
+      ? submission.templateId.toLowerCase()
+      : typeof submission?.templateId === "object" && submission?.templateId !== null
+        ? `${(submission.templateId as any).industry || ""} ${(submission.templateId as any).subtype || ""}`.toLowerCase()
+        : "";
     const payload = submission?.payload || {};
+    const payloadPolicyType = (payload?.policyType || "").toLowerCase();
+    const payloadProgramName = (payload?.programName || "").toLowerCase();
+    const payloadProgramId = (payload?.programId || "").toLowerCase();
 
     return (
+      ["inland-marine", "contractors-equipment"].includes(pid) ||
+      ["equipment", "construction equipment", "contractors equipment", "inland marine"].includes(pname) ||
       pid.includes("inland") ||
       pid.includes("marine") ||
       pid.includes("equipment") ||
-      pid.includes("contractor") ||
       pname.includes("inland") ||
       pname.includes("marine") ||
-      pname.includes("contractor") ||
       pname.includes("equipment") ||
+      pname.includes("contractors equipment") ||
       tid.includes("equipment") ||
       tid.includes("inland") ||
+      payloadProgramId === "contractors-equipment" ||
+      payloadProgramId === "inland-marine" ||
+      payloadPolicyType.includes("inland marine") ||
+      payloadPolicyType.includes("contractors equipment") ||
+      payloadProgramName.includes("contractors equipment") ||
+      payloadProgramName.includes("inland marine") ||
       Boolean(payload?.scheduledEquipmentLimit || payload?.heavyEquipment || payload?.lightMedEquipment || payload?.heavyLimit || payload?.miscToolsLimit || payload?.rentedEquipLimit)
     );
   })();
@@ -891,6 +905,9 @@ export default function AdminSubmissionDetailsPage() {
     (submission?.programName || '').toLowerCase().includes('builder');
 
   const getPolicyLabel = (type: string) => {
+    if (type === "INLAND_MARINE") {
+      return "Inland Marine";
+    }
     if (type === "GENERAL_LIABILITY") {
       if (isManufacturer) return "Manufacturers";
       if (isCommercialProperty) return "Property";

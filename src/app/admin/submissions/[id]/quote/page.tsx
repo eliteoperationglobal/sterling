@@ -1597,6 +1597,9 @@ export default function AdminQuotePage() {
     (submission?.programName || '').toLowerCase().includes('builder');
 
   const getPolicyLabel = (type: string) => {
+    if (type === "INLAND_MARINE") {
+      return "Inland Marine";
+    }
     if (type === "GENERAL_LIABILITY") {
       if (isManufacturer) return "Manufacturers";
       if (isCommercialProperty) return "Property";
