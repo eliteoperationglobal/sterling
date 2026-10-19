@@ -329,30 +329,17 @@ export default function AuditPage() {
 
   const nearestDueDays = upcomingOpenDays.length > 0 ? Math.min(...upcomingOpenDays) : null;
 
-  // Documents received across all audits in the queue
-  let docsTotal = 0;
-  let docsReceived = 0;
-  let openDocsTotal = 0;
-  let openDocsReceived = 0;
+  // Uploaded documents count across all audits in the queue
+  let totalUploadedDocs = 0;
+  let auditsWithDocs = 0;
 
   audits.forEach(a => {
-    const isAuditOpen = (a.status || "").trim().toUpperCase() !== "COMPLETE" && (a.status || "").trim().toUpperCase() !== "CANCELLED";
-    if (a.documents && a.documents.length > 0) {
-      docsTotal += a.documents.length;
-      const rec = a.documents.filter((d: any) => 
-        d.status === "RECEIVED" || d.status === "VERIFIED" || d.status === "WAIVED" || (!!d.fileUrl && d.status !== "REJECTED")
-      ).length;
-      docsReceived += rec;
-
-      if (isAuditOpen) {
-        openDocsTotal += a.documents.length;
-        openDocsReceived += rec;
-      }
+    const uploadedCount = a.documents?.filter((d: any) => !!d.fileUrl).length || 0;
+    if (uploadedCount > 0) {
+      totalUploadedDocs += uploadedCount;
+      auditsWithDocs++;
     }
   });
-
-  const docsReceivedPercent = docsTotal > 0 ? Math.round((docsReceived / docsTotal) * 100) : 0;
-  const openPendingDocs = openDocsTotal - openDocsReceived;
 
   // Pure Additional Premium Issued computation (Premium Difference without taxes and fees)
   const additionalPremiumIssued = audits.reduce((acc, a) => {
@@ -566,16 +553,16 @@ export default function AuditPage() {
 
               <div className="bg-white rounded-2xl border border-[#e5ddd5] p-5 shadow-sm flex items-center gap-4">
                 <div className="w-12 h-12 bg-indigo-50 rounded-full flex items-center justify-center flex-shrink-0">
-                  <CheckCircle className="w-6 h-6 text-indigo-600" />
+                  <FileText className="w-6 h-6 text-indigo-600" />
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-500 mb-0.5">Documents Received</p>
-                  <p className="text-2xl font-bold text-gray-900">{docsReceivedPercent}%</p>
+                  <p className="text-2xl font-bold text-gray-900">{totalUploadedDocs}</p>
                   <p className="text-[11px] text-gray-400 font-medium mt-0.5">
-                    {openAudits.length > 0 && openPendingDocs > 0 ? (
-                      <span>{docsReceived} of {docsTotal} Documents ({openPendingDocs} pending in open)</span>
+                    {totalUploadedDocs > 0 ? (
+                      <span>Across {auditsWithDocs} {auditsWithDocs === 1 ? "audit" : "audits"}</span>
                     ) : (
-                      <span>{docsReceived} of {docsTotal} Documents</span>
+                      <span>No files uploaded yet</span>
                     )}
                   </p>
                 </div>
@@ -726,10 +713,7 @@ export default function AuditPage() {
                     <tr><td colSpan={8} className="text-center py-12 text-gray-500">No audits match your filters.</td></tr>
                   ) : (
                     filteredAudits.map((audit) => {
-                      const docsTotal = audit.documents?.length || 0;
-                      const docsReceived = audit.documents?.filter((d: any) => 
-                        d.status === "RECEIVED" || d.status === "VERIFIED" || d.status === "WAIVED" || (!!d.fileUrl && d.status !== "REJECTED")
-                      ).length || 0;
+                      const uploadedDocsCount = audit.documents?.filter((d: any) => !!d.fileUrl).length || 0;
 
                       const dueDateObj = audit.dueDate ? new Date(audit.dueDate) : null;
                       const isValidDueDate = !!dueDateObj && !isNaN(dueDateObj.getTime());
@@ -766,15 +750,16 @@ export default function AuditPage() {
                             <p className="text-xs text-gray-500 mt-0.5">Est. ${audit.estimatedExposure?.toLocaleString() || "0"}</p>
                           </td>
                           <td className="px-6 py-4">
-                            <div className="flex items-center justify-between text-xs text-gray-600 mb-1">
-                              <span>{docsReceived} of {docsTotal}</span>
-                            </div>
-                            <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
-                              <div
-                                className={`h-1.5 rounded-full ${docsReceived === docsTotal && docsTotal > 0 ? 'bg-emerald-500' : 'bg-blue-500'}`}
-                                style={{ width: `${docsTotal > 0 ? (docsReceived / docsTotal) * 100 : 0}%` }}
-                              ></div>
-                            </div>
+                            {uploadedDocsCount > 0 ? (
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+                                <FileText className="w-3.5 h-3.5" />
+                                {uploadedDocsCount} {uploadedDocsCount === 1 ? "File" : "Files"}
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 text-xs text-gray-400 font-medium">
+                                0 Files
+                              </span>
+                            )}
                           </td>
                           <td className="px-6 py-4">
                             <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold border ${getStatusPillColor(audit.status)}`}>

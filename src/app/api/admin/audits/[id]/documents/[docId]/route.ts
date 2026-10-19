@@ -62,17 +62,8 @@ export async function DELETE(
       }
     }
 
-    // 3. If it was a named audit requirement (e.g. Tax Return), keep requirement slot and reset status to REQUESTED
-    const isRequirement = docToDelete.name === "Tax Return" || docToDelete.name === "Year-End P&L";
-    if (isRequirement) {
-      docToDelete.fileUrl = undefined;
-      docToDelete.fileName = undefined;
-      docToDelete.status = "REQUESTED";
-      docToDelete.uploadedAt = undefined;
-      docToDelete.uploadedBy = undefined;
-    } else {
-      audit.documents = audit.documents.filter((doc: any) => doc.documentId !== docId && doc._id?.toString() !== docId);
-    }
+    // 3. Remove document from audit
+    audit.documents = audit.documents.filter((doc: any) => doc.documentId !== docId && doc._id?.toString() !== docId);
 
     // If no documents with fileUrl remain and status was DOCS_RECEIVED, revert to REQUESTED
     const hasRemainingFiles = audit.documents.some((d: any) => !!d.fileUrl);

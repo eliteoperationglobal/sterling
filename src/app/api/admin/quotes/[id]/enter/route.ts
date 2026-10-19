@@ -297,6 +297,9 @@ export async function POST(
       existingQuote.specialNotes = specialNotes || undefined;
       existingQuote.customDocuments = customDocuments || [];
       existingQuote.policyType = policyType || 'GENERAL_LIABILITY';
+      if (premiumFinanceTerms?.premiumFinanceAgreement) {
+        existingQuote.premiumFinanceAgreementUrl = premiumFinanceTerms.premiumFinanceAgreement;
+      }
       // 🛑 PROTECTION: If the quote is already BOUND, do NOT downgrade it to POSTED.
       if (existingQuote.status !== "BOUND") {
         existingQuote.status = "POSTED";
@@ -360,6 +363,7 @@ export async function POST(
         specialNotes: specialNotes || undefined,
         customDocuments: customDocuments || [],
         policyType: policyType || 'GENERAL_LIABILITY',
+        premiumFinanceAgreementUrl: premiumFinanceTerms?.premiumFinanceAgreement || undefined,
         status: "POSTED", // Posted to broker
         enteredByAdminId: (session.user as any).id,
         enteredAt: new Date(),
@@ -553,6 +557,20 @@ export async function POST(
               premiumFinanceAgreementUrl,
             });
             console.log(`✅ Premium Finance Agreement PDF saved: ${premiumFinanceAgreementUrl}`);
+
+            // Also attach to submission files so agency and admin can see it directly under documents
+            await Submission.findByIdAndUpdate(submissionId, {
+              $push: {
+                files: {
+                  fieldKey: "premiumFinanceAgreement",
+                  fileName: "Premium Finance Agreement.pdf",
+                  fileUrl: premiumFinanceAgreementUrl,
+                  fileSize: buffer.length,
+                  mimeType: "application/pdf",
+                  status: "APPROVED",
+                }
+              }
+            });
           } else {
              console.error("❌ Failed to download Premium Finance Agreement PDF");
           }

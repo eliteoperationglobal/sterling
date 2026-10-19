@@ -84,7 +84,7 @@ export async function GET(
       if (quoteId) {
         quote = await Quote.findById(quoteId).populate("carrierId", "name");
       } else {
-        quote = await Quote.findOne({ submissionId: submission._id, policyType: { $in: [null, 'GENERAL_LIABILITY'] } }).populate("carrierId", "name");
+        quote = await Quote.findOne({ submissionId: submission._id, policyType: { $in: [null, 'GENERAL_LIABILITY', 'INLAND_MARINE'] } }).populate("carrierId", "name");
       }
       if (quote) {
         quote = quote.toObject();
@@ -118,8 +118,13 @@ export async function GET(
       submission.programName?.toLowerCase().includes("commercial property");
 
     const isContractors = submission.programId === "contractors-equipment" ||
+      submission.programId === "inland-marine" ||
+      submission.payload?.programId === "contractors-equipment" ||
+      submission.payload?.programId === "inland-marine" ||
       submission.programName?.toLowerCase().includes("contractors equipment") ||
-      submission.programName?.toLowerCase().includes("construction equipment");
+      submission.programName?.toLowerCase().includes("inland marine") ||
+      submission.programName?.toLowerCase().includes("construction equipment") ||
+      submission.programName?.toLowerCase().includes("equipment");
 
     const isBuildersRisk = submission.programId === "builders-risk" ||
       submission.programName?.toLowerCase().includes("builders risk") ||

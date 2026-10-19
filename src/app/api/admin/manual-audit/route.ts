@@ -137,18 +137,7 @@ export async function POST(req: NextRequest) {
       stampingFeeAmount: 0,
       netChange: 0,
       
-      documents: [
-        {
-          documentId: "DOC-" + Math.floor(1000 + Math.random() * 9000),
-          name: "Tax Return",
-          status: "REQUESTED"
-        },
-        {
-          documentId: "DOC-" + Math.floor(1000 + Math.random() * 9000),
-          name: "Year-End P&L",
-          status: "REQUESTED"
-        }
-      ]
+      documents: []
     });
 
     await newAudit.save();

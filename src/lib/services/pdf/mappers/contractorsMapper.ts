@@ -25,6 +25,7 @@ export interface ContractorsPacketData {
     applicationId: string;
     submissionId: string;
     submissionNumber?: string;
+    programName?: string;
     formDate: string;
     capitalCoLogoSVG?: string;
 
@@ -191,17 +192,22 @@ export function mapContractorsDataToPacketData(
     capitalCoLogoSVG?: string,
     quote?: any
 ): ContractorsPacketData {
+    const progName = submission?.programName || p?.programName || (
+        submission?.programId === "inland-marine" || p?.programId === "inland-marine" ? "Inland Marine" : "Contractors Equipment"
+    );
+
     return {
         // Metadata
-        applicationId: submission.applicationNumber || "Pending",
+        applicationId: submission.applicationNumber || submission.submissionNumber || p.applicationNumber || "Pending",
         submissionId: submissionId,
-        submissionNumber: submission.submissionNumber || submission.applicationNumber || "Pending",
+        submissionNumber: submission.submissionNumber || submission.applicationNumber || p.submissionNumber || "Pending",
+        programName: progName,
         formDate: submission.createdAt ? new Date(submission.createdAt).toLocaleDateString('en-US', { timeZone: 'UTC' }) : new Date().toLocaleDateString(),
         capitalCoLogoSVG,
 
         // Agency Information
         agencyName: agency?.name || "Unknown Agency",
-        agentName: submission?.agentName || "Unknown Agent",
+        agentName: p?.agentName || submission?.agentName || agency?.agentName || "Unknown Agent",
         agencyAddress: agency?.address?.street || agency?.address || "",
         agencyCity: agency?.address?.city || agency?.city || "",
         agencyState: agency?.address?.state || agency?.state || "",
@@ -210,7 +216,7 @@ export function mapContractorsDataToPacketData(
         agencyEmail: agency?.email || "",
 
         // Company Information
-        applicantName: p.companyName || `${p.firstName || ""} ${p.lastName || ""}`.trim() || "Unknown",
+        applicantName: p.companyName || `${p.firstName || ""} ${p.lastName || ""}`.trim() || p.applicantName || submission?.applicantName || "Unknown",
         firstName: p.firstName || "",
         lastName: p.lastName || "",
         companyName: p.companyName || "",
@@ -229,16 +235,16 @@ export function mapContractorsDataToPacketData(
         grossReceipts: p.grossReceipts || "$0",
 
         // Address Information
-        physAddress: p.physAddress || "",
-        physCity: p.physCity || "",
+        physAddress: p.physAddress || p.streetAddress || "",
+        physCity: p.physCity || p.city || "",
         physApt: p.physApt || "",
-        physState: p.physState || "",
-        physZip: p.physZip || "",
-        mailAddress: p.mailAddress || "",
-        mailApt: p.mailApt || "",
-        mailZip: p.mailZip || "",
-        mailCity: p.mailCity || "",
-        mailState: p.mailState || "",
+        physState: p.physState || p.state || "",
+        physZip: p.physZip || p.zip || "",
+        mailAddress: p.mailAddress || (p.sameAsMailing ? (p.physAddress || p.streetAddress || "") : ""),
+        mailApt: p.mailApt || (p.sameAsMailing ? (p.physApt || "") : ""),
+        mailZip: p.mailZip || (p.sameAsMailing ? (p.physZip || p.zip || "") : ""),
+        mailCity: p.mailCity || (p.sameAsMailing ? (p.physCity || p.city || "") : ""),
+        mailState: p.mailState || (p.sameAsMailing ? (p.physState || p.state || "") : ""),
         sameAsMailing: p.sameAsMailing || false,
 
         // Quote Details
@@ -254,15 +260,15 @@ export function mapContractorsDataToPacketData(
         miscToolsLimit: p.miscToolsLimit || "$10,000",
         lightMedLimit: p.lightMedLimit || "$0",
         heavyLimit: p.heavyLimit || "$0",
-        rentedEquipLimit: p.rentedEquipLimit || "$0",
+        rentedEquipLimit: p.rentedEquipLimit || p.rentedEquipLimitRental || "$0",
         installFloaterLimit: p.installFloaterLimit || "$0",
         officeContentsLimit: p.officeContentsLimit || "$0",
         computerDataMediaLimit: p.computerDataMediaLimit || "$0",
 
         // Equipment Schedules
-        lightMedItems: p.lightMedItems || [],
-        heavyItems: p.heavyItems || [],
-        rentedItems: p.rentedItems || [],
+        lightMedItems: Array.isArray(p.lightMedItems) ? p.lightMedItems : [],
+        heavyItems: Array.isArray(p.heavyItems) ? p.heavyItems : [],
+        rentedItems: Array.isArray(p.rentedItems) ? p.rentedItems : [],
 
         // Underwriting
         cancelled: p.cancelled ?? false,
@@ -301,13 +307,13 @@ export function mapContractorsDataToPacketData(
         // Interests
         hasLienholder: p.hasLienholder ?? false,
         lienholderExplain: p.lienholderExplain || "",
-        interests: p.interests || [],
+        interests: Array.isArray(p.interests) ? p.interests : [],
 
         // Payment
-        brokerFee: p.brokerFee || "$0.00",
-        displayBrokerFee: p.displayBrokerFee ?? true,
-        paymentOption: p.paymentOption || "",
-        terrorism: p.terrorism || false,
+        brokerFee: p.brokerFee || submission?.brokerFee || "$0.00",
+        displayBrokerFee: p.displayBrokerFee ?? submission?.displayBrokerFee ?? true,
+        paymentOption: p.paymentOption || submission?.paymentOption || "",
+        terrorism: p.terrorism ?? false,
 
         // Financials (if quote exists)
         premium: formatUSD(quote?.costs?.premium ?? quote?.carrierQuoteUSD ?? submission?.quote?.costs?.premium),

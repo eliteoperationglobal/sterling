@@ -193,18 +193,7 @@ export async function POST(req: NextRequest) {
         rate: 12.50, // Example default
         depositPremium: submission.payload?.totalPremium || 0,
         
-        documents: [
-          {
-            documentId: "DOC-" + Math.floor(1000 + Math.random() * 9000),
-            name: "Tax Return",
-            status: "REQUESTED"
-          },
-          {
-            documentId: "DOC-" + Math.floor(1000 + Math.random() * 9000),
-            name: "Year-End P&L",
-            status: "REQUESTED"
-          }
-        ]
+        documents: []
       });
       
       await audit.save();

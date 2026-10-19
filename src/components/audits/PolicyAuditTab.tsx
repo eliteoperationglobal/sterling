@@ -20,7 +20,8 @@ import {
   Eye, 
   UploadCloud, 
   X, 
-  Download 
+  Download,
+  Trash2
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -1084,13 +1085,21 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
           <div className="p-6 border-b border-gray-100 flex flex-wrap justify-between items-center gap-2">
             <div>
               <h3 className="text-[17px] font-bold text-gray-900">Supporting Documents</h3>
-              <p className="text-xs text-gray-500 mt-0.5">Upload required audit documents (Tax Returns, Year-End P&L statements)</p>
+              <p className="text-xs text-gray-500 mt-0.5">Upload and manage supporting audit documents</p>
             </div>
-            {audit.documents && audit.documents.length > 0 && (
-              <span className="text-xs font-semibold px-2.5 py-1 bg-gray-100 text-gray-700 rounded-full border border-gray-200">
-                {audit.documents.filter((d: any) => !!d.fileUrl).length} of {audit.documents.length} Uploaded
-              </span>
-            )}
+            {(() => {
+              const uploadedCount = (audit.documents || []).filter((d: any) => !!d.fileUrl).length;
+              return uploadedCount > 0 ? (
+                <span className="text-xs font-semibold px-2.5 py-1 bg-blue-50 text-blue-700 rounded-full border border-blue-200 flex items-center gap-1.5">
+                  <FileCheck className="w-3.5 h-3.5" />
+                  {uploadedCount} {uploadedCount === 1 ? "Document" : "Documents"} Uploaded
+                </span>
+              ) : (
+                <span className="text-xs font-medium px-2.5 py-1 bg-gray-100 text-gray-600 rounded-full border border-gray-200">
+                  0 Documents Uploaded
+                </span>
+              );
+            })()}
           </div>
           
           <div className="p-6">
@@ -1162,151 +1171,123 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
             <table className="w-full text-left">
               <thead>
                 <tr className="bg-gray-50/70 border-y border-gray-100">
-                  <th className="px-6 py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wide">Document Type / Name</th>
+                  <th className="px-6 py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wide">Document / File Name</th>
                   <th className="px-6 py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wide">Uploaded On</th>
+                  <th className="px-6 py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wide">Uploaded By</th>
                   <th className="px-6 py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wide">Status</th>
                   <th className="px-6 py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wide text-right">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {(!audit.documents || audit.documents.length === 0) && (
-                  <tr>
-                    <td colSpan={4} className="px-6 py-8 text-center text-sm text-gray-500">
-                      No documents requested or uploaded yet
-                    </td>
-                  </tr>
-                )}
-                {audit.documents?.map((doc: any, i: number) => {
-                  const hasFile = !!doc.fileUrl;
-                  const isRequested = !hasFile || doc.status === "REQUESTED";
+                {(() => {
+                  const uploadedDocs = (audit.documents || []).filter((d: any) => !!d.fileUrl);
+                  if (uploadedDocs.length === 0) {
+                    return (
+                      <tr>
+                        <td colSpan={5} className="px-6 py-12 text-center">
+                          <div className="flex flex-col items-center justify-center text-gray-400">
+                            <div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center mb-3 border border-gray-200">
+                              <FileText className="w-6 h-6 text-gray-400" />
+                            </div>
+                            <p className="text-sm font-semibold text-gray-700">No documents uploaded yet</p>
+                            <p className="text-xs text-gray-400 mt-1 max-w-sm">
+                              Drag and drop your supporting files above or click &quot;Select Files&quot; to upload audit documents.
+                            </p>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  }
+                  return null;
+                })()}
+                {audit.documents?.filter((d: any) => !!d.fileUrl).map((doc: any, i: number) => {
                   const isVerified = doc.status === "VERIFIED";
-                  const isRowUploading = uploadingDocs && targetDocId === doc.documentId;
 
                   return (
                     <tr key={doc.documentId || doc._id || i} className="hover:bg-gray-50/50 transition-colors">
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
-                            hasFile ? "bg-blue-50 text-blue-600" : "bg-amber-50 text-amber-600"
-                          }`}>
-                            {hasFile ? <FileText className="w-5 h-5" /> : <Clock className="w-5 h-5" />}
+                          <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 bg-blue-50 text-blue-600">
+                            <FileText className="w-5 h-5" />
                           </div>
                           <div>
                             <div className="text-sm font-semibold text-gray-900">
-                              {doc.name || doc.fileName || "Supporting Document"}
+                              {doc.fileName || doc.name || "Supporting Document"}
                             </div>
-                            {hasFile && doc.fileName && doc.fileName !== doc.name && (
-                              <p className="text-xs text-gray-500 truncate max-w-xs">{doc.fileName}</p>
-                            )}
-                            {doc.uploadedBy && (
-                              <p className="text-[11px] text-gray-400">Uploaded by: {doc.uploadedBy}</p>
+                            {doc.name && doc.fileName && doc.name !== doc.fileName && (
+                              <p className="text-xs text-gray-500 truncate max-w-xs">{doc.name}</p>
                             )}
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-sm font-medium">
-                        {hasFile && doc.uploadedAt ? (
-                          <span className="text-gray-700">
-                            {new Date(doc.uploadedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-                          </span>
+                      <td className="px-6 py-4 text-sm font-medium text-gray-700">
+                        {doc.uploadedAt ? (
+                          new Date(doc.uploadedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
                         ) : (
-                          <span className="text-amber-600 font-semibold text-xs flex items-center gap-1.5">
-                            <Clock className="w-3.5 h-3.5" />
-                            Awaiting upload
-                          </span>
+                          "—"
                         )}
+                      </td>
+                      <td className="px-6 py-4 text-xs text-gray-500 font-medium">
+                        {doc.uploadedBy || "System Admin"}
                       </td>
                       <td className="px-6 py-4">
                         <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border ${
                           isVerified 
-                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
-                            : hasFile 
-                            ? 'bg-blue-50 text-blue-700 border-blue-200'
-                            : 'bg-amber-50 text-amber-700 border-amber-200'
+                            ? "bg-emerald-50 text-emerald-700 border-emerald-200" 
+                            : "bg-blue-50 text-blue-700 border-blue-200"
                         }`}>
                           {isVerified ? (
                             <CheckCircle className="w-3.5 h-3.5" />
-                          ) : hasFile ? (
-                            <FileCheck className="w-3.5 h-3.5" />
                           ) : (
-                            <Clock className="w-3.5 h-3.5" />
+                            <FileCheck className="w-3.5 h-3.5" />
                           )}
-                          {doc.status || (hasFile ? "RECEIVED" : "REQUESTED")}
+                          {doc.status || "RECEIVED"}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-2">
-                          {/* If not yet uploaded, show primary Upload button */}
-                          {isRequested && (
+                          <a 
+                            href={`/api/download?url=${encodeURIComponent(doc.fileUrl)}&view=true`} 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition cursor-pointer" 
+                            title="View document"
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                            <span>View</span>
+                          </a>
+                          <a 
+                            href={`/api/download?url=${encodeURIComponent(doc.fileUrl)}`} 
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition cursor-pointer" 
+                            title="Download document"
+                          >
+                            <Download className="w-3.5 h-3.5" />
+                            <span>Download</span>
+                          </a>
+
+                          {isAdmin && (
                             <button
                               type="button"
-                              onClick={() => triggerRowUpload(doc.documentId)}
-                              disabled={uploadingDocs}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg shadow-sm transition disabled:opacity-50"
+                              onClick={() => handleToggleVerify(doc.documentId || doc._id, isVerified ? "RECEIVED" : "VERIFIED")}
+                              className={`inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold rounded-lg transition cursor-pointer ${
+                                isVerified 
+                                  ? "text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200" 
+                                  : "text-gray-600 hover:text-emerald-700 hover:bg-emerald-50 border border-gray-200"
+                              }`}
+                              title={isVerified ? "Click to unmark verified" : "Click to mark verified"}
                             >
-                              <UploadCloud className="w-3.5 h-3.5" />
-                              {isRowUploading ? "Uploading..." : "Upload"}
+                              <CheckCircle className="w-3.5 h-3.5" />
+                              <span>{isVerified ? "Verified" : "Verify"}</span>
                             </button>
-                          )}
-
-                          {/* If file is uploaded, show View, Download, Replace & Admin Verify */}
-                          {hasFile && (
-                            <>
-                              <a 
-                                href={`/api/download?url=${encodeURIComponent(doc.fileUrl)}&view=true`} 
-                                target="_blank" 
-                                rel="noopener noreferrer" 
-                                className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
-                                title="View in new tab"
-                              >
-                                <Eye className="w-3.5 h-3.5" />
-                                <span>View</span>
-                              </a>
-                              <a 
-                                href={`/api/download?url=${encodeURIComponent(doc.fileUrl)}`} 
-                                className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
-                                title="Download"
-                              >
-                                <Download className="w-3.5 h-3.5" />
-                                <span>Download</span>
-                              </a>
-                              
-                              <button
-                                type="button"
-                                onClick={() => triggerRowUpload(doc.documentId)}
-                                disabled={uploadingDocs}
-                                className="inline-flex items-center gap-1 px-2 py-1.5 text-xs font-semibold text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition"
-                                title="Replace file"
-                              >
-                                <UploadCloud className="w-3.5 h-3.5" />
-                                <span className="hidden sm:inline">Replace</span>
-                              </button>
-
-                              {isAdmin && (
-                                <button
-                                  type="button"
-                                  onClick={() => handleToggleVerify(doc.documentId, isVerified ? "RECEIVED" : "VERIFIED")}
-                                  className={`inline-flex items-center gap-1 px-2 py-1.5 text-xs font-bold rounded-lg transition ${
-                                    isVerified 
-                                      ? "text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200" 
-                                      : "text-gray-600 hover:text-emerald-700 hover:bg-emerald-50 border border-gray-200"
-                                  }`}
-                                  title={isVerified ? "Click to unmark verified" : "Click to verify"}
-                                >
-                                  <CheckCircle className="w-3.5 h-3.5" />
-                                  <span>{isVerified ? "Verified" : "Verify"}</span>
-                                </button>
-                              )}
-                            </>
                           )}
 
                           <button 
                             type="button"
-                            onClick={() => openDeleteModal(doc.documentId)} 
-                            className="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition ml-1"
-                            title={hasFile ? "Delete uploaded file" : "Remove requirement"}
+                            onClick={() => openDeleteModal(doc.documentId || doc._id)} 
+                            className="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition ml-1 cursor-pointer"
+                            title="Delete file"
                           >
-                            <X className="w-4 h-4" />
+                            <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
                       </td>
@@ -1446,9 +1427,9 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
               <div className="w-16 h-16 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <AlertCircle className="w-8 h-8 text-rose-600" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Remove Document?</h3>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Delete Document?</h3>
               <p className="text-sm text-gray-500 mb-6">
-                Are you sure you want to remove this document? Required documents will be reset to pending upload status.
+                Are you sure you want to delete this document? This action cannot be undone.
               </p>
 
               <div className="flex gap-3 w-full">
@@ -1475,7 +1456,7 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
                       Deleting...
                     </>
                   ) : (
-                    "Remove Document"
+                    "Delete Document"
                   )}
                 </button>
               </div>

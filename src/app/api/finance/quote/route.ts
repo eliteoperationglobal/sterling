@@ -83,7 +83,9 @@ export async function POST(req: Request) {
       insuredName, 
       state = "CA",
       zip = "90210",
-      policyType = "GENERAL_LIABILITY" 
+      policyType = "GENERAL_LIABILITY",
+      policies: rawPolicies,
+      brokerFeeAmount = 0
     } = body;
 
     // Official AIS Coverage Codes from PFC 205 Dictionary (e.g. 19 = GEN LIAB)
@@ -96,17 +98,10 @@ export async function POST(req: Request) {
       UMBRELLA: "12",                // 12: UMBRELLA (UMB)
       COMMERCIAL_PACKAGE: "18",      // 18: PACKAGE (PKG)
       CYBER: "67",                   // 67: CYBER LIABILITY (CYLIA)
+      INLAND_MARINE: "16",           // 16: INLAND MARINE (INMAR)
+      COMMERCIAL_AUTO: "34",         // 34: BUSINESS AUTO (ATCOM)
+      WORKERS_COMP: "07",            // 07: WORKERS COMP (W/C)
     };
-
-    const selectedCoverageCode = AIS_COVERAGE_CODES[policyType] || "19";
-
-    console.log("[AIS API] Fetching quote for premium:", premiumAmount, "coverageCode:", selectedCoverageCode);
-
-    // 1. Get the Access Token securely
-    const accessToken = await getAISToken();
-
-    // 2. Get the Session Token securely
-    const sessionToken = await getAISSessionToken(accessToken);
 
     // Format date as MMDDYYYY which AIS expects
     const d = new Date();
@@ -114,6 +109,61 @@ export async function POST(req: Request) {
     const dd = String(d.getDate()).padStart(2, '0');
     const yyyy = d.getFullYear();
     const policyInceptionDate = `${mm}${dd}${yyyy}`;
+
+    // Support multiple policies combined into one finance agreement
+    const incomingPolicies: any[] = Array.isArray(rawPolicies) && rawPolicies.length > 0
+      ? rawPolicies
+      : [
+          {
+            policyType,
+            policyNumber: "TBD",
+            premiumAmount,
+            taxesAmount,
+            feesAmount,
+          }
+        ];
+
+    let grandTotalPremium = 0;
+    const formattedPolicies = incomingPolicies.map((p: any, idx: number) => {
+      const pPrem = Number(p.premiumAmount) || 0;
+      const pTax = Number(p.taxesAmount) || 0;
+      const pFee = Number(p.feesAmount) || 0;
+      grandTotalPremium += (pPrem + pTax + pFee);
+
+      const covCode = AIS_COVERAGE_CODES[p.policyType] || "19";
+      const coNumber = p.carrierCode || process.env.AIS_COMPANY_CODE || "7X31";
+
+      return {
+        policySequenceNumber: idx + 1,
+        policyNumber: p.policyNumber || "TBD",
+        policyInsuranceCompanyNumber: coNumber,
+        policyCoverageTypeCode: covCode,
+        policyInceptionDate: p.policyInceptionDate || policyInceptionDate,
+        policyTerm: p.policyTerm || "12",
+        policyPremiumAmount: pPrem.toFixed(2),
+        policyFee1Type: "T",
+        policyFee1Description: "TAXES",
+        policyFee1Amount: pTax.toFixed(2),
+        policyFee2Type: "F",
+        policyFee2Description: "FEES",
+        policyFee2Amount: pFee.toFixed(2),
+      };
+    });
+
+    const parsedBrokerFee = Number(brokerFeeAmount) || 0;
+    if (parsedBrokerFee > 0) {
+      grandTotalPremium += parsedBrokerFee;
+    }
+
+    console.log(
+      `[AIS API] Financing ${formattedPolicies.length} policy/policies. Grand total: $${grandTotalPremium.toFixed(2)}`
+    );
+
+    // 1. Get the Access Token securely
+    const accessToken = await getAISToken();
+
+    // 2. Get the Session Token securely
+    const sessionToken = await getAISSessionToken(accessToken);
 
     // Clean agent name to prevent invalid character rejections (like '&')
     const rawAgentName = "Sterling Agent"; // User can override in env if needed
@@ -143,24 +193,13 @@ export async function POST(req: Request) {
       account: {
         accountType: "C",
         calculateQuoteFlag: "Y",
-        totalPremiumAmount: (Number(premiumAmount) + Number(taxesAmount) + Number(feesAmount)).toFixed(2),
+        totalPremiumAmount: grandTotalPremium.toFixed(2),
+        ...(parsedBrokerFee > 0 ? {
+          brokerFeeAddonFlag: "Y",
+          brokerFeeAddonAmount: parsedBrokerFee.toFixed(2),
+        } : {})
       },
-      policies: [
-        {
-          policyNumber: "TBD",
-          policyInsuranceCompanyNumber: process.env.AIS_COMPANY_CODE || "7X31", // Valid code from client CSV (Accredited Specialty)
-          policyCoverageTypeCode: selectedCoverageCode, // Valid 2-digit code from client dictionary (19 for General Liability)
-          policyInceptionDate: policyInceptionDate,
-          policyTerm: "12",
-          policyPremiumAmount: Number(premiumAmount).toFixed(2),
-          policyFee1Type: "T", 
-          policyFee1Description: "TAXES",
-          policyFee1Amount: Number(taxesAmount).toFixed(2),
-          policyFee2Type: "F", 
-          policyFee2Description: "FEES",
-          policyFee2Amount: Number(feesAmount).toFixed(2)
-        }
-      ]
+      policies: formattedPolicies
     };
 
     // 4. Request the quote

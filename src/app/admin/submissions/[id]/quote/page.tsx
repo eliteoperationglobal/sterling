@@ -1521,29 +1521,81 @@ export default function AdminQuotePage() {
   };
 
   const fetchFinanceTerms = async () => {
-    if (!carrierQuoteUSD) {
-      toast.error("Please enter the carrier premium first");
-      return;
-    }
-
     setFetchingFinance(true);
     setFinanceError("");
 
     try {
-      const pPremium = parseCurrency(carrierQuoteUSD);
-      const pTaxes = parseCurrency(premiumTaxAmountUSD) + parseCurrency(fireMarshalTaxAmountUSD) + parseCurrency(stampingFeeAmountUSD) + parseCurrency(slasTransactionFeeAmountUSD);
-      const pFees = parseCurrency(policyFeeUSD) + parseCurrency(carrierFeesUSD) + parseCurrency(sterlingFeesUSD) + parseCurrency(fireMarshalFlatFeeUSD) + parseCurrency(stampingFeePerFilingUSD) + parseCurrency(slaServiceChargeUSD);
+      // 1. Snapshot live state of the currently-active policy tab
+      const liveState = {
+        selectedCarrierId,
+        carrierQuoteUSD,
+        carrierFeesUSD,
+        sterlingFeesUSD,
+        premiumTaxPercent,
+        premiumTaxAmountUSD,
+        stampingFeePercent,
+        stampingFeeAmountUSD,
+        stampingFeePerFilingUSD,
+        slaServiceChargeUSD,
+        slasTransactionFeePercent,
+        slasTransactionFeeAmountUSD,
+        fireMarshalTaxPercent,
+        fireMarshalTaxAmountUSD,
+        fireMarshalFlatFeeUSD,
+        policyFeeUSD,
+        policyNumber,
+      };
+
+      const allStates: Record<string, any> = {
+        ...policyStates,
+        [currentPolicyType]: liveState,
+      };
+
+      // 2. Gather all quoted policies to combine into ONE single agreement
+      const policyList: any[] = [];
+      for (const type of availablePolicies) {
+        const state = allStates[type];
+        if (!state?.carrierQuoteUSD) continue;
+        const prem = parseCurrency(state.carrierQuoteUSD);
+        if (isNaN(prem) || prem <= 0) continue;
+
+        const taxes = parseCurrency(state.premiumTaxAmountUSD) +
+                      parseCurrency(state.fireMarshalTaxAmountUSD) +
+                      parseCurrency(state.stampingFeeAmountUSD) +
+                      parseCurrency(state.slasTransactionFeeAmountUSD);
+
+        const fees = parseCurrency(state.policyFeeUSD) +
+                     parseCurrency(state.carrierFeesUSD) +
+                     parseCurrency(state.sterlingFeesUSD) +
+                     parseCurrency(state.fireMarshalFlatFeeUSD) +
+                     parseCurrency(state.stampingFeePerFilingUSD) +
+                     parseCurrency(state.slaServiceChargeUSD);
+
+        policyList.push({
+          policyType: type,
+          policyNumber: state.policyNumber || "TBD",
+          premiumAmount: prem.toString(),
+          taxesAmount: taxes.toString(),
+          feesAmount: fees.toString(),
+        });
+      }
+
+      if (policyList.length === 0) {
+        toast.error("Please enter a carrier premium first");
+        return;
+      }
 
       const response = await fetch("/api/finance/quote", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          premiumAmount: pPremium.toString(),
-          taxesAmount: pTaxes.toString(),
-          feesAmount: pFees.toString(),
+          policies: policyList,
+          premiumAmount: policyList[0].premiumAmount,
+          taxesAmount: policyList[0].taxesAmount,
+          feesAmount: policyList[0].feesAmount,
+          policyType: policyList[0].policyType,
           insuredName: submission?.payload?.companyName || submission?.payload?.applicantName || submission?.payload?.namedInsured || submission?.clientContact?.name || "Client",
           state: getStateCode((submission as any)?.state || (submission as any)?.clientContact?.businessAddress?.state || "CA"),
-          policyType: currentPolicyType,
         }),
       });
 
@@ -1553,7 +1605,11 @@ export default function AdminQuotePage() {
       }
 
       setFinanceTerms(data.data);
-      toast.success("Finance terms retrieved successfully!");
+      if (policyList.length > 1) {
+        toast.success(`Combined finance terms retrieved for ${policyList.length} policies!`);
+      } else {
+        toast.success("Finance terms retrieved successfully!");
+      }
     } catch (err: any) {
       console.error(err);
       setFinanceError(err.message);
@@ -3182,11 +3238,16 @@ export default function AdminQuotePage() {
                       </svg>
                     </div>
                     Premium Finance Quote
+                    {availablePolicies.length > 1 && (
+                      <span className="text-xs bg-indigo-100 text-indigo-700 font-semibold px-2 py-0.5 rounded-full border border-indigo-200">
+                        Combined Agreement
+                      </span>
+                    )}
                   </h3>
                   <button
                     type="button"
                     onClick={fetchFinanceTerms}
-                    disabled={fetchingFinance || !carrierQuoteUSD}
+                    disabled={fetchingFinance || !isReadyToSubmit}
                     className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-bold hover:bg-indigo-700 disabled:opacity-50 transition-colors flex items-center gap-2 shadow-sm"
                   >
                     {fetchingFinance ? "Calculating..." : "Get Finance Terms"}
@@ -3199,9 +3260,6 @@ export default function AdminQuotePage() {
 
                 {financeTerms && (
                   <div className="bg-white p-5 rounded-lg border border-indigo-100 space-y-3">
-                    <pre className="text-xs text-indigo-900 bg-indigo-50 p-2 rounded overflow-auto max-w-full">
-                      DEBUG: {JSON.stringify(financeTerms, null, 2)}
-                    </pre>
                     <div className="flex justify-between items-center py-2 border-b border-gray-100">
                       <span className="text-gray-600 font-medium">Down Payment</span>
                       <span className="text-gray-900 font-bold">${financeTerms.totalDownpayAmount}</span>
@@ -3222,6 +3280,37 @@ export default function AdminQuotePage() {
                       <span className="text-indigo-900 font-bold">Monthly Payment</span>
                       <span className="text-indigo-600 font-black text-xl">${financeTerms.paymentAmount}</span>
                     </div>
+
+                    {(financeTerms.premiumFinanceAgreement || financeTerms.premiumFinanceQuote) && (
+                      <div className="pt-3 border-t border-gray-100 flex flex-wrap gap-3 mt-3">
+                        {financeTerms.premiumFinanceAgreement && (
+                          <a
+                            href={financeTerms.premiumFinanceAgreement}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold text-sm rounded-lg border border-indigo-200 transition-colors shadow-sm"
+                          >
+                            <svg className="w-4 h-4 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            View Finance Agreement (PDF)
+                          </a>
+                        )}
+                        {financeTerms.premiumFinanceQuote && (
+                          <a
+                            href={financeTerms.premiumFinanceQuote}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-gray-50 hover:bg-gray-100 text-gray-700 font-semibold text-sm rounded-lg border border-gray-200 transition-colors shadow-sm"
+                          >
+                            <svg className="w-4 h-4 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            View Finance Quote (PDF)
+                          </a>
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

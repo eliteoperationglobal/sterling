@@ -113,7 +113,13 @@ export async function GET(
       submission.programName?.toLowerCase().includes("commercial property");
 
     const isContractors = submission.programId === "contractors-equipment" ||
-      submission.programName?.toLowerCase().includes("contractors equipment");
+      submission.programId === "inland-marine" ||
+      submission.payload?.programId === "contractors-equipment" ||
+      submission.payload?.programId === "inland-marine" ||
+      submission.programName?.toLowerCase().includes("contractors equipment") ||
+      submission.programName?.toLowerCase().includes("inland marine") ||
+      submission.programName?.toLowerCase().includes("construction equipment") ||
+      submission.programName?.toLowerCase().includes("equipment");
 
     const isBuildersRisk = submission.programId === "builders-risk" ||
       submission.programName?.toLowerCase().includes("builders risk");

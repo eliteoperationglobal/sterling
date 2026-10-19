@@ -403,7 +403,13 @@ export async function GET(
     const useApartmentTemplate = isApartment && !isCommercialProperty;
 
     const isContractors = submission.programId === "contractors-equipment" || 
-                         submission.programName?.toLowerCase().includes("contractors equipment");
+                         submission.programId === "inland-marine" ||
+                         submission.payload?.programId === "contractors-equipment" ||
+                         submission.payload?.programId === "inland-marine" ||
+                         submission.programName?.toLowerCase().includes("contractors equipment") ||
+                         submission.programName?.toLowerCase().includes("inland marine") ||
+                         submission.programName?.toLowerCase().includes("construction equipment") ||
+                         submission.programName?.toLowerCase().includes("equipment");
 
     const templateType = useApartmentTemplate ? "apartment" : isCommercialProperty ? "commercial" : isContractors ? "contractors" : "standard";
 

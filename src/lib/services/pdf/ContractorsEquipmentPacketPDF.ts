@@ -3624,7 +3624,7 @@ function generatePage1(data: ContractorsPacketData): string {
 
                 <!-- Application ID -->
                 <div class="application-id-large-page2">
-                    Contractors Equipment Application ID: ${data.submissionNumber || data.applicationId || "Pending"}
+                    ${data.programName || "Contractors Equipment"} Application ID: ${data.submissionNumber || data.applicationId || "Pending"}
                 </div>
 
                 <!-- 3 Column Layout -->
@@ -3650,7 +3650,7 @@ function generatePage1(data: ContractorsPacketData): string {
                     <!-- Quote Information -->
                     <div>
                         <div class="section-title-page2">Quote Information</div>
-                        <div class="quote-detail-page2">CONTRACTORS EQUIPMENT</div>
+                        <div class="quote-detail-page2">${(data.programName || "CONTRACTORS EQUIPMENT").toUpperCase()}</div>
                         <div class="quote-detail-page2">Entity: <strong>${data.entityType || "-"}</strong></div>
                         <div class="quote-detail-page2">License #: <strong>${data.licenseNum || "N/A"}</strong></div>
                         <div class="quote-detail-page2">
@@ -3772,114 +3772,243 @@ function generatePage2(data: ContractorsPacketData): string {
 }
 
 
-function generatePage3(data: ContractorsPacketData): string {
-	const renderTable = (items: EquipmentItem[]) => {
-		if (!items || items.length === 0) return '<div class="explanation-text" style="background: transparent; border: none; padding: 10px 0; font-style: italic;">No items scheduled for this category.</div>';
+function generateEquipmentAndClosingPages(data: ContractorsPacketData): string {
+	const lightItems = Array.isArray(data.lightMedItems) ? data.lightMedItems : [];
+	const heavyItems = Array.isArray(data.heavyItems) ? data.heavyItems : [];
+	const interestsList = Array.isArray(data.interests)
+		? data.interests.filter(ai => ai && (ai.name || ai.address))
+		: [];
+
+	const formatValuation = (val: any) => {
+		if (!val && val !== 0) return "-";
+		const str = String(val).trim();
+		if (str.startsWith("$")) return str;
+		const num = parseFloat(str.replace(/[^0-9.]/g, ""));
+		if (isNaN(num)) return str || "-";
+		return `$${num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+	};
+
+	const renderEquipmentTableHeader = () => `
+        <thead>
+            <tr>
+                <th style="width: 18%;">TYPE</th>
+                <th style="width: 8%;">YEAR</th>
+                <th style="width: 34%;">MAKE / MODEL</th>
+                <th style="width: 25%;">SERIAL / VIN</th>
+                <th style="width: 15%; text-align: right;">VALUATION</th>
+            </tr>
+        </thead>
+    `;
+
+	const renderEquipmentRow = (it: EquipmentItem) => {
+		const typeDisplay = it.type === 'Other' && it.description ? `Other: ${it.description}` : (it.type || '-');
+		const makeModel = `${it.make || ''} ${it.model || ''}`.trim() || '-';
 		return `
-            <table>
-                <thead>
-                    <tr>
-                        <th style="width: 15%;">TYPE</th>
-                        <th style="width: 10%;">YEAR</th>
-                        <th style="width: 35%;">MAKE / MODEL</th>
-                        <th style="width: 25%;">SERIAL / VIN</th>
-                        <th style="width: 15%; text-align: right;">VALUATION</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${items.map(it => `
-                        <tr>
-                            <td>${it.type === 'Other' && it.description ? `Other: ${it.description}` : it.type}</td>
-                            <td>${it.year}</td>
-                            <td>${it.make} ${it.model}</td>
-                            <td>${it.serialNumber}</td>
-                            <td style="text-align: right; font-weight: bold;">${it.valuation}</td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
+            <tr>
+                <td>${typeDisplay}</td>
+                <td>${it.year || '-'}</td>
+                <td>${makeModel}</td>
+                <td>${it.serialNumber || '-'}</td>
+                <td style="text-align: right; font-weight: bold;">${formatValuation(it.valuation)}</td>
+            </tr>
         `;
 	};
 
-	return `
-        <div class="page page2-isc">
-            <div class="main-content main-content-page2">
-                <div class="section-container" style="margin-top: 0;">
-                    <div class="section-header">6. SCHEDULED EQUIPMENT (LIGHT / MEDIUM)</div>
-                    <hr class="section-divider" />
-                    <div style="margin-bottom: 20px;">
-                        ${renderTable(data.lightMedItems)}
-                    </div>
+	const renderInterestsSection = () => `
+        <div class="section-container">
+            <div class="section-header">9. ADDITIONAL INTERESTS / LIENHOLDERS</div>
+            <hr class="section-divider" />
+            ${renderYesNo("Are there any lienholders or additional interests for this policy?", data.hasLienholder, data.lienholderExplain)}
+            
+            ${interestsList.length > 0 ? `
+                <div style="margin-top: 10px;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 30%;">NAME</th>
+                                <th style="width: 20%;">CONTRACT #</th>
+                                <th style="width: 30%;">ADDRESS</th>
+                                <th style="width: 20%;">CITY/ST/ZIP</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${interestsList.map(ai => `
+                                <tr>
+                                    <td>${ai.name || '-'}</td>
+                                    <td>${ai.contractNumber || '-'}</td>
+                                    <td>${[ai.address, ai.aptSuite].filter(Boolean).join(' ') || '-'}</td>
+                                    <td>${[ai.city, [ai.state, ai.zip].filter(Boolean).join(' ')].filter(Boolean).join(', ') || '-'}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
                 </div>
+            ` : ''}
+        </div>
+    `;
 
-                <div class="section-container">
-                    <div class="section-header">7. SCHEDULED EQUIPMENT (HEAVY)</div>
-                    <hr class="section-divider" />
-                    <div style="margin-bottom: 20px;">
-                        ${renderTable(data.heavyItems)}
-                    </div>
-                </div>
+	const renderPaymentAndSignaturesSection = () => `
+        <div class="section-container">
+            <div class="section-header">10. PAYMENT & COVERAGE SELECTIONS</div>
+            <hr class="section-divider" />
+            ${renderField("Settlement/Payment Option", data.paymentOption || "Full Pay")}
+            ${renderField("Broker Fee Amount", data.brokerFee || "$0.00")}
+            ${renderYesNo("Bundle Coverage Selected?", data.bundle)}
+            ${renderYesNo("Terrorism Coverage Selected?", data.terrorism)}
+        </div>
 
-                <div class="section-container">
-                    <div class="section-header">9. ADDITIONAL INTERESTS / LIENHOLDERS</div>
-                    <hr class="section-divider" />
-                    ${renderYesNo("Are there any lienholders or additional interests for this policy?", data.hasLienholder, data.lienholderExplain)}
-                    
-                    ${data.interests?.length > 0 ? `
-                        <div style="margin-top: 10px;">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th style="width: 30%;">NAME</th>
-                                        <th style="width: 20%;">CONTRACT #</th>
-                                        <th style="width: 30%;">ADDRESS</th>
-                                        <th style="width: 20%;">CITY/ST/ZIP</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ${data.interests.map(ai => `
-                                        <tr>
-                                            <td>${ai.name}</td>
-                                            <td>${ai.contractNumber}</td>
-                                            <td>${ai.address} ${ai.aptSuite || ""}</td>
-                                            <td>${ai.city}, ${ai.state} ${ai.zip}</td>
-                                        </tr>
-                                    `).join('')}
-                                </tbody>
-                            </table>
-                        </div>
-                    ` : ''}
-                </div>
+        <div class="signature-grid-row signature-grid-row-large">
+            <div class="signature-col">
+                ${renderSignatureRow("Applicant Signature:", "")}
+            </div>
+            <div class="signature-col">
+                ${renderSignatureRow("Date:", "")}
+            </div>
+        </div>
 
-                <div class="section-container">
-                    <div class="section-header">10. PAYMENT & COVERAGE SELECTIONS</div>
-                    <hr class="section-divider" />
-                    ${renderField("Settlement/Payment Option", data.paymentOption)}
-                    ${renderField("Broker Fee Amount", data.brokerFee)}
-                    ${renderYesNo("Bundle Coverage Selected?", data.bundle)}
-                    ${renderYesNo("Terrorism Coverage Selected?", data.terrorism)}
-                </div>
-
-                <div class="signature-grid-row signature-grid-row-large">
-                    <div class="signature-col">
-                        ${renderSignatureRow("Applicant Signature:", "")}
-                    </div>
-                    <div class="signature-col">
-                        ${renderSignatureRow("Date:", "")}
-                    </div>
-                </div>
-
-                <div class="signature-grid-row">
-                    <div class="signature-col">
-                        ${renderSignatureRow("Producer Signature:", "")}
-                    </div>
-                    <div class="signature-col">
-                        ${renderSignatureRow("Date:", "")}
-                    </div>
-                </div>
+        <div class="signature-grid-row">
+            <div class="signature-col">
+                ${renderSignatureRow("Producer Signature:", "")}
+            </div>
+            <div class="signature-col">
+                ${renderSignatureRow("Date:", "")}
             </div>
         </div>
     `;
+
+	const MAX_PAGE_HEIGHT = 860;
+	const closingHeight = 70 + (interestsList.length > 0 ? 40 + interestsList.length * 30 : 0) + 130 + 160;
+
+	const pages: string[] = [];
+	let currentContent = '';
+	let currentHeight = 0;
+	let tableOpen = false;
+
+	const openPage = () => {
+		currentContent = '';
+		currentHeight = 0;
+		tableOpen = false;
+	};
+
+	const closePage = () => {
+		if (tableOpen) {
+			currentContent += `</tbody></table></div>`;
+			tableOpen = false;
+		}
+		pages.push(`
+        <div class="page page2-isc">
+            <div class="main-content main-content-page2">
+                ${currentContent}
+            </div>
+        </div>
+        `);
+	};
+
+	openPage();
+
+	// ═══ Section 6: Light / Medium Equipment ═══
+	currentContent += `
+        <div class="section-container" style="margin-top: 0;">
+            <div class="section-header">6. SCHEDULED EQUIPMENT (LIGHT / MEDIUM)</div>
+            <hr class="section-divider" />
+    `;
+	currentHeight += 45;
+
+	if (lightItems.length === 0) {
+		currentContent += `
+            <div class="explanation-text" style="background: transparent; border: none; padding: 10px 0; font-style: italic;">No items scheduled for this category.</div>
+        </div>`;
+		currentHeight += 35;
+	} else {
+		currentContent += `<table>${renderEquipmentTableHeader()}<tbody>`;
+		tableOpen = true;
+		currentHeight += 35;
+
+		for (let i = 0; i < lightItems.length; i++) {
+			const item = lightItems[i];
+			const rowHeight = 30;
+
+			if (currentHeight + rowHeight > MAX_PAGE_HEIGHT) {
+				closePage();
+				openPage();
+				currentContent += `
+                    <div class="section-container" style="margin-top: 0;">
+                        <div class="section-header">6. SCHEDULED EQUIPMENT (LIGHT / MEDIUM) (CONTINUED)</div>
+                        <hr class="section-divider" />
+                        <table>${renderEquipmentTableHeader()}<tbody>
+                `;
+				tableOpen = true;
+				currentHeight = 80;
+			}
+
+			currentContent += renderEquipmentRow(item);
+			currentHeight += rowHeight;
+		}
+
+		currentContent += `</tbody></table></div>`;
+		tableOpen = false;
+	}
+
+	// ═══ Section 7: Heavy Equipment ═══
+	const sec7HeaderHeight = 45;
+	if (currentHeight + sec7HeaderHeight + 40 > MAX_PAGE_HEIGHT) {
+		closePage();
+		openPage();
+	}
+
+	currentContent += `
+        <div class="section-container" style="margin-top: ${currentHeight > 0 ? '15px' : '0'};">
+            <div class="section-header">7. SCHEDULED EQUIPMENT (HEAVY)</div>
+            <hr class="section-divider" />
+    `;
+	currentHeight += 45;
+
+	if (heavyItems.length === 0) {
+		currentContent += `
+            <div class="explanation-text" style="background: transparent; border: none; padding: 10px 0; font-style: italic;">No items scheduled for this category.</div>
+        </div>`;
+		currentHeight += 35;
+	} else {
+		currentContent += `<table>${renderEquipmentTableHeader()}<tbody>`;
+		tableOpen = true;
+		currentHeight += 35;
+
+		for (let i = 0; i < heavyItems.length; i++) {
+			const item = heavyItems[i];
+			const rowHeight = 30;
+
+			if (currentHeight + rowHeight > MAX_PAGE_HEIGHT) {
+				closePage();
+				openPage();
+				currentContent += `
+                    <div class="section-container" style="margin-top: 0;">
+                        <div class="section-header">7. SCHEDULED EQUIPMENT (HEAVY) (CONTINUED)</div>
+                        <hr class="section-divider" />
+                        <table>${renderEquipmentTableHeader()}<tbody>
+                `;
+				tableOpen = true;
+				currentHeight = 80;
+			}
+
+			currentContent += renderEquipmentRow(item);
+			currentHeight += rowHeight;
+		}
+
+		currentContent += `</tbody></table></div>`;
+		tableOpen = false;
+	}
+
+	// ═══ Section 9, 10 & Signatures ═══
+	if (currentHeight + closingHeight > MAX_PAGE_HEIGHT) {
+		closePage();
+		openPage();
+	}
+
+	currentContent += renderInterestsSection();
+	currentContent += renderPaymentAndSignaturesSection();
+	closePage();
+
+	return pages.join('\n');
 }
 
 
@@ -3927,13 +4056,29 @@ const cssContent = `
 	
 	.page {
 	  width: 8.5in;
-	  height: 11in;
+	  min-height: 11in;
 	  display: flex;
 	  position: relative;
 	  background: #fff;
 	  page-break-after: always;
-	  overflow: hidden;
-	  padding: 0; /* Resetting bootstrap/other padding */
+	  break-after: page;
+	  overflow: visible;
+	  padding: 0;
+	  box-sizing: border-box;
+	}
+
+	@media print {
+	  .page {
+	    page-break-after: always;
+	    break-after: page;
+	  }
+	  tr {
+	    page-break-inside: avoid;
+	    break-inside: avoid;
+	  }
+	  thead {
+	    display: table-header-group;
+	  }
 	}
 
 	.main-content {
@@ -4125,9 +4270,11 @@ const cssContent = `
     .signature-grid-row-large { margin-top: 35px !important; margin-bottom: 40px !important; }
     .signature-col { flex: 1; min-width: 0; }
 
-	table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+	table { width: 100%; border-collapse: collapse; margin-top: 8px; page-break-inside: auto; }
+	thead { display: table-header-group; }
+	tr { page-break-inside: avoid; break-inside: avoid; }
 	th { text-align: left; font-size: 9pt; font-weight: bold; text-transform: uppercase; color: #666; padding: 8px 5px; border-bottom: 1.5px solid #000; }
-	td { padding: 8px 5px; font-size: 9.5pt; color: #000; border-bottom: 1px solid #eee; }
+	td { padding: 7px 5px; font-size: 9.5pt; color: #000; border-bottom: 1px solid #eee; word-break: break-word; vertical-align: middle; }
 
 	/* ============================================
 	   PAGE 12 - INVOICE STATEMENT (ISC FORMAT)
@@ -4253,7 +4400,7 @@ export function generateContractorsPacketHTML(data: ContractorsPacketData): stri
         <body>
             ${generatePage1(data)}
             ${generatePage2(data)}
-            ${generatePage3(data)}
+            ${generateEquipmentAndClosingPages(data)}
         </body>
         </html>
     `;

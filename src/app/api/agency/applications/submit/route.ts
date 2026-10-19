@@ -260,7 +260,13 @@ export async function POST(req: NextRequest) {
                           programName?.toLowerCase().includes("commercial property");
 
       const isContractors = programId === "contractors-equipment" || 
-                           programName?.toLowerCase().includes("contractors equipment");
+                           programId === "inland-marine" ||
+                           submission.payload?.programId === "contractors-equipment" ||
+                           submission.payload?.programId === "inland-marine" ||
+                           programName?.toLowerCase().includes("contractors equipment") ||
+                           programName?.toLowerCase().includes("inland marine") ||
+                           programName?.toLowerCase().includes("construction equipment") ||
+                           programName?.toLowerCase().includes("equipment");
 
       const isManufacturers = programId === "manufacturers" ||
                              programName?.toLowerCase().includes("manufacturer");

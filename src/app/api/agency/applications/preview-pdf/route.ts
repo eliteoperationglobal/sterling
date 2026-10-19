@@ -84,7 +84,13 @@ export async function POST(req: NextRequest) {
                         programName?.toLowerCase().includes("commercial property");
 
     const isContractors = programId === "contractors-equipment" || 
-                         programName?.toLowerCase().includes("contractors equipment");
+                         programId === "inland-marine" ||
+                         formData?.programId === "contractors-equipment" ||
+                         formData?.programId === "inland-marine" ||
+                         programName?.toLowerCase().includes("contractors equipment") ||
+                         programName?.toLowerCase().includes("inland marine") ||
+                         programName?.toLowerCase().includes("construction equipment") ||
+                         programName?.toLowerCase().includes("equipment");
 
     const isBuildersRisk = programId === "builders-risk" || 
                            programName?.toLowerCase().includes("builders risk") ||
