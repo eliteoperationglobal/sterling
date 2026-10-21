@@ -25,6 +25,7 @@ import Link from "next/link";
 import { signOut } from "next-auth/react";
 import { toast } from "sonner";
 import PolicyAuditTab from "@/components/audits/PolicyAuditTab";
+import AgencyPremiumFinanceTab from "@/components/finance/AgencyPremiumFinanceTab";
 
 
 interface SubmissionDetails {
@@ -2149,7 +2150,14 @@ function SubmissionDetailsContent() {
         <div className="bg-white px-4 md:px-8 py-6 border-t border-gray-200">
           {/* Tabs */}
           <div className="flex items-center gap-6 md:gap-10 text-[14px] mb-6 border-b overflow-x-auto whitespace-nowrap" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-            {["Notes", "Status History", "Contact Information", "Rating Information", "Audits"].map(
+            {[
+              "Notes",
+              "Status History",
+              "Contact Information",
+              "Rating Information",
+              "Audits",
+              ...((submission?.payload?.paymentOption === "Premium Financial Partners Co." || (submission as any)?.paymentOption === "Premium Financial Partners Co.") ? ["Premium Financing"] : [])
+            ].map(
               (tab) => (
                 <button
                   key={tab}
@@ -2470,6 +2478,16 @@ function SubmissionDetailsContent() {
           {activeTab === "Audits" && (
             <div className="animate-in fade-in duration-300">
               <PolicyAuditTab submissionId={submissionId as string} />
+            </div>
+          )}
+
+          {(submission?.payload?.paymentOption === "Premium Financial Partners Co." || (submission as any)?.paymentOption === "Premium Financial Partners Co.") && activeTab === "Premium Financing" && (
+            <div className="animate-in fade-in duration-300">
+              <AgencyPremiumFinanceTab
+                submission={submission}
+                quotes={data?.quotes || []}
+                mutate={mutate}
+              />
             </div>
           )}
         </div>

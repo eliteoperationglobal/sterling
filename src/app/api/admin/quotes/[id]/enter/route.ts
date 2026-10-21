@@ -539,10 +539,14 @@ export async function POST(
       // Continue even if PDF fails - we can regenerate later
     }
 
-    // Download Premium Finance Agreement if available
+    // Download and attach Premium Finance Documents (Agreement & Quote) if available
     let premiumFinanceAgreementUrl = "";
+    let premiumFinanceQuoteUrl = "";
     if (premiumFinanceTerms) {
       const pfaUrl = premiumFinanceTerms.premiumFinanceAgreement || premiumFinanceTerms.premiumFinanceAgreementPdfURL || premiumFinanceTerms.premiumFinanceAgreementUrl;
+      const pfqUrl = premiumFinanceTerms.premiumFinanceQuote || premiumFinanceTerms.premiumFinanceQuotePdfURL || premiumFinanceTerms.premiumFinanceQuoteUrl;
+
+      // 1. Download & Save Agreement PDF
       if (pfaUrl) {
         try {
           console.log(`📄 Downloading Premium Finance Agreement PDF from ${pfaUrl}...`);
@@ -550,7 +554,7 @@ export async function POST(
           if (pfaResponse.ok) {
             const arrayBuffer = await pfaResponse.arrayBuffer();
             const buffer = Buffer.from(arrayBuffer);
-            const fileName = `finance-agreement-${quote._id.toString()}.pdf`;
+            const fileName = `finance-agreement-${submissionId}.pdf`;
             premiumFinanceAgreementUrl = await savePDFToStorage(buffer, fileName);
             
             await Quote.findByIdAndUpdate(quote._id, {
@@ -558,7 +562,12 @@ export async function POST(
             });
             console.log(`✅ Premium Finance Agreement PDF saved: ${premiumFinanceAgreementUrl}`);
 
-            // Also attach to submission files so agency and admin can see it directly under documents
+            // Remove any previous file with this key to prevent duplicates
+            await Submission.findByIdAndUpdate(submissionId, {
+              $pull: { files: { fieldKey: "premiumFinanceAgreement" } }
+            });
+
+            // Attach to submission files
             await Submission.findByIdAndUpdate(submissionId, {
               $push: {
                 files: {
@@ -572,10 +581,48 @@ export async function POST(
               }
             });
           } else {
-             console.error("❌ Failed to download Premium Finance Agreement PDF");
+            console.error("❌ Failed to download Premium Finance Agreement PDF");
           }
         } catch (err) {
-          console.error("❌ Premium Finance Agreement PDF generation error:", err);
+          console.error("❌ Premium Finance Agreement PDF error:", err);
+        }
+      }
+
+      // 2. Download & Save Quote PDF
+      if (pfqUrl) {
+        try {
+          console.log(`📄 Downloading Premium Finance Quote PDF from ${pfqUrl}...`);
+          const pfqResponse = await fetch(pfqUrl);
+          if (pfqResponse.ok) {
+            const arrayBuffer = await pfqResponse.arrayBuffer();
+            const buffer = Buffer.from(arrayBuffer);
+            const fileName = `finance-quote-${submissionId}.pdf`;
+            premiumFinanceQuoteUrl = await savePDFToStorage(buffer, fileName);
+
+            // Remove any previous file with this key to prevent duplicates
+            await Submission.findByIdAndUpdate(submissionId, {
+              $pull: { files: { fieldKey: "premiumFinanceQuote" } }
+            });
+
+            // Attach to submission files
+            await Submission.findByIdAndUpdate(submissionId, {
+              $push: {
+                files: {
+                  fieldKey: "premiumFinanceQuote",
+                  fileName: "Premium Finance Quote.pdf",
+                  fileUrl: premiumFinanceQuoteUrl,
+                  fileSize: buffer.length,
+                  mimeType: "application/pdf",
+                  status: "APPROVED",
+                }
+              }
+            });
+            console.log(`✅ Premium Finance Quote PDF saved: ${premiumFinanceQuoteUrl}`);
+          } else {
+            console.error("❌ Failed to download Premium Finance Quote PDF");
+          }
+        } catch (err) {
+          console.error("❌ Premium Finance Quote PDF error:", err);
         }
       }
     }
