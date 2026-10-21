@@ -295,6 +295,7 @@ export default function AdminSubmissionDetailsPage() {
   const [profileOpen, setProfileOpen] = useState(false);
   const [ratingData, setRatingData] = useState<any>(null);
   const [selectedCarrierId, setSelectedCarrierId] = useState<string | null>(null);
+  const [selectedCarriersByPolicy, setSelectedCarriersByPolicy] = useState<Record<string, string>>({});
   const [currentPolicyType, setCurrentPolicyType] = useState<string>("GENERAL_LIABILITY");
   const [availablePolicies, setAvailablePolicies] = useState<string[]>([]);
   const [ratingLoading, setRatingLoading] = useState(false);
@@ -405,16 +406,43 @@ export default function AdminSubmissionDetailsPage() {
   }, [data?.quotes]);
 
   useEffect(() => {
-    if (carrierGroups.length > 0 && !selectedCarrierId) {
-      // DEFAULT TO BOUND CARRIER IF EXISTS
-      const boundQuote = data?.quotes?.find((q: any) => q.status === "BOUND");
-      if (boundQuote) {
-        setSelectedCarrierId(boundQuote.carrierId?._id || boundQuote.carrierId);
-      } else {
-        setSelectedCarrierId(carrierGroups[0].carrierId);
+    if (carrierGroups.length > 0) {
+      setSelectedCarriersByPolicy(prev => {
+        const updated = { ...prev };
+        if (!updated[currentPolicyType]) {
+          const boundQuote = data?.quotes?.find((q: any) =>
+            q.status === "BOUND" &&
+            (q.policyType === currentPolicyType || (!q.policyType && currentPolicyType === "GENERAL_LIABILITY"))
+          );
+          if (boundQuote) {
+            updated[currentPolicyType] = boundQuote.carrierId?._id || boundQuote.carrierId;
+          } else {
+            const matchingGroup = carrierGroups.find(g =>
+              g.quotes.some((q: any) =>
+                q.policyType === currentPolicyType ||
+                (!q.policyType && currentPolicyType === "GENERAL_LIABILITY")
+              )
+            );
+            if (matchingGroup) {
+              updated[currentPolicyType] = matchingGroup.carrierId;
+            } else if (!selectedCarrierId) {
+              updated[currentPolicyType] = carrierGroups[0].carrierId;
+            }
+          }
+        }
+        return updated;
+      });
+
+      if (!selectedCarrierId) {
+        const boundQuote = data?.quotes?.find((q: any) => q.status === "BOUND");
+        if (boundQuote) {
+          setSelectedCarrierId(boundQuote.carrierId?._id || boundQuote.carrierId);
+        } else {
+          setSelectedCarrierId(carrierGroups[0].carrierId);
+        }
       }
     }
-  }, [carrierGroups, selectedCarrierId, data?.quotes]);
+  }, [carrierGroups, currentPolicyType, data?.quotes]);
 
   const currentQuote: SubmissionDetails["quotes"][0] | null = useMemo(() => {
     if (!data?.quotes?.length) return null;
@@ -433,8 +461,14 @@ export default function AdminSubmissionDetailsPage() {
 
     if (!carrierGroups.length) return null;
 
-    // OTHERWISE (Comparison Mode): Isolate lookup to selected carrier group only
-    const group = carrierGroups.find(g => g.carrierId === selectedCarrierId) || carrierGroups[0];
+    // OTHERWISE (Comparison Mode): Isolate lookup to selected carrier group for this policy type
+    const activeCarrierId = selectedCarriersByPolicy[currentPolicyType] || selectedCarrierId;
+    const group = carrierGroups.find(g => g.carrierId === activeCarrierId) || carrierGroups.find(g =>
+      g.quotes.some((q: any) =>
+        q.policyType === currentPolicyType ||
+        (!q.policyType && currentPolicyType === "GENERAL_LIABILITY")
+      )
+    ) || carrierGroups[0];
     if (!group) return null;
 
     const policyQuote = group.quotes.find((q: any) =>
@@ -451,7 +485,7 @@ export default function AdminSubmissionDetailsPage() {
     );
 
     return globalFallback || null;
-  }, [data, carrierGroups, selectedCarrierId, currentPolicyType]);
+  }, [data, carrierGroups, selectedCarrierId, selectedCarriersByPolicy, currentPolicyType]);
 
   useEffect(() => {
     if (data) {
@@ -500,7 +534,8 @@ export default function AdminSubmissionDetailsPage() {
   // Auto-switch carrier when policy type changes if current carrier has no quote for it
   useEffect(() => {
     if (carrierGroups.length > 0 && currentPolicyType) {
-      const currentGroup = carrierGroups.find(g => g.carrierId === selectedCarrierId);
+      const preferredCarrierId = selectedCarriersByPolicy[currentPolicyType];
+      const currentGroup = carrierGroups.find(g => g.carrierId === (preferredCarrierId || selectedCarrierId));
       const hasQuote = currentGroup?.quotes.some(q =>
         q.policyType === currentPolicyType ||
         (!q.policyType && currentPolicyType === "GENERAL_LIABILITY")
@@ -517,10 +552,16 @@ export default function AdminSubmissionDetailsPage() {
 
         if (alternativeGroup) {
           setSelectedCarrierId(alternativeGroup.carrierId);
+          setSelectedCarriersByPolicy(prev => ({
+            ...prev,
+            [currentPolicyType]: alternativeGroup.carrierId
+          }));
         }
+      } else if (preferredCarrierId && preferredCarrierId !== selectedCarrierId) {
+        setSelectedCarrierId(preferredCarrierId);
       }
     }
-  }, [currentPolicyType, carrierGroups, selectedCarrierId]);
+  }, [currentPolicyType, carrierGroups, selectedCarrierId, selectedCarriersByPolicy]);
 
   useEffect(() => {
     if (rawData?.submission?.adminNotes !== undefined) {
@@ -531,7 +572,8 @@ export default function AdminSubmissionDetailsPage() {
     }
   }, [rawData]); useEffect(() => {
     if (activeTab === "Rating Information" && data && data.quotes && data.quotes.length > 0) {
-      const group = carrierGroups.find(g => g.carrierId === selectedCarrierId) || carrierGroups[0];
+      const activeCarrierId = selectedCarriersByPolicy[currentPolicyType] || selectedCarrierId;
+      const group = carrierGroups.find(g => g.carrierId === activeCarrierId) || carrierGroups[0];
       const quote = group ? group.quotes.find((q: any) =>
         q.policyType === currentPolicyType || (!q.policyType && currentPolicyType === "GENERAL_LIABILITY")
       ) : null;
@@ -555,7 +597,7 @@ export default function AdminSubmissionDetailsPage() {
     } else if (activeTab === "Rating Information") {
       setRatingData({});
     }
-  }, [activeTab, data, selectedCarrierId, currentPolicyType]);
+  }, [activeTab, data, selectedCarrierId, selectedCarriersByPolicy, currentPolicyType]);
 
   const fetchStats = async () => {
     try {
@@ -694,10 +736,10 @@ export default function AdminSubmissionDetailsPage() {
   const requiredDocs: string[] = currentQuote?.customDocuments ?? [];
 
   useEffect(() => {
-    if (currentQuote?.customDocuments) {
-      setLocalCustomDocs(currentQuote.customDocuments);
-    }
-  }, [currentQuote?.customDocuments]);
+    setLocalCustomDocs(currentQuote?.customDocuments || []);
+    setIsAddingDoc(false);
+    setNewDocText("");
+  }, [currentQuote?._id, JSON.stringify(currentQuote?.customDocuments)]);
 
   const handleUpdateCustomDocs = async (newDocsList: string[]) => {
     if (!currentQuote?._id) {
@@ -733,43 +775,37 @@ export default function AdminSubmissionDetailsPage() {
       toast.error("You must enter a quote first before adding subjective lines.");
       return;
     }
-    const newList = [...localCustomDocs, newDocText.trim()];
+    const currentList = currentQuote.customDocuments || [];
+    const newList = [...currentList, newDocText.trim()];
     handleUpdateCustomDocs(newList);
     setNewDocText("");
     setIsAddingDoc(false);
   };
 
   const handleRemoveCustomDoc = (docToRemove: string) => {
-    const newList = localCustomDocs.filter(d => d !== docToRemove);
+    const currentList = currentQuote?.customDocuments || [];
+    const newList = currentList.filter(d => d !== docToRemove);
     handleUpdateCustomDocs(newList);
   };
 
   useEffect(() => {
-    if (!currentQuote) return;
+    if (!currentQuote) {
+      setCheckedDocs({});
+      return;
+    }
 
     const saved = currentQuote.checkedDocuments || {};
+    const updated: Record<string, boolean> = { ...saved };
 
-    setCheckedDocs((prev) => ({
-      ...saved,
-    }));
-  }, [JSON.stringify(currentQuote?.checkedDocuments)]);
-
-  useEffect(() => {
-    if (!requiredDocs.length) return;
-
-    setCheckedDocs((prev) => {
-      const updated = { ...prev };
-
-      requiredDocs.forEach((doc) => {
-        const safeKey = doc.replace(/\./g, '___dot___').replace(/\$/g, '___dollar___');
-        if (!(safeKey in updated)) {
-          updated[safeKey] = false;
-        }
-      });
-
-      return updated;
+    (currentQuote.customDocuments || []).forEach((doc) => {
+      const safeKey = doc.replace(/\./g, '___dot___').replace(/\$/g, '___dollar___');
+      if (!(safeKey in updated)) {
+        updated[safeKey] = false;
+      }
     });
-  }, [requiredDocs]);
+
+    setCheckedDocs(updated);
+  }, [currentQuote?._id, JSON.stringify(currentQuote?.checkedDocuments), JSON.stringify(currentQuote?.customDocuments)]);
 
   if (status === "loading" || loading) {
     return (
@@ -1285,8 +1321,15 @@ export default function AdminSubmissionDetailsPage() {
             <div className="bg-white px-8 py-4 border-t border-gray-100 flex items-center justify-end gap-3 shadow-sm rounded-md mb-2">
               <span className="text-[14px] font-bold text-gray-500 uppercase tracking-wider">SELECT CARRIER:</span>
               <select
-                value={selectedCarrierId || ""}
-                onChange={(e) => setSelectedCarrierId(e.target.value)}
+                value={selectedCarriersByPolicy[currentPolicyType] || selectedCarrierId || ""}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setSelectedCarrierId(val);
+                  setSelectedCarriersByPolicy(prev => ({
+                    ...prev,
+                    [currentPolicyType]: val
+                  }));
+                }}
                 className="bg-gray-50 border border-gray-200 text-gray-900 text-[14px] rounded-lg focus:ring-black focus:border-black block p-2 font-semibold outline-none"
               >
                 {availableCarrierGroups.map((group: any) => (

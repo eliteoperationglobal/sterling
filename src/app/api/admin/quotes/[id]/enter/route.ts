@@ -66,6 +66,7 @@ export async function POST(
     const submissionId = params.id; // In this endpoint, [id] represents submissionId
     const body = await req.json();
     const {
+      quoteId,
       carrierId,
       carrierQuoteUSD,
       carrierFeesUSD,
@@ -152,17 +153,32 @@ export async function POST(
       );
     }
 
-    // Check if quote already exists for this submission and carrier.
+    // Check if quote already exists for this submission and line.
     // If it does, we'll UPDATE it instead of blocking – this powers the
     // "Re-enter Quote" flow in the admin UI.
-    const existingQuote = await Quote.findOne({
-      submissionId,
-      carrierId,
-      ...(policyType && policyType !== 'GENERAL_LIABILITY'
-        ? { policyType }
-        : { policyType: { $in: [null, 'GENERAL_LIABILITY'] } }
-      )
-    });
+    let existingQuote = null;
+    if (quoteId) {
+      existingQuote = await Quote.findById(quoteId);
+    }
+    if (!existingQuote) {
+      existingQuote = await Quote.findOne({
+        submissionId,
+        carrierId,
+        ...(policyType && policyType !== 'GENERAL_LIABILITY'
+          ? { policyType }
+          : { policyType: { $in: [null, 'GENERAL_LIABILITY'] } }
+        )
+      });
+    }
+    if (!existingQuote) {
+      existingQuote = await Quote.findOne({
+        submissionId,
+        ...(policyType && policyType !== 'GENERAL_LIABILITY'
+          ? { policyType }
+          : { policyType: { $in: [null, 'GENERAL_LIABILITY'] } }
+        )
+      });
+    }
 
     // Calculate final amount (no wholesale fee - removed per user request)
     const brokerFee = parseFloat(brokerFeeAmountUSD) || 0;

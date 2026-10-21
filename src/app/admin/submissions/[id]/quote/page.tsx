@@ -375,6 +375,7 @@ export default function AdminQuotePage() {
       if (subData.quotes && subData.quotes.length > 0) {
         setHasExistingQuotes(true);
         const quoteToState = (q: any) => ({
+          quoteId: q._id?.toString() || q._id || "",
           selectedCarrierId: q.carrierId?._id || q.carrierId || "",
           carrierQuoteUSD: q.carrierQuoteUSD?.toString() || "",
           carrierFeesUSD: q.carrierFeesUSD?.toString() || "",
@@ -422,11 +423,13 @@ export default function AdminQuotePage() {
           customDocuments: q.customDocuments?.length > 0 ? q.customDocuments : [""],
         });
 
-        // Build policyStates for all quotes in DB
+        // Build policyStates for all quotes in DB (preserve newest quote per policyType)
         const loadedStates: Record<string, any> = {};
         for (const q of subData.quotes) {
           const pt = q.policyType || "GENERAL_LIABILITY";
-          loadedStates[pt] = quoteToState(q);
+          if (!loadedStates[pt]) {
+            loadedStates[pt] = quoteToState(q);
+          }
         }
         setPolicyStates(loadedStates);
 
@@ -845,51 +848,107 @@ export default function AdminQuotePage() {
   };
 
   // Collect all form data for auto-save
-  const formData = useMemo(() => ({
-    selectedCarrierId,
-    carrierQuoteUSD,
-    premiumTaxPercent,
-    premiumTaxAmountUSD,
-    policyFeeUSD,
-    carrierFeesUSD,
-    sterlingFeesUSD,
-    stampingFeePercent,
-    stampingFeeAmountUSD,
-    fireMarshalTaxPercent,
-    fireMarshalTaxAmountUSD,
-    generalLiabilityLimit,
-    aggregateLimit,
-    fireLegalLimit,
-    medicalExpenseLimit,
-    deductible,
-    excessLimit,
-    propertyBuildingLimit,
-    propertyBppLimit,
-    propertyBusinessIncomeLimit,
-    propertyDeductible,
-    // Inland Marine
-    scheduledEquipment,
-    unscheduledTools,
-    leasedRentedEquipment,
-    newlyAcquiredEquipment,
-    totalInsuredValue,
-    inlandMarineDeductibles,
-    coinsurance,
-    valuation,
-    inlandMarineEndorsements,
-    selectedEndorsements,
-    effectiveDate,
-    expirationDate,
-    policyDuration,
-    policyNumber,
-    carrierReference,
-    specialNotes,
-    // Multi-policy state
-    policyStates,
-    policiesStatus,
-    currentPolicyType,
-    customDocuments,
-  }), [
+  const formData = useMemo(() => {
+    const liveState = {
+      quoteId: policyStates[currentPolicyType]?.quoteId,
+      selectedCarrierId,
+      carrierQuoteUSD,
+      carrierFeesUSD,
+      sterlingFeesUSD,
+      premiumTaxPercent,
+      premiumTaxAmountUSD,
+      stampingFeePercent,
+      stampingFeeAmountUSD,
+      stampingFeePerFilingUSD,
+      slaServiceChargeUSD,
+      slasTransactionFeePercent,
+      slasTransactionFeeAmountUSD,
+      fireMarshalTaxPercent,
+      fireMarshalTaxAmountUSD,
+      fireMarshalFlatFeeUSD,
+      policyFeeUSD,
+      generalLiabilityLimit,
+      aggregateLimit,
+      fireLegalLimit,
+      medicalExpenseLimit,
+      deductible,
+      excessLimit,
+      professionalLimit,
+      pollutionLimit,
+      propertyBuildingLimit,
+      propertyBppLimit,
+      propertyBusinessIncomeLimit,
+      propertyDeductible,
+      scheduledEquipment,
+      unscheduledTools,
+      leasedRentedEquipment,
+      newlyAcquiredEquipment,
+      totalInsuredValue,
+      inlandMarineDeductibles,
+      coinsurance,
+      valuation,
+      inlandMarineEndorsements,
+      selectedEndorsements,
+      effectiveDate,
+      expirationDate,
+      policyDuration,
+      policyNumber,
+      carrierReference,
+      specialNotes,
+      customDocuments,
+    };
+
+    const mergedPolicyStates = {
+      ...policyStates,
+      [currentPolicyType]: liveState,
+    };
+
+    return {
+      selectedCarrierId,
+      carrierQuoteUSD,
+      premiumTaxPercent,
+      premiumTaxAmountUSD,
+      policyFeeUSD,
+      carrierFeesUSD,
+      sterlingFeesUSD,
+      stampingFeePercent,
+      stampingFeeAmountUSD,
+      fireMarshalTaxPercent,
+      fireMarshalTaxAmountUSD,
+      generalLiabilityLimit,
+      aggregateLimit,
+      fireLegalLimit,
+      medicalExpenseLimit,
+      deductible,
+      excessLimit,
+      propertyBuildingLimit,
+      propertyBppLimit,
+      propertyBusinessIncomeLimit,
+      propertyDeductible,
+      // Inland Marine
+      scheduledEquipment,
+      unscheduledTools,
+      leasedRentedEquipment,
+      newlyAcquiredEquipment,
+      totalInsuredValue,
+      inlandMarineDeductibles,
+      coinsurance,
+      valuation,
+      inlandMarineEndorsements,
+      selectedEndorsements,
+      effectiveDate,
+      expirationDate,
+      policyDuration,
+      policyNumber,
+      carrierReference,
+      specialNotes,
+      // Multi-policy state
+      policyStates: mergedPolicyStates,
+      policiesStatus,
+      currentPolicyType,
+      customDocuments,
+    };
+  }, [
     selectedCarrierId,
     carrierQuoteUSD,
     premiumTaxPercent,
@@ -953,142 +1012,152 @@ export default function AdminQuotePage() {
           // Restore multi-policy state first
           if (draftData.policyStates) setPolicyStates(draftData.policyStates);
           if (draftData.policiesStatus) setPoliciesStatus(draftData.policiesStatus);
+          const activeType = draftData.currentPolicyType || "GENERAL_LIABILITY";
           if (draftData.currentPolicyType) setCurrentPolicyType(draftData.currentPolicyType);
+
+          const activeState = draftData.policyStates?.[activeType] || draftData;
+
           // Restore form fields from draft (draft overrides submission defaults)
-          if (draftData.selectedCarrierId !== undefined && draftData.selectedCarrierId !== null && draftData.selectedCarrierId !== "") {
-            setSelectedCarrierId(String(draftData.selectedCarrierId));
+          if (activeState.selectedCarrierId !== undefined && activeState.selectedCarrierId !== null && activeState.selectedCarrierId !== "") {
+            setSelectedCarrierId(String(activeState.selectedCarrierId));
           }
-          if (draftData.carrierQuoteUSD !== undefined && draftData.carrierQuoteUSD !== null && draftData.carrierQuoteUSD !== "") {
-            setCarrierQuoteUSD(String(draftData.carrierQuoteUSD));
+          if (activeState.carrierQuoteUSD !== undefined && activeState.carrierQuoteUSD !== null && activeState.carrierQuoteUSD !== "") {
+            setCarrierQuoteUSD(String(activeState.carrierQuoteUSD));
           }
           if (
-            draftData.carrierFeesUSD !== undefined &&
-            draftData.carrierFeesUSD !== null &&
-            draftData.carrierFeesUSD !== ""
+            activeState.carrierFeesUSD !== undefined &&
+            activeState.carrierFeesUSD !== null &&
+            activeState.carrierFeesUSD !== ""
           ) {
-            setCarrierFeesUSD(String(draftData.carrierFeesUSD));
+            setCarrierFeesUSD(String(activeState.carrierFeesUSD));
           }
 
           if (
-            draftData.sterlingFeesUSD !== undefined &&
-            draftData.sterlingFeesUSD !== null &&
-            draftData.sterlingFeesUSD !== ""
+            activeState.sterlingFeesUSD !== undefined &&
+            activeState.sterlingFeesUSD !== null &&
+            activeState.sterlingFeesUSD !== ""
           ) {
-            setSterlingFeesUSD(String(draftData.sterlingFeesUSD));
+            setSterlingFeesUSD(String(activeState.sterlingFeesUSD));
           }
-          if (draftData.premiumTaxPercent !== undefined && draftData.premiumTaxPercent !== null && draftData.premiumTaxPercent !== "") {
-            setPremiumTaxPercent(String(draftData.premiumTaxPercent));
+          if (activeState.premiumTaxPercent !== undefined && activeState.premiumTaxPercent !== null && activeState.premiumTaxPercent !== "") {
+            setPremiumTaxPercent(String(activeState.premiumTaxPercent));
           }
-          if (draftData.premiumTaxAmountUSD !== undefined && draftData.premiumTaxAmountUSD !== null && draftData.premiumTaxAmountUSD !== "") {
-            setPremiumTaxAmountUSD(String(draftData.premiumTaxAmountUSD));
+          if (activeState.premiumTaxAmountUSD !== undefined && activeState.premiumTaxAmountUSD !== null && activeState.premiumTaxAmountUSD !== "") {
+            setPremiumTaxAmountUSD(String(activeState.premiumTaxAmountUSD));
           }
           if (
-            draftData.stampingFeePercent !== undefined &&
-            draftData.stampingFeePercent !== null &&
-            draftData.stampingFeePercent !== ""
+            activeState.stampingFeePercent !== undefined &&
+            activeState.stampingFeePercent !== null &&
+            activeState.stampingFeePercent !== ""
           ) {
-            setStampingFeePercent(String(draftData.stampingFeePercent));
+            setStampingFeePercent(String(activeState.stampingFeePercent));
           }
 
           if (
-            draftData.stampingFeeAmountUSD !== undefined &&
-            draftData.stampingFeeAmountUSD !== null &&
-            draftData.stampingFeeAmountUSD !== ""
+            activeState.stampingFeeAmountUSD !== undefined &&
+            activeState.stampingFeeAmountUSD !== null &&
+            activeState.stampingFeeAmountUSD !== ""
           ) {
-            setStampingFeeAmountUSD(String(draftData.stampingFeeAmountUSD));
+            setStampingFeeAmountUSD(String(activeState.stampingFeeAmountUSD));
           }
-          if (draftData.fireMarshalTaxPercent) {
-            setFireMarshalTaxPercent(String(draftData.fireMarshalTaxPercent));
+          if (activeState.fireMarshalTaxPercent) {
+            setFireMarshalTaxPercent(String(activeState.fireMarshalTaxPercent));
           }
-          if (draftData.fireMarshalTaxAmountUSD) {
-            setFireMarshalTaxAmountUSD(String(draftData.fireMarshalTaxAmountUSD));
+          if (activeState.fireMarshalTaxAmountUSD) {
+            setFireMarshalTaxAmountUSD(String(activeState.fireMarshalTaxAmountUSD));
           }
-          if (draftData.fireMarshalFlatFeeUSD) {
-            setFireMarshalFlatFeeUSD(String(draftData.fireMarshalFlatFeeUSD));
+          if (activeState.fireMarshalFlatFeeUSD) {
+            setFireMarshalFlatFeeUSD(String(activeState.fireMarshalFlatFeeUSD));
           }
-          if (draftData.policyFeeUSD !== undefined && draftData.policyFeeUSD !== null && draftData.policyFeeUSD !== "") {
-            setPolicyFeeUSD(String(draftData.policyFeeUSD));
+          if (activeState.policyFeeUSD !== undefined && activeState.policyFeeUSD !== null && activeState.policyFeeUSD !== "") {
+            setPolicyFeeUSD(String(activeState.policyFeeUSD));
           }
-          if (draftData.generalLiabilityLimit !== undefined && draftData.generalLiabilityLimit !== null && draftData.generalLiabilityLimit !== "") {
-            setGeneralLiabilityLimit(String(draftData.generalLiabilityLimit));
+          if (activeState.generalLiabilityLimit !== undefined && activeState.generalLiabilityLimit !== null && activeState.generalLiabilityLimit !== "") {
+            setGeneralLiabilityLimit(String(activeState.generalLiabilityLimit));
           }
-          if (draftData.aggregateLimit !== undefined && draftData.aggregateLimit !== null && draftData.aggregateLimit !== "") {
-            setAggregateLimit(String(draftData.aggregateLimit));
+          if (activeState.aggregateLimit !== undefined && activeState.aggregateLimit !== null && activeState.aggregateLimit !== "") {
+            setAggregateLimit(String(activeState.aggregateLimit));
           }
-          if (draftData.fireLegalLimit !== undefined && draftData.fireLegalLimit !== null && draftData.fireLegalLimit !== "") {
-            setFireLegalLimit(String(draftData.fireLegalLimit));
+          if (activeState.fireLegalLimit !== undefined && activeState.fireLegalLimit !== null && activeState.fireLegalLimit !== "") {
+            setFireLegalLimit(String(activeState.fireLegalLimit));
           }
-          if (draftData.medicalExpenseLimit !== undefined && draftData.medicalExpenseLimit !== null && draftData.medicalExpenseLimit !== "") {
-            setMedicalExpenseLimit(String(draftData.medicalExpenseLimit));
+          if (activeState.medicalExpenseLimit !== undefined && activeState.medicalExpenseLimit !== null && activeState.medicalExpenseLimit !== "") {
+            setMedicalExpenseLimit(String(activeState.medicalExpenseLimit));
           }
-          if (draftData.deductible !== undefined && draftData.deductible !== null && draftData.deductible !== "") {
-            setDeductible(String(draftData.deductible));
+          if (activeState.deductible !== undefined && activeState.deductible !== null && activeState.deductible !== "") {
+            setDeductible(String(activeState.deductible));
           }
-          if (draftData.propertyBuildingLimit !== undefined && draftData.propertyBuildingLimit !== null && draftData.propertyBuildingLimit !== "") {
-            setPropertyBuildingLimit(String(draftData.propertyBuildingLimit));
+          if (activeState.propertyBuildingLimit !== undefined && activeState.propertyBuildingLimit !== null && activeState.propertyBuildingLimit !== "") {
+            setPropertyBuildingLimit(String(activeState.propertyBuildingLimit));
           }
-          if (draftData.propertyBppLimit !== undefined && draftData.propertyBppLimit !== null && draftData.propertyBppLimit !== "") {
-            setPropertyBppLimit(String(draftData.propertyBppLimit));
+          if (activeState.propertyBppLimit !== undefined && activeState.propertyBppLimit !== null && activeState.propertyBppLimit !== "") {
+            setPropertyBppLimit(String(activeState.propertyBppLimit));
           }
-          if (draftData.propertyBusinessIncomeLimit !== undefined && draftData.propertyBusinessIncomeLimit !== null && draftData.propertyBusinessIncomeLimit !== "") {
-            setPropertyBusinessIncomeLimit(String(draftData.propertyBusinessIncomeLimit));
+          if (activeState.propertyBusinessIncomeLimit !== undefined && activeState.propertyBusinessIncomeLimit !== null && activeState.propertyBusinessIncomeLimit !== "") {
+            setPropertyBusinessIncomeLimit(String(activeState.propertyBusinessIncomeLimit));
           }
-          if (draftData.propertyDeductible !== undefined && draftData.propertyDeductible !== null && draftData.propertyDeductible !== "") {
-            setPropertyDeductible(String(draftData.propertyDeductible));
+          if (activeState.propertyDeductible !== undefined && activeState.propertyDeductible !== null && activeState.propertyDeductible !== "") {
+            setPropertyDeductible(String(activeState.propertyDeductible));
           }
-          if (draftData.excessLimit !== undefined && draftData.excessLimit !== null && draftData.excessLimit !== "") {
-            setExcessLimit(String(draftData.excessLimit));
+          if (activeState.excessLimit !== undefined && activeState.excessLimit !== null && activeState.excessLimit !== "") {
+            setExcessLimit(String(activeState.excessLimit));
           }
-          if (draftData.scheduledEquipment !== undefined && draftData.scheduledEquipment !== null && draftData.scheduledEquipment !== "") {
-            setScheduledEquipment(String(draftData.scheduledEquipment));
+          if (activeState.professionalLimit !== undefined && activeState.professionalLimit !== null && activeState.professionalLimit !== "") {
+            setProfessionalLimit(String(activeState.professionalLimit));
           }
-          if (draftData.unscheduledTools !== undefined && draftData.unscheduledTools !== null && draftData.unscheduledTools !== "") {
-            setUnscheduledTools(String(draftData.unscheduledTools));
+          if (activeState.pollutionLimit !== undefined && activeState.pollutionLimit !== null && activeState.pollutionLimit !== "") {
+            setPollutionLimit(String(activeState.pollutionLimit));
           }
-          if (draftData.leasedRentedEquipment !== undefined && draftData.leasedRentedEquipment !== null && draftData.leasedRentedEquipment !== "") {
-            setLeasedRentedEquipment(String(draftData.leasedRentedEquipment));
+          if (activeState.scheduledEquipment !== undefined && activeState.scheduledEquipment !== null && activeState.scheduledEquipment !== "") {
+            setScheduledEquipment(String(activeState.scheduledEquipment));
           }
-          if (draftData.newlyAcquiredEquipment !== undefined && draftData.newlyAcquiredEquipment !== null && draftData.newlyAcquiredEquipment !== "") {
-            setNewlyAcquiredEquipment(String(draftData.newlyAcquiredEquipment));
+          if (activeState.unscheduledTools !== undefined && activeState.unscheduledTools !== null && activeState.unscheduledTools !== "") {
+            setUnscheduledTools(String(activeState.unscheduledTools));
           }
-          if (draftData.totalInsuredValue !== undefined && draftData.totalInsuredValue !== null && draftData.totalInsuredValue !== "") {
-            setTotalInsuredValue(String(draftData.totalInsuredValue));
+          if (activeState.leasedRentedEquipment !== undefined && activeState.leasedRentedEquipment !== null && activeState.leasedRentedEquipment !== "") {
+            setLeasedRentedEquipment(String(activeState.leasedRentedEquipment));
           }
-          if (draftData.inlandMarineDeductibles && Array.isArray(draftData.inlandMarineDeductibles)) {
-            setInlandMarineDeductibles(draftData.inlandMarineDeductibles);
+          if (activeState.newlyAcquiredEquipment !== undefined && activeState.newlyAcquiredEquipment !== null && activeState.newlyAcquiredEquipment !== "") {
+            setNewlyAcquiredEquipment(String(activeState.newlyAcquiredEquipment));
           }
-          if (draftData.coinsurance !== undefined && draftData.coinsurance !== null && draftData.coinsurance !== "") {
-            setCoinsurance(String(draftData.coinsurance));
+          if (activeState.totalInsuredValue !== undefined && activeState.totalInsuredValue !== null && activeState.totalInsuredValue !== "") {
+            setTotalInsuredValue(String(activeState.totalInsuredValue));
           }
-          if (draftData.valuation !== undefined && draftData.valuation !== null && draftData.valuation !== "") {
-            setValuation(String(draftData.valuation));
+          if (activeState.inlandMarineDeductibles && Array.isArray(activeState.inlandMarineDeductibles)) {
+            setInlandMarineDeductibles(activeState.inlandMarineDeductibles);
           }
-          if (draftData.inlandMarineEndorsements && Array.isArray(draftData.inlandMarineEndorsements)) {
-            setInlandMarineEndorsements(draftData.inlandMarineEndorsements);
+          if (activeState.coinsurance !== undefined && activeState.coinsurance !== null && activeState.coinsurance !== "") {
+            setCoinsurance(String(activeState.coinsurance));
           }
-          if (draftData.selectedEndorsements !== undefined && Array.isArray(draftData.selectedEndorsements)) {
-            setSelectedEndorsements(draftData.selectedEndorsements);
+          if (activeState.valuation !== undefined && activeState.valuation !== null && activeState.valuation !== "") {
+            setValuation(String(activeState.valuation));
           }
-          if (draftData.effectiveDate !== undefined && draftData.effectiveDate !== null && draftData.effectiveDate !== "") {
-            setEffectiveDate(String(draftData.effectiveDate));
+          if (activeState.inlandMarineEndorsements && Array.isArray(activeState.inlandMarineEndorsements)) {
+            setInlandMarineEndorsements(activeState.inlandMarineEndorsements);
           }
-          if (draftData.expirationDate !== undefined && draftData.expirationDate !== null && draftData.expirationDate !== "") {
-            setExpirationDate(String(draftData.expirationDate));
+          if (activeState.selectedEndorsements !== undefined && Array.isArray(activeState.selectedEndorsements)) {
+            setSelectedEndorsements(activeState.selectedEndorsements);
           }
-          if (draftData.policyDuration !== undefined && draftData.policyDuration !== null && draftData.policyDuration !== "") {
-            setPolicyDuration(draftData.policyDuration as "6months" | "1year");
+          if (activeState.effectiveDate !== undefined && activeState.effectiveDate !== null && activeState.effectiveDate !== "") {
+            setEffectiveDate(String(activeState.effectiveDate));
           }
-          if (draftData.policyNumber !== undefined && draftData.policyNumber !== null && draftData.policyNumber !== "") {
-            setPolicyNumber(String(draftData.policyNumber));
+          if (activeState.expirationDate !== undefined && activeState.expirationDate !== null && activeState.expirationDate !== "") {
+            setExpirationDate(String(activeState.expirationDate));
           }
-          if (draftData.carrierReference !== undefined && draftData.carrierReference !== null && draftData.carrierReference !== "") {
-            setCarrierReference(String(draftData.carrierReference));
+          if (activeState.policyDuration !== undefined && activeState.policyDuration !== null && activeState.policyDuration !== "") {
+            setPolicyDuration(activeState.policyDuration as "6months" | "1year");
           }
-          if (draftData.specialNotes !== undefined && draftData.specialNotes !== null && draftData.specialNotes !== "") {
-            setSpecialNotes(String(draftData.specialNotes));
+          if (activeState.policyNumber !== undefined && activeState.policyNumber !== null && activeState.policyNumber !== "") {
+            setPolicyNumber(String(activeState.policyNumber));
           }
-          if (draftData.customDocuments && Array.isArray(draftData.customDocuments)) {
-            setCustomDocuments(draftData.customDocuments);
+          if (activeState.carrierReference !== undefined && activeState.carrierReference !== null && activeState.carrierReference !== "") {
+            setCarrierReference(String(activeState.carrierReference));
+          }
+          if (activeState.specialNotes !== undefined && activeState.specialNotes !== null && activeState.specialNotes !== "") {
+            setSpecialNotes(String(activeState.specialNotes));
+          }
+          if (activeState.customDocuments && Array.isArray(activeState.customDocuments)) {
+            setCustomDocuments(activeState.customDocuments);
           }
           console.log("[AdminQuote] Form fields restored from draft!");
         } else {
@@ -1130,6 +1199,7 @@ export default function AdminQuotePage() {
     const quoteAmt = parseCurrency(state.carrierQuoteUSD);
 
     return {
+      quoteId: state.quoteId || undefined,
       carrierId: state.selectedCarrierId,
       carrierQuoteUSD: quoteAmt,
       premiumTaxPercent: state.premiumTaxPercent || undefined,
@@ -1167,6 +1237,7 @@ export default function AdminQuotePage() {
     try {
       // Snapshot live state of the currently-active policy tab
       const liveState = {
+        quoteId: policyStates[currentPolicyType]?.quoteId || "",
         selectedCarrierId,
         carrierQuoteUSD,
         carrierFeesUSD,
@@ -1210,7 +1281,7 @@ export default function AdminQuotePage() {
         policyNumber,
         carrierReference,
         specialNotes,
-        customDocuments,
+        customDocuments: [...customDocuments],
       };
 
       const allStates = {
@@ -1268,6 +1339,7 @@ export default function AdminQuotePage() {
     try {
       // Snapshot live state of the currently-active tab
       const liveState = {
+        quoteId: policyStates[currentPolicyType]?.quoteId || "",
         selectedCarrierId,
         carrierQuoteUSD,
         carrierFeesUSD,
@@ -1311,7 +1383,7 @@ export default function AdminQuotePage() {
         policyNumber,
         carrierReference,
         specialNotes,
-        customDocuments,
+        customDocuments: [...customDocuments],
       };
 
       // Merge policyStates with the live state for current policy
@@ -1414,8 +1486,11 @@ export default function AdminQuotePage() {
 
   // Policy Switching Logic
   const handlePolicySwitch = (newType: string) => {
+    if (newType === currentPolicyType) return;
+
     // 1. Save current state to storage
     const currentState = {
+      quoteId: policyStates[currentPolicyType]?.quoteId || "",
       selectedCarrierId,
       carrierQuoteUSD,
       carrierFeesUSD,
@@ -1461,12 +1536,17 @@ export default function AdminQuotePage() {
       policyNumber,
       carrierReference,
       specialNotes,
+      customDocuments: [...customDocuments],
     };
 
-    setPolicyStates(prev => ({ ...prev, [currentPolicyType]: currentState }));
+    const updatedStates = {
+      ...policyStates,
+      [currentPolicyType]: currentState,
+    };
+    setPolicyStates(updatedStates);
 
     // 2. Load next state from storage or defaults
-    const nextState = policyStates[newType] || {};
+    const nextState = updatedStates[newType] || {};
 
     setSelectedCarrierId(nextState.selectedCarrierId || "");
     setCarrierQuoteUSD(nextState.carrierQuoteUSD || "");
@@ -1515,6 +1595,13 @@ export default function AdminQuotePage() {
     setPolicyNumber(nextState.policyNumber || "");
     setCarrierReference(nextState.carrierReference || "");
     setSpecialNotes(nextState.specialNotes || "");
+
+    // Load next policy's customDocuments
+    setCustomDocuments(
+      nextState.customDocuments && nextState.customDocuments.length > 0
+        ? [...nextState.customDocuments]
+        : [""]
+    );
 
     setCurrentPolicyType(newType);
     toast.info(`Switched to ${getPolicyLabel(newType)}`);

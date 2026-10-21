@@ -122,6 +122,11 @@ function formatToMMDDYYYY(dateInput?: string | Date): string {
   const cleanStr = String(dateInput).trim();
   if (/^\d{8}$/.test(cleanStr)) return cleanStr;
   
+  if (/^\d{4}-\d{2}-\d{2}$/.test(cleanStr)) {
+    const [yyyy, mm, dd] = cleanStr.split('-');
+    return `${mm}${dd}${yyyy}`;
+  }
+
   const d = new Date(dateInput);
   if (isNaN(d.getTime())) {
     const now = new Date();
@@ -243,7 +248,8 @@ export async function POST(req: Request) {
     const cleanAddress = (address || "123 Main St")
       .toString()
       .replace(/&/g, "AND")
-      .replace(/[^a-zA-Z0-9\s.,'#-]/g, "")
+      .replace(/#/g, " ")
+      .replace(/[^a-zA-Z0-9\s.,'-]/g, "")
       .trim()
       .slice(0, 30) || "123 Main St";
 
@@ -277,7 +283,7 @@ export async function POST(req: Request) {
       agent: {
         agentCodeCrossReference: " ",
         agentCode: process.env.AIS_AGENT_CODE || "040000",
-        agentName: "Sterling Insurance Services"
+        agentName: process.env.AIS_AGENT_NAME || " "
       },
       account: {
         accountType: "C",
@@ -315,7 +321,11 @@ export async function POST(req: Request) {
 
     // Check if AIS rejected the inquiry
     if (result.processingStatus === "REJECTED" || result.status === "REJECTED") {
-      const reason = result.errorMessage || (Array.isArray(result.errors) ? result.errors.join(", ") : "") || "Financing application could not be approved with current terms.";
+      const reason = 
+        result.returnMessage || 
+        result.errorMessage || 
+        (Array.isArray(result.errors) ? result.errors.join(", ") : "") || 
+        "Financing application could not be approved with current terms.";
       console.warn("[AIS API] Processing Status REJECTED:", reason);
       return NextResponse.json(
         { success: false, error: `AIS Finance Notice: ${reason}`, data: result },

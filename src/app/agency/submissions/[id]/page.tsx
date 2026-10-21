@@ -188,6 +188,7 @@ function SubmissionDetailsContent() {
   const [activeTab, setActiveTab] = useState("Notes");
   const [currentPolicyType, setCurrentPolicyType] = useState<string>("GENERAL_LIABILITY");
   const [selectedCarrierId, setSelectedCarrierId] = useState<string | null>(null);
+  const [selectedCarriersByPolicy, setSelectedCarriersByPolicy] = useState<Record<string, string>>({});
   const [availablePolicies, setAvailablePolicies] = useState<string[]>(["GENERAL_LIABILITY"]);
   const [checkedDocs, setCheckedDocs] = useState<Record<string, boolean>>({});
   const [uploading, setUploading] = useState(false);
@@ -266,16 +267,43 @@ function SubmissionDetailsContent() {
   }, [data?.quotes]);
 
   useEffect(() => {
-    if (carrierGroups.length > 0 && !selectedCarrierId) {
-      // DEFAULT TO BOUND CARRIER IF EXISTS
-      const boundQuote = data?.quotes?.find((q: any) => q.status === "BOUND");
-      if (boundQuote) {
-        setSelectedCarrierId(boundQuote.carrierId?._id || boundQuote.carrierId);
-      } else {
-        setSelectedCarrierId(carrierGroups[0].carrierId);
+    if (carrierGroups.length > 0) {
+      setSelectedCarriersByPolicy(prev => {
+        const updated = { ...prev };
+        if (!updated[currentPolicyType]) {
+          const boundQuote = data?.quotes?.find((q: any) =>
+            q.status === "BOUND" &&
+            (q.policyType === currentPolicyType || (!q.policyType && currentPolicyType === "GENERAL_LIABILITY"))
+          );
+          if (boundQuote) {
+            updated[currentPolicyType] = boundQuote.carrierId?._id || boundQuote.carrierId;
+          } else {
+            const matchingGroup = carrierGroups.find(g =>
+              g.quotes.some((q: any) =>
+                q.policyType === currentPolicyType ||
+                (!q.policyType && currentPolicyType === "GENERAL_LIABILITY")
+              )
+            );
+            if (matchingGroup) {
+              updated[currentPolicyType] = matchingGroup.carrierId;
+            } else if (!selectedCarrierId) {
+              updated[currentPolicyType] = carrierGroups[0].carrierId;
+            }
+          }
+        }
+        return updated;
+      });
+
+      if (!selectedCarrierId) {
+        const boundQuote = data?.quotes?.find((q: any) => q.status === "BOUND");
+        if (boundQuote) {
+          setSelectedCarrierId(boundQuote.carrierId?._id || boundQuote.carrierId);
+        } else {
+          setSelectedCarrierId(carrierGroups[0].carrierId);
+        }
       }
     }
-  }, [carrierGroups, selectedCarrierId, data?.quotes]);
+  }, [carrierGroups, currentPolicyType, data?.quotes]);
 
   const currentRoundTotal = useMemo(() => {
     if (!data?.quotes?.length) return 0;
@@ -288,10 +316,11 @@ function SubmissionDetailsContent() {
     }
 
     // OTHERWISE (Comparison Mode): Show total for the currently selected carrier
-    const group = carrierGroups.find(g => g.carrierId === selectedCarrierId) || carrierGroups[0];
+    const activeCarrierId = selectedCarriersByPolicy[currentPolicyType] || selectedCarrierId;
+    const group = carrierGroups.find(g => g.carrierId === activeCarrierId) || carrierGroups[0];
     if (!group) return 0;
     return group.quotes.reduce((sum: number, q: any) => sum + (q.finalAmountUSD || 0), 0);
-  }, [data, carrierGroups, selectedCarrierId]);
+  }, [data, carrierGroups, selectedCarrierId, selectedCarriersByPolicy, currentPolicyType]);
 
   const currentQuote: SubmissionDetails["quotes"][0] | null = useMemo(() => {
     if (!data?.quotes?.length) return null;
@@ -308,8 +337,16 @@ function SubmissionDetailsContent() {
       // fall through to the comparison mode lookup below to show the POSTED quote.
     }
 
-    // OTHERWISE (Comparison Mode): Isolate lookup to selected carrier group only
-    const group = carrierGroups.find(g => g.carrierId === selectedCarrierId) || carrierGroups[0];
+    if (!carrierGroups.length) return null;
+
+    // OTHERWISE (Comparison Mode): Isolate lookup to selected carrier group for this policy type
+    const activeCarrierId = selectedCarriersByPolicy[currentPolicyType] || selectedCarrierId;
+    const group = carrierGroups.find(g => g.carrierId === activeCarrierId) || carrierGroups.find(g =>
+      g.quotes.some((q: any) =>
+        q.policyType === currentPolicyType ||
+        (!q.policyType && currentPolicyType === "GENERAL_LIABILITY")
+      )
+    ) || carrierGroups[0];
     if (!group) return null;
 
     const policyQuote = group.quotes.find((q: any) =>
@@ -326,7 +363,7 @@ function SubmissionDetailsContent() {
     );
 
     return globalFallback || null;
-  }, [data, carrierGroups, selectedCarrierId, currentPolicyType]);
+  }, [data, carrierGroups, selectedCarrierId, selectedCarriersByPolicy, currentPolicyType]);
 
   useEffect(() => {
     if (fetchResult?.activityLogs) {
@@ -388,7 +425,8 @@ function SubmissionDetailsContent() {
   // Auto-switch carrier when policy type changes if current carrier has no quote for it
   useEffect(() => {
     if (carrierGroups.length > 0 && currentPolicyType) {
-      const currentGroup = carrierGroups.find(g => g.carrierId === selectedCarrierId);
+      const preferredCarrierId = selectedCarriersByPolicy[currentPolicyType];
+      const currentGroup = carrierGroups.find(g => g.carrierId === (preferredCarrierId || selectedCarrierId));
       const hasQuote = currentGroup?.quotes.some((q: any) =>
         q.policyType === currentPolicyType ||
         (!q.policyType && currentPolicyType === "GENERAL_LIABILITY")
@@ -405,10 +443,16 @@ function SubmissionDetailsContent() {
 
         if (alternativeGroup) {
           setSelectedCarrierId(alternativeGroup.carrierId);
+          setSelectedCarriersByPolicy(prev => ({
+            ...prev,
+            [currentPolicyType]: alternativeGroup.carrierId
+          }));
         }
+      } else if (preferredCarrierId && preferredCarrierId !== selectedCarrierId) {
+        setSelectedCarrierId(preferredCarrierId);
       }
     }
-  }, [currentPolicyType, carrierGroups]);
+  }, [currentPolicyType, carrierGroups, selectedCarrierId, selectedCarriersByPolicy]);
 
   const fetchSubmission = () => mutate();
 
@@ -589,31 +633,23 @@ function SubmissionDetailsContent() {
   const requiredDocs: string[] = currentQuote?.customDocuments ?? [];
 
   useEffect(() => {
-    if (!currentQuote) return;
+    if (!currentQuote) {
+      setCheckedDocs({});
+      return;
+    }
 
     const saved = currentQuote.checkedDocuments || {};
+    const updated: Record<string, boolean> = { ...saved };
 
-    setCheckedDocs((prev) => ({
-      ...saved,
-    }));
-  }, [JSON.stringify(currentQuote?.checkedDocuments)]);
-
-  useEffect(() => {
-    if (!requiredDocs.length) return;
-
-    setCheckedDocs((prev) => {
-      const updated = { ...prev };
-
-      requiredDocs.forEach((doc) => {
-        const safeKey = doc.replace(/\./g, '___dot___').replace(/\$/g, '___dollar___');
-        if (!(safeKey in updated)) {
-          updated[safeKey] = false;
-        }
-      });
-
-      return updated;
+    (currentQuote.customDocuments || []).forEach((doc) => {
+      const safeKey = doc.replace(/\./g, '___dot___').replace(/\$/g, '___dollar___');
+      if (!(safeKey in updated)) {
+        updated[safeKey] = false;
+      }
     });
-  }, [requiredDocs]);
+
+    setCheckedDocs(updated);
+  }, [currentQuote?._id, JSON.stringify(currentQuote?.checkedDocuments), JSON.stringify(currentQuote?.customDocuments)]);
 
   // ✅ REQUIRED DOCUMENT CHECKLIST TOGGLE (ISC STYLE)
   const toggleDoc = async (doc: string) => {
@@ -1327,8 +1363,15 @@ function SubmissionDetailsContent() {
             <div className="bg-white px-8 py-4 border-t border-gray-100 flex items-center justify-end gap-3 shadow-sm rounded-md mb-2">
               <span className="text-[14px] font-bold text-gray-500 uppercase tracking-wider">SELECT CARRIER:</span>
               <select
-                value={selectedCarrierId || ""}
-                onChange={(e) => setSelectedCarrierId(e.target.value)}
+                value={selectedCarriersByPolicy[currentPolicyType] || selectedCarrierId || ""}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setSelectedCarrierId(val);
+                  setSelectedCarriersByPolicy(prev => ({
+                    ...prev,
+                    [currentPolicyType]: val
+                  }));
+                }}
                 className="bg-gray-50 border border-gray-200 text-gray-900 text-[14px] rounded-lg focus:ring-black focus:border-black block p-2 font-semibold outline-none"
               >
                 {availableCarrierGroups.map((group: any) => (
