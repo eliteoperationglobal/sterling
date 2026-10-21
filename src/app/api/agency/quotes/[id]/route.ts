@@ -132,9 +132,10 @@ export async function PATCH(
       );
     }
 
-    // Only agency users can update quotes
+    // Agency users or system admin can update quote broker fee
     const userRole = (session.user as any).role;
-    if (userRole !== "agency_admin" && userRole !== "agency_user") {
+    const isAdmin = userRole === "system_admin";
+    if (userRole !== "agency_admin" && userRole !== "agency_user" && !isAdmin) {
       return NextResponse.json(
         { error: "Forbidden - Agency access required" },
         { status: 403 }
@@ -160,11 +161,11 @@ export async function PATCH(
       );
     }
 
-    // Verify quote belongs to user's agency
+    // Verify quote belongs to user's agency (unless admin)
     const submission = quote.submissionId as any;
     const userAgencyId = (session.user as any).agencyId;
 
-    if (submission.agencyId.toString() !== userAgencyId) {
+    if (!isAdmin && submission?.agencyId?.toString() !== userAgencyId) {
       return NextResponse.json(
         { error: "Forbidden - Quote does not belong to your agency" },
         { status: 403 }
@@ -181,14 +182,32 @@ export async function PATCH(
       }
 
       quote.brokerFeeAmountUSD = brokerFeeAmountUSD;
-      // Recalculate final amount (no wholesale fee)
+
+      // Recalculate complete final amount preserving all carrier and surplus lines taxes/fees
+      const carrierFees = quote.carrierFeesUSD || 0;
+      const sterlingFees = quote.sterlingInsuranceServicesFeesUSD || 0;
       const taxAmount = quote.premiumTaxAmountUSD || 0;
+      const stampingAmount = quote.stampingFeeAmountUSD || 0;
+      const slasAmount = quote.slasTransactionFeeAmountUSD || 0;
+      const fireMarshalAmount = quote.fireMarshalTaxAmountUSD || 0;
+      const fireMarshalFlatFee = quote.fireMarshalFlatFeeUSD || 0;
+      const filingFee = quote.stampingFeePerFilingUSD || 0;
+      const slaCharge = quote.slaServiceChargeUSD || 0;
       const policyFee = quote.policyFeeUSD || 0;
+
       quote.finalAmountUSD = 
-        quote.carrierQuoteUSD + 
+        (quote.carrierQuoteUSD || 0) + 
+        carrierFees +
+        sterlingFees +
+        brokerFeeAmountUSD +
         taxAmount +
+        stampingAmount +
+        slasAmount +
+        fireMarshalAmount +
+        fireMarshalFlatFee +
         policyFee +
-        brokerFeeAmountUSD;
+        filingFee +
+        slaCharge;
     }
 
     await quote.save();

@@ -260,6 +260,9 @@ export async function PATCH(
     if (body.payload) {
       const oldPayload = submission.payload || {};
       submission.payload = body.payload;
+      if (body.payload.paymentOption) {
+        submission.paymentOption = body.payload.paymentOption;
+      }
       submission.markModified("payload");
 
       // Auto-sync clientContact if applicant details are present in payload

@@ -845,6 +845,12 @@ function SubmissionDetailsContent() {
 
   const { submission, routingLogs, quotes, boundPolicy, cancelRequested } = data;
 
+  const isPremiumFinanceOption = 
+    submission?.payload?.paymentOption === "Premium Financial Partners Co." || 
+    (submission as any)?.paymentOption === "Premium Financial Partners Co." ||
+    (typeof submission?.payload?.paymentOption === "string" && submission.payload.paymentOption.toLowerCase().includes("premium financial")) ||
+    (typeof (submission as any)?.paymentOption === "string" && (submission as any).paymentOption.toLowerCase().includes("premium financial"));
+
 
   // ✅ STATUS FLAGS
   const isBound = submission?.status === "BOUND" || (submission?.status !== "CANCELLED" && (quotes || []).some((q: any) => q.status === "BOUND"));
@@ -2156,7 +2162,7 @@ function SubmissionDetailsContent() {
               "Contact Information",
               "Rating Information",
               "Audits",
-              ...((submission?.payload?.paymentOption === "Premium Financial Partners Co." || (submission as any)?.paymentOption === "Premium Financial Partners Co.") ? ["Premium Financing"] : [])
+              ...(isPremiumFinanceOption ? ["Premium Financing"] : [])
             ].map(
               (tab) => (
                 <button
@@ -2481,7 +2487,7 @@ function SubmissionDetailsContent() {
             </div>
           )}
 
-          {(submission?.payload?.paymentOption === "Premium Financial Partners Co." || (submission as any)?.paymentOption === "Premium Financial Partners Co.") && activeTab === "Premium Financing" && (
+          {isPremiumFinanceOption && activeTab === "Premium Financing" && (
             <div className="animate-in fade-in duration-300">
               <AgencyPremiumFinanceTab
                 submission={submission}

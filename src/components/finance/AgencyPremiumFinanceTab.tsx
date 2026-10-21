@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { toast } from "sonner";
+import { getStateCode } from "@/lib/utils/stateConverter";
 import { 
   DollarSign, 
   FileText, 
@@ -114,6 +115,9 @@ export default function AgencyPremiumFinanceTab({
         return {
           policyType: q.policyType || "GENERAL_LIABILITY",
           policyNumber: q.policyNumber || "TBD",
+          carrierName: q.carrierId?.name || "",
+          carrierCode: q.carrierId?.code || "",
+          effectiveDate: q.effectiveDate || submission?.effectiveDate,
           premiumAmount: (q.carrierQuoteUSD || 0).toString(),
           taxesAmount: taxes.toString(),
           feesAmount: fees.toString(),
@@ -126,8 +130,13 @@ export default function AgencyPremiumFinanceTab({
         body: JSON.stringify({
           policies: policiesPayload,
           brokerFeeAmount: parsedBrokerFee,
-          insuredName: submission?.payload?.companyName || submission?.clientContact?.name || "Client",
-          state: submission?.state || submission?.clientContact?.businessAddress?.state || "CA",
+          insuredName: submission?.payload?.companyName || submission?.payload?.applicantName || submission?.payload?.namedInsured || submission?.clientContact?.name || "Client",
+          address: submission?.clientContact?.businessAddress?.street || submission?.payload?.streetAddress || submission?.payload?.mailingAddress,
+          city: submission?.clientContact?.businessAddress?.city || submission?.payload?.city || submission?.payload?.mailingCity,
+          state: getStateCode(submission?.state || submission?.clientContact?.businessAddress?.state || submission?.payload?.state || "CA"),
+          zip: submission?.clientContact?.businessAddress?.zip || submission?.payload?.zip || submission?.payload?.mailingZip || "90210",
+          phone: submission?.clientContact?.phone || submission?.payload?.applicantPhone || submission?.payload?.phone,
+          email: submission?.clientContact?.email || submission?.payload?.applicantEmail || submission?.payload?.email,
         }),
       });
 
@@ -442,7 +451,7 @@ export default function AgencyPremiumFinanceTab({
                 <div className="flex flex-wrap items-center gap-3 pt-2">
                   {financeTerms.premiumFinanceAgreement && (
                     <a
-                      href={financeTerms.premiumFinanceAgreement}
+                      href={`/api/finance/pdf-proxy?url=${encodeURIComponent(financeTerms.premiumFinanceAgreement)}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-bold shadow-md shadow-indigo-100 transition cursor-pointer"
@@ -453,9 +462,9 @@ export default function AgencyPremiumFinanceTab({
                     </a>
                   )}
 
-                  {financeTerms.premiumFinanceQuote && (
+                  {financeTerms.premiumFinanceQuote && financeTerms.premiumFinanceQuote !== financeTerms.premiumFinanceAgreement && (
                     <a
-                      href={financeTerms.premiumFinanceQuote}
+                      href={`/api/finance/pdf-proxy?url=${encodeURIComponent(financeTerms.premiumFinanceQuote)}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 rounded-lg text-sm font-semibold shadow-sm transition cursor-pointer"

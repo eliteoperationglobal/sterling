@@ -588,8 +588,8 @@ export async function POST(
         }
       }
 
-      // 2. Download & Save Quote PDF
-      if (pfqUrl) {
+      // 2. Download & Save Quote PDF (only if distinct from agreement to avoid duplicate files)
+      if (pfqUrl && pfqUrl !== pfaUrl) {
         try {
           console.log(`📄 Downloading Premium Finance Quote PDF from ${pfqUrl}...`);
           const pfqResponse = await fetch(pfqUrl);

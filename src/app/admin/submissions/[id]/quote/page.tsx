@@ -1571,9 +1571,15 @@ export default function AdminQuotePage() {
                      parseCurrency(state.stampingFeePerFilingUSD) +
                      parseCurrency(state.slaServiceChargeUSD);
 
+        const carrierObj = carriers.find((c) => c._id === state.selectedCarrierId);
+        const carrierName = carrierObj?.name || "";
+
         policyList.push({
           policyType: type,
           policyNumber: state.policyNumber || "TBD",
+          carrierName: carrierName,
+          carrierCode: (carrierObj as any)?.code || "",
+          effectiveDate: state.effectiveDate,
           premiumAmount: prem.toString(),
           taxesAmount: taxes.toString(),
           feesAmount: fees.toString(),
@@ -1590,12 +1596,14 @@ export default function AdminQuotePage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           policies: policyList,
-          premiumAmount: policyList[0].premiumAmount,
-          taxesAmount: policyList[0].taxesAmount,
-          feesAmount: policyList[0].feesAmount,
-          policyType: policyList[0].policyType,
-          insuredName: submission?.payload?.companyName || submission?.payload?.applicantName || submission?.payload?.namedInsured || submission?.clientContact?.name || "Client",
-          state: getStateCode((submission as any)?.state || (submission as any)?.clientContact?.businessAddress?.state || "CA"),
+          brokerFeeAmount: brokerFeeFromForm,
+          insuredName: submission?.payload?.companyName || submission?.payload?.applicantName || submission?.payload?.namedInsured || (submission as any)?.clientContact?.name || "Client",
+          address: (submission as any)?.clientContact?.businessAddress?.street || submission?.payload?.streetAddress || submission?.payload?.mailingAddress,
+          city: (submission as any)?.clientContact?.businessAddress?.city || submission?.payload?.city || submission?.payload?.mailingCity,
+          state: getStateCode((submission as any)?.state || (submission as any)?.clientContact?.businessAddress?.state || (submission as any)?.payload?.state || "CA"),
+          zip: (submission as any)?.clientContact?.businessAddress?.zip || (submission as any)?.payload?.zip || (submission as any)?.payload?.mailingZip || "90210",
+          phone: (submission as any)?.clientContact?.phone || (submission as any)?.payload?.applicantPhone || (submission as any)?.payload?.phone,
+          email: (submission as any)?.clientContact?.email || (submission as any)?.payload?.applicantEmail || (submission as any)?.payload?.email,
         }),
       });
 
@@ -3285,7 +3293,7 @@ export default function AdminQuotePage() {
                       <div className="pt-3 border-t border-gray-100 flex flex-wrap gap-3 mt-3">
                         {financeTerms.premiumFinanceAgreement && (
                           <a
-                            href={financeTerms.premiumFinanceAgreement}
+                            href={`/api/finance/pdf-proxy?url=${encodeURIComponent(financeTerms.premiumFinanceAgreement)}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold text-sm rounded-lg border border-indigo-200 transition-colors shadow-sm"
@@ -3296,9 +3304,9 @@ export default function AdminQuotePage() {
                             View Finance Agreement (PDF)
                           </a>
                         )}
-                        {financeTerms.premiumFinanceQuote && (
+                        {financeTerms.premiumFinanceQuote && financeTerms.premiumFinanceQuote !== financeTerms.premiumFinanceAgreement && (
                           <a
-                            href={financeTerms.premiumFinanceQuote}
+                            href={`/api/finance/pdf-proxy?url=${encodeURIComponent(financeTerms.premiumFinanceQuote)}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-2 px-4 py-2 bg-gray-50 hover:bg-gray-100 text-gray-700 font-semibold text-sm rounded-lg border border-gray-200 transition-colors shadow-sm"
