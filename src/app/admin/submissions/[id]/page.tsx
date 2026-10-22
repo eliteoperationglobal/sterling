@@ -7,6 +7,7 @@ import useSWR, { mutate } from "swr";
 import Link from "next/link";
 import { toast } from "sonner";
 import PolicyAuditTab from "@/components/audits/PolicyAuditTab";
+import AdminPremiumFinanceTab from "@/components/finance/AdminPremiumFinanceTab";
 import {
   ArrowLeft,
   User,
@@ -314,6 +315,58 @@ export default function AdminSubmissionDetailsPage() {
     processingFee: 0,
     totalDue: 0
   });
+
+  const [bindModalOpen, setBindModalOpen] = useState(false);
+  const [bindSelectedCarrierIdGL, setBindSelectedCarrierIdGL] = useState<string | null>(null);
+  const [bindSelectedCarrierIdXL, setBindSelectedCarrierIdXL] = useState<string | null>(null);
+  const [bindSelectedCarrierIdPL, setBindSelectedCarrierIdPL] = useState<string | null>(null);
+  const [bindSelectedCarrierIdPollution, setBindSelectedCarrierIdPollution] = useState<string | null>(null);
+
+  const handleRequestBind = async () => {
+    if (!bindSelectedCarrierIdGL && !bindSelectedCarrierIdXL && !bindSelectedCarrierIdPL && !bindSelectedCarrierIdPollution) {
+      toast.error("Please select at least one carrier.");
+      return;
+    }
+
+    const quotesToBind = [];
+    if (bindSelectedCarrierIdGL) {
+      quotesToBind.push({ policyType: "GENERAL_LIABILITY", carrierId: bindSelectedCarrierIdGL });
+    }
+    if (bindSelectedCarrierIdXL) {
+      quotesToBind.push({ policyType: "EXCESS_LIABILITY", carrierId: bindSelectedCarrierIdXL });
+    }
+    if (bindSelectedCarrierIdPL) {
+      quotesToBind.push({ policyType: "PROFESSIONAL_LIABILITY", carrierId: bindSelectedCarrierIdPL });
+    }
+    if (bindSelectedCarrierIdPollution) {
+      quotesToBind.push({ policyType: "POLLUTION_LIABILITY", carrierId: bindSelectedCarrierIdPollution });
+    }
+
+    try {
+      const res = await fetch(
+        `/api/admin/submissions/${submissionId}/request-bind`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ quotesToBind }),
+        }
+      );
+
+      const result = await res.json();
+
+      if (!res.ok) throw new Error(result.error);
+
+      toast.success("Bind request sent!");
+      setBindModalOpen(false);
+      setBindSelectedCarrierIdGL(null);
+      setBindSelectedCarrierIdXL(null);
+      setBindSelectedCarrierIdPL(null);
+      setBindSelectedCarrierIdPollution(null);
+      mutate(status === "authenticated" && submissionId ? `/api/admin/submissions/${submissionId}` : null);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to request bind");
+    }
+  };
 
   const handlePremiumChange = (value: string) => {
     const amount = parseFloat(value) || 0;
@@ -1044,6 +1097,125 @@ export default function AdminSubmissionDetailsPage() {
         </div>
       )}
 
+      {/* Carrier Selection Modal for Request Bind */}
+      {bindModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 animate-in fade-in zoom-in duration-200">
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Request Bind</h3>
+            <p className="text-gray-500 text-sm mb-6">Select the carriers you wish to bind with for each policy.</p>
+
+            {/* Only show GL selector if GL is NOT already bound or requested */}
+            {availablePolicies.includes("GENERAL_LIABILITY") && !data?.quotes?.some((q: any) => (q.policyType === "GENERAL_LIABILITY" || !q.policyType) && (q.status === "BOUND" || q.status === "BIND_REQUESTED")) && data?.quotes?.some((q: any) => q.policyType === "GENERAL_LIABILITY" || !q.policyType) && (
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {getPolicyLabel("GENERAL_LIABILITY")} Carrier
+                </label>
+                <select
+                  value={bindSelectedCarrierIdGL || ""}
+                  onChange={(e) => setBindSelectedCarrierIdGL(e.target.value)}
+                  className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-black focus:border-black block p-3 outline-none transition-all"
+                >
+                  <option value="">Do not bind {getPolicyLabel("GENERAL_LIABILITY")}...</option>
+                  {data?.quotes?.filter((q: any) => (q.policyType === "GENERAL_LIABILITY" || !q.policyType) && q.status !== "BOUND").map((quote: any) => (
+                    <option key={quote._id} value={quote.carrierId?._id}>
+                      {quote.carrierId?.name || "Unknown Carrier"}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {/* Only show XL selector if XL is NOT already bound or requested */}
+            {availablePolicies.includes("EXCESS_LIABILITY") && !data?.quotes?.some((q: any) => q.policyType === "EXCESS_LIABILITY" && (q.status === "BOUND" || q.status === "BIND_REQUESTED")) && data?.quotes?.some((q: any) => q.policyType === "EXCESS_LIABILITY") && (
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {getPolicyLabel("EXCESS_LIABILITY")} Carrier
+                </label>
+                <select
+                  value={bindSelectedCarrierIdXL || ""}
+                  onChange={(e) => setBindSelectedCarrierIdXL(e.target.value)}
+                  className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-black focus:border-black block p-3 outline-none transition-all"
+                >
+                  <option value="">Do not bind {getPolicyLabel("EXCESS_LIABILITY")}...</option>
+                  {data?.quotes?.filter((q: any) => q.policyType === "EXCESS_LIABILITY" && q.status !== "BOUND").map((quote: any) => (
+                    <option key={quote._id} value={quote.carrierId?._id}>
+                      {quote.carrierId?.name || "Unknown Carrier"}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {/* Only show PL selector if PL is NOT already bound or requested */}
+            {availablePolicies.includes("PROFESSIONAL_LIABILITY") && !data?.quotes?.some((q: any) => q.policyType === "PROFESSIONAL_LIABILITY" && (q.status === "BOUND" || q.status === "BIND_REQUESTED")) && data?.quotes?.some((q: any) => q.policyType === "PROFESSIONAL_LIABILITY") && (
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {getPolicyLabel("PROFESSIONAL_LIABILITY")} Carrier
+                </label>
+                <select
+                  value={bindSelectedCarrierIdPL || ""}
+                  onChange={(e) => setBindSelectedCarrierIdPL(e.target.value)}
+                  className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-black focus:border-black block p-3 outline-none transition-all"
+                >
+                  <option value="">Do not bind {getPolicyLabel("PROFESSIONAL_LIABILITY")}...</option>
+                  {data?.quotes?.filter((q: any) => q.policyType === "PROFESSIONAL_LIABILITY" && q.status !== "BOUND").map((quote: any) => (
+                    <option key={quote._id} value={quote.carrierId?._id}>
+                      {quote.carrierId?.name || "Unknown Carrier"}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {/* Only show Pollution selector if Pollution is NOT already bound or requested */}
+            {availablePolicies.includes("POLLUTION_LIABILITY") && !data?.quotes?.some((q: any) => q.policyType === "POLLUTION_LIABILITY" && (q.status === "BOUND" || q.status === "BIND_REQUESTED")) && data?.quotes?.some((q: any) => q.policyType === "POLLUTION_LIABILITY") && (
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {getPolicyLabel("POLLUTION_LIABILITY")} Carrier
+                </label>
+                <select
+                  value={bindSelectedCarrierIdPollution || ""}
+                  onChange={(e) => setBindSelectedCarrierIdPollution(e.target.value)}
+                  className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-black focus:border-black block p-3 outline-none transition-all"
+                >
+                  <option value="">Do not bind {getPolicyLabel("POLLUTION_LIABILITY")}...</option>
+                  {data?.quotes?.filter((q: any) => q.policyType === "POLLUTION_LIABILITY" && q.status !== "BOUND").map((quote: any) => (
+                    <option key={quote._id} value={quote.carrierId?._id}>
+                      {quote.carrierId?.name || "Unknown Carrier"}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            <div className="flex justify-end gap-3 mt-4">
+              <button
+                onClick={() => {
+                  setBindModalOpen(false);
+                  setBindSelectedCarrierIdGL(null);
+                  setBindSelectedCarrierIdXL(null);
+                  setBindSelectedCarrierIdPL(null);
+                  setBindSelectedCarrierIdPollution(null);
+                }}
+                className="px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-xl transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleRequestBind}
+                disabled={!bindSelectedCarrierIdGL && !bindSelectedCarrierIdXL && !bindSelectedCarrierIdPL && !bindSelectedCarrierIdPollution}
+                className={`px-5 py-2.5 text-sm font-medium text-white rounded-xl transition-all ${(bindSelectedCarrierIdGL || bindSelectedCarrierIdXL || bindSelectedCarrierIdPL || bindSelectedCarrierIdPollution)
+                  ? "bg-[#9A8B7A] hover:bg-[#8a6f4d] shadow-md"
+                  : "bg-gray-300 cursor-not-allowed"
+                  }`}
+              >
+                Submit Request
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Payment Auth Modal */}
       {paymentAuthModalOpen && (
         <div className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm overflow-y-auto">
@@ -1413,6 +1585,51 @@ export default function AdminSubmissionDetailsPage() {
                       Re-enter Quote
                     </button>
                   )}
+
+                  {/* Request Bind / Bind Requested Buttons */}
+                  {(() => {
+                    // Check if current policy line is already bound
+                    const isCurrentPolicyBound = (data?.quotes || []).some((q: any) =>
+                      (q.policyType === currentPolicyType || (!q.policyType && currentPolicyType === "GENERAL_LIABILITY")) &&
+                      q.status === "BOUND"
+                    );
+
+                    // Check if current policy line is already requested for bind
+                    const isCurrentPolicyBindRequested = (data?.quotes || []).some((q: any) =>
+                      (q.policyType === currentPolicyType || (!q.policyType && currentPolicyType === "GENERAL_LIABILITY")) &&
+                      q.status === "BIND_REQUESTED"
+                    );
+
+                    const currentQuoteStatus = currentQuote?.status;
+
+                    // Can request bind only if not bound, not bind requested, and quote is entered/posted/quoted
+                    const canRequestBind = !isCurrentPolicyBound && !isCurrentPolicyBindRequested && currentQuote && (
+                      ["POSTED", "ENTERED", "QUOTED"].includes(currentQuoteStatus) ||
+                      data?.submission?.status === "QUOTED"
+                    );
+
+                    return (
+                      <>
+                        {canRequestBind && (
+                          <button
+                            onClick={() => setBindModalOpen(true)}
+                            className={iscPrimaryBtn}
+                          >
+                            Request Bind
+                          </button>
+                        )}
+
+                        {!isCurrentPolicyBound && isCurrentPolicyBindRequested && (
+                          <button
+                            disabled
+                            className={`${iscPrimaryBtn} opacity-60 cursor-not-allowed`}
+                          >
+                            Bind Requested
+                          </button>
+                        )}
+                      </>
+                    );
+                  })()}
                   {submission.status === "BOUND" && (
                     <>
                       {(submission.hasNewEdits || (() => {
@@ -1949,7 +2166,7 @@ export default function AdminSubmissionDetailsPage() {
         {/* Tabs Bar */}
         <div className="bg-white px-8 border-t border-gray-100 shadow-sm sticky top-[64px] z-30">
           <div className="px-8 flex items-center gap-8 h-[56px]">
-            {["Admin Notes", "Status History", "Additional Information", "Rating Information", "Key Information", "Quoting & Routing", "Audits"].map((tab) => (
+            {["Admin Notes", "Status History", "Additional Information", "Rating Information", "Key Information", "Quoting & Routing", "Premium Financing", "Audits"].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -2376,6 +2593,18 @@ export default function AdminSubmissionDetailsPage() {
             {activeTab === "Audits" && (
               <div className="animate-in fade-in duration-300">
                 <PolicyAuditTab submissionId={submissionId as string} />
+              </div>
+            )}
+
+            {activeTab === "Premium Financing" && (
+              <div className="animate-in fade-in duration-300">
+                <AdminPremiumFinanceTab
+                  submission={submission}
+                  quotes={quotes || []}
+                  mutate={async () => {
+                    await mutate(`/api/admin/submissions/${submissionId}`);
+                  }}
+                />
               </div>
             )}
           </div>

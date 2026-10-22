@@ -57,7 +57,7 @@ export const STATE_TAX_RATES: Record<string, StateTaxRate> = {
   DC: { state: "DC", stateName: "District of Columbia", taxRate: 2 },
 
   // Florida
-  FL: { state: "FL", stateName: "Florida", taxRate: 4.94, stampingFee: 0.06 },
+  FL: { state: "FL", stateName: "Florida", taxRate: 4.94, stampingFee: 0.03 },
 
   // Georgia
   GA: { state: "GA", stateName: "Georgia", taxRate: 4, stampingFee: 0.06 },
