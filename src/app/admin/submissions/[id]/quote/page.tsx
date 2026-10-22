@@ -89,6 +89,24 @@ export default function AdminQuotePage() {
   const [propertyBusinessIncomeLimit, setPropertyBusinessIncomeLimit] = useState("");
   const [propertyDeductible, setPropertyDeductible] = useState("");
 
+  // Builders Risk Coverage Limits
+  const [buildersLimitPerOccurrence, setBuildersLimitPerOccurrence] = useState("");
+  const [buildersCompletedValue, setBuildersCompletedValue] = useState("");
+  const [buildersTotalInsurableValue, setBuildersTotalInsurableValue] = useState("");
+  const [buildersExistingStructure, setBuildersExistingStructure] = useState("Not Provided");
+  const [buildersValuation, setBuildersValuation] = useState("ACV");
+  const [buildersCoinsurance, setBuildersCoinsurance] = useState("90");
+  const [buildersWaterDamage, setBuildersWaterDamage] = useState("100,000");
+  const [buildersSoftCosts, setBuildersSoftCosts] = useState("0");
+  const [buildersDelayInCompletion, setBuildersDelayInCompletion] = useState("N/A");
+  const [buildersPropertyInTransit, setBuildersPropertyInTransit] = useState("0");
+  const [buildersTemporaryStorage, setBuildersTemporaryStorage] = useState("0");
+  const [buildersDebrisRemoval, setBuildersDebrisRemoval] = useState("0");
+  const [buildersPollutantCleanup, setBuildersPollutantCleanup] = useState("0");
+  const [buildersOrdinanceOrLaw, setBuildersOrdinanceOrLaw] = useState("0");
+  const [buildersScaffolding, setBuildersScaffolding] = useState("0");
+  const [buildersFireDeptServiceCharge, setBuildersFireDeptServiceCharge] = useState("0");
+
   // Endorsements (will be auto-populated from application form)
   const [selectedEndorsements, setSelectedEndorsements] = useState<string[]>([]);
 
@@ -189,6 +207,18 @@ export default function AdminQuotePage() {
   }, [submission]);
 
   const isContractorsPolicy = currentPolicyType === "GENERAL_LIABILITY" && isContractorsEquipment;
+
+  const isBuildersRisk = useMemo(() => {
+    return (
+      submission?.programId === 'builders-risk' ||
+      submission?.programName === 'Builders Risk' ||
+      (submission?.programName || '').toLowerCase().includes('builder') ||
+      (submission?.payload?.programId || '') === 'builders-risk' ||
+      (submission?.payload?.programName || '').toLowerCase().includes('builder')
+    );
+  }, [submission]);
+
+  const isBuildersRiskPolicy = currentPolicyType === "GENERAL_LIABILITY" && isBuildersRisk;
 
   useEffect(() => {
     if (status === "authenticated" && submissionId) {
@@ -330,9 +360,37 @@ export default function AdminQuotePage() {
             "Please provide five years of currently valued loss runs."
           ]);
         }
+
+        // Specific auto-population for Builders Risk
+        if (isBuildersRisk) {
+          const tiv = formData.totalInsurableValue || formData.insurableValueTotal;
+          if (tiv) {
+            const cleanTiv = formatCurrencyInput(String(tiv).replace(/[^0-9.]/g, ''));
+            setBuildersTotalInsurableValue(cleanTiv);
+            setBuildersLimitPerOccurrence(cleanTiv);
+          }
+
+          const completed = formData.buildingMaterialsValue || formData.completedValue || formData.totalInsurableValue || formData.insurableValueTotal;
+          if (completed) {
+            setBuildersCompletedValue(formatCurrencyInput(String(completed).replace(/[^0-9.]/g, '')));
+          }
+
+          if (formData.existingStructureValue) {
+            setBuildersExistingStructure(formatCurrencyInput(String(formData.existingStructureValue).replace(/[^0-9.]/g, '')));
+          } else if (formData.coverageExistingStructure === true || formData.coverageExistingStructure === 'true') {
+            setBuildersExistingStructure("Included");
+          } else if (formData.demoExistingStructure === true || formData.demoExistingStructure === 'true') {
+            setBuildersExistingStructure("Demolished");
+          } else {
+            setBuildersExistingStructure("Not Provided");
+          }
+
+          if (formData.valuation) setBuildersValuation(formData.valuation);
+          if (formData.coinsurance) setBuildersCoinsurance(String(formData.coinsurance).replace(/[^0-9]/g, ''));
+        }
       }
     }
-  }, [submission, hasExistingQuotes, isContractorsEquipment]);
+  }, [submission, hasExistingQuotes, isContractorsEquipment, isBuildersRisk]);
 
   // Apply renter-quote specific defaults when opened from "Renter Quote" action
   useEffect(() => {
@@ -412,6 +470,23 @@ export default function AdminQuotePage() {
           inlandMarineDeductibles: q.limits?.inlandMarineDeductibles?.length ? q.limits.inlandMarineDeductibles : [{ description: "", amount: "1,500" }],
           coinsurance: q.limits?.coinsurance || "90%",
           valuation: q.limits?.valuation || "Actual Cash Value",
+          // Builders Risk fields
+          buildersLimitPerOccurrence: q.limits?.limitPerOccurrence || "",
+          buildersCompletedValue: q.limits?.completedValue || "",
+          buildersTotalInsurableValue: q.limits?.totalInsurableValue || "",
+          buildersExistingStructure: q.limits?.existingStructure || "Not Provided",
+          buildersValuation: q.limits?.valuation || "ACV",
+          buildersCoinsurance: q.limits?.coinsurance || "90",
+          buildersWaterDamage: q.limits?.waterDamageSublimit || "100,000",
+          buildersSoftCosts: q.limits?.softCostsSublimit || "0",
+          buildersDelayInCompletion: q.limits?.delayInCompletionSublimit || "N/A",
+          buildersPropertyInTransit: q.limits?.propertyInTransitSublimit || "0",
+          buildersTemporaryStorage: q.limits?.temporaryOffsiteStorageSublimit || "0",
+          buildersDebrisRemoval: q.limits?.debrisRemovalSublimit || "0",
+          buildersPollutantCleanup: q.limits?.pollutantCleanupSublimit || "0",
+          buildersOrdinanceOrLaw: q.limits?.ordinanceOrLawSublimit || "0",
+          buildersScaffolding: q.limits?.scaffoldingSublimit || "0",
+          buildersFireDeptServiceCharge: q.limits?.fireDeptServiceChargeSublimit || "0",
           inlandMarineEndorsements: q.endorsements || [],
           selectedEndorsements: q.endorsements || [],
           effectiveDate: q.effectiveDate ? new Date(q.effectiveDate).toISOString().split("T")[0] : "",
@@ -487,6 +562,23 @@ export default function AdminQuotePage() {
           if (s.inlandMarineEndorsements && s.inlandMarineEndorsements.length > 0) {
             setInlandMarineEndorsements(s.inlandMarineEndorsements);
           }
+          // Set Builders Risk specific states
+          if (s.buildersLimitPerOccurrence !== undefined && s.buildersLimitPerOccurrence !== null) setBuildersLimitPerOccurrence(s.buildersLimitPerOccurrence);
+          if (s.buildersCompletedValue !== undefined && s.buildersCompletedValue !== null) setBuildersCompletedValue(s.buildersCompletedValue);
+          if (s.buildersTotalInsurableValue !== undefined && s.buildersTotalInsurableValue !== null) setBuildersTotalInsurableValue(s.buildersTotalInsurableValue);
+          if (s.buildersExistingStructure !== undefined && s.buildersExistingStructure !== null) setBuildersExistingStructure(s.buildersExistingStructure);
+          if (s.buildersValuation !== undefined && s.buildersValuation !== null) setBuildersValuation(s.buildersValuation);
+          if (s.buildersCoinsurance !== undefined && s.buildersCoinsurance !== null) setBuildersCoinsurance(s.buildersCoinsurance);
+          if (s.buildersWaterDamage !== undefined && s.buildersWaterDamage !== null) setBuildersWaterDamage(s.buildersWaterDamage);
+          if (s.buildersSoftCosts !== undefined && s.buildersSoftCosts !== null) setBuildersSoftCosts(s.buildersSoftCosts);
+          if (s.buildersDelayInCompletion !== undefined && s.buildersDelayInCompletion !== null) setBuildersDelayInCompletion(s.buildersDelayInCompletion);
+          if (s.buildersPropertyInTransit !== undefined && s.buildersPropertyInTransit !== null) setBuildersPropertyInTransit(s.buildersPropertyInTransit);
+          if (s.buildersTemporaryStorage !== undefined && s.buildersTemporaryStorage !== null) setBuildersTemporaryStorage(s.buildersTemporaryStorage);
+          if (s.buildersDebrisRemoval !== undefined && s.buildersDebrisRemoval !== null) setBuildersDebrisRemoval(s.buildersDebrisRemoval);
+          if (s.buildersPollutantCleanup !== undefined && s.buildersPollutantCleanup !== null) setBuildersPollutantCleanup(s.buildersPollutantCleanup);
+          if (s.buildersOrdinanceOrLaw !== undefined && s.buildersOrdinanceOrLaw !== null) setBuildersOrdinanceOrLaw(s.buildersOrdinanceOrLaw);
+          if (s.buildersScaffolding !== undefined && s.buildersScaffolding !== null) setBuildersScaffolding(s.buildersScaffolding);
+          if (s.buildersFireDeptServiceCharge !== undefined && s.buildersFireDeptServiceCharge !== null) setBuildersFireDeptServiceCharge(s.buildersFireDeptServiceCharge);
           setSelectedEndorsements(s.selectedEndorsements);
           setEffectiveDate(s.effectiveDate);
           setExpirationDate(s.expirationDate);
@@ -888,6 +980,23 @@ export default function AdminQuotePage() {
       coinsurance,
       valuation,
       inlandMarineEndorsements,
+      // Builders Risk
+      buildersLimitPerOccurrence,
+      buildersCompletedValue,
+      buildersTotalInsurableValue,
+      buildersExistingStructure,
+      buildersValuation,
+      buildersCoinsurance,
+      buildersWaterDamage,
+      buildersSoftCosts,
+      buildersDelayInCompletion,
+      buildersPropertyInTransit,
+      buildersTemporaryStorage,
+      buildersDebrisRemoval,
+      buildersPollutantCleanup,
+      buildersOrdinanceOrLaw,
+      buildersScaffolding,
+      buildersFireDeptServiceCharge,
       selectedEndorsements,
       effectiveDate,
       expirationDate,
@@ -935,6 +1044,23 @@ export default function AdminQuotePage() {
       coinsurance,
       valuation,
       inlandMarineEndorsements,
+      // Builders Risk
+      buildersLimitPerOccurrence,
+      buildersCompletedValue,
+      buildersTotalInsurableValue,
+      buildersExistingStructure,
+      buildersValuation,
+      buildersCoinsurance,
+      buildersWaterDamage,
+      buildersSoftCosts,
+      buildersDelayInCompletion,
+      buildersPropertyInTransit,
+      buildersTemporaryStorage,
+      buildersDebrisRemoval,
+      buildersPollutantCleanup,
+      buildersOrdinanceOrLaw,
+      buildersScaffolding,
+      buildersFireDeptServiceCharge,
       selectedEndorsements,
       effectiveDate,
       expirationDate,
@@ -979,6 +1105,22 @@ export default function AdminQuotePage() {
     coinsurance,
     valuation,
     inlandMarineEndorsements,
+    buildersLimitPerOccurrence,
+    buildersCompletedValue,
+    buildersTotalInsurableValue,
+    buildersExistingStructure,
+    buildersValuation,
+    buildersCoinsurance,
+    buildersWaterDamage,
+    buildersSoftCosts,
+    buildersDelayInCompletion,
+    buildersPropertyInTransit,
+    buildersTemporaryStorage,
+    buildersDebrisRemoval,
+    buildersPollutantCleanup,
+    buildersOrdinanceOrLaw,
+    buildersScaffolding,
+    buildersFireDeptServiceCharge,
     selectedEndorsements,
     effectiveDate,
     expirationDate,
@@ -997,12 +1139,16 @@ export default function AdminQuotePage() {
     formType: "admin_quote",
     formId: submissionId || "",
     data: formData,
-    enabled: !!submissionId && status === "authenticated",
+    enabled: !!submissionId && status === "authenticated" && !loading && !submitting && !success,
   });
 
   // Load draft on mount (after submission data is loaded)
   useEffect(() => {
     if (status === "authenticated" && submissionId && !loading && submission) {
+      if (hasExistingQuotes) {
+        console.log("[AdminQuote] Existing quote loaded from DB. Skipping draft restore to preserve saved quote.");
+        return;
+      }
       console.log("[AdminQuote] Loading draft for submission:", submissionId);
       loadDraft().then((draftData) => {
         console.log("[AdminQuote] Draft loaded, data:", draftData);
@@ -1159,6 +1305,55 @@ export default function AdminQuotePage() {
           if (activeState.customDocuments && Array.isArray(activeState.customDocuments)) {
             setCustomDocuments(activeState.customDocuments);
           }
+          // Restore Builders Risk specific states from draft
+          if (activeState.buildersLimitPerOccurrence !== undefined && activeState.buildersLimitPerOccurrence !== null && activeState.buildersLimitPerOccurrence !== "") {
+            setBuildersLimitPerOccurrence(String(activeState.buildersLimitPerOccurrence));
+          }
+          if (activeState.buildersCompletedValue !== undefined && activeState.buildersCompletedValue !== null && activeState.buildersCompletedValue !== "") {
+            setBuildersCompletedValue(String(activeState.buildersCompletedValue));
+          }
+          if (activeState.buildersTotalInsurableValue !== undefined && activeState.buildersTotalInsurableValue !== null && activeState.buildersTotalInsurableValue !== "") {
+            setBuildersTotalInsurableValue(String(activeState.buildersTotalInsurableValue));
+          }
+          if (activeState.buildersExistingStructure !== undefined && activeState.buildersExistingStructure !== null && activeState.buildersExistingStructure !== "") {
+            setBuildersExistingStructure(String(activeState.buildersExistingStructure));
+          }
+          if (activeState.buildersValuation !== undefined && activeState.buildersValuation !== null && activeState.buildersValuation !== "") {
+            setBuildersValuation(String(activeState.buildersValuation));
+          }
+          if (activeState.buildersCoinsurance !== undefined && activeState.buildersCoinsurance !== null && activeState.buildersCoinsurance !== "") {
+            setBuildersCoinsurance(String(activeState.buildersCoinsurance));
+          }
+          if (activeState.buildersWaterDamage !== undefined && activeState.buildersWaterDamage !== null && activeState.buildersWaterDamage !== "") {
+            setBuildersWaterDamage(String(activeState.buildersWaterDamage));
+          }
+          if (activeState.buildersSoftCosts !== undefined && activeState.buildersSoftCosts !== null && activeState.buildersSoftCosts !== "") {
+            setBuildersSoftCosts(String(activeState.buildersSoftCosts));
+          }
+          if (activeState.buildersDelayInCompletion !== undefined && activeState.buildersDelayInCompletion !== null && activeState.buildersDelayInCompletion !== "") {
+            setBuildersDelayInCompletion(String(activeState.buildersDelayInCompletion));
+          }
+          if (activeState.buildersPropertyInTransit !== undefined && activeState.buildersPropertyInTransit !== null && activeState.buildersPropertyInTransit !== "") {
+            setBuildersPropertyInTransit(String(activeState.buildersPropertyInTransit));
+          }
+          if (activeState.buildersTemporaryStorage !== undefined && activeState.buildersTemporaryStorage !== null && activeState.buildersTemporaryStorage !== "") {
+            setBuildersTemporaryStorage(String(activeState.buildersTemporaryStorage));
+          }
+          if (activeState.buildersDebrisRemoval !== undefined && activeState.buildersDebrisRemoval !== null && activeState.buildersDebrisRemoval !== "") {
+            setBuildersDebrisRemoval(String(activeState.buildersDebrisRemoval));
+          }
+          if (activeState.buildersPollutantCleanup !== undefined && activeState.buildersPollutantCleanup !== null && activeState.buildersPollutantCleanup !== "") {
+            setBuildersPollutantCleanup(String(activeState.buildersPollutantCleanup));
+          }
+          if (activeState.buildersOrdinanceOrLaw !== undefined && activeState.buildersOrdinanceOrLaw !== null && activeState.buildersOrdinanceOrLaw !== "") {
+            setBuildersOrdinanceOrLaw(String(activeState.buildersOrdinanceOrLaw));
+          }
+          if (activeState.buildersScaffolding !== undefined && activeState.buildersScaffolding !== null && activeState.buildersScaffolding !== "") {
+            setBuildersScaffolding(String(activeState.buildersScaffolding));
+          }
+          if (activeState.buildersFireDeptServiceCharge !== undefined && activeState.buildersFireDeptServiceCharge !== null && activeState.buildersFireDeptServiceCharge !== "") {
+            setBuildersFireDeptServiceCharge(String(activeState.buildersFireDeptServiceCharge));
+          }
           console.log("[AdminQuote] Form fields restored from draft!");
         } else {
           console.log("[AdminQuote] No draft data found, using defaults");
@@ -1167,11 +1362,12 @@ export default function AdminQuotePage() {
         console.error("[AdminQuote] Error loading draft:", error);
       });
     }
-  }, [status, submissionId, loading, submission, loadDraft]);
+  }, [status, submissionId, loading, submission, hasExistingQuotes, loadDraft]);
 
   // Build API payload from a policy state object (used for multi-policy submit)
   const buildPolicyPayload = (state: any, policyType: string) => {
     const isContractors = isContractorsEquipment && policyType === "GENERAL_LIABILITY";
+    const isBuilders = isBuildersRisk && policyType === "GENERAL_LIABILITY";
     const limits = isContractors ? {
       scheduledEquipment: state.scheduledEquipment || undefined,
       unscheduledTools: state.unscheduledTools || undefined,
@@ -1181,6 +1377,23 @@ export default function AdminQuotePage() {
       inlandMarineDeductibles: state.inlandMarineDeductibles || undefined,
       coinsurance: state.coinsurance || undefined,
       valuation: state.valuation || undefined,
+    } : isBuilders ? {
+      limitPerOccurrence: state.buildersLimitPerOccurrence || undefined,
+      completedValue: state.buildersCompletedValue || undefined,
+      totalInsurableValue: state.buildersTotalInsurableValue || undefined,
+      existingStructure: state.buildersExistingStructure || undefined,
+      valuation: state.buildersValuation || undefined,
+      coinsurance: state.buildersCoinsurance || undefined,
+      waterDamageSublimit: state.buildersWaterDamage || undefined,
+      softCostsSublimit: state.buildersSoftCosts || undefined,
+      delayInCompletionSublimit: state.buildersDelayInCompletion || undefined,
+      propertyInTransitSublimit: state.buildersPropertyInTransit || undefined,
+      temporaryOffsiteStorageSublimit: state.buildersTemporaryStorage || undefined,
+      debrisRemovalSublimit: state.buildersDebrisRemoval || undefined,
+      pollutantCleanupSublimit: state.buildersPollutantCleanup || undefined,
+      ordinanceOrLawSublimit: state.buildersOrdinanceOrLaw || undefined,
+      scaffoldingSublimit: state.buildersScaffolding || undefined,
+      fireDeptServiceChargeSublimit: state.buildersFireDeptServiceCharge || undefined,
     } : {
       generalLiability: state.generalLiabilityLimit || undefined,
       aggregateLimit: state.aggregateLimit || undefined,
@@ -1274,6 +1487,23 @@ export default function AdminQuotePage() {
         coinsurance,
         valuation,
         inlandMarineEndorsements,
+        // Builders Risk
+        buildersLimitPerOccurrence,
+        buildersCompletedValue,
+        buildersTotalInsurableValue,
+        buildersExistingStructure,
+        buildersValuation,
+        buildersCoinsurance,
+        buildersWaterDamage,
+        buildersSoftCosts,
+        buildersDelayInCompletion,
+        buildersPropertyInTransit,
+        buildersTemporaryStorage,
+        buildersDebrisRemoval,
+        buildersPollutantCleanup,
+        buildersOrdinanceOrLaw,
+        buildersScaffolding,
+        buildersFireDeptServiceCharge,
         selectedEndorsements,
         effectiveDate,
         expirationDate,
@@ -1376,6 +1606,23 @@ export default function AdminQuotePage() {
         coinsurance,
         valuation,
         inlandMarineEndorsements,
+        // Builders Risk
+        buildersLimitPerOccurrence,
+        buildersCompletedValue,
+        buildersTotalInsurableValue,
+        buildersExistingStructure,
+        buildersValuation,
+        buildersCoinsurance,
+        buildersWaterDamage,
+        buildersSoftCosts,
+        buildersDelayInCompletion,
+        buildersPropertyInTransit,
+        buildersTemporaryStorage,
+        buildersDebrisRemoval,
+        buildersPollutantCleanup,
+        buildersOrdinanceOrLaw,
+        buildersScaffolding,
+        buildersFireDeptServiceCharge,
         selectedEndorsements,
         effectiveDate,
         expirationDate,
@@ -1529,6 +1776,23 @@ export default function AdminQuotePage() {
       coinsurance,
       valuation,
       inlandMarineEndorsements,
+      // Builders Risk
+      buildersLimitPerOccurrence,
+      buildersCompletedValue,
+      buildersTotalInsurableValue,
+      buildersExistingStructure,
+      buildersValuation,
+      buildersCoinsurance,
+      buildersWaterDamage,
+      buildersSoftCosts,
+      buildersDelayInCompletion,
+      buildersPropertyInTransit,
+      buildersTemporaryStorage,
+      buildersDebrisRemoval,
+      buildersPollutantCleanup,
+      buildersOrdinanceOrLaw,
+      buildersScaffolding,
+      buildersFireDeptServiceCharge,
       selectedEndorsements,
       effectiveDate,
       expirationDate,
@@ -1588,6 +1852,23 @@ export default function AdminQuotePage() {
     setCoinsurance(nextState.coinsurance || "90%");
     setValuation(nextState.valuation || "Actual Cash Value");
     setInlandMarineEndorsements(nextState.inlandMarineEndorsements || []);
+    // Restore Builders Risk
+    setBuildersLimitPerOccurrence(nextState.buildersLimitPerOccurrence || "");
+    setBuildersCompletedValue(nextState.buildersCompletedValue || "");
+    setBuildersTotalInsurableValue(nextState.buildersTotalInsurableValue || "");
+    setBuildersExistingStructure(nextState.buildersExistingStructure || "Not Provided");
+    setBuildersValuation(nextState.buildersValuation || "ACV");
+    setBuildersCoinsurance(nextState.buildersCoinsurance || "90");
+    setBuildersWaterDamage(nextState.buildersWaterDamage || "100,000");
+    setBuildersSoftCosts(nextState.buildersSoftCosts || "0");
+    setBuildersDelayInCompletion(nextState.buildersDelayInCompletion || "N/A");
+    setBuildersPropertyInTransit(nextState.buildersPropertyInTransit || "0");
+    setBuildersTemporaryStorage(nextState.buildersTemporaryStorage || "0");
+    setBuildersDebrisRemoval(nextState.buildersDebrisRemoval || "0");
+    setBuildersPollutantCleanup(nextState.buildersPollutantCleanup || "0");
+    setBuildersOrdinanceOrLaw(nextState.buildersOrdinanceOrLaw || "0");
+    setBuildersScaffolding(nextState.buildersScaffolding || "0");
+    setBuildersFireDeptServiceCharge(nextState.buildersFireDeptServiceCharge || "0");
     setSelectedEndorsements(nextState.selectedEndorsements || []);
     setEffectiveDate(nextState.effectiveDate || "");
     setExpirationDate(nextState.expirationDate || "");
@@ -1743,11 +2024,6 @@ export default function AdminQuotePage() {
     (submission?.programName || '').toLowerCase().includes('manufacturer') ||
     ((submission as any)?.industry || submission.templateId?.industry || '').toLowerCase().includes('manufacturer');
 
-  const isBuildersRisk =
-    submission?.programId === 'builders-risk' ||
-    submission?.programName === 'Builders Risk' ||
-    (submission?.programName || '').toLowerCase().includes('builder');
-
   const getPolicyLabel = (type: string) => {
     if (type === "INLAND_MARINE") {
       return "Inland Marine";
@@ -1770,7 +2046,7 @@ export default function AdminQuotePage() {
   };
 
   const isPropertyPolicy = currentPolicyType === "GENERAL_LIABILITY" && isCommercialProperty;
-  const showGLLimits = !isContractorsPolicy && ((currentPolicyType === "GENERAL_LIABILITY" && !isCommercialProperty) || (currentPolicyType === "EXCESS_LIABILITY" && isCommercialProperty));
+  const showGLLimits = !isContractorsPolicy && !isBuildersRisk && ((currentPolicyType === "GENERAL_LIABILITY" && !isCommercialProperty) || (currentPolicyType === "EXCESS_LIABILITY" && isCommercialProperty));
   const showExcessLimits = currentPolicyType === "EXCESS_LIABILITY" && !isCommercialProperty;
   const showProfessionalLimits = currentPolicyType === "PROFESSIONAL_LIABILITY";
   const showPollutionLimits = currentPolicyType === "POLLUTION_LIABILITY";
@@ -2640,6 +2916,390 @@ export default function AdminQuotePage() {
                       <option value="Replacement Cost">Replacement Cost</option>
                       <option value="Agreed Value">Agreed Value</option>
                     </select>
+                  </div>
+                </div>
+              </div>
+            ) : isBuildersRiskPolicy ? (
+              <div className="bg-[#fcf8f2] rounded-2xl p-6 border border-amber-200/80 shadow-sm">
+                {/* Header */}
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-8 h-8 rounded-lg bg-[#ea580c] flex items-center justify-center text-white shadow-sm flex-shrink-0">
+                    <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 tracking-tight">Coverage Limits</h3>
+                </div>
+
+                {/* Warning / Info Alert */}
+                <div className="mb-6 p-3 bg-amber-100/70 rounded-xl border border-amber-200 flex items-center gap-2.5">
+                  <svg className="w-5 h-5 text-amber-700 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <p className="text-xs sm:text-sm font-medium text-amber-900">
+                    Replaces GL / Fire Legal / Med Pay limits. Leave blank if not on the quote.
+                  </p>
+                </div>
+
+                {/* 6 Top Fields (2 Columns) */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Limit Per Occurrence */}
+                  <div>
+                    <label className="block text-sm font-bold text-gray-900 mb-2">
+                      Limit Per Occurrence <span className="text-xs text-gray-500 font-normal">(from quote)</span>
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-semibold">$</span>
+                      <input
+                        type="text"
+                        value={buildersLimitPerOccurrence ? formatCurrencyInput(buildersLimitPerOccurrence) : ''}
+                        onChange={(e) => setBuildersLimitPerOccurrence(formatCurrencyInput(e.target.value))}
+                        onBlur={(e) => {
+                          if (e.target.value.trim() === '') {
+                            setBuildersLimitPerOccurrence('');
+                            return;
+                          }
+                          const parsed = parseCurrency(e.target.value);
+                          setBuildersLimitPerOccurrence(!isNaN(parsed) && parsed >= 0 ? parsed.toString() : '');
+                        }}
+                        className="w-full pl-9 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-900 font-semibold focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all hover:border-gray-300 !text-gray-900"
+                        placeholder="0"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Materials / Completed Value */}
+                  <div>
+                    <label className="block text-sm font-bold text-gray-900 mb-2">
+                      Materials / Completed Value <span className="text-xs text-gray-500 font-normal">(from quote)</span>
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-semibold">$</span>
+                      <input
+                        type="text"
+                        value={buildersCompletedValue ? formatCurrencyInput(buildersCompletedValue) : ''}
+                        onChange={(e) => setBuildersCompletedValue(formatCurrencyInput(e.target.value))}
+                        onBlur={(e) => {
+                          if (e.target.value.trim() === '') {
+                            setBuildersCompletedValue('');
+                            return;
+                          }
+                          const parsed = parseCurrency(e.target.value);
+                          setBuildersCompletedValue(!isNaN(parsed) && parsed >= 0 ? parsed.toString() : '');
+                        }}
+                        className="w-full pl-9 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-900 font-semibold focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all hover:border-gray-300 !text-gray-900"
+                        placeholder="0"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Total Insurable Value */}
+                  <div>
+                    <label className="block text-sm font-bold text-gray-900 mb-2">
+                      Total Insurable Value <span className="text-xs text-gray-500 font-normal">(from quote)</span>
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-semibold">$</span>
+                      <input
+                        type="text"
+                        value={buildersTotalInsurableValue ? formatCurrencyInput(buildersTotalInsurableValue) : ''}
+                        onChange={(e) => setBuildersTotalInsurableValue(formatCurrencyInput(e.target.value))}
+                        onBlur={(e) => {
+                          if (e.target.value.trim() === '') {
+                            setBuildersTotalInsurableValue('');
+                            return;
+                          }
+                          const parsed = parseCurrency(e.target.value);
+                          setBuildersTotalInsurableValue(!isNaN(parsed) && parsed >= 0 ? parsed.toString() : '');
+                        }}
+                        className="w-full pl-9 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-900 font-semibold focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all hover:border-gray-300 !text-gray-900"
+                        placeholder="0"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Existing Structure */}
+                  <div>
+                    <label className="block text-sm font-bold text-gray-900 mb-2">
+                      Existing Structure <span className="text-xs text-gray-500 font-normal">(from quote)</span>
+                    </label>
+                    <select
+                      value={buildersExistingStructure}
+                      onChange={(e) => setBuildersExistingStructure(e.target.value)}
+                      className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-900 font-semibold focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all hover:border-gray-300 !text-gray-900"
+                    >
+                      <option value="Not Provided">Not Provided</option>
+                      <option value="Included">Included</option>
+                      <option value="Excluded">Excluded</option>
+                      <option value="Demolished">Demolished</option>
+                    </select>
+                  </div>
+
+                  {/* Valuation */}
+                  <div>
+                    <label className="block text-sm font-bold text-gray-900 mb-2">
+                      Valuation <span className="text-xs text-gray-500 font-normal">(from quote)</span>
+                    </label>
+                    <select
+                      value={buildersValuation}
+                      onChange={(e) => setBuildersValuation(e.target.value)}
+                      className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-900 font-semibold focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all hover:border-gray-300 !text-gray-900"
+                    >
+                      <option value="ACV">ACV</option>
+                      <option value="Replacement Cost">Replacement Cost</option>
+                      <option value="Actual Cash Value">Actual Cash Value</option>
+                      <option value="Agreed Value">Agreed Value</option>
+                    </select>
+                  </div>
+
+                  {/* Coinsurance */}
+                  <div>
+                    <label className="block text-sm font-bold text-gray-900 mb-2">
+                      Coinsurance <span className="text-xs text-gray-500 font-normal">(from quote)</span>
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={buildersCoinsurance}
+                        onChange={(e) => setBuildersCoinsurance(e.target.value.replace(/[^0-9]/g, ''))}
+                        className="w-full pl-4 pr-10 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-900 font-semibold focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all hover:border-gray-300 !text-gray-900"
+                        placeholder="90"
+                      />
+                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 font-semibold">%</span>
+                    </div>
+                  </div>
+
+                  {/* SUBLIMITS Section Label */}
+                  <div className="md:col-span-2 pt-3">
+                    <h4 className="text-xs font-bold text-gray-500 tracking-wider uppercase">SUBLIMITS</h4>
+                  </div>
+
+                  {/* Water Damage */}
+                  <div>
+                    <label className="block text-sm font-bold text-gray-900 mb-2">
+                      Water Damage <span className="text-xs text-gray-500 font-normal">(from quote)</span>
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-semibold">$</span>
+                      <input
+                        type="text"
+                        value={buildersWaterDamage ? formatCurrencyInput(buildersWaterDamage) : ''}
+                        onChange={(e) => setBuildersWaterDamage(formatCurrencyInput(e.target.value))}
+                        onBlur={(e) => {
+                          if (e.target.value.trim() === '') {
+                            setBuildersWaterDamage('');
+                            return;
+                          }
+                          const parsed = parseCurrency(e.target.value);
+                          setBuildersWaterDamage(!isNaN(parsed) && parsed >= 0 ? parsed.toString() : '');
+                        }}
+                        className="w-full pl-9 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-900 font-semibold focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all hover:border-gray-300 !text-gray-900"
+                        placeholder="0"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Soft Costs */}
+                  <div>
+                    <label className="block text-sm font-bold text-gray-900 mb-2">Soft Costs</label>
+                    <div className="relative">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-semibold">$</span>
+                      <input
+                        type="text"
+                        value={buildersSoftCosts ? formatCurrencyInput(buildersSoftCosts) : ''}
+                        onChange={(e) => setBuildersSoftCosts(formatCurrencyInput(e.target.value))}
+                        onBlur={(e) => {
+                          if (e.target.value.trim() === '') {
+                            setBuildersSoftCosts('');
+                            return;
+                          }
+                          const parsed = parseCurrency(e.target.value);
+                          setBuildersSoftCosts(!isNaN(parsed) && parsed >= 0 ? parsed.toString() : '');
+                        }}
+                        className="w-full pl-9 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-900 font-semibold focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all hover:border-gray-300 !text-gray-900"
+                        placeholder="0"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Delay in Completion / BI */}
+                  <div>
+                    <label className="block text-sm font-bold text-gray-900 mb-2">
+                      Delay in Completion / BI <span className="text-xs text-gray-500 font-normal">(from quote)</span>
+                    </label>
+                    <select
+                      value={buildersDelayInCompletion}
+                      onChange={(e) => setBuildersDelayInCompletion(e.target.value)}
+                      className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-900 font-semibold focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all hover:border-gray-300 !text-gray-900"
+                    >
+                      <option value="N/A">N/A</option>
+                      <option value="Included">Included</option>
+                      <option value="Excluded">Excluded</option>
+                      <option value="$25,000">$25,000</option>
+                      <option value="$50,000">$50,000</option>
+                      <option value="$100,000">$100,000</option>
+                    </select>
+                  </div>
+
+                  {/* Property in Transit */}
+                  <div>
+                    <label className="block text-sm font-bold text-gray-900 mb-2">Property in Transit</label>
+                    <div className="relative">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-semibold">$</span>
+                      <input
+                        type="text"
+                        value={buildersPropertyInTransit ? formatCurrencyInput(buildersPropertyInTransit) : ''}
+                        onChange={(e) => setBuildersPropertyInTransit(formatCurrencyInput(e.target.value))}
+                        onBlur={(e) => {
+                          if (e.target.value.trim() === '') {
+                            setBuildersPropertyInTransit('');
+                            return;
+                          }
+                          const parsed = parseCurrency(e.target.value);
+                          setBuildersPropertyInTransit(!isNaN(parsed) && parsed >= 0 ? parsed.toString() : '');
+                        }}
+                        className="w-full pl-9 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-900 font-semibold focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all hover:border-gray-300 !text-gray-900"
+                        placeholder="0"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Temporary / Offsite Storage */}
+                  <div>
+                    <label className="block text-sm font-bold text-gray-900 mb-2">Temporary / Offsite Storage</label>
+                    <div className="relative">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-semibold">$</span>
+                      <input
+                        type="text"
+                        value={buildersTemporaryStorage ? formatCurrencyInput(buildersTemporaryStorage) : ''}
+                        onChange={(e) => setBuildersTemporaryStorage(formatCurrencyInput(e.target.value))}
+                        onBlur={(e) => {
+                          if (e.target.value.trim() === '') {
+                            setBuildersTemporaryStorage('');
+                            return;
+                          }
+                          const parsed = parseCurrency(e.target.value);
+                          setBuildersTemporaryStorage(!isNaN(parsed) && parsed >= 0 ? parsed.toString() : '');
+                        }}
+                        className="w-full pl-9 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-900 font-semibold focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all hover:border-gray-300 !text-gray-900"
+                        placeholder="0"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Debris Removal */}
+                  <div>
+                    <label className="block text-sm font-bold text-gray-900 mb-2">Debris Removal</label>
+                    <div className="relative">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-semibold">$</span>
+                      <input
+                        type="text"
+                        value={buildersDebrisRemoval ? formatCurrencyInput(buildersDebrisRemoval) : ''}
+                        onChange={(e) => setBuildersDebrisRemoval(formatCurrencyInput(e.target.value))}
+                        onBlur={(e) => {
+                          if (e.target.value.trim() === '') {
+                            setBuildersDebrisRemoval('');
+                            return;
+                          }
+                          const parsed = parseCurrency(e.target.value);
+                          setBuildersDebrisRemoval(!isNaN(parsed) && parsed >= 0 ? parsed.toString() : '');
+                        }}
+                        className="w-full pl-9 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-900 font-semibold focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all hover:border-gray-300 !text-gray-900"
+                        placeholder="0"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Pollutant Cleanup */}
+                  <div>
+                    <label className="block text-sm font-bold text-gray-900 mb-2">Pollutant Cleanup</label>
+                    <div className="relative">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-semibold">$</span>
+                      <input
+                        type="text"
+                        value={buildersPollutantCleanup ? formatCurrencyInput(buildersPollutantCleanup) : ''}
+                        onChange={(e) => setBuildersPollutantCleanup(formatCurrencyInput(e.target.value))}
+                        onBlur={(e) => {
+                          if (e.target.value.trim() === '') {
+                            setBuildersPollutantCleanup('');
+                            return;
+                          }
+                          const parsed = parseCurrency(e.target.value);
+                          setBuildersPollutantCleanup(!isNaN(parsed) && parsed >= 0 ? parsed.toString() : '');
+                        }}
+                        className="w-full pl-9 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-900 font-semibold focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all hover:border-gray-300 !text-gray-900"
+                        placeholder="0"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Ordinance or Law */}
+                  <div>
+                    <label className="block text-sm font-bold text-gray-900 mb-2">Ordinance or Law</label>
+                    <div className="relative">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-semibold">$</span>
+                      <input
+                        type="text"
+                        value={buildersOrdinanceOrLaw ? formatCurrencyInput(buildersOrdinanceOrLaw) : ''}
+                        onChange={(e) => setBuildersOrdinanceOrLaw(formatCurrencyInput(e.target.value))}
+                        onBlur={(e) => {
+                          if (e.target.value.trim() === '') {
+                            setBuildersOrdinanceOrLaw('');
+                            return;
+                          }
+                          const parsed = parseCurrency(e.target.value);
+                          setBuildersOrdinanceOrLaw(!isNaN(parsed) && parsed >= 0 ? parsed.toString() : '');
+                        }}
+                        className="w-full pl-9 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-900 font-semibold focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all hover:border-gray-300 !text-gray-900"
+                        placeholder="0"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Scaffolding, Forms & Fencing */}
+                  <div>
+                    <label className="block text-sm font-bold text-gray-900 mb-2">Scaffolding, Forms & Fencing</label>
+                    <div className="relative">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-semibold">$</span>
+                      <input
+                        type="text"
+                        value={buildersScaffolding ? formatCurrencyInput(buildersScaffolding) : ''}
+                        onChange={(e) => setBuildersScaffolding(formatCurrencyInput(e.target.value))}
+                        onBlur={(e) => {
+                          if (e.target.value.trim() === '') {
+                            setBuildersScaffolding('');
+                            return;
+                          }
+                          const parsed = parseCurrency(e.target.value);
+                          setBuildersScaffolding(!isNaN(parsed) && parsed >= 0 ? parsed.toString() : '');
+                        }}
+                        className="w-full pl-9 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-900 font-semibold focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all hover:border-gray-300 !text-gray-900"
+                        placeholder="0"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Fire Dept. Service Charge */}
+                  <div>
+                    <label className="block text-sm font-bold text-gray-900 mb-2">Fire Dept. Service Charge</label>
+                    <div className="relative">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-semibold">$</span>
+                      <input
+                        type="text"
+                        value={buildersFireDeptServiceCharge ? formatCurrencyInput(buildersFireDeptServiceCharge) : ''}
+                        onChange={(e) => setBuildersFireDeptServiceCharge(formatCurrencyInput(e.target.value))}
+                        onBlur={(e) => {
+                          if (e.target.value.trim() === '') {
+                            setBuildersFireDeptServiceCharge('');
+                            return;
+                          }
+                          const parsed = parseCurrency(e.target.value);
+                          setBuildersFireDeptServiceCharge(!isNaN(parsed) && parsed >= 0 ? parsed.toString() : '');
+                        }}
+                        className="w-full pl-9 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-900 font-semibold focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all hover:border-gray-300 !text-gray-900"
+                        placeholder="0"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>

@@ -33,6 +33,21 @@ export interface ILimits {
   inlandMarineDeductibles?: Array<{ description: string; amount: string }>;
   coinsurance?: string;
   valuation?: string;
+  // Builders Risk
+  limitPerOccurrence?: string;
+  completedValue?: string;
+  totalInsurableValue?: string;
+  existingStructure?: string;
+  waterDamageSublimit?: string;
+  softCostsSublimit?: string;
+  delayInCompletionSublimit?: string;
+  propertyInTransitSublimit?: string;
+  temporaryOffsiteStorageSublimit?: string;
+  debrisRemovalSublimit?: string;
+  pollutantCleanupSublimit?: string;
+  ordinanceOrLawSublimit?: string;
+  scaffoldingSublimit?: string;
+  fireDeptServiceChargeSublimit?: string;
 }
 
 export type PolicyType = 'GENERAL_LIABILITY' | 'EXCESS_LIABILITY' | 'PROFESSIONAL_LIABILITY' | 'POLLUTION_LIABILITY';
@@ -141,6 +156,21 @@ const LimitsSchema: Schema = new Schema({
   ],
   coinsurance: String,
   valuation: String,
+  // Builders Risk
+  limitPerOccurrence: String,
+  completedValue: String,
+  totalInsurableValue: String,
+  existingStructure: String,
+  waterDamageSublimit: String,
+  softCostsSublimit: String,
+  delayInCompletionSublimit: String,
+  propertyInTransitSublimit: String,
+  temporaryOffsiteStorageSublimit: String,
+  debrisRemovalSublimit: String,
+  pollutantCleanupSublimit: String,
+  ordinanceOrLawSublimit: String,
+  scaffoldingSublimit: String,
+  fireDeptServiceChargeSublimit: String,
 }, { _id: false });
 
 const QuoteSchema: Schema = new Schema(
