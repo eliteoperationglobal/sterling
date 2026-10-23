@@ -256,6 +256,16 @@ export const PDFService = {
             descriptionOfOperations: formData.carrierApprovedDescription || "",
           };
 
+          const isBuildersRisk =
+            (submission as any).programId === "builders-risk" ||
+            (submission as any).payload?.programId === "builders-risk" ||
+            submission.programName === "Builders Risk" ||
+            (submission.programName || "").toLowerCase().includes("builder") ||
+            (submission as any).payload?.programName === "Builders Risk" ||
+            ((submission as any).payload?.programName || "").toLowerCase().includes("builder") ||
+            (quote as any)?.policyType === "BUILDERS_RISK" ||
+            Boolean((quote as any)?.limits?.completedValue || (quote as any)?.limits?.totalInsurableValue || (quote as any)?.limits?.waterDamageSublimit);
+
           if (isCommercialProperty) {
             const q = quote as any;
             const proposalData = {
@@ -277,6 +287,7 @@ export const PDFService = {
           } else {
             const proposalData = {
               ...baseData,
+              programName: isBuildersRisk ? "Builders Risk" : baseData.programName,
               occurrenceLimit: formatLimit(coverageLimits[0] || "1,000,000"),
               aggregateLimit: formatLimit(coverageLimits[1] || coverageLimits[0] || "2,000,000"),
               productsCompletedOpsLimit: formatLimit(coverageLimits[2] || coverageLimits[0] || "2,000,000"),
@@ -308,6 +319,21 @@ export const PDFService = {
                 ((formData.addProfessionalPollutionLiability === true || String(formData.addProfessionalPollutionLiability) === "true") &&
                  formData.professionalOrPollutionType === "professional"),
               professionalLiabilityLimit: formData.professionalLiabilityLimit ? (formData.professionalLiabilityLimit.includes("$") ? formData.professionalLiabilityLimit : `$${formData.professionalLiabilityLimit}`) : undefined,
+
+              // Builders Risk Specific
+              isBuildersRisk,
+              insuredName: formData.insuredName || formData.companyName || formData.applicantName || `${formData.firstName || ''} ${formData.lastName || ''}`.trim() || (submission as any).clientContact?.name || "Haron Haiavy",
+              buildersLimitPerOccurrence: (quote as any)?.limits?.limitPerOccurrence ? `$${Number(String((quote as any).limits.limitPerOccurrence).replace(/[^0-9.]/g, '')).toLocaleString('en-US')}` : (formData?.totalInsurableValue ? `$${Number(String(formData.totalInsurableValue).replace(/[^0-9.]/g, '')).toLocaleString('en-US')}` : "$600,000"),
+              buildersCompletedValue: (quote as any)?.limits?.completedValue ? `$${Number(String((quote as any).limits.completedValue).replace(/[^0-9.]/g, '')).toLocaleString('en-US')}` : (formData?.completedValue ? `$${Number(String(formData.completedValue).replace(/[^0-9.]/g, '')).toLocaleString('en-US')}` : "$600,000"),
+              buildersTotalInsurableValue: (quote as any)?.limits?.totalInsurableValue ? `$${Number(String((quote as any).limits.totalInsurableValue).replace(/[^0-9.]/g, '')).toLocaleString('en-US')}` : "$600,000",
+              buildersWaterDamage: (quote as any)?.limits?.waterDamageSublimit ? `$${Number(String((quote as any).limits.waterDamageSublimit).replace(/[^0-9.]/g, '')).toLocaleString('en-US')}` : "$100,000",
+              buildersValuation: ((quote as any)?.limits?.valuation || formData?.valuation || "Actual Cash Value (ACV)").toLowerCase().includes("acv") ? "Actual Cash Value (ACV)" : ((quote as any)?.limits?.valuation || formData?.valuation || "Actual Cash Value (ACV)"),
+              buildersBusinessIncome: (quote as any)?.limits?.softCostsSublimit ? `$${Number(String((quote as any).limits.softCostsSublimit).replace(/[^0-9.]/g, '')).toLocaleString('en-US')}` : "N/A",
+              buildersExistingStructure: (quote as any)?.limits?.existingStructure || (formData?.demoExistingStructure ? "Demolished" : "Demolished"),
+              buildersPolicyTerm: `${baseData.effectiveDate} – ${baseData.expirationDate}`,
+              carrierFeesUSD: (quote as any)?.carrierFeesUSD != null ? (quote as any).carrierFeesUSD : ((quote as any)?.policyFeeUSD != null ? (quote as any).policyFeeUSD : 350),
+              stampingFeePercent: (quote as any)?.stampingFeePercent ?? 0.18,
+              stampingFeeAmountUSD: (quote as any)?.stampingFeeAmountUSD != null ? (quote as any).stampingFeeAmountUSD : ((quote as any)?.carrierQuoteUSD ? Number(((quote as any).carrierQuoteUSD * 0.0018).toFixed(2)) : 11.43),
             };
             htmlContent = generateProposalHTML(proposalData as any);
           }

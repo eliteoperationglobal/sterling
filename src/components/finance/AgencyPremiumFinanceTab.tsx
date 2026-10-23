@@ -169,15 +169,17 @@ export default function AgencyPremiumFinanceTab({
 
     setSavingPlan(true);
     try {
-      // 1. Update each quote with the broker fee & finance agreement link
+      // 1. Update each quote with the broker fee & finance agreement link (primary quote gets fee, other 0)
       const agreementUrl = financeTerms.premiumFinanceAgreement || "";
-      for (const q of validQuotes) {
+      for (let i = 0; i < validQuotes.length; i++) {
+        const q = validQuotes[i];
+        const feeForThisQuote = i === 0 ? parsedBrokerFee : 0;
         try {
           await fetch(`/api/agency/quotes/${q._id}`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              brokerFeeAmountUSD: parsedBrokerFee,
+              brokerFeeAmountUSD: feeForThisQuote,
             }),
           });
         } catch (e) {

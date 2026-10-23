@@ -20,6 +20,11 @@ export default function AuditPage() {
   const [auditToDelete, setAuditToDelete] = useState<any>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  // Complete Modal State
+  const [completeModalOpen, setCompleteModalOpen] = useState(false);
+  const [auditToComplete, setAuditToComplete] = useState<any>(null);
+  const [isCompleting, setIsCompleting] = useState(false);
+
   // "queue" | "options" | "existing" | "new"
   const [view, setView] = useState<"queue" | "options" | "existing" | "new">("queue");
 
@@ -780,6 +785,20 @@ export default function AuditPage() {
                           </td>
                           <td className="px-6 py-4 text-right">
                             <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                              {audit.status !== "COMPLETE" && (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setAuditToComplete(audit);
+                                    setCompleteModalOpen(true);
+                                  }}
+                                  className="p-1.5 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg border border-emerald-200 transition shadow-xs cursor-pointer"
+                                  title="Mark Audit as Complete"
+                                >
+                                  <CheckCircle className="w-4 h-4" />
+                                </button>
+                              )}
+
                               <button
                                 onClick={() => {
                                   if (typeof window !== "undefined") {
@@ -794,7 +813,7 @@ export default function AuditPage() {
                                     router.push(`/admin/submissions/${targetId}?tab=Audits`);
                                   }
                                 }}
-                                className="px-3 py-1.5 text-xs font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 shadow-sm transition inline-block text-center"
+                                className="px-3 py-1.5 text-xs font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 shadow-sm transition inline-block text-center cursor-pointer"
                               >
                                 View
                               </button>
@@ -805,7 +824,7 @@ export default function AuditPage() {
                                   setAuditToDelete(audit);
                                   setDeleteModalOpen(true);
                                 }}
-                                className="p-1.5 text-gray-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition"
+                                className="p-1.5 text-gray-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition cursor-pointer"
                                 title="Delete Audit"
                               >
                                 <Trash2 className="w-4 h-4" />
@@ -1208,6 +1227,92 @@ export default function AuditPage() {
                   className="flex-1 px-4 py-2.5 bg-rose-600 text-white font-bold rounded-xl hover:bg-rose-700 shadow-sm shadow-rose-200 transition flex justify-center items-center gap-2"
                 >
                   {isDeleting ? "Deleting..." : "Yes, Delete"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Mark as Complete Confirmation Modal */}
+      {completeModalOpen && auditToComplete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="p-6 text-center">
+              <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <CheckCircle className="w-8 h-8 text-emerald-600" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Mark Audit as Complete?</h3>
+              <p className="text-sm text-gray-500 mb-4">
+                Are you sure you want to mark the audit for <strong className="text-gray-800">{auditToComplete.namedInsured}</strong> (<span className="font-mono text-gray-700">{auditToComplete.auditId}</span>) as officially <strong className="text-emerald-700">Complete</strong>?
+              </p>
+
+              <div className="bg-gray-50 rounded-xl p-3 mb-6 text-left border border-gray-100 text-xs space-y-1.5">
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Policy Number:</span>
+                  <span className="font-semibold text-gray-800">{auditToComplete.policyNumber || "N/A"}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Carrier:</span>
+                  <span className="font-semibold text-gray-800">{auditToComplete.carrier || "N/A"}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Current Status:</span>
+                  <span className="font-semibold text-gray-800">{auditToComplete.status}</span>
+                </div>
+              </div>
+
+              <div className="flex gap-3 w-full">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCompleteModalOpen(false);
+                    setAuditToComplete(null);
+                  }}
+                  disabled={isCompleting}
+                  className="flex-1 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 font-bold rounded-xl hover:bg-gray-50 transition cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    setIsCompleting(true);
+                    try {
+                      const res = await fetch(`/api/admin/audits/${auditToComplete._id}`, {
+                        method: "PATCH",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          status: "COMPLETE",
+                          action: "Audit marked Complete from Audit Queue"
+                        })
+                      });
+                      const data = await res.json();
+                      if (data.success) {
+                        toast.success("Audit marked as Complete successfully!");
+                        fetchAudits();
+                        setCompleteModalOpen(false);
+                        setAuditToComplete(null);
+                      } else {
+                        toast.error(data.error || "Failed to mark audit as complete");
+                      }
+                    } catch (err) {
+                      toast.error("An error occurred while completing the audit");
+                    } finally {
+                      setIsCompleting(false);
+                    }
+                  }}
+                  disabled={isCompleting}
+                  className="flex-1 px-4 py-2.5 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 shadow-sm shadow-emerald-200 transition flex justify-center items-center gap-2 cursor-pointer disabled:opacity-60"
+                >
+                  {isCompleting ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      Completing...
+                    </>
+                  ) : (
+                    "Yes, Mark Complete"
+                  )}
                 </button>
               </div>
             </div>

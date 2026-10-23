@@ -84,6 +84,23 @@ export type ProposalData = {
   subcontractorCosts: string;
   employeePayroll: string;
   descriptionOfOperations: string;
+
+  // Builders Risk Specific
+  isBuildersRisk?: boolean;
+  insuredName?: string;
+  buildersLimitPerOccurrence?: string;
+  buildersCompletedValue?: string;
+  buildersTotalInsurableValue?: string;
+  buildersWaterDamage?: string;
+  buildersValuation?: string;
+  buildersBusinessIncome?: string;
+  buildersExistingStructure?: string;
+  buildersPolicyTerm?: string;
+  carrierFeesUSD?: number;
+  stampingFeePercent?: number;
+  stampingFeeAmountUSD?: number;
+  depositPremiumUSD?: number;
+  installmentAmountUSD?: number;
 };
 
 function formatDateMMDDYYYY(dateInput: string | Date) {
@@ -302,6 +319,48 @@ export async function GET(
     // get class codes
     const classCodes = Object.keys(formData.classCodeWork || {});
 
+    const isBuildersRisk =
+      submission.programId === "builders-risk" ||
+      submission.payload?.programId === "builders-risk" ||
+      submission.programName === "Builders Risk" ||
+      (submission.programName || "").toLowerCase().includes("builder") ||
+      submission.payload?.programName === "Builders Risk" ||
+      (submission.payload?.programName || "").toLowerCase().includes("builder") ||
+      policyTypeParams === "BUILDERS_RISK" ||
+      policyTypeParams === "Builders Risk" ||
+      quote?.policyType === "BUILDERS_RISK" ||
+      url.searchParams.get("policyType") === "BUILDERS_RISK" ||
+      url.searchParams.get("policyType") === "Builders Risk" ||
+      Boolean(quote?.limits?.completedValue || quote?.limits?.totalInsurableValue || quote?.limits?.waterDamageSublimit);
+
+    const formatValuation = (val: any): string => {
+      if (!val) return "Actual Cash Value (ACV)";
+      const s = String(val).trim();
+      if (s.toLowerCase() === "acv" || s.toLowerCase() === "actual cash value") return "Actual Cash Value (ACV)";
+      if (s.toLowerCase() === "rc" || s.toLowerCase() === "replacement cost") return "Replacement Cost";
+      return s;
+    };
+
+    const formatExistingStructure = (limitsObj: any, form: any): string => {
+      if (limitsObj?.existingStructure) return String(limitsObj.existingStructure);
+      if (form?.demoExistingStructure === true || form?.demoExistingStructure === "true") return "Demolished";
+      if (form?.coverageExistingStructure === true || form?.coverageExistingStructure === "true") return "Included";
+      if (form?.existingStructureValue) return formatToUSD(form.existingStructureValue);
+      return "Demolished";
+    };
+
+    const formatBusinessIncome = (limitsObj: any, form: any): string => {
+      const bi = limitsObj?.softCostsSublimit || limitsObj?.delayInCompletionSublimit || form?.businessIncome;
+      if (!bi || bi === "0" || bi === "$0" || bi === "None" || bi === "N/A") return "N/A";
+      return formatToUSD(bi);
+    };
+
+    const formatWaterDamage = (limitsObj: any, form: any): string => {
+      const wd = limitsObj?.waterDamageSublimit || form?.waterDamageSublimit;
+      if (!wd) return "$100,000";
+      return formatToUSD(wd);
+    };
+
     const [occurrence, aggregate, products] = extractLimits(limits?.generalLiability || formData?.coverageLimits);
     const proposalData: ProposalData = {
       subcontractorCosts: formatToUSD(formData.estimatedSubcontractingCosts || "0"),
@@ -339,7 +398,7 @@ export async function GET(
       agencyCity: agency?.address?.city || "",
       classCode: classCodes.length > 0 ? classCodes.join(", ") : (formData.classCode || ""),
       carrierName,
-      programName,
+      programName: isBuildersRisk ? "Builders Risk" : programName,
       effectiveDate: getPolicyDateRange(effectiveDate),
       expirationDate: formatDateMMDDYYYY(expirationDate),
       carrierQuoteUSD,
@@ -391,6 +450,22 @@ export async function GET(
         ((formData?.addProfessionalPollutionLiability === true || String(formData?.addProfessionalPollutionLiability) === 'true') &&
          formData?.professionalOrPollutionType === 'professional'),
       professionalLiabilityLimit: formData?.professionalLiabilityLimit ? formatToUSD(formData.professionalLiabilityLimit) : undefined,
+      // Builders Risk Specific
+      isBuildersRisk,
+      insuredName: formData.insuredName || formData.companyName || formData.applicantName || `${formData.firstName || ''} ${formData.lastName || ''}`.trim() || submission.clientContact?.name || "Haron Haiavy",
+      buildersLimitPerOccurrence: formatLimit(limits?.limitPerOccurrence || limits?.totalInsurableValue || formData?.totalInsurableValue || formData?.insurableValueTotal, "$600,000"),
+      buildersCompletedValue: formatLimit(limits?.completedValue || limits?.totalInsurableValue || formData?.completedValue || formData?.buildingMaterialsValue || formData?.totalInsurableValue || formData?.insurableValueTotal, "$600,000"),
+      buildersTotalInsurableValue: formatLimit(limits?.totalInsurableValue || formData?.totalInsurableValue || formData?.insurableValueTotal, "$600,000"),
+      buildersWaterDamage: formatWaterDamage(limits, formData),
+      buildersValuation: formatValuation(limits?.valuation || formData?.valuation),
+      buildersBusinessIncome: formatBusinessIncome(limits, formData),
+      buildersExistingStructure: formatExistingStructure(limits, formData),
+      buildersPolicyTerm: getPolicyDateRange(effectiveDate),
+      carrierFeesUSD: quote?.carrierFeesUSD != null ? quote.carrierFeesUSD : (quote?.policyFeeUSD != null ? quote.policyFeeUSD : 350),
+      stampingFeePercent: quote?.stampingFeePercent ?? 0.18,
+      stampingFeeAmountUSD: quote?.stampingFeeAmountUSD != null ? quote.stampingFeeAmountUSD : (quote?.carrierQuoteUSD ? Number((quote.carrierQuoteUSD * 0.0018).toFixed(2)) : 11.43),
+      depositPremiumUSD: quote?.depositPremiumUSD ?? quote?.premiumFinanceTerms?.totalDownpayAmount ?? undefined,
+      installmentAmountUSD: quote?.installmentAmountUSD ?? quote?.premiumFinanceTerms?.paymentAmount ?? undefined,
     };
 
     const isApartment = submission.programId === "apartment-buildings" || 
@@ -411,7 +486,7 @@ export async function GET(
                          submission.programName?.toLowerCase().includes("construction equipment") ||
                          submission.programName?.toLowerCase().includes("equipment");
 
-    const templateType = useApartmentTemplate ? "apartment" : isCommercialProperty ? "commercial" : isContractors ? "contractors" : "standard";
+    const templateType = useApartmentTemplate ? "apartment" : isCommercialProperty ? "commercial" : isContractors ? "contractors" : isBuildersRisk ? "builders-risk-v9" : "standard";
 
     // 🚀 CACHE CHECK: Hash the proposalData JSON for stability
     const dataHash = crypto.createHash("md5").update(JSON.stringify(proposalData) + templateType).digest("hex");
@@ -423,7 +498,7 @@ export async function GET(
         return new NextResponse(new Uint8Array(cachedPdf.pdfBuffer as unknown as ArrayBuffer), {
           headers: {
             'Content-Type': 'application/pdf',
-            'Content-Disposition': `attachment; filename="${proposalData.companyName}-Proposal.pdf"`,
+            'Content-Disposition': `attachment; filename="${proposalData.companyName}-${isBuildersRisk ? 'Builders-Risk-' : ''}Proposal.pdf"`,
             'Content-Length': cachedPdf.pdfBuffer.length.toString(),
             'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
             'Pragma': 'no-cache',

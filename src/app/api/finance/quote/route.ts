@@ -190,11 +190,15 @@ export async function POST(req: Request) {
     const activePolicies = incomingPolicies.filter(p => (Number(p.premiumAmount) || 0) > 0);
     const policiesToFinance = activePolicies.length > 0 ? activePolicies : incomingPolicies;
 
+    const parsedBrokerFee = Math.max(0, Number(brokerFeeAmount) || 0);
+
     let totalPolicyPremiumsAndFees = 0;
     const formattedPolicies = policiesToFinance.map((p: any, idx: number) => {
       const pPrem = Number(p.premiumAmount) || 0;
       const pTax = Number(p.taxesAmount) || 0;
-      const pFee = Number(p.feesAmount) || 0;
+      // 101% Safety: Broker fee is financed on the primary policy line (idx === 0)
+      const brokerFeeForThisPolicy = idx === 0 ? parsedBrokerFee : 0;
+      const pFee = (Number(p.feesAmount) || 0) + brokerFeeForThisPolicy;
       totalPolicyPremiumsAndFees += (pPrem + pTax + pFee);
 
       const covCode = AIS_COVERAGE_CODES[p.policyType] || "19";
@@ -217,10 +221,8 @@ export async function POST(req: Request) {
       };
     });
 
-    const parsedBrokerFee = Math.max(0, Number(brokerFeeAmount) || 0);
-
     console.log(
-      `[AIS API] Financing ${formattedPolicies.length} policy/policies. Policy Sum: $${totalPolicyPremiumsAndFees.toFixed(2)}, Broker Fee Add-on: $${parsedBrokerFee.toFixed(2)}`
+      `[AIS API] Financing ${formattedPolicies.length} policy/policies. Total Financed (including Broker Fee of $${parsedBrokerFee.toFixed(2)}): $${totalPolicyPremiumsAndFees.toFixed(2)}`
     );
 
     // 1. Get the Access Token securely
@@ -289,10 +291,6 @@ export async function POST(req: Request) {
         accountType: "C",
         calculateQuoteFlag: "Y",
         totalPremiumAmount: totalPolicyPremiumsAndFees.toFixed(2),
-        ...(parsedBrokerFee > 0 ? {
-          brokerFeeAddonFlag: "Y",
-          brokerFeeAddonAmount: parsedBrokerFee.toFixed(2),
-        } : {})
       },
       policies: formattedPolicies
     };

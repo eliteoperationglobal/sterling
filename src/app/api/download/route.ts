@@ -192,12 +192,19 @@ export async function GET(req: NextRequest) {
         finalSubmission?.programName?.includes("Property") || 
         finalSubmission?.programName?.includes("Apartment");
 
+      const isBuildersRisk =
+        finalSubmission?.programId === "builders-risk" ||
+        finalSubmission?.programName?.toLowerCase().includes("builder") ||
+        foundQuote?.policyType === "BUILDERS_RISK";
+
       if (foundQuote?.policyType === "EXCESS_LIABILITY") {
         typeLabel = isApartment ? "General-Liability" : "Excess";
       } else if (foundQuote?.policyType === "PROFESSIONAL_LIABILITY") {
         typeLabel = "Professional";
       } else if (foundQuote?.policyType === "POLLUTION_LIABILITY") {
         typeLabel = "Pollution";
+      } else if (isBuildersRisk) {
+        typeLabel = "Builders-Risk";
       } else if (isApartment) {
         typeLabel = "Property";
       }

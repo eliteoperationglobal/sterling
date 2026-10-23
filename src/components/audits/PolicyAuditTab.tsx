@@ -239,8 +239,7 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
         auditNotes: notes,
         auditPeriodStart: periodStart ? new Date(periodStart) : audit.auditPeriodStart,
         auditPeriodEnd: periodEnd ? new Date(periodEnd) : audit.auditPeriodEnd,
-        status: "COMPLETE",
-        action: "Audit marked Complete & Invoice ready"
+        action: "Audit calculations saved & invoice ready"
       };
 
       const res = await fetch(`/api/admin/audits/${audit._id}`, {
@@ -251,20 +250,19 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
       const data = await res.json();
 
       if (data.success) {
-        toast.success("Audit marked as Complete!");
+        toast.success("Audit calculations saved & invoice ready!");
         setAudit((prev: any) => ({
           ...prev,
-          ...payload,
-          status: "COMPLETE"
+          ...(data.audit || payload)
         }));
         setViewMode("overview");
         setCompleteModalOpen(true);
       } else {
-        toast.error(data.error || "Failed to finalize audit");
+        toast.error(data.error || "Failed to save audit calculations");
       }
     } catch (err: any) {
-      console.error("Complete audit error:", err);
-      toast.error("Failed to complete audit");
+      console.error("Save audit error:", err);
+      toast.error("Failed to save audit calculations");
     } finally {
       setIsSaving(false);
     }
@@ -484,13 +482,13 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
               </div>
               <div className="pr-6">
                 <div className="flex items-center gap-2">
-                  <h3 className="text-lg font-extrabold text-slate-900 tracking-tight">Audit Finalized & Complete</h3>
+                  <h3 className="text-lg font-extrabold text-slate-900 tracking-tight">Audit Invoice Ready</h3>
                   <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wide bg-emerald-100 text-emerald-800 border border-emerald-200">
                     Ready
                   </span>
                 </div>
                 <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                  Calculations are saved and the official single-page invoice is ready to download.
+                  Calculations have been saved and your single-page audit invoice is ready to preview or download.
                 </p>
               </div>
             </div>
@@ -505,9 +503,8 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
                   <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-0.5">Named Insured</span>
                   <h4 className="text-sm font-bold text-slate-900 truncate">{audit.namedInsured || "Insured"}</h4>
                 </div>
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 shrink-0">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                  COMPLETE
+                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border shrink-0 ${getStatusBadge(audit.status)}`}>
+                  {audit.status}
                 </span>
               </div>
 
@@ -938,8 +935,8 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
                   disabled={isSaving}
                   className="w-full py-3.5 px-4 bg-emerald-600 text-white font-bold text-sm rounded-xl hover:bg-emerald-700 transition-all shadow-md shadow-emerald-200 flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
                 >
-                  <CheckCircle className="w-4 h-4" />
-                  Complete & Get Invoice
+                  <FileText className="w-4 h-4" />
+                  Preview & Download Invoice
                 </button>
               </div>
             </div>
@@ -1358,7 +1355,7 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
             </div>
           )}
 
-          {audit.status === "COMPLETE" && (
+          {(audit.status === "COMPLETE" || (audit.auditedExposure > 0 && audit.rate > 0)) && (
             <div className="mt-4 pt-4 border-t border-gray-100">
               <button
                 type="button"
@@ -1366,7 +1363,7 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
                 className="w-full py-2.5 px-4 bg-emerald-600 text-white font-bold text-sm rounded-lg hover:bg-emerald-700 transition flex items-center justify-center gap-2 shadow-sm shadow-emerald-200 cursor-pointer"
               >
                 <FileText className="w-4 h-4" />
-                View & Get Invoice
+                Preview & Download Invoice
               </button>
             </div>
           )}
