@@ -8,6 +8,7 @@ export type AuditStatus =
   | "FINALIZED"
   | "INVOICE_DUE"
   | "COMPLETE"
+  | "COMPLETED"
   | "CANCELLED";
 
 export type AuditDocumentStatus = 
@@ -118,7 +119,7 @@ const AuditSchema = new Schema<IAudit>({
     type: String, 
     enum: [
       "REQUESTED", "DOCS_RECEIVED", "UNDERWRITER_REVIEW", 
-      "APPROVED", "FINALIZED", "INVOICE_DUE", "COMPLETE", "CANCELLED"
+      "APPROVED", "FINALIZED", "INVOICE_DUE", "COMPLETE", "COMPLETED", "CANCELLED"
     ], 
     default: "REQUESTED" 
   },

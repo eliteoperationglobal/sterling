@@ -529,6 +529,7 @@ function AgencyDashboardContent() {
 
   const getAuditStatusBadge = (status: string) => {
     switch (status) {
+      case "COMPLETED":
       case "COMPLETE":
       case "APPROVED":
       case "FINALIZED":
@@ -548,7 +549,13 @@ function AgencyDashboardContent() {
 
   const filteredManualAudits = useMemo(() => {
     return manualAudits.filter((audit) => {
-      if (auditStatusFilter !== "ALL" && audit.status !== auditStatusFilter) return false;
+      if (auditStatusFilter !== "ALL") {
+        if (auditStatusFilter === "COMPLETED") {
+          if (audit.status !== "COMPLETED" && audit.status !== "COMPLETE") return false;
+        } else if (audit.status !== auditStatusFilter) {
+          return false;
+        }
+      }
       if (auditProgramFilter !== "ALL" && audit.program !== auditProgramFilter) return false;
       if (auditSearchQuery) {
         const q = auditSearchQuery.toLowerCase();
@@ -919,7 +926,7 @@ function AgencyDashboardContent() {
                     <option value="DOCS_RECEIVED">Docs Received</option>
                     <option value="UNDERWRITER_REVIEW">Underwriter Review</option>
                     <option value="FINALIZED">Finalized</option>
-                    <option value="COMPLETE">Complete</option>
+                    <option value="COMPLETED">Completed</option>
                     <option value="CANCELLED">Cancelled</option>
                   </select>
 

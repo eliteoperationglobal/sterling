@@ -951,6 +951,7 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
 
   const getStatusBadge = (status: string) => {
     switch (status) {
+      case "COMPLETED":
       case "COMPLETE":
       case "APPROVED":
       case "FINALIZED":
@@ -1010,7 +1011,7 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
             <div className="absolute top-5 left-10 right-10 h-0.5 bg-gray-200 -z-10"></div>
 
             {stages.map((stage, idx) => {
-              const isPast = ["FINALIZED", "APPROVED", "COMPLETE"].includes(audit.status) ||
+              const isPast = ["FINALIZED", "APPROVED", "COMPLETE", "COMPLETED"].includes(audit.status) ||
                 (audit.status === "UNDERWRITER_REVIEW" && idx < 2) ||
                 (audit.status === "DOCS_RECEIVED" && idx < 1);
               const isCurrent = audit.status === stage.id || (audit.status === "APPROVED" && stage.id === "FINALIZED");
@@ -1355,7 +1356,7 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
             </div>
           )}
 
-          {(audit.status === "COMPLETE" || (audit.auditedExposure > 0 && audit.rate > 0)) && (
+          {((audit.status === "COMPLETED" || audit.status === "COMPLETE") || (audit.auditedExposure > 0 && audit.rate > 0)) && (
             <div className="mt-4 pt-4 border-t border-gray-100">
               <button
                 type="button"
