@@ -148,6 +148,9 @@ export default function AgencyAuditInvoicePage() {
   const appId = audit.auditId ? audit.auditId.replace("AUD-", "") : audit._id.slice(-6);
   const policyNumberStr = audit.policyNumber || "PENDING";
   const carrierStr = audit.carrier || (audit.submissionId as any)?.carrier || (audit.submissionId as any)?.payload?.carrier || "";
+  const prog = (audit.program || audit.submissionId?.programName || audit.submissionId?.industry || "").trim().toLowerCase();
+  const isConstruction = prog === "construction" || prog === "advantage contractor gl";
+  const policyTypeStr = isConstruction ? (audit.policyType || "General Liability") : (audit.policyType || "");
 
   // Dynamic Agency Details from audit.agencyId or submission.agencyId
   const agency: any = (audit.agencyId && typeof audit.agencyId === "object" ? audit.agencyId : null) || (audit.submissionId as any)?.agencyId || null;
@@ -269,6 +272,7 @@ export default function AgencyAuditInvoicePage() {
               </h1>
               {clientContactLine && <div className="text-[#334155] font-medium leading-relaxed">{clientContactLine}</div>}
               {policyNumberStr && <div className="text-[#334155] font-medium leading-relaxed">Policy #: {policyNumberStr}</div>}
+              {policyTypeStr && <div className="text-[#334155] font-medium leading-relaxed">Policy Type: {policyTypeStr}</div>}
               {carrierStr && <div className="text-[#334155] font-medium leading-relaxed">Carrier: {carrierStr}</div>}
               {effectiveDatesStr && <div className="text-[#334155] font-medium leading-relaxed">Policy Effective Dates {effectiveDatesStr}</div>}
               <div className="text-[#334155] font-medium leading-relaxed">App ID: {appId}</div>

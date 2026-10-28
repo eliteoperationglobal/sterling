@@ -43,6 +43,7 @@ export default function AuditPage() {
   const [newCarrier, setNewCarrier] = useState("");
   const [newAgency, setNewAgency] = useState("");
   const [newIndustry, setNewIndustry] = useState("");
+  const [newPolicyType, setNewPolicyType] = useState("General Liability");
 
   const formatPhoneNumber = (value: string) => {
     const cleaned = ('' + value).replace(/\D/g, '');
@@ -279,7 +280,8 @@ export default function AuditPage() {
           date: newDate,
           carrier: newCarrier,
           agencyName: newAgency,
-          industry: newIndustry
+          industry: newIndustry,
+          policyType: newIndustry.trim().toLowerCase() === "construction" ? newPolicyType : undefined
         })
       });
 
@@ -1167,6 +1169,20 @@ export default function AuditPage() {
                     <option value="manufacturing">Manufacturing</option>
                   </select>
                 </div>
+
+                {newIndustry.trim().toLowerCase() === "construction" && (
+                  <div className="md:col-span-2 animate-in fade-in duration-200">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Policy Type</label>
+                    <select
+                      value={newPolicyType}
+                      onChange={(e) => setNewPolicyType(e.target.value)}
+                      className="w-full px-4 py-3 border border-[#e5ddd5] rounded-xl bg-[#fcfaf8] focus:ring-2 focus:ring-blue-500 outline-none text-gray-700 font-medium"
+                    >
+                      <option value="General Liability">General Liability</option>
+                      <option value="Excess Liability">Excess Liability</option>
+                    </select>
+                  </div>
+                )}
               </div>
 
               <div className="mt-10 flex justify-end gap-4 border-t border-[#e5ddd5] pt-8">

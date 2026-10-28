@@ -46,6 +46,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       status, 
       action,
       carrier,
+      policyType,
       auditPeriodStart,
       auditPeriodEnd
     } = body;
@@ -130,6 +131,13 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       if (audit.carrier !== trimmedCarrier) {
         activityLogDetails += `Carrier changed from ${audit.carrier || "Unknown"} to ${trimmedCarrier}. `;
         audit.carrier = trimmedCarrier;
+      }
+    }
+    if (policyType !== undefined && typeof policyType === "string" && policyType.trim()) {
+      const trimmedPolicyType = policyType.trim();
+      if (audit.policyType !== trimmedPolicyType) {
+        activityLogDetails += `Policy Type changed from ${audit.policyType || "General Liability"} to ${trimmedPolicyType}. `;
+        audit.policyType = trimmedPolicyType;
       }
     }
 

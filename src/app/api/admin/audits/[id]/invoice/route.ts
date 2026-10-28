@@ -97,6 +97,9 @@ export async function GET(
     const appId = audit.auditId ? audit.auditId.replace("AUD-", "") : (audit._id as any).toString().slice(-6);
     const policyNumberStr = audit.policyNumber || "PENDING";
     const carrierStr = audit.carrier || (audit.submissionId as any)?.carrier || (audit.submissionId as any)?.payload?.carrier || "";
+    const prog = (audit.program || (audit.submissionId as any)?.programName || (audit.submissionId as any)?.industry || "").trim().toLowerCase();
+    const isConstruction = prog === "construction" || prog === "advantage contractor gl";
+    const policyTypeStr = isConstruction ? (audit.policyType || "General Liability") : (audit.policyType || "");
 
     // Dynamic Agency Details from audit.agencyId or submission.agencyId
     const agency: any = (audit as any).agencyId || ((audit.submissionId as any)?.agencyId) || null;
@@ -332,6 +335,7 @@ export async function GET(
                 <div class="insured-name">${audit.namedInsured || "Insured"}</div>
                 ${clientContactLine ? `<div class="meta-line">${clientContactLine}</div>` : ""}
                 ${policyNumberStr ? `<div class="meta-line">Policy #: ${policyNumberStr}</div>` : ""}
+                ${policyTypeStr ? `<div class="meta-line">Policy Type: ${policyTypeStr}</div>` : ""}
                 ${carrierStr ? `<div class="meta-line">Carrier: ${carrierStr}</div>` : ""}
                 ${effectiveDatesStr ? `<div class="meta-line">Policy Effective Dates ${effectiveDatesStr}</div>` : ""}
                 <div class="meta-line">App ID: ${appId}</div>

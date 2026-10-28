@@ -179,6 +179,7 @@ export async function POST(req: NextRequest) {
         policyNumber: submission.policyNumber || "PENDING",
         carrier: submission.payload?.carrier || "Kinsale Insurance Company",
         program: submission.programName || submission.industry || "Construction",
+        policyType: "General Liability",
         agencyId: submission.agencyId?._id || submission.agencyId,
         namedInsured: submission.payload?.companyName || submission.payload?.applicantName || submission.clientContact?.name || "Unknown Client",
         

@@ -25,6 +25,16 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
+const isConstructionAudit = (auditObj: any) => {
+  const prog = (
+    auditObj?.program ||
+    auditObj?.submissionId?.programName ||
+    auditObj?.submissionId?.industry ||
+    ""
+  ).trim().toLowerCase();
+  return prog === "construction" || prog === "advantage contractor gl";
+};
+
 export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "PENDING" }: { submissionId?: string, auditId?: string, policyNumber?: string }) {
   const router = useRouter();
   const { data: session } = useSession();
@@ -33,6 +43,8 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
   const [loading, setLoading] = useState(true);
   const [audit, setAudit] = useState<any>(null);
   const [viewMode, setViewMode] = useState<"overview" | "edit">("overview");
+
+  const isConstruction = isConstructionAudit(audit);
 
   // File Upload State
   const [isDragging, setIsDragging] = useState(false);
@@ -59,6 +71,7 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
   const [carrierFee, setCarrierFee] = useState("");
   const [sterlingFee, setSterlingFee] = useState("");
   const [carrier, setCarrier] = useState("");
+  const [policyType, setPolicyType] = useState("General Liability");
   const [notes, setNotes] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
@@ -131,6 +144,11 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
         setCarrierFee(found.carrierFee ? found.carrierFee.toString() : "");
         setSterlingFee(found.sterlingFee ? found.sterlingFee.toString() : "");
         if (found.carrier) setCarrier(found.carrier);
+        if (found.policyType) {
+          setPolicyType(found.policyType);
+        } else {
+          setPolicyType("General Liability");
+        }
         if (found.surplusLinesTaxRate !== undefined) setSurplusTaxRate(found.surplusLinesTaxRate.toString());
         if (found.stampingFeeRate !== undefined) setStampingFeeRate(found.stampingFeeRate.toString());
         if (found.auditNotes) setNotes(found.auditNotes);
@@ -154,6 +172,7 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
     try {
       const payload: any = {
         carrier: carrier || audit.carrier,
+        policyType: isConstruction ? (policyType || "General Liability") : (audit.policyType || "General Liability"),
         estimatedExposure: parseFloat(estimatedExposure) || 0,
         auditedExposure: parseFloat(auditedExposure) || 0,
         rate: parseFloat(rate) || 0,
@@ -229,6 +248,7 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
     try {
       const payload: any = {
         carrier: carrier || audit.carrier,
+        policyType: isConstruction ? (policyType || "General Liability") : (audit.policyType || "General Liability"),
         estimatedExposure: parseFloat(estimatedExposure) || 0,
         auditedExposure: parseFloat(auditedExposure) || 0,
         rate: parseFloat(rate) || 0,
@@ -640,6 +660,12 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
             </span>
             <span className="text-gray-300">|</span>
             <span className="flex items-center gap-2">Carrier: <strong className="text-gray-900">{carrier || audit.carrier}</strong></span>
+            {isConstruction && (
+              <>
+                <span className="text-gray-300">|</span>
+                <span className="flex items-center gap-2">Policy Type: <strong className="text-gray-900">{policyType || audit.policyType || "General Liability"}</strong></span>
+              </>
+            )}
             <span className="text-gray-300">|</span>
             <span className="flex items-center gap-2">Audit ID: <strong className="text-gray-900">{audit.auditId}</strong></span>
           </div>
@@ -721,6 +747,20 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
                       <option value="Kinsale Insurance Company">Kinsale Insurance Company</option>
                     </select>
                   </div>
+
+                  {isConstruction && (
+                    <div className="animate-in fade-in duration-200">
+                      <label className="block text-xs font-semibold text-gray-500 mb-1.5">Policy Type</label>
+                      <select
+                        value={policyType || audit.policyType || "General Liability"}
+                        onChange={(e) => setPolicyType(e.target.value)}
+                        className="bg-white border border-slate-200 text-slate-800 font-semibold text-sm rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500 h-[38px] min-w-[200px]"
+                      >
+                        <option value="General Liability">General Liability</option>
+                        <option value="Excess Liability">Excess Liability</option>
+                      </select>
+                    </div>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-3 gap-6 items-start">
@@ -988,6 +1028,12 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
             <span>Audit Period: <strong className="text-gray-900">{new Date(audit.auditPeriodStart).toLocaleDateString("en-US")} – {new Date(audit.auditPeriodEnd).toLocaleDateString("en-US")}</strong></span>
             <span className="text-gray-300">|</span>
             <span>Carrier: <strong className="text-gray-900">{audit.carrier || "Unknown"}</strong></span>
+            {isConstruction && (
+              <>
+                <span className="text-gray-300">|</span>
+                <span>Policy Type: <strong className="text-gray-900">{audit.policyType || policyType || "General Liability"}</strong></span>
+              </>
+            )}
             <span className="text-gray-300">|</span>
             <span>Audit ID: <strong className="text-gray-900">{audit.auditId}</strong></span>
           </div>

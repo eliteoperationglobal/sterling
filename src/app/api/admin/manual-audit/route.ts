@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
     await connectDB();
 
     const body = await req.json();
-    const { clientName, email, phone, agencyName, industry, policyNumber, date, carrier } = body;
+    const { clientName, email, phone, agencyName, industry, policyNumber, date, carrier, policyType } = body;
 
     if (!clientName || !email || !phone) {
       return NextResponse.json({ error: "Client Name, Email, and Phone are required" }, { status: 400 });
@@ -103,12 +103,18 @@ export async function POST(req: NextRequest) {
       auditEnd = new Date();
     }
 
+    const isConstruction = (industry || "").trim().toLowerCase() === "construction";
+    const finalPolicyType = isConstruction
+      ? (policyType && typeof policyType === "string" && policyType.trim() ? policyType.trim() : "General Liability")
+      : "General Liability";
+
     const newAudit = new Audit({
       auditId,
       source: "MANUAL_AUDIT",
       policyNumber: finalPolicyNumber,
       carrier: finalCarrier,
       program: industry || "General Liability",
+      policyType: finalPolicyType,
       agencyId: agencyId,
       namedInsured: clientName,
       clientEmail: email,

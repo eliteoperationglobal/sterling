@@ -38,6 +38,7 @@ export interface IAudit extends Document {
   policyNumber: string;
   carrier: string;
   program: string;
+  policyType?: "General Liability" | "Excess Liability" | string;
   agencyId?: mongoose.Types.ObjectId;
   namedInsured: string;
   clientEmail?: string;
@@ -107,6 +108,7 @@ const AuditSchema = new Schema<IAudit>({
   policyNumber: { type: String, required: true },
   carrier: { type: String, required: true },
   program: { type: String, required: true },
+  policyType: { type: String, default: "General Liability" },
   agencyId: { type: Schema.Types.ObjectId, ref: "Agency" },
   namedInsured: { type: String, required: true },
   clientEmail: { type: String },
