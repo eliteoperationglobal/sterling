@@ -313,9 +313,6 @@ export async function POST(
       existingQuote.specialNotes = specialNotes || undefined;
       existingQuote.customDocuments = customDocuments || [];
       existingQuote.policyType = policyType || 'GENERAL_LIABILITY';
-      if (premiumFinanceTerms?.premiumFinanceAgreement) {
-        existingQuote.premiumFinanceAgreementUrl = premiumFinanceTerms.premiumFinanceAgreement;
-      }
       // 🛑 PROTECTION: If the quote is already BOUND, do NOT downgrade it to POSTED.
       if (existingQuote.status !== "BOUND") {
         existingQuote.status = "POSTED";
@@ -379,7 +376,6 @@ export async function POST(
         specialNotes: specialNotes || undefined,
         customDocuments: customDocuments || [],
         policyType: policyType || 'GENERAL_LIABILITY',
-        premiumFinanceAgreementUrl: premiumFinanceTerms?.premiumFinanceAgreement || undefined,
         status: "POSTED", // Posted to broker
         enteredByAdminId: (session.user as any).id,
         enteredAt: new Date(),
@@ -553,94 +549,6 @@ export async function POST(
     } catch (pdfError: any) {
       console.error("❌ Binder PDF generation error:", pdfError);
       // Continue even if PDF fails - we can regenerate later
-    }
-
-    // Download and attach Premium Finance Documents (Agreement & Quote) if available
-    let premiumFinanceAgreementUrl = "";
-    let premiumFinanceQuoteUrl = "";
-    if (premiumFinanceTerms) {
-      const pfaUrl = premiumFinanceTerms.premiumFinanceAgreement || premiumFinanceTerms.premiumFinanceAgreementPdfURL || premiumFinanceTerms.premiumFinanceAgreementUrl;
-      const pfqUrl = premiumFinanceTerms.premiumFinanceQuote || premiumFinanceTerms.premiumFinanceQuotePdfURL || premiumFinanceTerms.premiumFinanceQuoteUrl;
-
-      // 1. Download & Save Agreement PDF
-      if (pfaUrl) {
-        try {
-          console.log(`📄 Downloading Premium Finance Agreement PDF from ${pfaUrl}...`);
-          const pfaResponse = await fetch(pfaUrl);
-          if (pfaResponse.ok) {
-            const arrayBuffer = await pfaResponse.arrayBuffer();
-            const buffer = Buffer.from(arrayBuffer);
-            const fileName = `finance-agreement-${submissionId}.pdf`;
-            premiumFinanceAgreementUrl = await savePDFToStorage(buffer, fileName);
-            
-            await Quote.findByIdAndUpdate(quote._id, {
-              premiumFinanceAgreementUrl,
-            });
-            console.log(`✅ Premium Finance Agreement PDF saved: ${premiumFinanceAgreementUrl}`);
-
-            // Remove any previous file with this key to prevent duplicates
-            await Submission.findByIdAndUpdate(submissionId, {
-              $pull: { files: { fieldKey: "premiumFinanceAgreement" } }
-            });
-
-            // Attach to submission files
-            await Submission.findByIdAndUpdate(submissionId, {
-              $push: {
-                files: {
-                  fieldKey: "premiumFinanceAgreement",
-                  fileName: "Premium Finance Agreement.pdf",
-                  fileUrl: premiumFinanceAgreementUrl,
-                  fileSize: buffer.length,
-                  mimeType: "application/pdf",
-                  status: "APPROVED",
-                }
-              }
-            });
-          } else {
-            console.error("❌ Failed to download Premium Finance Agreement PDF");
-          }
-        } catch (err) {
-          console.error("❌ Premium Finance Agreement PDF error:", err);
-        }
-      }
-
-      // 2. Download & Save Quote PDF (only if distinct from agreement to avoid duplicate files)
-      if (pfqUrl && pfqUrl !== pfaUrl) {
-        try {
-          console.log(`📄 Downloading Premium Finance Quote PDF from ${pfqUrl}...`);
-          const pfqResponse = await fetch(pfqUrl);
-          if (pfqResponse.ok) {
-            const arrayBuffer = await pfqResponse.arrayBuffer();
-            const buffer = Buffer.from(arrayBuffer);
-            const fileName = `finance-quote-${submissionId}.pdf`;
-            premiumFinanceQuoteUrl = await savePDFToStorage(buffer, fileName);
-
-            // Remove any previous file with this key to prevent duplicates
-            await Submission.findByIdAndUpdate(submissionId, {
-              $pull: { files: { fieldKey: "premiumFinanceQuote" } }
-            });
-
-            // Attach to submission files
-            await Submission.findByIdAndUpdate(submissionId, {
-              $push: {
-                files: {
-                  fieldKey: "premiumFinanceQuote",
-                  fileName: "Premium Finance Quote.pdf",
-                  fileUrl: premiumFinanceQuoteUrl,
-                  fileSize: buffer.length,
-                  mimeType: "application/pdf",
-                  status: "APPROVED",
-                }
-              }
-            });
-            console.log(`✅ Premium Finance Quote PDF saved: ${premiumFinanceQuoteUrl}`);
-          } else {
-            console.error("❌ Failed to download Premium Finance Quote PDF");
-          }
-        } catch (err) {
-          console.error("❌ Premium Finance Quote PDF error:", err);
-        }
-      }
     }
 
     // Send email to broker

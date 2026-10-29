@@ -440,6 +440,18 @@ export default function AdminSubmissionDetailsPage() {
   const loading = isLoading;
   const error = swrError ? "Failed to load submission" : rawData?.error || "";
 
+  const isPremiumFinanceOption = 
+    submission?.payload?.paymentOption === "Premium Financial Partners Co." || 
+    (submission as any)?.paymentOption === "Premium Financial Partners Co." ||
+    (typeof submission?.payload?.paymentOption === "string" && submission.payload.paymentOption.toLowerCase().includes("premium financial")) ||
+    (typeof (submission as any)?.paymentOption === "string" && (submission as any).paymentOption.toLowerCase().includes("premium financial"));
+
+  useEffect(() => {
+    if (!isPremiumFinanceOption && activeTab === "Premium Financing") {
+      setActiveTab("Admin Notes");
+    }
+  }, [isPremiumFinanceOption, activeTab]);
+
   const carrierGroups = useMemo(() => {
     if (!data?.quotes?.length) return [];
 
@@ -2219,7 +2231,16 @@ export default function AdminSubmissionDetailsPage() {
         {/* Tabs Bar */}
         <div className="bg-white px-8 border-t border-gray-100 shadow-sm sticky top-[64px] z-30">
           <div className="px-8 flex items-center gap-8 h-[56px]">
-            {["Admin Notes", "Status History", "Additional Information", "Rating Information", "Key Information", "Quoting & Routing", "Premium Financing", "Audits"].map((tab) => (
+            {[
+              "Admin Notes", 
+              "Status History", 
+              "Additional Information", 
+              "Rating Information", 
+              "Key Information", 
+              "Quoting & Routing", 
+              ...(isPremiumFinanceOption ? ["Premium Financing"] : []),
+              "Audits"
+            ].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -2649,7 +2670,7 @@ export default function AdminSubmissionDetailsPage() {
               </div>
             )}
 
-            {activeTab === "Premium Financing" && (
+            {isPremiumFinanceOption && activeTab === "Premium Financing" && (
               <div className="animate-in fade-in duration-300">
                 <AdminPremiumFinanceTab
                   submission={submission}
