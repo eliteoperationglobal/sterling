@@ -133,9 +133,44 @@ export default function AuditInvoicePage() {
   const clientContactParts = [clientPhone, clientEmail].filter(Boolean);
   const clientContactLine = clientContactParts.join(" | ");
 
-  const startDateStr = audit.auditPeriodStart ? new Date(audit.auditPeriodStart).toLocaleDateString("en-US") : "";
-  const endDateStr = audit.auditPeriodEnd ? new Date(audit.auditPeriodEnd).toLocaleDateString("en-US") : "";
-  const effectiveDatesStr = startDateStr && endDateStr ? `${startDateStr} - ${endDateStr}` : "";
+  // Robust date formatting to prevent timezone shift issues across India and USA
+  const formatAuditDate = (dateVal: any): string => {
+    if (!dateVal) return "";
+  
+    if (typeof dateVal === "string") {
+      const trimmed = dateVal.trim();
+      const slashMatch = trimmed.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+      if (slashMatch) {
+        return `${parseInt(slashMatch[1], 10)}/${parseInt(slashMatch[2], 10)}/${slashMatch[3]}`;
+      }
+      const isoMatch = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (isoMatch) {
+        return `${parseInt(isoMatch[2], 10)}/${parseInt(isoMatch[3], 10)}/${isoMatch[1]}`;
+      }
+    }
+  
+    if (dateVal instanceof Date || (typeof dateVal === "object" && dateVal && typeof (dateVal as any).toISOString === "function")) {
+      try {
+        const iso = (dateVal as any).toISOString();
+        const isoMatch = iso.match(/^(\d{4})-(\d{2})-(\d{2})/);
+        if (isoMatch) {
+          return `${parseInt(isoMatch[2], 10)}/${parseInt(isoMatch[3], 10)}/${isoMatch[1]}`;
+        }
+      } catch {
+        // ignore
+      }
+    }
+  
+    const d = new Date(dateVal);
+    if (isNaN(d.getTime())) return "";
+    return d.toLocaleDateString("en-US", { timeZone: "UTC" });
+  };
+  
+  const startVal = audit.auditPeriodStart || audit.auditEffectiveDate;
+  const endVal = audit.auditPeriodEnd;
+  const startDateStr = formatAuditDate(startVal);
+  const endDateStr = formatAuditDate(endVal);
+  const effectiveDatesStr = startDateStr && endDateStr ? `${startDateStr} - ${endDateStr}` : (startDateStr || "");
 
   const appId = audit.auditId ? audit.auditId.replace("AUD-", "") : audit._id.slice(-6);
   const policyNumberStr = audit.policyNumber || "PENDING";

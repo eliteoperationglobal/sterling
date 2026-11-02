@@ -21,8 +21,7 @@ const nextConfig = {
   },
   // External packages for server components (PDF & Chromium generation)
   experimental: {
-    webpackBuildWorker: true,
-    serverComponentsExternalPackages: ['puppeteer', 'puppeteer-core', '@sparticuz/chromium'],
+        serverComponentsExternalPackages: ['puppeteer', 'puppeteer-core', '@sparticuz/chromium'],
   },
 };
 
