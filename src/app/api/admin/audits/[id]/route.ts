@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/authOptions";
 import connectDB from "@/lib/mongodb";
 import Audit from "@/models/Audit";
 import AuditActivity from "@/models/AuditActivity";
+import { formatAuditDate } from "@/lib/utils/auditDate";
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   try {
@@ -57,8 +58,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     if (auditPeriodStart !== undefined && auditPeriodStart) {
       const parsedStart = new Date(auditPeriodStart);
       if (!isNaN(parsedStart.getTime())) {
-        const oldStartStr = audit.auditPeriodStart ? new Date(audit.auditPeriodStart).toLocaleDateString("en-US") : "N/A";
-        const newStartStr = parsedStart.toLocaleDateString("en-US");
+        const oldStartStr = audit.auditPeriodStart ? formatAuditDate(audit.auditPeriodStart) : "N/A";
+        const newStartStr = formatAuditDate(parsedStart);
         if (oldStartStr !== newStartStr) {
           activityLogDetails += `Audit period start changed from ${oldStartStr} to ${newStartStr}. `;
         }
@@ -70,8 +71,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     if (auditPeriodEnd !== undefined && auditPeriodEnd) {
       const parsedEnd = new Date(auditPeriodEnd);
       if (!isNaN(parsedEnd.getTime())) {
-        const oldEndStr = audit.auditPeriodEnd ? new Date(audit.auditPeriodEnd).toLocaleDateString("en-US") : "N/A";
-        const newEndStr = parsedEnd.toLocaleDateString("en-US");
+        const oldEndStr = audit.auditPeriodEnd ? formatAuditDate(audit.auditPeriodEnd) : "N/A";
+        const newEndStr = formatAuditDate(parsedEnd);
         if (oldEndStr !== newEndStr) {
           activityLogDetails += `Audit period end changed from ${oldEndStr} to ${newEndStr}. `;
         }

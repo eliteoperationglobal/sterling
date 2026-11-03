@@ -10,6 +10,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useEffect, useState, useRef, Suspense, useMemo } from "react";
 import { signOut } from "next-auth/react";
+import { formatAuditDate } from "@/lib/utils/auditDate";
 
 interface Submission {
   _id: string;
@@ -1000,7 +1001,7 @@ function AgencyDashboardContent() {
                                 <div className="text-xs text-gray-500 mt-0.5">{audit.program || "General Liability"}</div>
                               </td>
                               <td className="px-4 lg:px-6 py-4 text-xs text-gray-600 whitespace-nowrap">
-                                {audit.auditPeriodStart ? new Date(audit.auditPeriodStart).toLocaleDateString("en-US") : "—"} – {audit.auditPeriodEnd ? new Date(audit.auditPeriodEnd).toLocaleDateString("en-US") : "—"}
+                                {formatAuditDate(audit.auditPeriodStart) || "—"} – {formatAuditDate(audit.auditPeriodEnd) || "—"}
                               </td>
                               <td className="px-4 lg:px-6 py-4">
                                 <div className="text-xs text-gray-600 mb-1 font-medium">

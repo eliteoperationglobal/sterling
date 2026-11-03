@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import MobileNav from "@/components/layout/MobileNav";
 import { toast } from "sonner";
+import { formatAuditDate, formatAuditDateRange } from "@/lib/utils/auditDate";
 
 export default function AuditPage() {
   const { data: session, status } = useSession();
@@ -756,7 +757,7 @@ export default function AuditPage() {
                           </td>
                           <td className="px-6 py-4">
                             <p className="text-sm text-gray-700 whitespace-nowrap">
-                              {new Date(audit.auditPeriodStart).toLocaleDateString("en-US")} - {new Date(audit.auditPeriodEnd).toLocaleDateString("en-US")}
+                              {formatAuditDateRange(audit.auditPeriodStart, audit.auditPeriodEnd)}
                             </p>
                           </td>
                           <td className="px-6 py-4">
@@ -783,7 +784,7 @@ export default function AuditPage() {
                             </span>
                           </td>
                           <td className="px-6 py-4">
-                            <p className="text-sm text-gray-700">{isValidDueDate ? dueDateObj.toLocaleDateString("en-US") : "—"}</p>
+                            <p className="text-sm text-gray-700">{isValidDueDate ? formatAuditDate(audit.dueDate) : "—"}</p>
                             <p className={`text-xs mt-0.5 ${isOverdue ? 'text-red-600 font-semibold' : 'text-gray-500'}`}>
                               {daysLeft === null
                                 ? ""

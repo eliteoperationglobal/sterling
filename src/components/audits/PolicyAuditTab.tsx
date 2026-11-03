@@ -24,6 +24,7 @@ import {
   Trash2
 } from "lucide-react";
 import { toast } from "sonner";
+import { formatAuditDate, formatAuditDateRange, toAuditInputDate } from "@/lib/utils/auditDate";
 
 const isConstructionAudit = (auditObj: any) => {
   const prog = (
@@ -79,15 +80,7 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
   const [periodStart, setPeriodStart] = useState("");
   const [periodEnd, setPeriodEnd] = useState("");
 
-  const toInputDate = (dateVal: any) => {
-    if (!dateVal) return "";
-    const d = new Date(dateVal);
-    if (isNaN(d.getTime())) return "";
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth() + 1).padStart(2, "0");
-    const dd = String(d.getDate()).padStart(2, "0");
-    return `${yyyy}-${mm}-${dd}`;
-  };
+  const toInputDate = (dateVal: any) => toAuditInputDate(dateVal);
 
   const handlePeriodStartChange = (newStart: string) => {
     setPeriodStart(newStart);
@@ -104,9 +97,9 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
   };
 
   const handleSetSession = (session: "25-26" | "26-27") => {
-    const currentStart = periodStart ? new Date(periodStart) : (audit?.auditPeriodStart ? new Date(audit.auditPeriodStart) : new Date());
-    const m = !isNaN(currentStart.getTime()) ? currentStart.getMonth() + 1 : 10;
-    const d = !isNaN(currentStart.getTime()) ? currentStart.getDate() : 20;
+    const currentStart = periodStart ? new Date(`${periodStart}T00:00:00.000Z`) : (audit?.auditPeriodStart ? new Date(audit.auditPeriodStart) : new Date());
+    const m = !isNaN(currentStart.getTime()) ? currentStart.getUTCMonth() + 1 : 10;
+    const d = !isNaN(currentStart.getTime()) ? currentStart.getUTCDate() : 20;
 
     const startYear = session === "25-26" ? 2025 : 2026;
     const endYear = session === "25-26" ? 2026 : 2027;
@@ -181,8 +174,8 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
         surplusLinesTaxRate: parseFloat(surplusTaxRate) || 0,
         stampingFeeRate: parseFloat(stampingFeeRate) || 0,
         auditNotes: notes,
-        auditPeriodStart: periodStart ? new Date(periodStart) : audit.auditPeriodStart,
-        auditPeriodEnd: periodEnd ? new Date(periodEnd) : audit.auditPeriodEnd,
+        auditPeriodStart: periodStart ? new Date(`${periodStart}T00:00:00.000Z`) : audit.auditPeriodStart,
+        auditPeriodEnd: periodEnd ? new Date(`${periodEnd}T00:00:00.000Z`) : audit.auditPeriodEnd,
         action: statusUpdate ? `Status updated to ${statusUpdate}` : "Saved draft values"
       };
 
@@ -257,8 +250,8 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
         surplusLinesTaxRate: parseFloat(surplusTaxRate) || 0,
         stampingFeeRate: parseFloat(stampingFeeRate) || 0,
         auditNotes: notes,
-        auditPeriodStart: periodStart ? new Date(periodStart) : audit.auditPeriodStart,
-        auditPeriodEnd: periodEnd ? new Date(periodEnd) : audit.auditPeriodEnd,
+        auditPeriodStart: periodStart ? new Date(`${periodStart}T00:00:00.000Z`) : audit.auditPeriodStart,
+        auditPeriodEnd: periodEnd ? new Date(`${periodEnd}T00:00:00.000Z`) : audit.auditPeriodEnd,
         action: "Audit calculations saved & invoice ready"
       };
 
@@ -655,7 +648,7 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
             <span className="text-gray-300">|</span>
             <span className="flex items-center gap-2">
               Date: <strong className="text-gray-900">
-                {new Date(periodStart ? `${periodStart}T00:00:00` : audit.auditEffectiveDate || audit.auditPeriodStart).toLocaleDateString("en-US")}
+                {formatAuditDate(periodStart || audit.auditEffectiveDate || audit.auditPeriodStart)}
               </strong>
             </span>
             <span className="text-gray-300">|</span>
@@ -1023,9 +1016,9 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
           <div className="flex flex-wrap items-center gap-y-1.5 gap-x-5 text-sm text-gray-500 font-medium">
             <span>Policy #: <strong className="text-gray-900">{audit.policyNumber || "—"}</strong></span>
             <span className="text-gray-300">|</span>
-            <span>Date: <strong className="text-gray-900">{new Date(audit.auditEffectiveDate || audit.auditPeriodStart).toLocaleDateString("en-US")}</strong></span>
+            <span>Date: <strong className="text-gray-900">{formatAuditDate(audit.auditEffectiveDate || audit.auditPeriodStart)}</strong></span>
             <span className="text-gray-300">|</span>
-            <span>Audit Period: <strong className="text-gray-900">{new Date(audit.auditPeriodStart).toLocaleDateString("en-US")} – {new Date(audit.auditPeriodEnd).toLocaleDateString("en-US")}</strong></span>
+            <span>Audit Period: <strong className="text-gray-900">{formatAuditDate(audit.auditPeriodStart)} – {formatAuditDate(audit.auditPeriodEnd)}</strong></span>
             <span className="text-gray-300">|</span>
             <span>Carrier: <strong className="text-gray-900">{audit.carrier || "Unknown"}</strong></span>
             {isConstruction && (
@@ -1107,7 +1100,7 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
 
             <div>
               <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wide mb-2">Audit Effective Date</p>
-              <p className="text-2xl font-bold text-gray-900">{new Date(audit.auditPeriodStart).toLocaleDateString("en-US")}</p>
+              <p className="text-2xl font-bold text-gray-900">{formatAuditDate(audit.auditPeriodStart || audit.auditEffectiveDate)}</p>
             </div>
           </div>
 
