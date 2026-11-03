@@ -25,6 +25,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { formatAuditDate, formatAuditDateRange, toAuditInputDate } from "@/lib/utils/auditDate";
+import { calculateAuditCharges, ALL_US_STATES, getStateTaxData } from "@/lib/data/stateTaxRates";
+import { getStateCode } from "@/lib/utils/stateConverter";
 
 const isConstructionAudit = (auditObj: any) => {
   const prog = (
@@ -71,6 +73,12 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
   const [stampingFeeRate, setStampingFeeRate] = useState("");
   const [carrierFee, setCarrierFee] = useState("");
   const [sterlingFee, setSterlingFee] = useState("");
+  const [selectedState, setSelectedState] = useState("TX");
+  const [fireMarshalTaxRate, setFireMarshalTaxRate] = useState("");
+  const [fireMarshalFlatFee, setFireMarshalFlatFee] = useState("");
+  const [stampingFeePerFiling, setStampingFeePerFiling] = useState("");
+  const [slaServiceCharge, setSlaServiceCharge] = useState("");
+  const [slasTransactionFeeRate, setSlasTransactionFeeRate] = useState("");
   const [carrier, setCarrier] = useState("");
   const [policyType, setPolicyType] = useState("General Liability");
   const [notes, setNotes] = useState("");
@@ -79,6 +87,20 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
   // Editable Audit Period States
   const [periodStart, setPeriodStart] = useState("");
   const [periodEnd, setPeriodEnd] = useState("");
+
+  const handleStateChange = (newSt: string) => {
+    setSelectedState(newSt);
+    const sData = getStateTaxData(newSt);
+    if (sData) {
+      setSurplusTaxRate(sData.taxRate !== undefined ? sData.taxRate.toString() : "0");
+      setStampingFeeRate(sData.stampingFee !== undefined ? sData.stampingFee.toString() : "0");
+      setFireMarshalTaxRate(sData.fireMarshalRate !== undefined ? sData.fireMarshalRate.toString() : "0");
+      setFireMarshalFlatFee(sData.fireMarshalFlatFee !== undefined ? sData.fireMarshalFlatFee.toString() : "0");
+      setStampingFeePerFiling(sData.stampingFeePerFiling !== undefined ? sData.stampingFeePerFiling.toString() : "0");
+      setSlaServiceCharge(sData.slaServiceCharge !== undefined ? sData.slaServiceCharge.toString() : "0");
+      setSlasTransactionFeeRate(sData.slasTransactionFee !== undefined ? sData.slasTransactionFee.toString() : "0");
+    }
+  };
 
   const toInputDate = (dateVal: any) => toAuditInputDate(dateVal);
 
@@ -142,8 +164,52 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
         } else {
           setPolicyType("General Liability");
         }
-        if (found.surplusLinesTaxRate !== undefined) setSurplusTaxRate(found.surplusLinesTaxRate.toString());
-        if (found.stampingFeeRate !== undefined) setStampingFeeRate(found.stampingFeeRate.toString());
+        const rawState = found.state || found.submissionId?.state || found.submissionId?.payload?.state || found.submissionId?.clientContact?.businessAddress?.state || (found.surplusLinesTaxRate === 4.85 ? "TX" : "CA");
+        const resolvedSt = getStateCode(rawState);
+        setSelectedState(resolvedSt);
+
+        const sData = getStateTaxData(resolvedSt);
+        if (found.surplusLinesTaxRate !== undefined) {
+          setSurplusTaxRate(found.surplusLinesTaxRate.toString());
+        } else {
+          setSurplusTaxRate(sData?.taxRate !== undefined ? sData.taxRate.toString() : "0");
+        }
+
+        if (found.stampingFeeRate !== undefined) {
+          setStampingFeeRate(found.stampingFeeRate.toString());
+        } else {
+          setStampingFeeRate(sData?.stampingFee !== undefined ? sData.stampingFee.toString() : "0");
+        }
+
+        if (found.fireMarshalTaxRate !== undefined) {
+          setFireMarshalTaxRate(found.fireMarshalTaxRate.toString());
+        } else {
+          setFireMarshalTaxRate(sData?.fireMarshalRate !== undefined ? sData.fireMarshalRate.toString() : "0");
+        }
+
+        if (found.fireMarshalFlatFee !== undefined) {
+          setFireMarshalFlatFee(found.fireMarshalFlatFee.toString());
+        } else {
+          setFireMarshalFlatFee(sData?.fireMarshalFlatFee !== undefined ? sData.fireMarshalFlatFee.toString() : "0");
+        }
+
+        if (found.stampingFeePerFiling !== undefined) {
+          setStampingFeePerFiling(found.stampingFeePerFiling.toString());
+        } else {
+          setStampingFeePerFiling(sData?.stampingFeePerFiling !== undefined ? sData.stampingFeePerFiling.toString() : "0");
+        }
+
+        if (found.slaServiceCharge !== undefined) {
+          setSlaServiceCharge(found.slaServiceCharge.toString());
+        } else {
+          setSlaServiceCharge(sData?.slaServiceCharge !== undefined ? sData.slaServiceCharge.toString() : "0");
+        }
+
+        if (found.slasTransactionFeeRate !== undefined) {
+          setSlasTransactionFeeRate(found.slasTransactionFeeRate.toString());
+        } else {
+          setSlasTransactionFeeRate(sData?.slasTransactionFee !== undefined ? sData.slasTransactionFee.toString() : "0");
+        }
         if (found.auditNotes) setNotes(found.auditNotes);
 
         if (found.auditPeriodStart) {
@@ -171,8 +237,14 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
         rate: parseFloat(rate) || 0,
         carrierFee: parseFloat(carrierFee) || 0,
         sterlingFee: parseFloat(sterlingFee) || 0,
+        state: selectedState,
         surplusLinesTaxRate: parseFloat(surplusTaxRate) || 0,
         stampingFeeRate: parseFloat(stampingFeeRate) || 0,
+        fireMarshalTaxRate: parseFloat(fireMarshalTaxRate) || 0,
+        fireMarshalFlatFee: parseFloat(fireMarshalFlatFee) || 0,
+        stampingFeePerFiling: parseFloat(stampingFeePerFiling) || 0,
+        slaServiceCharge: parseFloat(slaServiceCharge) || 0,
+        slasTransactionFeeRate: parseFloat(slasTransactionFeeRate) || 0,
         auditNotes: notes,
         auditPeriodStart: periodStart ? new Date(`${periodStart}T00:00:00.000Z`) : audit.auditPeriodStart,
         auditPeriodEnd: periodEnd ? new Date(`${periodEnd}T00:00:00.000Z`) : audit.auditPeriodEnd,
@@ -445,12 +517,26 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
 
   const premiumDifference = auditedPremium - originalPremium;
 
-  const slTax = premiumDifference * (parseNum(surplusTaxRate) / 100);
-  const stampFee = premiumDifference * (parseNum(stampingFeeRate) / 100);
   const cFee = parseNum(carrierFee);
   const sFee = parseNum(sterlingFee);
 
-  const additionalPremiumDue = premiumDifference + slTax + stampFee + cFee + sFee;
+  const charges = calculateAuditCharges({
+    premiumDifference,
+    state: selectedState,
+    surplusTaxRate: parseNum(surplusTaxRate),
+    stampingFeeRate: parseNum(stampingFeeRate),
+    fireMarshalTaxRate: parseNum(fireMarshalTaxRate),
+    fireMarshalFlatFee: parseNum(fireMarshalFlatFee),
+    stampingFeePerFiling: parseNum(stampingFeePerFiling),
+    slaServiceCharge: parseNum(slaServiceCharge),
+    slasTransactionFeeRate: parseNum(slasTransactionFeeRate),
+    carrierFee: cFee,
+    sterlingFee: sFee,
+  });
+
+  const slTax = charges.surplusTaxAmount;
+  const stampFee = charges.stampingFeeAmount;
+  const additionalPremiumDue = charges.additionalPremiumDue;
 
   // Workflow Stages
   const docsReceivedActivity = audit.activities?.find((a: any) => 
@@ -812,6 +898,22 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
               </div>
               <div className="p-6 grid grid-cols-3 gap-6">
                 <div>
+                  <label className="block text-xs font-semibold text-blue-700 mb-1.5 flex items-center gap-1">
+                    State (Taxes & Fees Basis)
+                  </label>
+                  <select
+                    value={selectedState}
+                    onChange={(e) => handleStateChange(e.target.value)}
+                    className="w-full bg-white border border-blue-300 text-slate-800 text-sm font-bold rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-200 shadow-xs h-[38px]"
+                  >
+                    {ALL_US_STATES.map((s) => (
+                      <option key={s.code} value={s.code}>
+                        {s.code} – {s.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
                   <label className="block text-xs font-semibold text-gray-500 mb-1.5">Rate per $1,000</label>
                   <div className="relative">
                     <span className="absolute left-3 top-2 text-slate-400 font-medium">$</span>
@@ -835,18 +937,90 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
                     <span className="absolute right-3 top-2.5 text-slate-400 text-sm">%</span>
                   </div>
                 </div>
-                <div>
-                  <label className="block text-xs font-semibold text-gray-500 mb-1.5">Stamping Fee</label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={stampingFeeRate}
-                      onChange={(e) => setStampingFeeRate(e.target.value.replace(/[^0-9.]/g, '').replace(/^0+(?=\d)/, ''))}
-                      className="w-full bg-slate-50 border border-slate-200 text-slate-700 text-sm font-medium rounded-lg px-3 py-2 outline-none focus:bg-white focus:border-blue-400"
-                    />
-                    <span className="absolute right-3 top-2.5 text-slate-400 text-sm">%</span>
+                {(charges.stampingFeeRate > 0 || getStateTaxData(selectedState)?.stampingFee !== undefined) && (
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1.5">Stamping Fee</label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={stampingFeeRate}
+                        onChange={(e) => setStampingFeeRate(e.target.value.replace(/[^0-9.]/g, '').replace(/^0+(?=\d)/, ''))}
+                        className="w-full bg-slate-50 border border-slate-200 text-slate-700 text-sm font-medium rounded-lg px-3 py-2 outline-none focus:bg-white focus:border-blue-400"
+                      />
+                      <span className="absolute right-3 top-2.5 text-slate-400 text-sm">%</span>
+                    </div>
                   </div>
-                </div>
+                )}
+                {(parseNum(fireMarshalTaxRate) > 0 || getStateTaxData(selectedState)?.fireMarshalRate !== undefined) && (
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1.5">Fire Marshal Tax</label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={fireMarshalTaxRate}
+                        onChange={(e) => setFireMarshalTaxRate(e.target.value.replace(/[^0-9.]/g, '').replace(/^0+(?=\d)/, ''))}
+                        className="w-full bg-slate-50 border border-slate-200 text-slate-700 text-sm font-medium rounded-lg px-3 py-2 outline-none focus:bg-white focus:border-blue-400"
+                      />
+                      <span className="absolute right-3 top-2.5 text-slate-400 text-sm">%</span>
+                    </div>
+                  </div>
+                )}
+                {(parseNum(fireMarshalFlatFee) > 0 || selectedState === "WA") && (
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1.5">Fire Marshal Flat Fee</label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-2 text-slate-400 font-medium">$</span>
+                      <input
+                        type="text"
+                        value={fireMarshalFlatFee}
+                        onChange={(e) => setFireMarshalFlatFee(e.target.value.replace(/[^0-9.]/g, '').replace(/^0+(?=\d)/, ''))}
+                        className="w-full bg-slate-50 border border-slate-200 text-slate-700 text-sm font-medium rounded-lg pl-7 pr-3 py-2 outline-none focus:bg-white focus:border-blue-400"
+                      />
+                    </div>
+                  </div>
+                )}
+                {(parseNum(stampingFeePerFiling) > 0 || selectedState === "PA") && (
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1.5">PA Flat Fee</label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-2 text-slate-400 font-medium">$</span>
+                      <input
+                        type="text"
+                        value={stampingFeePerFiling}
+                        onChange={(e) => setStampingFeePerFiling(e.target.value.replace(/[^0-9.]/g, '').replace(/^0+(?=\d)/, ''))}
+                        className="w-full bg-slate-50 border border-slate-200 text-slate-700 text-sm font-medium rounded-lg pl-7 pr-3 py-2 outline-none focus:bg-white focus:border-blue-400"
+                      />
+                    </div>
+                  </div>
+                )}
+                {(parseNum(slaServiceCharge) > 0 || selectedState === "OR") && (
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1.5">SLA Service Charge</label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-2 text-slate-400 font-medium">$</span>
+                      <input
+                        type="text"
+                        value={slaServiceCharge}
+                        onChange={(e) => setSlaServiceCharge(e.target.value.replace(/[^0-9.]/g, '').replace(/^0+(?=\d)/, ''))}
+                        className="w-full bg-slate-50 border border-slate-200 text-slate-700 text-sm font-medium rounded-lg pl-7 pr-3 py-2 outline-none focus:bg-white focus:border-blue-400"
+                      />
+                    </div>
+                  </div>
+                )}
+                {(parseNum(slasTransactionFeeRate) > 0 || selectedState === "OK") && (
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1.5">SLAS Transaction Fee</label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={slasTransactionFeeRate}
+                        onChange={(e) => setSlasTransactionFeeRate(e.target.value.replace(/[^0-9.]/g, '').replace(/^0+(?=\d)/, ''))}
+                        className="w-full bg-slate-50 border border-slate-200 text-slate-700 text-sm font-medium rounded-lg px-3 py-2 outline-none focus:bg-white focus:border-blue-400"
+                      />
+                      <span className="absolute right-3 top-2.5 text-slate-400 text-sm">%</span>
+                    </div>
+                  </div>
+                )}
                 <div>
                   <label className="block text-xs font-semibold text-gray-500 mb-1.5">Premium Audit Administration Fees</label>
                   <div className="relative">
@@ -918,22 +1092,12 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
                 </div>
 
                 <div className="pt-2 space-y-4">
-                  <div className="flex justify-between items-center text-sm text-slate-600">
-                    <span>Surplus Lines Tax ({surplusTaxRate}%)</span>
-                    <span>{formatCurrency(slTax)}</span>
-                  </div>
-                  <div className="flex justify-between items-center text-sm text-slate-600">
-                    <span>Stamping Fee ({stampingFeeRate}%)</span>
-                    <span>{formatCurrency(stampFee)}</span>
-                  </div>
-                  <div className="flex justify-between items-center text-sm text-slate-600">
-                    <span>Premium Audit Administration Fees</span>
-                    <span>{formatCurrency(cFee)}</span>
-                  </div>
-                  <div className="flex justify-between items-center text-sm text-slate-600">
-                    <span>Premium Audit Service Fee</span>
-                    <span>{formatCurrency(sFee)}</span>
-                  </div>
+                  {charges.items.map((item) => (
+                    <div key={item.id} className="flex justify-between items-center text-sm text-slate-600">
+                      <span>{item.label}</span>
+                      <span>{formatCurrency(item.amount)}</span>
+                    </div>
+                  ))}
                 </div>
 
                 <div className="h-px bg-rose-200/60 my-6"></div>
@@ -1021,6 +1185,8 @@ export default function PolicyAuditTab({ submissionId, auditId, policyNumber = "
             <span>Audit Period: <strong className="text-gray-900">{formatAuditDate(audit.auditPeriodStart)} – {formatAuditDate(audit.auditPeriodEnd)}</strong></span>
             <span className="text-gray-300">|</span>
             <span>Carrier: <strong className="text-gray-900">{audit.carrier || "Unknown"}</strong></span>
+            <span className="text-gray-300">|</span>
+            <span>State: <strong className="text-gray-900">{selectedState}</strong></span>
             {isConstruction && (
               <>
                 <span className="text-gray-300">|</span>

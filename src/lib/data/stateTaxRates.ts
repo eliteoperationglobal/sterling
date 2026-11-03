@@ -15,6 +15,8 @@
  * For production use, verify rates with state insurance departments.
  */
 
+import { getStateCode } from "@/lib/utils/stateConverter";
+
 export interface StateTaxRate {
   state: string;
   stateName: string;
@@ -358,5 +360,200 @@ export function calculateSlasTransactionFee(
     taxRate: feeRate,
     taxAmount: parseFloat(feeAmount.toFixed(2)),
     stateName: stateData?.stateName || state,
+  };
+}
+
+export interface AuditChargeItem {
+  id: string;
+  label: string;
+  rate?: number;
+  amount: number;
+}
+
+export interface AuditChargesBreakdown {
+  stateCode: string;
+  stateName: string;
+  surplusTaxRate: number;
+  surplusTaxAmount: number;
+  stampingFeeRate: number;
+  stampingFeeAmount: number;
+  fireMarshalTaxRate: number;
+  fireMarshalTaxAmount: number;
+  fireMarshalFlatFee: number;
+  stampingFeePerFiling: number;
+  slaServiceCharge: number;
+  slasTransactionFeeRate: number;
+  slasTransactionFeeAmount: number;
+  carrierFee: number;
+  sterlingFee: number;
+  items: AuditChargeItem[];
+  totalTaxesAndFees: number;
+  additionalPremiumDue: number;
+}
+
+export const ALL_US_STATES = Object.values(STATE_TAX_RATES).map(s => ({
+  code: s.state,
+  name: s.stateName,
+})).sort((a, b) => a.name.localeCompare(b.name));
+
+export function calculateAuditCharges(options: {
+  premiumDifference: number;
+  state?: string;
+  surplusTaxRate?: number;
+  stampingFeeRate?: number;
+  fireMarshalTaxRate?: number;
+  fireMarshalFlatFee?: number;
+  stampingFeePerFiling?: number;
+  slaServiceCharge?: number;
+  slasTransactionFeeRate?: number;
+  carrierFee?: number;
+  sterlingFee?: number;
+}): AuditChargesBreakdown {
+  const stateCode = getStateCode(options.state || "TX");
+  const stateData = getStateTaxData(stateCode);
+  const stateName = stateData?.stateName || stateCode;
+
+  const surplusTaxRate = options.surplusTaxRate !== undefined && !isNaN(options.surplusTaxRate)
+    ? options.surplusTaxRate
+    : (stateData?.taxRate ?? 0);
+
+  const stampingFeeRate = options.stampingFeeRate !== undefined && !isNaN(options.stampingFeeRate)
+    ? options.stampingFeeRate
+    : (stateData?.stampingFee ?? 0);
+
+  const fireMarshalTaxRate = options.fireMarshalTaxRate !== undefined && !isNaN(options.fireMarshalTaxRate)
+    ? options.fireMarshalTaxRate
+    : (stateData?.fireMarshalRate ?? 0);
+
+  const fireMarshalFlatFee = options.fireMarshalFlatFee !== undefined && !isNaN(options.fireMarshalFlatFee)
+    ? options.fireMarshalFlatFee
+    : (stateData?.fireMarshalFlatFee ?? 0);
+
+  const stampingFeePerFiling = options.stampingFeePerFiling !== undefined && !isNaN(options.stampingFeePerFiling)
+    ? options.stampingFeePerFiling
+    : (stateData?.stampingFeePerFiling ?? 0);
+
+  const slaServiceCharge = options.slaServiceCharge !== undefined && !isNaN(options.slaServiceCharge)
+    ? options.slaServiceCharge
+    : (stateData?.slaServiceCharge ?? 0);
+
+  const slasTransactionFeeRate = options.slasTransactionFeeRate !== undefined && !isNaN(options.slasTransactionFeeRate)
+    ? options.slasTransactionFeeRate
+    : (stateData?.slasTransactionFee ?? 0);
+
+  const carrierFee = Number(options.carrierFee) || 0;
+  const sterlingFee = Number(options.sterlingFee) || 0;
+
+  const diff = Number(options.premiumDifference) || 0;
+
+  // Percentage-based taxes apply when diff > 0
+  const surplusTaxAmount = diff > 0 ? parseFloat(((diff * surplusTaxRate) / 100).toFixed(2)) : 0;
+  const stampingFeeAmount = diff > 0 && stampingFeeRate > 0 ? parseFloat(((diff * stampingFeeRate) / 100).toFixed(2)) : 0;
+  const fireMarshalTaxAmount = diff > 0 && fireMarshalTaxRate > 0 ? parseFloat(((diff * fireMarshalTaxRate) / 100).toFixed(2)) : 0;
+  const slasTransactionFeeAmount = diff > 0 && slasTransactionFeeRate > 0 ? parseFloat(((diff * slasTransactionFeeRate) / 100).toFixed(2)) : 0;
+
+  const items: AuditChargeItem[] = [];
+
+  // 1. Surplus Lines Tax
+  items.push({
+    id: "surplusLinesTax",
+    label: `Surplus Lines Tax (${surplusTaxRate}%)`,
+    rate: surplusTaxRate,
+    amount: surplusTaxAmount,
+  });
+
+  // 2. Stamping Fee (if state defines stampingFee or stampingFeeRate > 0)
+  if (stampingFeeRate > 0 || (stateData?.stampingFee !== undefined && stateData.stampingFee > 0)) {
+    items.push({
+      id: "stampingFee",
+      label: `Stamping Fee (${stampingFeeRate}%)`,
+      rate: stampingFeeRate,
+      amount: stampingFeeAmount,
+    });
+  }
+
+  // 3. Fire Marshal Tax (percentage, e.g. WA, OR)
+  if (fireMarshalTaxRate > 0 || (stateData?.fireMarshalRate !== undefined && stateData.fireMarshalRate > 0)) {
+    items.push({
+      id: "fireMarshalTax",
+      label: `Fire Marshal Tax (${fireMarshalTaxRate}%)`,
+      rate: fireMarshalTaxRate,
+      amount: fireMarshalTaxAmount,
+    });
+  }
+
+  // 4. Fire Marshal Flat Fee (e.g. WA $10)
+  if (fireMarshalFlatFee > 0) {
+    items.push({
+      id: "fireMarshalFlatFee",
+      label: "Fire Marshal Flat Fee",
+      amount: fireMarshalFlatFee,
+    });
+  }
+
+  // 5. Stamping Fee Per Filing (PA Flat Fee $20)
+  if (stampingFeePerFiling > 0) {
+    items.push({
+      id: "stampingFeePerFiling",
+      label: "PA Flat Fee",
+      amount: stampingFeePerFiling,
+    });
+  }
+
+  // 6. SLA Service Charge (e.g. OR $10)
+  if (slaServiceCharge > 0) {
+    items.push({
+      id: "slaServiceCharge",
+      label: "SLA Service Charge",
+      amount: slaServiceCharge,
+    });
+  }
+
+  // 7. Oklahoma SLAS Transaction Fee (percentage, e.g. 0.175%)
+  if (slasTransactionFeeRate > 0 || (stateData?.slasTransactionFee !== undefined && stateData.slasTransactionFee > 0)) {
+    items.push({
+      id: "slasTransactionFee",
+      label: `SLAS Transaction Fee (${slasTransactionFeeRate}%)`,
+      rate: slasTransactionFeeRate,
+      amount: slasTransactionFeeAmount,
+    });
+  }
+
+  // 8. Premium Audit Administration Fees (carrier fee)
+  items.push({
+    id: "carrierFee",
+    label: "Premium Audit Administration Fees",
+    amount: carrierFee,
+  });
+
+  // 9. Premium Audit Service Fee (sterling fee)
+  items.push({
+    id: "sterlingFee",
+    label: "Premium Audit Service Fee",
+    amount: sterlingFee,
+  });
+
+  const totalTaxesAndFees = items.reduce((sum, item) => sum + item.amount, 0);
+  const additionalPremiumDue = parseFloat((diff + totalTaxesAndFees).toFixed(2));
+
+  return {
+    stateCode,
+    stateName,
+    surplusTaxRate,
+    surplusTaxAmount,
+    stampingFeeRate,
+    stampingFeeAmount,
+    fireMarshalTaxRate,
+    fireMarshalTaxAmount,
+    fireMarshalFlatFee,
+    stampingFeePerFiling,
+    slaServiceCharge,
+    slasTransactionFeeRate,
+    slasTransactionFeeAmount,
+    carrierFee,
+    sterlingFee,
+    items,
+    totalTaxesAndFees,
+    additionalPremiumDue,
   };
 }

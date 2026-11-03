@@ -70,6 +70,14 @@ export interface IAudit extends Document {
   stampingFeeRate: number; // percentage
   carrierFee: number;
   sterlingFee: number;
+  state?: string;
+  fireMarshalTaxRate?: number;
+  fireMarshalTaxAmount?: number;
+  fireMarshalFlatFee?: number;
+  stampingFeePerFiling?: number;
+  slaServiceCharge?: number;
+  slasTransactionFeeRate?: number;
+  slasTransactionFeeAmount?: number;
   
   surplusLinesTaxAmount: number;
   stampingFeeAmount: number;
@@ -147,6 +155,14 @@ const AuditSchema = new Schema<IAudit>({
   stampingFeeRate: { type: Number, default: 0.04 },
   carrierFee: { type: Number, default: 150 },
   sterlingFee: { type: Number, default: 125 },
+  state: { type: String, default: "TX" },
+  fireMarshalTaxRate: { type: Number, default: 0 },
+  fireMarshalTaxAmount: { type: Number, default: 0 },
+  fireMarshalFlatFee: { type: Number, default: 0 },
+  stampingFeePerFiling: { type: Number, default: 0 },
+  slaServiceCharge: { type: Number, default: 0 },
+  slasTransactionFeeRate: { type: Number, default: 0 },
+  slasTransactionFeeAmount: { type: Number, default: 0 },
   
   surplusLinesTaxAmount: { type: Number, default: 0 },
   stampingFeeAmount: { type: Number, default: 0 },

@@ -11,6 +11,7 @@ import {
 import MobileNav from "@/components/layout/MobileNav";
 import { toast } from "sonner";
 import { formatAuditDate, formatAuditDateRange } from "@/lib/utils/auditDate";
+import { ALL_US_STATES } from "@/lib/data/stateTaxRates";
 
 export default function AuditPage() {
   const { data: session, status } = useSession();
@@ -37,6 +38,7 @@ export default function AuditPage() {
 
   // Create New User state
   const [newClientName, setNewClientName] = useState("");
+  const [newState, setNewState] = useState("TX");
   const [newEmail, setNewEmail] = useState("");
   const [newPhone, setNewPhone] = useState("");
   const [newPolicyNumber, setNewPolicyNumber] = useState("");
@@ -282,7 +284,8 @@ export default function AuditPage() {
           carrier: newCarrier,
           agencyName: newAgency,
           industry: newIndustry,
-          policyType: newIndustry.trim().toLowerCase() === "construction" ? newPolicyType : undefined
+          policyType: newIndustry.trim().toLowerCase() === "construction" ? newPolicyType : undefined,
+          state: newState || "TX"
         })
       });
 
@@ -1129,6 +1132,20 @@ export default function AuditPage() {
                     />
                     <Calendar className="w-5 h-5 text-gray-400 absolute right-3 top-3.5 pointer-events-none" />
                   </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">State</label>
+                  <select
+                    value={newState}
+                    onChange={(e) => setNewState(e.target.value)}
+                    className="w-full px-4 py-3 border border-[#e5ddd5] rounded-xl bg-[#fcfaf8] focus:ring-2 focus:ring-blue-500 outline-none text-gray-700 font-medium"
+                  >
+                    {ALL_US_STATES.map((s) => (
+                      <option key={s.code} value={s.code}>
+                        {s.code} – {s.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Carrier</label>

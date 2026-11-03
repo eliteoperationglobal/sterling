@@ -1,4 +1,5 @@
 import { formatAuditDate } from "@/lib/utils/auditDate";
+import { calculateAuditCharges } from "@/lib/data/stateTaxRates";
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/authOptions";
@@ -75,15 +76,24 @@ export async function GET(
     const varianceAmountStr = `${isPositiveExposure ? '+' : '-'}${formatCurrency(Math.abs(exposureDiff))}`;
     const pctChangeStr = `${isPositiveExposure ? '+' : ''}${pctChange.toFixed(1)}% change`;
 
-    const surplusTaxRate = Number(audit.surplusLinesTaxRate) || 0;
-    const stampingFeeRate = Number(audit.stampingFeeRate) || 0;
     const carrierFee = Number(audit.carrierFee) || 0;
     const sterlingFee = Number(audit.sterlingFee) || 0;
 
-    const slTax = premiumDifference * (surplusTaxRate / 100);
-    const stampFee = premiumDifference * (stampingFeeRate / 100);
+    const charges = calculateAuditCharges({
+      premiumDifference,
+      state: audit.state || (audit.submissionId as any)?.state || (audit.submissionId as any)?.payload?.state || (audit.surplusLinesTaxRate === 4.85 ? "TX" : "CA"),
+      surplusTaxRate: Number(audit.surplusLinesTaxRate),
+      stampingFeeRate: Number(audit.stampingFeeRate),
+      fireMarshalTaxRate: Number(audit.fireMarshalTaxRate),
+      fireMarshalFlatFee: Number(audit.fireMarshalFlatFee),
+      stampingFeePerFiling: Number(audit.stampingFeePerFiling),
+      slaServiceCharge: Number(audit.slaServiceCharge),
+      slasTransactionFeeRate: Number(audit.slasTransactionFeeRate),
+      carrierFee,
+      sterlingFee,
+    });
 
-    const additionalPremiumDue = premiumDifference + slTax + stampFee + carrierFee + sterlingFee;
+    const additionalPremiumDue = charges.additionalPremiumDue;
 
     const payload = (audit.submissionId as any)?.payload || {};
     const clientPhone = audit.clientPhone || payload.applicantPhone || payload.phone || "";
@@ -388,22 +398,12 @@ export async function GET(
                 <span>Premium</span>
                 <span class="charges-value">${formatCurrency(premiumDifference)}</span>
               </div>
-              <div class="charges-row">
-                <span>Premium Audit Service Fee</span>
-                <span class="charges-value">${formatCurrency(sterlingFee)}</span>
-              </div>
-              <div class="charges-row">
-                <span>Surplus Lines Tax</span>
-                <span class="charges-value">${formatCurrency(slTax)}</span>
-              </div>
-              <div class="charges-row">
-                <span>Stamping Fee</span>
-                <span class="charges-value">${formatCurrency(stampFee)}</span>
-              </div>
-              <div class="charges-row">
-                <span>Premium Audit Administration Fees</span>
-                <span class="charges-value">${formatCurrency(carrierFee)}</span>
-              </div>
+              ${charges.items.map(item => `
+                <div class="charges-row">
+                  <span>${item.label}</span>
+                  <span class="charges-value">${formatCurrency(item.amount)}</span>
+                </div>
+              `).join("")}
 
               <!-- TOTAL BOX -->
               <div class="total-box">

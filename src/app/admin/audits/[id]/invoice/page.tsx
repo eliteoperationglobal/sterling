@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Printer, Download, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { formatAuditDate } from "@/lib/utils/auditDate";
+import { calculateAuditCharges } from "@/lib/data/stateTaxRates";
 
 export default function AuditInvoicePage() {
   const params = useParams();
@@ -118,15 +119,24 @@ export default function AuditInvoicePage() {
   const varianceAmountStr = `${isPositiveExposure ? '+' : '-'}${formatCurrency(Math.abs(exposureDiff))}`;
   const pctChangeStr = `${isPositiveExposure ? '+' : ''}${pctChange.toFixed(1)}% change`;
 
-  const surplusTaxRate = Number(audit.surplusLinesTaxRate) || 0;
-  const stampingFeeRate = Number(audit.stampingFeeRate) || 0;
   const carrierFee = Number(audit.carrierFee) || 0;
   const sterlingFee = Number(audit.sterlingFee) || 0;
 
-  const slTax = premiumDifference * (surplusTaxRate / 100);
-  const stampFee = premiumDifference * (stampingFeeRate / 100);
+  const charges = calculateAuditCharges({
+    premiumDifference,
+    state: audit.state || audit.submissionId?.state || audit.submissionId?.payload?.state || (audit.surplusLinesTaxRate === 4.85 ? "TX" : "CA"),
+    surplusTaxRate: Number(audit.surplusLinesTaxRate),
+    stampingFeeRate: Number(audit.stampingFeeRate),
+    fireMarshalTaxRate: Number(audit.fireMarshalTaxRate),
+    fireMarshalFlatFee: Number(audit.fireMarshalFlatFee),
+    stampingFeePerFiling: Number(audit.stampingFeePerFiling),
+    slaServiceCharge: Number(audit.slaServiceCharge),
+    slasTransactionFeeRate: Number(audit.slasTransactionFeeRate),
+    carrierFee,
+    sterlingFee,
+  });
 
-  const additionalPremiumDue = premiumDifference + slTax + stampFee + carrierFee + sterlingFee;
+  const additionalPremiumDue = charges.additionalPremiumDue;
 
   const payload = audit.submissionId?.payload || {};
   const clientPhone = audit.clientPhone || payload.applicantPhone || payload.phone || "";
@@ -327,22 +337,12 @@ export default function AuditInvoicePage() {
                 <span>Premium</span>
                 <span className="font-bold text-[13.5px] text-[#0f172a] tabular-nums">{formatCurrency(premiumDifference)}</span>
               </div>
-              <div className="flex justify-between py-1.5 text-[13px] text-[#1e293b] font-medium">
-                <span>Premium Audit Service Fee</span>
-                <span className="font-bold text-[13.5px] text-[#0f172a] tabular-nums">{formatCurrency(sterlingFee)}</span>
-              </div>
-              <div className="flex justify-between py-1.5 text-[13px] text-[#1e293b] font-medium">
-                <span>Surplus Lines Tax</span>
-                <span className="font-bold text-[13.5px] text-[#0f172a] tabular-nums">{formatCurrency(slTax)}</span>
-              </div>
-              <div className="flex justify-between py-1.5 text-[13px] text-[#1e293b] font-medium">
-                <span>Stamping Fee</span>
-                <span className="font-bold text-[13.5px] text-[#0f172a] tabular-nums">{formatCurrency(stampFee)}</span>
-              </div>
-              <div className="flex justify-between py-1.5 text-[13px] text-[#1e293b] font-medium">
-                <span>Premium Audit Administration Fees</span>
-                <span className="font-bold text-[13.5px] text-[#0f172a] tabular-nums">{formatCurrency(carrierFee)}</span>
-              </div>
+              {charges.items.map((item) => (
+                <div key={item.id} className="flex justify-between py-1.5 text-[13px] text-[#1e293b] font-medium">
+                  <span>{item.label}</span>
+                  <span className="font-bold text-[13.5px] text-[#0f172a] tabular-nums">{formatCurrency(item.amount)}</span>
+                </div>
+              ))}
             </div>
 
             {/* TOTAL DUE BOX */}

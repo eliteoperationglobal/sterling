@@ -5,6 +5,7 @@ import connectDB from "@/lib/mongodb";
 import Audit from "@/models/Audit";
 import AuditActivity from "@/models/AuditActivity";
 import { formatAuditDate } from "@/lib/utils/auditDate";
+import { calculateAuditCharges, getStateTaxData } from "@/lib/data/stateTaxRates";
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   try {
@@ -43,6 +44,12 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       sterlingFee, 
       surplusLinesTaxRate, 
       stampingFeeRate, 
+      state,
+      fireMarshalTaxRate,
+      fireMarshalFlatFee,
+      stampingFeePerFiling,
+      slaServiceCharge,
+      slasTransactionFeeRate,
       auditNotes, 
       status, 
       action,
@@ -124,6 +131,36 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       audit.stampingFeeRate = parseFloat(stampingFeeRate) || 0;
       recalculateFinancials = true;
     }
+
+    if (state !== undefined && typeof state === "string" && state.trim()) {
+      const cleanState = state.trim().toUpperCase();
+      if (audit.state !== cleanState) {
+        activityLogDetails += `State changed from ${audit.state || "N/A"} to ${cleanState}. `;
+        audit.state = cleanState;
+        recalculateFinancials = true;
+      }
+    }
+    if (fireMarshalTaxRate !== undefined) {
+      audit.fireMarshalTaxRate = parseFloat(fireMarshalTaxRate) || 0;
+      recalculateFinancials = true;
+    }
+    if (fireMarshalFlatFee !== undefined) {
+      audit.fireMarshalFlatFee = parseFloat(fireMarshalFlatFee) || 0;
+      recalculateFinancials = true;
+    }
+    if (stampingFeePerFiling !== undefined) {
+      audit.stampingFeePerFiling = parseFloat(stampingFeePerFiling) || 0;
+      recalculateFinancials = true;
+    }
+    if (slaServiceCharge !== undefined) {
+      audit.slaServiceCharge = parseFloat(slaServiceCharge) || 0;
+      recalculateFinancials = true;
+    }
+    if (slasTransactionFeeRate !== undefined) {
+      audit.slasTransactionFeeRate = parseFloat(slasTransactionFeeRate) || 0;
+      recalculateFinancials = true;
+    }
+
     if (auditNotes !== undefined) {
       audit.auditNotes = auditNotes;
     }
@@ -151,8 +188,26 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       audit.auditedPremium = ((audit.auditedExposure || 0) / basis) * currentRate;
       audit.netChange = audit.auditedPremium - audit.depositPremium;
       
-      audit.surplusLinesTaxAmount = audit.netChange > 0 ? (audit.netChange * (audit.surplusLinesTaxRate || 0)) / 100 : 0;
-      audit.stampingFeeAmount = audit.netChange > 0 ? (audit.netChange * (audit.stampingFeeRate || 0)) / 100 : 0;
+      const charges = calculateAuditCharges({
+        premiumDifference: audit.netChange,
+        state: audit.state,
+        surplusTaxRate: audit.surplusLinesTaxRate,
+        stampingFeeRate: audit.stampingFeeRate,
+        fireMarshalTaxRate: audit.fireMarshalTaxRate,
+        fireMarshalFlatFee: audit.fireMarshalFlatFee,
+        stampingFeePerFiling: audit.stampingFeePerFiling,
+        slaServiceCharge: audit.slaServiceCharge,
+        slasTransactionFeeRate: audit.slasTransactionFeeRate,
+        carrierFee: audit.carrierFee,
+        sterlingFee: audit.sterlingFee,
+      });
+      audit.surplusLinesTaxAmount = charges.surplusTaxAmount;
+      audit.stampingFeeAmount = charges.stampingFeeAmount;
+      audit.fireMarshalTaxAmount = charges.fireMarshalTaxAmount;
+      audit.fireMarshalFlatFee = charges.fireMarshalFlatFee;
+      audit.stampingFeePerFiling = charges.stampingFeePerFiling;
+      audit.slaServiceCharge = charges.slaServiceCharge;
+      audit.slasTransactionFeeAmount = charges.slasTransactionFeeAmount;
     }
 
     // If updating status (e.g., Submit for Review)

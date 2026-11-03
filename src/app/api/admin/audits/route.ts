@@ -6,6 +6,8 @@ import connectDB from "@/lib/mongodb";
 import Audit from "@/models/Audit";
 import Submission from "@/models/Submission";
 import AuditActivity from "@/models/AuditActivity";
+import { getStateTaxData } from "@/lib/data/stateTaxRates";
+import { getStateCode } from "@/lib/utils/stateConverter";
 
 export async function GET(req: NextRequest) {
   try {
@@ -173,28 +175,41 @@ export async function POST(req: NextRequest) {
       
       const auditId = "AUD-" + Math.floor(10000 + Math.random() * 90000);
       
-      const audit = new Audit({
-        auditId,
-        submissionId: subId,
-        policyNumber: submission.policyNumber || "PENDING",
-        carrier: submission.payload?.carrier || "Kinsale Insurance Company",
-        program: submission.programName || submission.industry || "Construction",
-        policyType: "General Liability",
-        agencyId: submission.agencyId?._id || submission.agencyId,
-        namedInsured: submission.payload?.companyName || submission.payload?.applicantName || submission.clientContact?.name || "Unknown Client",
-        
-        auditPeriodStart: submission.effectiveDate || new Date(),
-        auditPeriodEnd: new Date(new Date(submission.effectiveDate || new Date()).setFullYear(new Date().getFullYear() + 1)),
-        
-        status: "REQUESTED",
-        createdBy: session.user.name || (isAdmin ? "System Admin" : "Agency User"),
-        dueDate: new Date(new Date().setDate(new Date().getDate() + 14)), // Due in 14 days
-        
-        estimatedExposure: submission.payload?.estimatedGrossSales || 100000,
-        rate: 12.50, // Example default
-        depositPremium: submission.payload?.totalPremium || 0,
-        
-        documents: []
+              const subState = getStateCode(submission.state || submission.payload?.state || submission.clientContact?.businessAddress?.state || "TX");
+        const stateData = getStateTaxData(subState);
+
+        const audit = new Audit({
+          auditId,
+          submissionId: subId,
+          policyNumber: submission.policyNumber || "PENDING",
+          carrier: submission.payload?.carrier || "Kinsale Insurance Company",
+          program: submission.programName || submission.industry || "Construction",
+          policyType: "General Liability",
+          agencyId: submission.agencyId?._id || submission.agencyId,
+          namedInsured: submission.payload?.companyName || submission.payload?.applicantName || submission.clientContact?.name || "Unknown Client",
+          
+          auditPeriodStart: submission.effectiveDate || new Date(),
+          auditPeriodEnd: new Date(new Date(submission.effectiveDate || new Date()).setFullYear(new Date().getFullYear() + 1)),
+          
+          status: "REQUESTED",
+          createdBy: session.user.name || (isAdmin ? "System Admin" : "Agency User"),
+          dueDate: new Date(new Date().setDate(new Date().getDate() + 14)), // Due in 14 days
+          
+          estimatedExposure: submission.payload?.estimatedGrossSales || 100000,
+          rate: 12.50, // Example default
+          depositPremium: submission.payload?.totalPremium || 0,
+          state: subState,
+          surplusLinesTaxRate: stateData?.taxRate ?? 4.85,
+          stampingFeeRate: stateData?.stampingFee ?? 0,
+          fireMarshalTaxRate: stateData?.fireMarshalRate ?? 0,
+          fireMarshalFlatFee: stateData?.fireMarshalFlatFee ?? 0,
+          stampingFeePerFiling: stateData?.stampingFeePerFiling ?? 0,
+          slaServiceCharge: stateData?.slaServiceCharge ?? 0,
+          slasTransactionFeeRate: stateData?.slasTransactionFee ?? 0,
+          carrierFee: 150,
+          sterlingFee: 125,
+          
+          documents: []
       });
       
       await audit.save();

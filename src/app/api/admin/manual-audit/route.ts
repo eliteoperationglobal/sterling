@@ -5,6 +5,8 @@ import connectDB from "@/lib/mongodb";
 import Audit from "@/models/Audit";
 import Agency from "@/models/Agency";
 import AuditActivity from "@/models/AuditActivity";
+import { getStateTaxData } from "@/lib/data/stateTaxRates";
+import { getStateCode } from "@/lib/utils/stateConverter";
 
 export async function POST(req: NextRequest) {
   try {
@@ -16,7 +18,7 @@ export async function POST(req: NextRequest) {
     await connectDB();
 
     const body = await req.json();
-    const { clientName, email, phone, agencyName, industry, policyNumber, date, carrier, policyType } = body;
+    const { clientName, email, phone, agencyName, industry, policyNumber, date, carrier, policyType, state } = body;
 
     if (!clientName || !email || !phone) {
       return NextResponse.json({ error: "Client Name, Email, and Phone are required" }, { status: 400 });
@@ -108,36 +110,45 @@ export async function POST(req: NextRequest) {
       ? (policyType && typeof policyType === "string" && policyType.trim() ? policyType.trim() : "General Liability")
       : "General Liability";
 
-    const newAudit = new Audit({
-      auditId,
-      source: "MANUAL_AUDIT",
-      policyNumber: finalPolicyNumber,
-      carrier: finalCarrier,
-      program: industry || "General Liability",
-      policyType: finalPolicyType,
-      agencyId: agencyId,
-      namedInsured: clientName,
-      clientEmail: email,
-      clientPhone: phone,
-      auditPeriodStart: auditStart,
-      auditPeriodEnd: auditEnd,
-      status: "REQUESTED",
-      createdBy: (session.user as any).name || "System Admin",
-      dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
-      
-      exposureBasis: "Gross Sales",
-      estimatedExposure: 0,
-      auditedExposure: 0,
-      rate: 0,
-      rateBasis: 1000,
-      auditEffectiveDate: effectiveDate,
-      
-      depositPremium: 0,
-      auditedPremium: 0,
-      surplusLinesTaxRate: 4.85,
-      stampingFeeRate: 0.04,
-      carrierFee: 0,
-      sterlingFee: 0,
+          const finalState = state ? getStateCode(state) : "TX";
+      const stateData = getStateTaxData(finalState);
+
+      const newAudit = new Audit({
+        auditId,
+        source: "MANUAL_AUDIT",
+        policyNumber: finalPolicyNumber,
+        carrier: finalCarrier,
+        program: industry || "General Liability",
+        policyType: finalPolicyType,
+        agencyId: agencyId,
+        namedInsured: clientName,
+        clientEmail: email,
+        clientPhone: phone,
+        auditPeriodStart: auditStart,
+        auditPeriodEnd: auditEnd,
+        status: "REQUESTED",
+        createdBy: (session.user as any).name || "System Admin",
+        dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+        
+        exposureBasis: "Gross Sales",
+        estimatedExposure: 0,
+        auditedExposure: 0,
+        rate: 0,
+        rateBasis: 1000,
+        auditEffectiveDate: effectiveDate,
+        
+        depositPremium: 0,
+        auditedPremium: 0,
+        state: finalState,
+        surplusLinesTaxRate: stateData?.taxRate ?? 4.85,
+        stampingFeeRate: stateData?.stampingFee ?? 0,
+        fireMarshalTaxRate: stateData?.fireMarshalRate ?? 0,
+        fireMarshalFlatFee: stateData?.fireMarshalFlatFee ?? 0,
+        stampingFeePerFiling: stateData?.stampingFeePerFiling ?? 0,
+        slaServiceCharge: stateData?.slaServiceCharge ?? 0,
+        slasTransactionFeeRate: stateData?.slasTransactionFee ?? 0,
+        carrierFee: 0,
+        sterlingFee: 0,
       
       surplusLinesTaxAmount: 0,
       stampingFeeAmount: 0,
