@@ -420,11 +420,20 @@ export async function GET(
           ? `${proposalData.companyName}-${policyLabel}-Proposal.pdf`
           : `${proposalData.companyName}-Proposal.pdf`;
 
-        return new NextResponse(new Uint8Array(cachedPdf.pdfBuffer as unknown as ArrayBuffer), {
+        const rawBuf = cachedPdf.pdfBuffer;
+        const pdfBuf: Buffer = Buffer.isBuffer(rawBuf)
+          ? rawBuf
+          : typeof (rawBuf as any)?.value === 'function'
+            ? (rawBuf as any).value(true)
+            : (rawBuf as any)?.buffer
+              ? Buffer.from((rawBuf as any).buffer)
+              : Buffer.from(rawBuf as any);
+
+        return new NextResponse(new Uint8Array(pdfBuf), {
           headers: {
             'Content-Type': 'application/pdf',
             'Content-Disposition': `attachment; filename="${filename}"`,
-            'Content-Length': cachedPdf.pdfBuffer.length.toString(),
+            'Content-Length': pdfBuf.length.toString(),
             'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
             'Pragma': 'no-cache',
             'Expires': '0',
@@ -500,17 +509,21 @@ export async function GET(
       return NextResponse.json({ error: "Generated PDF is empty" }, { status: 500 });
     }
 
-    // Save generated PDF to MongoDB LRU Cache (non-blocking)
+    // Save generated PDF to MongoDB LRU Cache (non-blocking upsert)
     try {
-      PDFCache.create({ hash: dataHash, pdfBuffer }).catch(e => console.error("⚠️ [Admin PDF Download] Failed to save cache document asynchronously", e));
+      PDFCache.updateOne(
+        { hash: dataHash },
+        { $set: { pdfBuffer, createdAt: new Date() } },
+        { upsert: true }
+      ).catch(e => console.error("⚠️ [Admin PDF Download] Failed to save cache document asynchronously", e));
     } catch (e) {
       // Ignored
     }
 
     const policyLabel = isApartment 
       ? (quote?.policyType === 'EXCESS_LIABILITY' ? 'General-Liability' : 'Property')
-      : isContractors ? 'Equipment' : 'Proposal';
-    const filename = isApartment || isContractors
+      : isContractors ? 'Equipment' : isBuildersRisk ? 'Builders-Risk' : 'Proposal';
+    const filename = isApartment || isContractors || isBuildersRisk
       ? `${proposalData.companyName}-${policyLabel}-Proposal.pdf`
       : `${proposalData.companyName}-Proposal.pdf`;
 

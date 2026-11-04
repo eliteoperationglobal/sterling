@@ -490,11 +490,21 @@ export async function GET(
       const cachedPdf = await PDFCache.findOne({ hash: dataHash }).lean();
       if (cachedPdf && cachedPdf.pdfBuffer) {
         console.log(`📄 [PDF Download] SERVING FAST CACHE for hash: ${dataHash.substring(0, 8)}...`);
-        return new NextResponse(new Uint8Array(cachedPdf.pdfBuffer as unknown as ArrayBuffer), {
+
+        const rawBuf = cachedPdf.pdfBuffer;
+        const pdfBuf: Buffer = Buffer.isBuffer(rawBuf)
+          ? rawBuf
+          : typeof (rawBuf as any)?.value === 'function'
+            ? (rawBuf as any).value(true)
+            : (rawBuf as any)?.buffer
+              ? Buffer.from((rawBuf as any).buffer)
+              : Buffer.from(rawBuf as any);
+
+        return new NextResponse(new Uint8Array(pdfBuf), {
           headers: {
             'Content-Type': 'application/pdf',
             'Content-Disposition': `attachment; filename="${proposalData.companyName}-${isBuildersRisk ? 'Builders-Risk-' : ''}Proposal.pdf"`,
-            'Content-Length': cachedPdf.pdfBuffer.length.toString(),
+            'Content-Length': pdfBuf.length.toString(),
             'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
             'Pragma': 'no-cache',
             'Expires': '0',
@@ -598,10 +608,18 @@ export async function GET(
       );
     }
 
-    // Save generated PDF to MongoDB LRU Cache (non-blocking)
-    PDFCache.create({ hash: dataHash, pdfBuffer }).catch(e =>
-      console.error("⚠️ [PDF Download] Failed to save cache document asynchronously", e)
-    );
+    // Save generated PDF to MongoDB LRU Cache (non-blocking upsert)
+    try {
+      PDFCache.updateOne(
+        { hash: dataHash },
+        { $set: { pdfBuffer, createdAt: new Date() } },
+        { upsert: true }
+      ).catch(e =>
+        console.error("⚠️ [PDF Download] Failed to save cache document asynchronously", e)
+      );
+    } catch (e) {
+      // Ignored
+    }
 
     // Return PDF as response
     try {
