@@ -6,6 +6,7 @@ import Audit from "@/models/Audit";
 import Agency from "@/models/Agency";
 import AuditActivity from "@/models/AuditActivity";
 import { getStateTaxData } from "@/lib/data/stateTaxRates";
+import { calculateExpirationDate } from "@/lib/utils/dateUtils";
 import { getStateCode } from "@/lib/utils/stateConverter";
 
 export async function POST(req: NextRequest) {
@@ -97,8 +98,7 @@ export async function POST(req: NextRequest) {
 
     if (hasCustomDate) {
       auditStart = new Date(effectiveDate);
-      auditEnd = new Date(effectiveDate);
-      auditEnd.setFullYear(auditEnd.getFullYear() + 1);
+      auditEnd = new Date(calculateExpirationDate(effectiveDate, "1year"));
     } else {
       auditStart = new Date();
       auditStart.setFullYear(auditStart.getFullYear() - 1);

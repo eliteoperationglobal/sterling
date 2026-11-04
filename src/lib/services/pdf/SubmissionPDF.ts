@@ -1,3 +1,4 @@
+import { formatPolicyDateRange, formatCalendarDate } from "@/lib/utils/dateUtils";
 /**
  * Application Packet PDF Generator (12-Page Format)
  * Matches ISC application packet format with Capital & Co branding
@@ -2936,11 +2937,7 @@ export function mapFormDataToPacketData(
     ? new Date(formData.effectiveDate).toLocaleDateString('en-US', { timeZone: 'UTC' })
     : new Date().toLocaleDateString();
 
-  const coverageDates = formData.effectiveDate && formData.expirationDate
-    ? `${new Date(formData.effectiveDate).toLocaleDateString('en-US', { timeZone: 'UTC' })} - ${new Date(formData.expirationDate).toLocaleDateString('en-US', { timeZone: 'UTC' })}`
-    : formData.effectiveDate
-      ? `${new Date(formData.effectiveDate).toLocaleDateString('en-US', { timeZone: 'UTC' })} - ${new Date(new Date(formData.effectiveDate).setFullYear(new Date(formData.effectiveDate).getFullYear() + 1)).toLocaleDateString()}`
-      : '';
+  const coverageDates = formatPolicyDateRange(formData.effectiveDate, formData.expirationDate);
 
   // Format states of operation
   const statesOfOperation = Array.isArray(formData.statesOfOperation)

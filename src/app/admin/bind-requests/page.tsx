@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { calculateExpirationDate, toCalendarInputDate } from "@/lib/utils/dateUtils";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -59,12 +60,10 @@ export default function AdminBindRequestsPage() {
   };
 
   const initialPolicyForm = (): PolicyFormData => {
-    const today = new Date();
-    const nextYear = new Date(today);
-    nextYear.setFullYear(today.getFullYear() + 1);
+    const todayStr = toCalendarInputDate(new Date());
     return {
-      effectiveDate: today.toISOString().split("T")[0],
-      expirationDate: nextYear.toISOString().split("T")[0],
+      effectiveDate: todayStr,
+      expirationDate: calculateExpirationDate(todayStr, "1year"),
       policyNumber: "",
       binderFile: null,
       policyDocsFile: null,
@@ -107,16 +106,14 @@ export default function AdminBindRequestsPage() {
       return;
     }
 
-    const effectiveDate = new Date(effectiveDateStr);
-    const expirationDate = new Date(effectiveDate);
-    expirationDate.setFullYear(effectiveDate.getFullYear() + 1);
+    const expirationDateStr = calculateExpirationDate(effectiveDateStr, "1year");
 
     setPolicyForms(prev => ({
       ...prev,
       [activePolicyTab]: {
         ...prev[activePolicyTab],
         effectiveDate: effectiveDateStr,
-        expirationDate: expirationDate.toISOString().split("T")[0],
+        expirationDate: expirationDateStr,
       }
     }));
   };

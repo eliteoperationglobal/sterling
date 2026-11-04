@@ -1,3 +1,4 @@
+import { formatPolicyDateRange, formatCalendarDate, addYearsToCalendarDate } from "@/lib/utils/dateUtils";
 /**
  * Application Packet PDF Generator (12-Page Format)
  * Matches ISC application packet format with Capital & Co branding
@@ -7852,12 +7853,10 @@ export function mapFormDataToPacketData(
 		: new Date().toLocaleDateString();
 
 	const effStr = quote?.effectiveDate || formData.effectiveDate || submission?.effectiveDate || submission?.createdAt;
-	const effDateObj = effStr ? new Date(effStr) : new Date();
 	const expStr = quote?.expirationDate || formData.expirationDate || submission?.expirationDate;
-	const expDateObj = expStr ? new Date(expStr) : new Date(new Date(effDateObj).setFullYear(effDateObj.getFullYear() + 1));
-	const formattedEff = effDateObj.toLocaleDateString("en-US", { timeZone: "UTC", month: "2-digit", day: "2-digit", year: "numeric" });
-	const formattedExp = expDateObj.toLocaleDateString("en-US", { timeZone: "UTC", month: "2-digit", day: "2-digit", year: "numeric" });
-	const coverageDates = `${formattedEff} - ${formattedExp}`;
+	const formattedEff = formatCalendarDate(effStr);
+	const formattedExp = expStr ? formatCalendarDate(expStr) : formatCalendarDate(addYearsToCalendarDate(effStr, 1));
+	const coverageDates = formatPolicyDateRange(effStr, expStr);
 
 	// Format states of operation
 	const statesOfOperation = Array.isArray(formData.selectedStates)

@@ -1,5 +1,6 @@
 "use client";
 import DashboardLayout from "@/components/layout/DashboardLayout";
+import { formatCalendarDate, formatPolicyDateRange } from "@/lib/utils/dateUtils";
 export const dynamic = 'force-dynamic';
 
 import {
@@ -1870,8 +1871,8 @@ function SubmissionDetailsContent() {
               <p className="text-gray-500 mb-1">Create Date:</p>
               <p className="font-semibold text-gray-900">
                 {currentQuote?.createdAt
-                  ? new Date(currentQuote.createdAt).toLocaleDateString('en-US', { timeZone: 'UTC', month: '2-digit', day: '2-digit', year: 'numeric' })
-                  : (submission?.createdAt ? new Date(submission.createdAt) : new Date()).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}
+                  ? formatCalendarDate(currentQuote.createdAt)
+                  : (submission?.createdAt ? formatCalendarDate(submission.createdAt) : formatCalendarDate(new Date()))}
               </p>
             </div>
 
@@ -1994,11 +1995,8 @@ function SubmissionDetailsContent() {
                     const effStr = currentQuote?.effectiveDate || (currentPolicyType === "GENERAL_LIABILITY" ? (submission.payload?.effectiveDate || submission.effectiveDate || submission?.createdAt) : "");
                     if (!effStr) return "TBD";
 
-                    const effDate = new Date(effStr);
                     const expStr = currentQuote?.expirationDate || (currentPolicyType === "GENERAL_LIABILITY" ? (submission.payload?.expirationDate || submission.expirationDate) : "");
-                    const expDate = expStr ? new Date(expStr) : new Date(new Date(effDate).setFullYear(effDate.getFullYear() + 1));
-
-                    return `${effDate.toLocaleDateString('en-US', { timeZone: 'UTC', month: '2-digit', day: '2-digit', year: 'numeric' })} - ${expDate.toLocaleDateString('en-US', { timeZone: 'UTC', month: '2-digit', day: '2-digit', year: 'numeric' })}`;
+                    return formatPolicyDateRange(effStr, expStr);
                   })()}
                 </span>
               </div>

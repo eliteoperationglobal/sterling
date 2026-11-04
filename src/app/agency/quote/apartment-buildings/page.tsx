@@ -6,6 +6,7 @@ import { useSession } from "next-auth/react";
 import { useState, useEffect, Suspense, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
+import { calculateExpirationDate } from "@/lib/utils/dateUtils";
 import {
     ChevronUp,
     ChevronDown,
@@ -482,14 +483,7 @@ function ApartmentBuildingsContent() {
 
             // Sync logic for Proposed Effective Date (1-year term)
             if (field === "proposedEffectiveDateFrom" && value) {
-                const date = new Date(value + 'T00:00:00');
-                if (!isNaN(date.getTime())) {
-                    date.setFullYear(date.getFullYear() + 1);
-                    const y = date.getFullYear();
-                    const m = String(date.getMonth() + 1).padStart(2, '0');
-                    const d = String(date.getDate()).padStart(2, '0');
-                    newState.proposedEffectiveDateTo = `${y}-${m}-${d}`;
-                }
+                newState.proposedEffectiveDateTo = calculateExpirationDate(value, "1year");
             }
 
             // Sync logic for Mixed-Use Percentages

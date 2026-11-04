@@ -1,3 +1,4 @@
+import { formatPolicyDateRange } from "@/lib/utils/dateUtils";
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/authOptions";
@@ -129,13 +130,7 @@ function getPolicyDateRange(dateInput: string | Date) {
     start = new Date();
   }
 
-  const end = new Date(start);
-  end.setFullYear(start.getFullYear() + 1);
-
-  const format = (d: Date) =>
-    `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`;
-
-  return `${format(start)} – ${format(end)}`;
+  return formatPolicyDateRange(start, null);
 }
 
 function extractLimits(value: string) {

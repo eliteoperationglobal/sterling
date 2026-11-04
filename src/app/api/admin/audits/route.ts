@@ -7,6 +7,7 @@ import Audit from "@/models/Audit";
 import Submission from "@/models/Submission";
 import AuditActivity from "@/models/AuditActivity";
 import { getStateTaxData } from "@/lib/data/stateTaxRates";
+import { calculateExpirationDate } from "@/lib/utils/dateUtils";
 import { getStateCode } from "@/lib/utils/stateConverter";
 
 export async function GET(req: NextRequest) {
@@ -189,7 +190,7 @@ export async function POST(req: NextRequest) {
           namedInsured: submission.payload?.companyName || submission.payload?.applicantName || submission.clientContact?.name || "Unknown Client",
           
           auditPeriodStart: submission.effectiveDate || new Date(),
-          auditPeriodEnd: new Date(new Date(submission.effectiveDate || new Date()).setFullYear(new Date().getFullYear() + 1)),
+          auditPeriodEnd: new Date(calculateExpirationDate(submission.effectiveDate || new Date(), "1year")),
           
           status: "REQUESTED",
           createdBy: session.user.name || (isAdmin ? "System Admin" : "Agency User"),

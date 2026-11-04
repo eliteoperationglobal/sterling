@@ -7,6 +7,7 @@ import Link from "next/link";
 import { signOut } from "next-auth/react";
 import { toast } from "sonner";
 import { getStateCode } from "@/lib/utils/stateConverter";
+import { calculateExpirationDate } from "@/lib/utils/dateUtils";
 import { useAutoSave } from "@/hooks/useAutoSave";
 import SaveStatusIndicator from "@/components/forms/SaveStatusIndicator";
 import { formatCurrency, formatCurrencyInput, parseCurrency } from "@/lib/utils/currencyFormatter";
@@ -792,18 +793,10 @@ export default function AdminQuotePage() {
   // Auto-calculate expiration date when effective date or duration changes (Change 5: Duration Tabs)
   useEffect(() => {
     if (effectiveDate && policyDuration) {
-      const effective = new Date(effectiveDate);
-      const expiration = new Date(effective);
-
-      if (policyDuration === "6months") {
-        expiration.setMonth(expiration.getMonth() + 6);
-      } else if (policyDuration === "1year") {
-        expiration.setFullYear(expiration.getFullYear() + 1);
+      const expirationStr = calculateExpirationDate(effectiveDate, policyDuration);
+      if (expirationStr) {
+        setExpirationDate(expirationStr);
       }
-
-      // Format as YYYY-MM-DD for date input
-      const expirationStr = expiration.toISOString().split('T')[0];
-      setExpirationDate(expirationStr);
     }
   }, [effectiveDate, policyDuration]);
 
