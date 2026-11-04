@@ -40,6 +40,7 @@ export async function GET(req: NextRequest) {
     const submissions = await Submission.find({
       status: "SUBMITTED"
     })
+      .select("submissionNumber status createdAt clientContact agencyId templateId files applicationPdfUrl payload.companyName payload.applicantName payload.namedInsured")
       .populate("agencyId", "name")
       .populate("templateId", "industry subcategory title")
       .sort({ createdAt: -1 }) // Most recent first

@@ -36,20 +36,22 @@ export async function GET(req: NextRequest) {
     await import("@/models/Agency");
     await import("@/models/Carrier");
 
-    // Fetch submissions where bindApproved = true
+    // Fetch submissions where bindApproved = true with projected fields
     const submissions = await Submission.find({
       bindApproved: true,
     })
+      .select("submissionNumber bindApproved bindApprovedAt clientContact policyNumber agencyId templateId files applicationPdfUrl payload.companyName payload.applicantName payload.namedInsured payload.carrier payload.totalPremium payload.effectiveDate")
       .populate("agencyId", "name")
       .populate("templateId", "industry subcategory")
-      .sort({ bindApprovedAt: -1 }) // Most recently approved first
+      .sort({ bindApprovedAt: -1 })
       .lean();
 
-    // Get quotes for these submissions
+    // Get quotes for these submissions with projected fields
     const submissionIds = submissions.map((s) => s._id);
     const quotes = await Quote.find({
       submissionId: { $in: submissionIds },
     })
+      .select("submissionId carrierId carrierQuoteUSD premiumTaxAmountUSD policyFeeUSD brokerFeeAmountUSD finalAmountUSD policyNumber policyType status")
       .populate("carrierId", "name")
       .lean();
 

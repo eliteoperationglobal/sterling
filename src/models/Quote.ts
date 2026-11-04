@@ -411,6 +411,8 @@ const QuoteSchema: Schema = new Schema(
 
 // Indexes
 QuoteSchema.index({ submissionId: 1, status: 1 });
+QuoteSchema.index({ submissionId: 1, createdAt: -1 });
+QuoteSchema.index({ status: 1, createdAt: -1 });
 
 // Delete model from cache if it exists (to handle schema changes in development)
 if (mongoose.models.Quote) {

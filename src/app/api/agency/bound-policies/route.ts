@@ -37,35 +37,42 @@ export async function GET(req: NextRequest) {
 
     const agencyId = (session.user as any).agencyId;
 
-    // Fetch all bound submissions for this agency
+    // Fetch all bound submissions for this agency with projection
     const submissions = await Submission.find({
       agencyId,
       status: "BOUND",
       bindApproved: true,
     })
+      .select("submissionNumber status bindApprovedAt clientContact policyNumber agencyId templateId files applicationPdfUrl payload.companyName payload.applicantName payload.namedInsured payload.carrier payload.totalPremium payload.effectiveDate paymentDate paymentAmount paymentMethod")
       .sort({ bindApprovedAt: -1 })
       .lean();
 
-    // Fetch quotes for each submission
-    const policiesWithQuotes = await Promise.all(
-      submissions.map(async (submission) => {
-        const quote = await Quote.findOne({ submissionId: submission._id })
-          .populate("carrierId", "name")
-          .lean();
+    // Fetch all quotes in a single batch query (fixes N+1 latency)
+    const submissionIds = submissions.map((s) => s._id);
+    const quotes = await Quote.find({ submissionId: { $in: submissionIds } })
+      .select("submissionId carrierId finalAmountUSD effectiveDate expirationDate policyNumber")
+      .populate("carrierId", "name")
+      .lean();
 
-        return {
-          ...submission,
-          quote: quote ? {
-            _id: quote._id.toString(),
-            carrierName: (quote.carrierId as any)?.name || "Unknown Carrier",
-            finalAmountUSD: quote.finalAmountUSD,
-            effectiveDate: quote.effectiveDate,
-            expirationDate: quote.expirationDate,
-            policyNumber: quote.policyNumber,
-          } : null,
-        };
-      })
-    );
+    const quoteMap = new Map();
+    for (const q of quotes) {
+      const subIdStr = q.submissionId.toString();
+      if (!quoteMap.has(subIdStr)) {
+        quoteMap.set(subIdStr, {
+          _id: q._id.toString(),
+          carrierName: (q.carrierId as any)?.name || "Unknown Carrier",
+          finalAmountUSD: q.finalAmountUSD,
+          effectiveDate: q.effectiveDate,
+          expirationDate: q.expirationDate,
+          policyNumber: q.policyNumber,
+        });
+      }
+    }
+
+    const policiesWithQuotes = submissions.map((submission) => ({
+      ...submission,
+      quote: quoteMap.get(submission._id.toString()) || null,
+    }));
 
     return NextResponse.json({
       success: true,

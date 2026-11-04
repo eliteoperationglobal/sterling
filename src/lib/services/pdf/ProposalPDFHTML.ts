@@ -890,24 +890,8 @@ export function generateProposalHTML(data: ProposalData): string {
 						</thead>
 						<tbody>
 							<tr style="line-height:1.35;">
-								<td style="border:1px solid #9AAFC5; border-top:none; padding:0.55em 0.6em; text-align:center; line-height:1.35;">Premium</td>
-								<td style="border:1px solid #9AAFC5; border-top:none; border-left:none; padding:0.55em 0.6em; text-align:center; line-height:1.35;">$${(data.carrierQuoteUSD || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-							</tr>
-							<tr style="line-height:1.35;">
-								<td style="border:1px solid #9AAFC5; border-top:none; padding:0.55em 0.6em; text-align:center; line-height:1.35;">Carrier Fees</td>
-								<td style="border:1px solid #9AAFC5; border-top:none; border-left:none; padding:0.55em 0.6em; text-align:center; line-height:1.35;">$${((data.carrierFeesUSD != null ? data.carrierFeesUSD : (data.policyFeeUSD || 0))).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-							</tr>
-							<tr style="line-height:1.35;">
-								<td style="border:1px solid #9AAFC5; border-top:none; padding:0.55em 0.6em; text-align:center; line-height:1.35;">Surplus Lines Tax (${data.premiumTaxPercent ?? 3}%)</td>
-								<td style="border:1px solid #9AAFC5; border-top:none; border-left:none; padding:0.55em 0.6em; text-align:center; line-height:1.35;">$${(data.premiumTaxAmountUSD || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-							</tr>
-							<tr style="line-height:1.35;">
-								<td style="border:1px solid #9AAFC5; border-top:none; padding:0.55em 0.6em; text-align:center; line-height:1.35;">Stamping Fee (${data.stampingFeePercent ?? 0.18}%)</td>
-								<td style="border:1px solid #9AAFC5; border-top:none; border-left:none; padding:0.55em 0.6em; text-align:center; line-height:1.35;">$${(data.stampingFeeAmountUSD || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-							</tr>
-							<tr style="line-height:1.35;">
-								<td style="border:1px solid #9AAFC5; border-top:none; padding:0.55em 0.6em; text-align:center; font-weight:bold; line-height:1.35;">Total Annual Premium Including Taxes &amp; Fees:</td>
-								<td style="border:1px solid #9AAFC5; border-top:none; border-left:none; padding:0.55em 0.6em; text-align:center; font-weight:bold; line-height:1.35;">$${(data.finalAmountUSD || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+								<td style="border:1px solid #9AAFC5; border-top:none; padding:0.55em 0.6em; text-align:center; line-height:1.35;">Total Annual Premium Including Taxes &amp; Fees:</td>
+								<td style="border:1px solid #9AAFC5; border-top:none; border-left:none; padding:0.55em 0.6em; text-align:center; line-height:1.35;">$${(data.finalAmountUSD || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
 							</tr>
 							<tr style="line-height:1.35;">
 								<td style="border:1px solid #9AAFC5; border-top:none; padding:0.55em 0.6em; text-align:center; line-height:1.35;">Down Payment:</td>

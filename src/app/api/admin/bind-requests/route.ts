@@ -49,14 +49,17 @@ export async function GET(req: NextRequest) {
         { _id: { $in: submissionIdsWithPendingQuotes } }
       ]
     })
+      .select("submissionNumber bindRequested bindRequestedAt bindApproved clientContact policyNumber agencyId templateId files applicationPdfUrl payload.companyName payload.applicantName payload.namedInsured payload.carrier payload.totalPremium payload.effectiveDate paymentDate paymentAmount paymentMethod")
       .populate("agencyId", "name")
       .populate("templateId", "industry subcategory")
-      .sort({ bindRequestedAt: -1 }) // Most recent first
+      .sort({ bindRequestedAt: -1 })
       .lean();
 
-    // Fetch associated quotes
+    // Fetch associated quotes with projection
     const submissionIds = submissions.map((s) => s._id);
-    const quotes = await Quote.find({ submissionId: { $in: submissionIds } }).lean();
+    const quotes = await Quote.find({ submissionId: { $in: submissionIds } })
+      .select("submissionId carrierId carrierQuoteUSD premiumTaxAmountUSD policyFeeUSD brokerFeeAmountUSD finalAmountUSD policyNumber policyType status")
+      .lean();
 
     // Attach quotes to submissions
     const submissionsWithQuotes = submissions.map((sub: any) => {

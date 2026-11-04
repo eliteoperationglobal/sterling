@@ -27,8 +27,6 @@ export async function GET(req: NextRequest) {
 
     const CancelRequest = (await import("@/models/CancelRequest")).default;
 
-    const pendingQuotesCount = await Quote.countDocuments({ status: "BIND_REQUESTED" });
-
     const [
       totalSubmissions,
       quoteRequests,
@@ -41,11 +39,12 @@ export async function GET(req: NextRequest) {
       Submission.countDocuments({ status: "SUBMITTED" }),
       Submission.countDocuments({ bindApproved: true, status: { $ne: "CANCELLED" } }),
       Submission.countDocuments({ status: "CANCELLED" }),
-      (CancelRequest as any).find({ status: "PENDING" }).sort({ createdAt: -1 }).lean(),
+      (CancelRequest as any).find({ status: "PENDING" }).select("status createdAt submissionId").sort({ createdAt: -1 }).lean(),
       Quote.find({ status: "BIND_REQUESTED" }).select("submissionId").lean(),
     ]);
 
-    const submissionIdsWithPendingQuotes = pendingQuotesList.map(q => q.submissionId);
+    const pendingQuotesCount = pendingQuotesList.length;
+    const submissionIdsWithPendingQuotes = pendingQuotesList.map((q: any) => q.submissionId);
 
     const bindRequestsCount = await Submission.countDocuments({
       $or: [

@@ -107,16 +107,25 @@ export default function AdminSubmissionsPage() {
     setError("");
     try {
       const response = await fetch(`/api/admin/submissions?t=${Date.now()}`);
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || `HTTP error! status: ${response.status}`);
+      const text = await response.text();
+      let data: any = null;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        if (response.status === 504 || response.status === 502) {
+          throw new Error("Server took too long to respond (Gateway Timeout). Please refresh the page.");
+        }
+        throw new Error(`Server returned an invalid response (${response.status}). Please try again.`);
       }
 
-      if (data.submissions) {
+      if (!response.ok) {
+        throw new Error(data?.error || `HTTP error! status: ${response.status}`);
+      }
+
+      if (data?.submissions) {
         cachedSubmissions = data.submissions;
         setAllSubmissions(data.submissions);
-      } else if (data.error) {
+      } else if (data?.error) {
         setError(data.error);
       }
     } catch (err: any) {

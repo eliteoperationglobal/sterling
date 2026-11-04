@@ -433,7 +433,7 @@ export default function AdminSubmissionDetailsPage() {
   const { data: rawData, error: swrError, isLoading } = useSWR(
     status === "authenticated" && submissionId ? `/api/admin/submissions/${submissionId}` : null,
     fetcher,
-    { revalidateOnFocus: false }
+    { revalidateOnFocus: false, dedupingInterval: 10000 }
   );
 
   const data = rawData?.submission ? rawData : null;
@@ -667,7 +667,7 @@ export default function AdminSubmissionDetailsPage() {
 
   const fetchStats = async () => {
     try {
-      const res = await fetch("/api/admin/dashboard");
+      const res = await fetch("/api/admin/dashboard-stats");
       const data = await res.json();
       if (data.success) {
         setStats(data.stats);
@@ -2014,7 +2014,7 @@ export default function AdminSubmissionDetailsPage() {
                 {currentQuote.limits.waterDamageSublimit && (
                   <div>
                     <span className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">Water Damage</span>
-                    <span className="font-bold text-gray-900 text-[15px]">{currentQuote.limits.waterDamageSublimit.startsWith('$') ? currentQuote.limits.waterDamageSublimit : `$${currentQuote.limits.waterDamageSublimit}`}</span>
+                    <span className="font-bold text-gray-900 text-[15px]">{(() => { const clean = String(currentQuote.limits.waterDamageSublimit).replace(/[^0-9.]/g, ''); const num = Number(clean); return isNaN(num) || !clean ? currentQuote.limits.waterDamageSublimit : `$${num.toLocaleString('en-US')}`; })()}</span>
                   </div>
                 )}
                 {currentQuote.limits.softCostsSublimit && (

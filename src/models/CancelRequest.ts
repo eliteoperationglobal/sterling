@@ -16,6 +16,9 @@ const CancelRequestSchema = new Schema(
   { timestamps: true }
 );
 
+CancelRequestSchema.index({ submissionId: 1, status: 1 });
+CancelRequestSchema.index({ status: 1, createdAt: -1 });
+
 // ⭐ use helper
 const CancelRequest = getModel("CancelRequest", CancelRequestSchema);
 

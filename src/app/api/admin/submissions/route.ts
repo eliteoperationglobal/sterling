@@ -90,14 +90,12 @@ export async function GET(req: NextRequest) {
     // Fetch all submissions with template and agency info
     console.log("[Admin Submissions API] Query:", JSON.stringify(query));
 
-    // First, check total count
-    const totalCount = await Submission.countDocuments({});
-    console.log(`[Admin Submissions API] Total submissions in DB: ${totalCount}`);
 
     // Try to fetch with populate
     let submissions: any[];
     try {
       submissions = await Submission.find(query)
+        .select("submissionNumber agencyId agentId agentName templateId programId programName clientContact status createdAt updatedAt files state applicationPdfUrl submittedToCarrierAt bindApprovedAt effectiveDate effectiveCancellationDate policyNumber payload.companyName payload.applicantName payload.namedInsured payload.agentName payload.agencyAgent payload.effectiveDate payload.applicantEmail payload.email payload.applicantPhone payload.phone")
         .populate("templateId", "industry subtype title")
         .populate("agencyId", "name email")
         .populate("agentId", "name email")
@@ -108,6 +106,7 @@ export async function GET(req: NextRequest) {
       console.error("[Admin Submissions API] Populate error:", populateError);
       // Fallback: fetch without populate
       submissions = await Submission.find(query)
+        .select("submissionNumber agencyId agentId agentName templateId programId programName clientContact status createdAt updatedAt files state applicationPdfUrl submittedToCarrierAt bindApprovedAt effectiveDate effectiveCancellationDate policyNumber payload.companyName payload.applicantName payload.namedInsured payload.agentName payload.agencyAgent payload.effectiveDate payload.applicantEmail payload.email payload.applicantPhone payload.phone")
         .sort({ createdAt: -1 })
         .lean();
       console.log(`[Admin Submissions API] Found ${submissions.length} submissions (without populate)`);
@@ -123,15 +122,29 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    // --- Fetch Quote records to get effectiveDate (same logic as agency API) ---
+    // --- Concurrently fetch Quote records, CancelRequests, and Scheduled Cancellations ---
     const submissionIds = submissions.map((s: any) => s._id);
-    const quotes = await Quote.find({
-      submissionId: { $in: submissionIds },
-      status: { $in: ["POSTED", "APPROVED", "BOUND"] },
-    })
-      .select("submissionId effectiveDate policyNumber policyType")
-      .sort({ createdAt: 1 })
-      .lean();
+    const CancelRequest: any = (await import("@/models/CancelRequest")).default;
+    const BoundPolicy: any = (await import("@/models/BoundPolicy")).default;
+
+    const [quotes, cancelRequests, scheduledPolicies] = await Promise.all([
+      Quote.find({
+        submissionId: { $in: submissionIds },
+        status: { $in: ["POSTED", "APPROVED", "BOUND"] },
+      })
+        .select("submissionId effectiveDate policyNumber policyType")
+        .sort({ createdAt: 1 })
+        .lean(),
+      CancelRequest.find({
+        submissionId: { $in: submissionIds },
+        status: "PENDING",
+      }).select("submissionId").lean(),
+      BoundPolicy.find({
+        submissionId: { $in: submissionIds },
+        effectiveCancellationDate: { $exists: true },
+        status: { $ne: "CANCELLED" }
+      }).select("submissionId").lean(),
+    ]);
 
     // Build submissionId → effectiveDate map and policyNumber map
     const quoteEffectiveDateMap: Record<string, string | null> = {};
@@ -149,21 +162,6 @@ export async function GET(req: NextRequest) {
         quotePolicyNumbersMap[subIdStr].push(q.policyNumber);
       }
     }
-
-    // --- Fetch CancelRequests and Scheduled Cancellations ---
-    const CancelRequest: any = (await import("@/models/CancelRequest")).default;
-    const BoundPolicy: any = (await import("@/models/BoundPolicy")).default;
-    
-    const cancelRequests = await CancelRequest.find({
-      submissionId: { $in: submissionIds },
-      status: "PENDING",
-    }).select("submissionId").lean();
-
-    const scheduledPolicies = await BoundPolicy.find({
-      submissionId: { $in: submissionIds },
-      effectiveCancellationDate: { $exists: true },
-      status: { $ne: "CANCELLED" }
-    }).select("submissionId").lean();
 
     const pendingCancelMap: Record<string, boolean> = {};
     for (const req of cancelRequests as any[]) {

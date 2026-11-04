@@ -175,6 +175,12 @@ const AuditSchema = new Schema<IAudit>({
 
 }, { timestamps: true });
 
+AuditSchema.index({ status: 1, dueDate: 1 });
+AuditSchema.index({ agencyId: 1, dueDate: 1 });
+AuditSchema.index({ submissionId: 1 });
+AuditSchema.index({ createdAt: -1 });
+AuditSchema.index({ policyNumber: 1 });
+
 // Avoid OverwriteModelError
 const Audit = (mongoose.models.Audit as Model<IAudit>) || mongoose.model<IAudit>("Audit", AuditSchema);
 

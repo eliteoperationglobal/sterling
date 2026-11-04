@@ -381,6 +381,11 @@ const SubmissionSchema: Schema = new Schema(
 // Indexes for faster queries
 SubmissionSchema.index({ agencyId: 1, status: 1 });
 SubmissionSchema.index({ createdAt: -1 });
+SubmissionSchema.index({ status: 1, createdAt: -1 });
+SubmissionSchema.index({ agencyId: 1, createdAt: -1 });
+SubmissionSchema.index({ bindApproved: 1, bindApprovedAt: -1 });
+SubmissionSchema.index({ bindRequested: 1, bindApproved: 1 });
+SubmissionSchema.index({ effectiveCancellationDate: 1, status: 1 });
 
 SubmissionSchema.pre("save", async function (next) {
   if (this.isNew && !this.submissionNumber) {

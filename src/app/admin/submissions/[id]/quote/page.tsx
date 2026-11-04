@@ -388,6 +388,8 @@ export default function AdminQuotePage() {
 
           if (formData.valuation) setBuildersValuation(formData.valuation);
           if (formData.coinsurance) setBuildersCoinsurance(String(formData.coinsurance).replace(/[^0-9]/g, ''));
+          const wd = formData.waterDamageSublimit || formData.waterDamage;
+          if (wd) setBuildersWaterDamage(formatCurrencyInput(String(wd).replace(/[^0-9.]/g, '')));
         }
       }
     }
@@ -478,7 +480,7 @@ export default function AdminQuotePage() {
           buildersExistingStructure: q.limits?.existingStructure || "Not Provided",
           buildersValuation: q.limits?.valuation || "ACV",
           buildersCoinsurance: q.limits?.coinsurance || "90",
-          buildersWaterDamage: q.limits?.waterDamageSublimit || "100,000",
+          buildersWaterDamage: q.limits?.waterDamageSublimit || q.limits?.waterDamage || "100,000",
           buildersSoftCosts: q.limits?.softCostsSublimit || "0",
           buildersDelayInCompletion: q.limits?.delayInCompletionSublimit || "N/A",
           buildersPropertyInTransit: q.limits?.propertyInTransitSublimit || "0",

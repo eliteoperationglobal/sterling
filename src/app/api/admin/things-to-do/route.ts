@@ -51,13 +51,46 @@ export async function GET(req: NextRequest) {
 
     const now = new Date();
 
-    // 1. Fetch Quote Requests (Submissions waiting for admin quote: SUBMITTED, APPROVAL_REQUESTED, ROUTED)
-    const quoteRequestSubmissions = await Submission.find({
-      status: { $in: ["SUBMITTED", "APPROVAL_REQUESTED", "ROUTED"] },
-    })
-      .populate("agencyId", "name")
-      .sort({ createdAt: -1 })
-      .lean();
+    // Fetch quote requests, pending subjectives, and bind requests concurrently with strict field projections
+    const [quoteRequestSubmissions, activeQuotes, bindRequestSubmissions] = await Promise.all([
+      // 1. Quote Requests (Submissions waiting for admin quote: SUBMITTED, APPROVAL_REQUESTED, ROUTED)
+      Submission.find({
+        status: { $in: ["SUBMITTED", "APPROVAL_REQUESTED", "ROUTED"] },
+      })
+        .select("createdAt clientContact agencyId agentName submissionNumber programName status")
+        .populate("agencyId", "name")
+        .sort({ createdAt: -1 })
+        .limit(100)
+        .lean(),
+
+      // 2. Pending Subjectives (Only quotes that actually define custom documents)
+      Quote.find({
+        customDocuments: { $exists: true, $not: { $size: 0 } },
+        status: { $in: ["QUOTED", "POSTED", "APPROVED", "BIND_REQUESTED"] },
+      })
+        .select("customDocuments checkedDocuments postedAt createdAt submissionId")
+        .populate({
+          path: "submissionId",
+          select: "clientContact agentName agencyId submissionNumber programName status",
+          populate: { path: "agencyId", select: "name" },
+        })
+        .sort({ createdAt: -1 })
+        .limit(100)
+        .lean(),
+
+      // 3. Bind Requests waiting for admin approval
+      Submission.find({
+        $or: [
+          { bindRequested: true, bindApproved: { $ne: true } },
+          { status: "BIND_REQUESTED" },
+        ],
+      })
+        .select("bindRequestedAt updatedAt clientContact agencyId agentName submissionNumber programName status")
+        .populate("agencyId", "name")
+        .sort({ updatedAt: -1 })
+        .limit(100)
+        .lean(),
+    ]);
 
     const quoteRequestTasks: TaskItem[] = quoteRequestSubmissions.map((sub: any) => {
       const created = new Date(sub.createdAt || now);
@@ -86,16 +119,6 @@ export async function GET(req: NextRequest) {
       };
     });
 
-    // 2. Fetch Pending Subjectives (Custom documents on quotes that are required from the agent)
-    const activeQuotes = await Quote.find({})
-      .populate({
-        path: "submissionId",
-        select: "clientContact agentName agencyId submissionNumber programName status",
-        populate: { path: "agencyId", select: "name" },
-      })
-      .sort({ createdAt: -1 })
-      .lean();
-
     const pendingSubjectiveTasks: TaskItem[] = [];
 
     activeQuotes.forEach((quote: any) => {
@@ -121,7 +144,7 @@ export async function GET(req: NextRequest) {
       const diffMs = now.getTime() - requestedDate.getTime();
       const daysOverdue = Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)));
 
-      customDocs.forEach((docName, idx) => {
+      customDocs.forEach((docName: string, idx: number) => {
         const safeKey = docName.replace(/\./g, '___dot___').replace(/\$/g, '___dollar___');
         const isReceived = !!checkedMap[docName] || !!checkedMap[safeKey];
         if (!isReceived) {
@@ -140,24 +163,13 @@ export async function GET(req: NextRequest) {
             subjectiveDocName: docName,
             requestedAt: requestedDate.toISOString(),
             daysOverdue,
-            isUrgent: daysOverdue >= 3, // Overdue when > 3 days (e.g. Monday to following week = 7 days overdue)
+            isUrgent: daysOverdue >= 3,
             status: sub.status,
             targetUrl: `/admin/submissions/${sub._id}`,
           });
         }
       });
     });
-
-    // 3. Fetch Bind Requests waiting for admin approval
-    const bindRequestSubmissions = await Submission.find({
-      $or: [
-        { bindRequested: true, bindApproved: { $ne: true } },
-        { status: "BIND_REQUESTED" },
-      ],
-    })
-      .populate("agencyId", "name")
-      .sort({ updatedAt: -1 })
-      .lean();
 
     const bindRequestTasks: TaskItem[] = bindRequestSubmissions.map((sub: any) => {
       const requestedDate = new Date(sub.bindRequestedAt || sub.updatedAt || now);
@@ -170,8 +182,8 @@ export async function GET(req: NextRequest) {
       return {
         id: `bind-req-${sub._id}`,
         type: "BIND_REQUEST",
-        title: `Bind Policy for ${clientName}`,
-        subtitle: `Submission #${sub.submissionNumber || sub._id.toString().substring(0, 8)} • Payment Paid`,
+        title: `Bind Request for ${clientName}`,
+        subtitle: `Submission #${sub.submissionNumber || sub._id.toString().substring(0, 8)} • ${sub.programName || "General Liability"}`,
         category: "Bind Request",
         clientName,
         agencyName,
@@ -181,35 +193,40 @@ export async function GET(req: NextRequest) {
         requestedAt: requestedDate.toISOString(),
         daysOverdue,
         isUrgent: daysOverdue >= 1,
-        status: "BIND_REQUESTED",
+        status: sub.status,
         targetUrl: `/admin/bind-requests`,
       };
     });
 
-    // Combine all tasks and sort by daysOverdue descending (most overdue first)
-    const allTasks: TaskItem[] = [
+    const allTasks = [
       ...quoteRequestTasks,
-      ...pendingSubjectiveTasks,
       ...bindRequestTasks,
-    ].sort((a, b) => b.daysOverdue - a.daysOverdue);
+      ...pendingSubjectiveTasks,
+    ];
 
-    const urgentCount = allTasks.filter((t) => t.isUrgent || t.daysOverdue > 0).length;
+    allTasks.sort((a, b) => {
+      if (a.isUrgent && !b.isUrgent) return -1;
+      if (!a.isUrgent && b.isUrgent) return 1;
+      return b.daysOverdue - a.daysOverdue;
+    });
+
+    const counts = {
+      all: allTasks.length,
+      urgent: allTasks.filter((t) => t.isUrgent).length,
+      quoteRequests: quoteRequestTasks.length,
+      pendingSubjectives: pendingSubjectiveTasks.length,
+      bindRequests: bindRequestTasks.length,
+    };
 
     return NextResponse.json({
       success: true,
       tasks: allTasks,
-      counts: {
-        total: allTasks.length,
-        urgent: urgentCount,
-        quoteRequests: quoteRequestTasks.length,
-        pendingSubjectives: pendingSubjectiveTasks.length,
-        bindRequests: bindRequestTasks.length,
-      },
+      counts,
     });
   } catch (error: any) {
-    console.error("Things To Do fetch error:", error);
+    console.error("Things To Do API Error:", error);
     return NextResponse.json(
-      { success: false, error: error.message || "Failed to fetch things to do" },
+      { error: error.message || "Failed to fetch tasks" },
       { status: 500 }
     );
   }

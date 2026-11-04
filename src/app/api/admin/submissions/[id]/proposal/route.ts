@@ -206,7 +206,7 @@ export async function GET(
     // Parallel fetch agency and quotes
     const [agencyDoc, quote, xsQuote] = await Promise.all([
       Agency.findById(submission.agencyId),
-      quoteId ? Quote.findById(quoteId).populate("carrierId", "name") : Quote.findOne({ submissionId: submission._id, policyType: { $in: [null, 'GENERAL_LIABILITY'] } }).populate("carrierId", "name"),
+      quoteId ? Quote.findById(quoteId).populate("carrierId", "name") : Quote.findOne({ submissionId: submission._id, policyType: { $in: [null, 'GENERAL_LIABILITY'] } }).sort({ createdAt: -1 }).populate("carrierId", "name"),
       Quote.findOne({ submissionId: submission._id, policyType: 'EXCESS_LIABILITY' })
     ]);
 
@@ -283,7 +283,7 @@ export async function GET(
     };
 
     const formatWaterDamage = (limitsObj: any, form: any): string => {
-      const wd = limitsObj?.waterDamageSublimit || form?.waterDamageSublimit;
+      const wd = limitsObj?.waterDamageSublimit || limitsObj?.waterDamage || form?.waterDamageSublimit || form?.waterDamage;
       if (!wd) return "$100,000";
       return formatToUSD(wd);
     };

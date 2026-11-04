@@ -88,15 +88,16 @@ export async function GET(req: NextRequest) {
       templateId?: { industry?: string; subtype?: string; title?: string };
     };
 
-    const submissions = await Submission.find(query)
-      .select("submissionNumber policyNumber status createdAt updatedAt state agentName agentId payload clientContact templateId files programName programId effectiveCancellationDate")
-      .populate("templateId", "industry subtype title")
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit)
-      .lean<AgencySubmissionLean[]>();
-
-    const totalCount = await Submission.countDocuments(query);
+    const [submissions, totalCount] = await Promise.all([
+      Submission.find(query)
+        .select("submissionNumber policyNumber status createdAt updatedAt state agentName agentId payload clientContact templateId files programName programId effectiveCancellationDate")
+        .populate("templateId", "industry subtype title")
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean<AgencySubmissionLean[]>(),
+      Submission.countDocuments(query)
+    ]);
 
     // ← FETCH ALL QUOTES FOR THESE SUBMISSIONS IN ONE QUERY
     const submissionIds = submissions.map((s) => s._id);

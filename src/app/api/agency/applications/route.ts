@@ -30,16 +30,17 @@ export async function GET(req: NextRequest) {
       query.status = status;
     }
 
-    // Get applications
-    const applications = await Submission.find(query)
-      .sort({ createdAt: -1 })
-      .limit(100)
-      .lean();
-
-    // Get counts by status
-    const statusCounts = await Submission.aggregate([
-      { $match: { agencyId: user.agencyId } },
-      { $group: { _id: "$status", count: { $sum: 1 } } },
+    // Concurrently fetch applications with projection and status counts
+    const [applications, statusCounts] = await Promise.all([
+      Submission.find(query)
+        .select("programId programName clientContact status createdAt applicationPdfUrl")
+        .sort({ createdAt: -1 })
+        .limit(100)
+        .lean(),
+      Submission.aggregate([
+        { $match: { agencyId: user.agencyId } },
+        { $group: { _id: "$status", count: { $sum: 1 } } },
+      ])
     ]);
 
     const counts: Record<string, number> = {};

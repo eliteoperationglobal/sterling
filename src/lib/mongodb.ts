@@ -42,20 +42,24 @@ if (!global.mongoose) {
 }
 
 async function connectDB(): Promise<typeof mongoose> {
-  if (cached.conn) {
+  if (cached.conn && cached.conn.connection.readyState === 1) {
     return cached.conn;
   }
 
   if (!cached.promise) {
     const opts = {
       bufferCommands: false,
-      serverSelectionTimeoutMS: 15000,
+      serverSelectionTimeoutMS: 10000,
       socketTimeoutMS: 45000,
-      family: 4, // Force IPv4 to avoid some common DNS resolution issues in Node.js
+      connectTimeoutMS: 10000,
+      family: 4, // Force IPv4 to avoid DNS resolution latency in Node.js
+      maxPoolSize: 25, // Maintain a pool of up to 25 socket connections
+      minPoolSize: 5,  // Keep at least 5 warm connections to prevent TLS handshake latency
+      maxIdleTimeMS: 45000,
     };
 
-    cached.promise = mongoose.connect(MONGODB_URI!, opts).then((mongoose) => {
-      return mongoose;
+    cached.promise = mongoose.connect(MONGODB_URI!, opts).then((mongooseInstance) => {
+      return mongooseInstance;
     });
   }
 
@@ -70,17 +74,3 @@ async function connectDB(): Promise<typeof mongoose> {
 }
 
 export default connectDB;
-
-
-
-
-
-
-
-
-
-
-
-
-
-

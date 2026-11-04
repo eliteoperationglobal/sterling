@@ -250,8 +250,8 @@ export async function GET(
         }
       } else {
         const [glDoc, xsDoc] = await Promise.all([
-          Quote.findOne({ submissionId: submission._id, policyType: { $in: [null, "GENERAL_LIABILITY"] } }).populate("carrierId", "name").lean(),
-          Quote.findOne({ submissionId: submission._id, policyType: "EXCESS_LIABILITY" }).populate("carrierId", "name").lean(),
+          Quote.findOne({ submissionId: submission._id, policyType: { $in: [null, "GENERAL_LIABILITY"] } }).sort({ createdAt: -1 }).populate("carrierId", "name").lean(),
+          Quote.findOne({ submissionId: submission._id, policyType: "EXCESS_LIABILITY" }).sort({ createdAt: -1 }).populate("carrierId", "name").lean(),
         ]);
         quote = glDoc;
         xsQuote = xsDoc;
@@ -351,7 +351,7 @@ export async function GET(
     };
 
     const formatWaterDamage = (limitsObj: any, form: any): string => {
-      const wd = limitsObj?.waterDamageSublimit || form?.waterDamageSublimit;
+      const wd = limitsObj?.waterDamageSublimit || limitsObj?.waterDamage || form?.waterDamageSublimit || form?.waterDamage;
       if (!wd) return "$100,000";
       return formatToUSD(wd);
     };

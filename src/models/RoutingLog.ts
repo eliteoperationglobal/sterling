@@ -55,6 +55,7 @@ const RoutingLogSchema: Schema = new Schema(
 
 // Indexes for faster queries
 RoutingLogSchema.index({ submissionId: 1, status: 1 });
+RoutingLogSchema.index({ submissionId: 1, createdAt: -1 });
 RoutingLogSchema.index({ carrierId: 1, status: 1 });
 RoutingLogSchema.index({ createdAt: -1 });
 
