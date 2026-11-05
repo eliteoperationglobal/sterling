@@ -184,6 +184,9 @@ export async function POST(
         stampingFeeAmountUSD: quote.stampingFeeAmountUSD || (quote.carrierQuoteUSD ? Math.round(Number(quote.carrierQuoteUSD) * 0.0018 * 100) / 100 : 11.43),
         depositPremiumUSD: quoteAny.downPaymentUSD || quoteAny.depositPremiumUSD || (quote.finalAmountUSD ? Math.round(Number(quote.finalAmountUSD) * 0.2 * 100) / 100 : 1310.39),
         installmentAmountUSD: quoteAny.monthlyInstallmentUSD || quoteAny.installmentAmountUSD || (quote.finalAmountUSD ? Math.round(((Number(quote.finalAmountUSD) * 0.8) / 10) * 100) / 100 : 524.15),
+        customDocuments: Array.isArray(quote?.customDocuments)
+          ? (quote.customDocuments as string[]).filter((d: any) => typeof d === 'string' && d.trim() !== '')
+          : [],
       };
 
       const htmlContent = generateProposalHTML(proposalData);

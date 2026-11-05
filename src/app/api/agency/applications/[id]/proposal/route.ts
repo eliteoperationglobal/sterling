@@ -102,6 +102,7 @@ export type ProposalData = {
   stampingFeeAmountUSD?: number;
   depositPremiumUSD?: number;
   installmentAmountUSD?: number;
+  customDocuments?: string[];
 };
 
 function formatDateMMDDYYYY(dateInput: string | Date) {
@@ -461,6 +462,9 @@ export async function GET(
       stampingFeeAmountUSD: quote?.stampingFeeAmountUSD != null ? quote.stampingFeeAmountUSD : (quote?.carrierQuoteUSD ? Number((quote.carrierQuoteUSD * 0.0018).toFixed(2)) : 11.43),
       depositPremiumUSD: quote?.depositPremiumUSD ?? quote?.premiumFinanceTerms?.totalDownpayAmount ?? undefined,
       installmentAmountUSD: quote?.installmentAmountUSD ?? quote?.premiumFinanceTerms?.paymentAmount ?? undefined,
+      customDocuments: Array.isArray(quote?.customDocuments)
+        ? (quote.customDocuments as string[]).filter((d: any) => typeof d === 'string' && d.trim() !== '')
+        : [],
     };
 
     const isApartment = submission.programId === "apartment-buildings" || 
@@ -481,7 +485,7 @@ export async function GET(
                          submission.programName?.toLowerCase().includes("construction equipment") ||
                          submission.programName?.toLowerCase().includes("equipment");
 
-    const templateType = useApartmentTemplate ? "apartment" : isCommercialProperty ? "commercial" : isContractors ? "contractors" : isBuildersRisk ? "builders-risk-v12" : "standard";
+    const templateType = useApartmentTemplate ? "apartment" : isCommercialProperty ? "commercial" : isContractors ? "contractors" : isBuildersRisk ? "builders-risk-v13" : "standard";
 
     // 🚀 CACHE CHECK: Hash the proposalData JSON for stability
     const isRefresh = req.nextUrl.searchParams.get("refresh") === "true" || req.nextUrl.searchParams.get("nocache") === "true";

@@ -113,6 +113,7 @@ export interface ProposalData {
 	stampingFeeAmountUSD?: number;
 	depositPremiumUSD?: number;
 	installmentAmountUSD?: number;
+	customDocuments?: string[];
 }
 
 //svg image 
@@ -934,30 +935,21 @@ export function generateProposalHTML(data: ProposalData): string {
 					<div style="font-size:0.75em; margin:0 auto 11.2em auto; width:100%; padding-left:1.8em; padding-right:1.8em; box-sizing:border-box;">
 						<table style="width:100%; border-collapse:collapse;">
 							<tbody>
+								${(Array.isArray(data.customDocuments) && data.customDocuments.filter((d: any) => typeof d === 'string' && d.trim() !== '').length > 0
+									? data.customDocuments.filter((d: any) => typeof d === 'string' && d.trim() !== '')
+									: [
+											"Project schedule / timeline.",
+											"Project photos.",
+											"Construction budget.",
+											"NKLL (No Known Loss Letter) covering the gap in coverage / construction start date.",
+											"Existing structure: prior carrier and policy number.",
+											`A property inspection may be required by the carrier. Wildfire exposure note from ${(data.carrierName || "Kinsale").replace(/ Insurance Company| Insurance| Company/gi, "").trim() || "carrier"} also applies.`
+										]
+								).map((item, index) => `
 								<tr>
-									<td style="width:2.2em; vertical-align:baseline; line-height:1.4; font-family:'VMCLAJ+Arial Bold',Arial,sans-serif; font-weight:bold; color:#2C5AA0; padding:0.95em 0.8em 0.95em 0; white-space:nowrap;">1.</td>
-									<td style="vertical-align:baseline; line-height:1.4; font-family:'FMLOAL+Arial',Arial,sans-serif; padding:0.95em 0; color:#1E1E1E; white-space:nowrap;">Project schedule / timeline.</td>
-								</tr>
-								<tr>
-									<td style="vertical-align:baseline; line-height:1.4; font-family:'VMCLAJ+Arial Bold',Arial,sans-serif; font-weight:bold; color:#2C5AA0; padding:0.95em 0.8em 0.95em 0; white-space:nowrap;">2.</td>
-									<td style="vertical-align:baseline; line-height:1.4; font-family:'FMLOAL+Arial',Arial,sans-serif; padding:0.95em 0; color:#1E1E1E; white-space:nowrap;">Project photos.</td>
-								</tr>
-								<tr>
-									<td style="vertical-align:baseline; line-height:1.4; font-family:'VMCLAJ+Arial Bold',Arial,sans-serif; font-weight:bold; color:#2C5AA0; padding:0.95em 0.8em 0.95em 0; white-space:nowrap;">3.</td>
-									<td style="vertical-align:baseline; line-height:1.4; font-family:'FMLOAL+Arial',Arial,sans-serif; padding:0.95em 0; color:#1E1E1E; white-space:nowrap;">Construction budget.</td>
-								</tr>
-								<tr>
-									<td style="vertical-align:baseline; line-height:1.4; font-family:'VMCLAJ+Arial Bold',Arial,sans-serif; font-weight:bold; color:#2C5AA0; padding:0.95em 0.8em 0.95em 0; white-space:nowrap;">4.</td>
-									<td style="vertical-align:baseline; line-height:1.4; font-family:'FMLOAL+Arial',Arial,sans-serif; padding:0.95em 0; color:#1E1E1E; white-space:nowrap;">NKLL (No Known Loss Letter) covering the gap in coverage / construction start date.</td>
-								</tr>
-								<tr>
-									<td style="vertical-align:baseline; line-height:1.4; font-family:'VMCLAJ+Arial Bold',Arial,sans-serif; font-weight:bold; color:#2C5AA0; padding:0.95em 0.8em 0.95em 0; white-space:nowrap;">5.</td>
-									<td style="vertical-align:baseline; line-height:1.4; font-family:'FMLOAL+Arial',Arial,sans-serif; padding:0.95em 0; color:#1E1E1E; white-space:nowrap;">Existing structure: prior carrier and policy number.</td>
-								</tr>
-								<tr>
-									<td style="vertical-align:baseline; line-height:1.4; font-family:'VMCLAJ+Arial Bold',Arial,sans-serif; font-weight:bold; color:#2C5AA0; padding:0.95em 0.8em 0.95em 0; white-space:nowrap;">6.</td>
-									<td style="vertical-align:baseline; line-height:1.4; font-family:'FMLOAL+Arial',Arial,sans-serif; padding:0.95em 0; color:#1E1E1E; white-space:nowrap;">A property inspection may be required by the carrier. Wildfire exposure note from ${(data.carrierName || "Kinsale").replace(/ Insurance Company| Insurance| Company/gi, "").trim() || "carrier"} also applies.</td>
-								</tr>
+									<td style="width:2.2em; vertical-align:baseline; line-height:1.4; font-family:'VMCLAJ+Arial Bold',Arial,sans-serif; font-weight:bold; color:#2C5AA0; padding:0.95em 0.8em 0.95em 0; white-space:nowrap;">${index + 1}.</td>
+									<td style="vertical-align:baseline; line-height:1.4; font-family:'FMLOAL+Arial',Arial,sans-serif; padding:0.95em 0; color:#1E1E1E; word-break:break-word;">${item}</td>
+								</tr>`).join('')}
 							</tbody>
 						</table>
 					</div>
