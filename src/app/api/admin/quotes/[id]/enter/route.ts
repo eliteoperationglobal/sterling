@@ -113,8 +113,11 @@ export async function POST(
     const submission = await Submission.findById(submissionId);
 
     const rawState = (
+      submission?.clientContact?.businessAddress?.state ||
       submission?.payload?.state ||
+      submission?.clientContact?.businessAddress?.state ||
       submission?.payload?.addressState ||
+      submission?.state ||
       ""
     ).toString().trim().toUpperCase();
 

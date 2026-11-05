@@ -126,6 +126,31 @@ export default function AdminQuotePage() {
   // Tax calculator
   const [calculatingTax, setCalculatingTax] = useState(false);
 
+  // Helper to resolve true state of the submission, prioritizing the client's business address / payload over schema default
+  const getSubmissionState = (sub: any): string => {
+    if (!sub) return "CA";
+    const raw =
+      sub.clientContact?.businessAddress?.state ||
+      sub.payload?.state ||
+      sub.payload?.propertyState ||
+      sub.payload?.applicantState ||
+      sub.payload?.mailingState ||
+      sub.state ||
+      "CA";
+    return getStateCode(raw);
+  };
+
+  const getSubmissionStateDisplay = (sub: any): string => {
+    if (!sub) return "state";
+    return (
+      sub.clientContact?.businessAddress?.state ||
+      sub.payload?.state ||
+      sub.payload?.propertyState ||
+      sub.state ||
+      "state"
+    );
+  };
+
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [manualSaving, setManualSaving] = useState(false);
@@ -656,13 +681,10 @@ export default function AdminQuotePage() {
       }
 
       // Get state from submission and convert to state code
-      const stateRaw = (submission as any).state || (submission as any).clientContact?.businessAddress?.state || "CA";
-
-      // Convert state name to code (e.g., "California" → "CA")
-      const state = getStateCode(stateRaw);
+      const state = getSubmissionState(submission);
 
       // Debug logging
-      console.log(`[Quote Page] Calculating tax for state: "${stateRaw}" → "${state}", premium: $${carrierQuote}`);
+      console.log(`[Quote Page] Calculating tax for state: "${state}", premium: $${carrierQuote}`);
 
       setCalculatingTax(true);
       try {
@@ -732,12 +754,7 @@ export default function AdminQuotePage() {
     const calculateStamping = async () => {
       if (!combinedPremium || !submission) return;
 
-      const stateRaw =
-        (submission as any).state ||
-        (submission as any).clientContact?.businessAddress?.state ||
-        "CA";
-
-      const state = getStateCode(stateRaw);
+      const state = getSubmissionState(submission);
 
       try {
         const response = await fetch(
@@ -763,12 +780,7 @@ export default function AdminQuotePage() {
     const calculateFireMarshal = async () => {
       if (!combinedPremium || !submission) return;
 
-      const stateRaw =
-        (submission as any).state ||
-        (submission as any).clientContact?.businessAddress?.state ||
-        "CA";
-
-      const state = getStateCode(stateRaw);
+      const state = getSubmissionState(submission);
 
       try {
         const response = await fetch(
@@ -816,11 +828,7 @@ export default function AdminQuotePage() {
     const fireMarshalFlatFee = parseFloat(fireMarshalFlatFeeUSD) || 0;
     const filingFee = parseFloat(stampingFeePerFilingUSD) || 0;
     const slaCharge = parseFloat(slaServiceChargeUSD) || 0;
-    const currentState = getStateCode(
-      (submission as any)?.state ||
-      (submission as any)?.clientContact?.businessAddress?.state ||
-      "CA"
-    );
+    const currentState = getSubmissionState(submission);
     const slasFee = currentState === 'OK' ? (parseFloat(slasTransactionFeeAmountUSD) || 0) : 0;
     const policyFee = parseCurrency(policyFeeUSD) || 0;
 
@@ -1963,7 +1971,7 @@ export default function AdminQuotePage() {
           insuredName: submission?.payload?.companyName || submission?.payload?.applicantName || submission?.payload?.namedInsured || (submission as any)?.clientContact?.name || "Client",
           address: (submission as any)?.clientContact?.businessAddress?.street || submission?.payload?.streetAddress || submission?.payload?.mailingAddress,
           city: (submission as any)?.clientContact?.businessAddress?.city || submission?.payload?.city || submission?.payload?.mailingCity,
-          state: getStateCode((submission as any)?.state || (submission as any)?.clientContact?.businessAddress?.state || (submission as any)?.payload?.state || "CA"),
+          state: getSubmissionState(submission),
           zip: (submission as any)?.clientContact?.businessAddress?.zip || (submission as any)?.payload?.zip || (submission as any)?.payload?.mailingZip || "90210",
           phone: (submission as any)?.clientContact?.phone || (submission as any)?.payload?.applicantPhone || (submission as any)?.payload?.phone,
           email: (submission as any)?.clientContact?.email || (submission as any)?.payload?.applicantEmail || (submission as any)?.payload?.email,
@@ -2003,13 +2011,7 @@ export default function AdminQuotePage() {
   const isReadyToSubmit = availablePolicies.some(isPolicyReady);
   const missingPolicies = availablePolicies.filter(type => !isPolicyReady(type));
 
-  const submissionStateCode = getStateCode(
-    (submission as any)?.state ||
-    (submission as any)?.clientContact?.businessAddress?.state ||
-    (submission as any)?.payload?.state ||
-    (submission as any)?.payload?.propertyState ||
-    "CA"
-  );
+  const submissionStateCode = getSubmissionState(submission);
   const isOklahoma = submissionStateCode === 'OK';
 
   const isCommercialProperty = (submission?.programId === 'apartment-buildings' || submission?.programName === 'Commercial Property' || submission?.programName === 'Apartment Building');
@@ -2425,8 +2427,8 @@ export default function AdminQuotePage() {
                     <span className="text-gray-600 font-semibold self-center px-3">%</span>
                   </div>
                   <p className="text-xs text-gray-500 mt-1">
-                    {submission && (submission as any).state
-                      ? `Tax rate for ${(submission as any).state || (submission as any).clientContact?.businessAddress?.state || 'state'} (auto-calculated)`
+                    {submission
+                      ? `Tax rate for ${getSubmissionStateDisplay(submission)} (auto-calculated)`
                       : "Tax will be calculated automatically when premium is entered"}
                   </p>
 
@@ -2670,7 +2672,7 @@ export default function AdminQuotePage() {
                 )}
 
                 {/* WA Flat Fee - Only for Washington */}
-                {parseFloat(fireMarshalFlatFeeUSD || "0") > 0 && getStateCode((submission as any).state || (submission as any).clientContact?.businessAddress?.state || "CA") === 'WA' && (
+                {parseFloat(fireMarshalFlatFeeUSD || "0") > 0 && getSubmissionState(submission) === 'WA' && (
                   <div>
                     <label className="block text-sm font-semibold text-gray-900 mb-2">
                       WA Flat Fee
@@ -3956,7 +3958,7 @@ export default function AdminQuotePage() {
                     {ratingData.fireMarshalTax > 0 && (
                       <RatingRow label="Fire Marshal Tax (%)" value={formatCurrency(ratingData?.
                         fireMarshalTax || 0)} />)}
-                    {parseFloat(fireMarshalFlatFeeUSD || "0") > 0 && getStateCode((submission as any).state || (submission as any).clientContact?.businessAddress?.state || "CA") === 'WA' && (
+                    {parseFloat(fireMarshalFlatFeeUSD || "0") > 0 && getSubmissionState(submission) === 'WA' && (
                       <RatingRow label="WA Flat Fee" value={formatCurrency(parseFloat(fireMarshalFlatFeeUSD || "0"))} />)}
                     {parseFloat(slaServiceChargeUSD || "0") > 0 && (
                       <RatingRow

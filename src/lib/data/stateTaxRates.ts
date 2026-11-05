@@ -197,7 +197,7 @@ export const STATE_TAX_RATES: Record<string, StateTaxRate> = {
  * @returns Tax rate percentage, or default 2.0% if state not found
  */
 export function getStateTaxRate(state: string): number {
-  const stateCode = state.toUpperCase();
+  const stateCode = getStateCode(state);
   const stateData = STATE_TAX_RATES[stateCode];
 
   if (stateData) {
@@ -215,7 +215,7 @@ export function getStateTaxRate(state: string): number {
  * @returns StateTaxRate object or null
  */
 export function getStateTaxData(state: string): StateTaxRate | null {
-  const stateCode = state.toUpperCase();
+  const stateCode = getStateCode(state);
   return STATE_TAX_RATES[stateCode] || null;
 }
 

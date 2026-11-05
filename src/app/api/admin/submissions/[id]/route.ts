@@ -7,6 +7,7 @@ import Submission from "@/models/Submission";
 import FormTemplate from "@/models/FormTemplate";
 import RoutingLog from "@/models/RoutingLog";
 import Quote from "@/models/Quote";
+import { getStateCode } from "@/lib/utils/stateConverter";
 
 /**
  * GET /api/admin/submissions/[id]
@@ -53,6 +54,19 @@ export async function GET(
       .populate("templateId")
       .populate("agencyId", "name email")
       .lean();
+
+    const rawSubState = (
+      submission?.clientContact?.businessAddress?.state ||
+      submission?.payload?.state ||
+      submission?.payload?.propertyState ||
+      submission?.payload?.applicantState ||
+      submission?.state
+    );
+    const resolvedSubState = rawSubState ? getStateCode(rawSubState) : submission?.state;
+    if (submission && resolvedSubState && submission.state !== resolvedSubState) {
+      submission.state = resolvedSubState;
+      Submission.updateOne({ _id: params.id }, { $set: { state: resolvedSubState } }).exec().catch(err => console.error("Error syncing submission state:", err));
+    }
 
     if (!submission) {
       return NextResponse.json(
