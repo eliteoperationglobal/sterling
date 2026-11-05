@@ -631,7 +631,7 @@ export function generateProposalHTML(data: ProposalData): string {
 						class="pdf24new_10 pdf24new_11 pdf24new_09" style="word-spacing:0.0003em;">Prepared for: ${data.companyName} &nbsp;</span></div>
 				<div class="pdf24new_01" style="left:7em;top:15.2332em;width:38em;text-align:center;white-space:normal;word-wrap:break-word;"><span
 						class="pdf24new_10 pdf24new_11 pdf24new_12" style="word-spacing:0.0002em;">Effective Date:
-						${data.effectiveDate} &nbsp;</span></div>
+						${data.effectiveDate && data.expirationDate && !data.effectiveDate.includes(' - ') ? `${data.effectiveDate} - ${data.expirationDate}` : data.effectiveDate} &nbsp;</span></div>
 				<div class="pdf24new_01" style="left:7em;top:17.1229em;width:38em;text-align:center;white-space:normal;word-wrap:break-word;"><span
 						class="pdf24new_10 pdf24new_11 pdf24new_09" style="word-spacing:0.0003em;">Prepared by: ${data.agentName} &nbsp;</span></div>
 				<div class="pdf24new_01" style="left:7em;top:19.0127em;width:38em;text-align:center;white-space:normal;word-wrap:break-word;"><span
@@ -834,7 +834,7 @@ export function generateProposalHTML(data: ProposalData): string {
 							</tr>
 							<tr style="line-height:1.35;">
 								<td style="border:1px solid #9AAFC5; border-top:none; padding:0.52em 0.6em; text-align:center; line-height:1.35;">Policy Term</td>
-								<td style="border:1px solid #9AAFC5; border-top:none; border-left:none; padding:0.52em 0.6em; text-align:center; line-height:1.35;">${data.buildersPolicyTerm || data.desiredCoverageDates || `${data.effectiveDate || ""} – ${data.expirationDate || ""}`}</td>
+								<td style="border:1px solid #9AAFC5; border-top:none; border-left:none; padding:0.52em 0.6em; text-align:center; line-height:1.35;">${data.buildersPolicyTerm || data.desiredCoverageDates || (data.effectiveDate && data.expirationDate && !data.effectiveDate.includes(' - ') ? `${data.effectiveDate} - ${data.expirationDate}` : data.effectiveDate) || ""}</td>
 							</tr>
 						</tbody>
 					</table>

@@ -148,7 +148,7 @@ export async function GET(
       carrierName: carrier.name,
       carrierReference: quote.carrierReference,
       programName: isBuildersRisk ? "Builders Risk" : ((submission as any).programName || "Advantage Contractor GL"),
-      effectiveDate: effectiveDateStr,
+      effectiveDate: `${effectiveDateStr} - ${expirationDateStr}`,
       expirationDate: expirationDateStr,
       carrierQuoteUSD: quote.carrierQuoteUSD,
       premiumTaxPercent: quote.premiumTaxPercent,
@@ -199,7 +199,7 @@ export async function GET(
         ? formatToUSD(quoteLimitsAny.businessIncome)
         : (formData?.coverageBusinessIncome && formData?.businessIncomeLimit ? formatToUSD(formData.businessIncomeLimit) : "N/A"),
       buildersExistingStructure: quoteLimitsAny.existingStructure || formData?.existingStructure || "Demolished",
-      buildersPolicyTerm: `${effectiveDateStr} – ${expirationDateStr}`,
+      buildersPolicyTerm: `${effectiveDateStr} - ${expirationDateStr}`,
       carrierFeesUSD: quote.policyFeeUSD || quoteAny.carrierFeesUSD || 350,
       stampingFeePercent: quote.stampingFeePercent !== undefined ? quote.stampingFeePercent : 0.18,
       stampingFeeAmountUSD: quote.stampingFeeAmountUSD || (quote.carrierQuoteUSD ? Math.round(Number(quote.carrierQuoteUSD) * 0.0018 * 100) / 100 : 11.43),

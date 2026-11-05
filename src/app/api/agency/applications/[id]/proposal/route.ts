@@ -1,4 +1,4 @@
-import { formatPolicyDateRange } from "@/lib/utils/dateUtils";
+import { formatPolicyDateRange, formatCalendarDate } from "@/lib/utils/dateUtils";
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/authOptions";
@@ -143,29 +143,12 @@ function formatLimit(val: any, fallback: string): string {
   return String(val) || fallback;
 }
 
-function getPolicyDateRange(dateInput: string | Date) {
-  let start = new Date(dateInput);
-
-  // If it's an invalid date string, attempt to parse manually (e.g. DD/MM/YYYY)
-  if (isNaN(start.getTime()) && typeof dateInput === "string") {
-    const parts = dateInput.split(/[-/.]/);
-    if (parts.length === 3) {
-      const p0 = parseInt(parts[0], 10);
-      const p1 = parseInt(parts[1], 10);
-      const p2 = parseInt(parts[2], 10);
-      if (p0 > 12) { // DD/MM/YYYY format
-        start = new Date(p2, p1 - 1, p0);
-      } else { // MM/DD/YYYY format
-        start = new Date(p2, p0 - 1, p1);
-      }
-    }
+function getPolicyDateRange(dateInput: any, expInput?: any) {
+  if (!dateInput) return "TBD";
+  if (typeof dateInput === "string" && dateInput.includes(" - ") && !expInput) {
+    return dateInput;
   }
-
-  if (isNaN(start.getTime())) {
-    start = new Date();
-  }
-
-  return formatPolicyDateRange(start, null);
+  return formatPolicyDateRange(dateInput, expInput || null);
 }
 /**
  * GET /api/agency/applications/[id]/proposal
@@ -277,8 +260,8 @@ export async function GET(
     let policyFeeUSD = 0;
     let brokerFeeAmountUSD = 0;
     let finalAmountUSD = 0;
-    let effectiveDate = (formData?.effectiveDate || formData?.proposedEffectiveDateFrom) ? new Date(formData.effectiveDate || formData.proposedEffectiveDateFrom) : new Date();
-    let expirationDate = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
+    let effectiveDate = quote?.effectiveDate || formData?.effectiveDate || formData?.proposedEffectiveDateFrom || submission.effectiveDate || new Date();
+    let expirationDate = quote?.expirationDate || formData?.expirationDate || formData?.proposedEffectiveDateTo || submission.expirationDate || null;
     let limits: any = undefined;
     let endorsements: string[] = [];
     let specialNotes = "";
@@ -303,8 +286,8 @@ export async function GET(
       policyFeeUSD = quote.policyFeeUSD || 0;
       brokerFeeAmountUSD = quote.brokerFeeAmountUSD || 0;
       finalAmountUSD = quote.finalAmountUSD || 0;
-      if (quote.effectiveDate) effectiveDate = new Date(quote.effectiveDate);
-      if (quote.expirationDate) expirationDate = new Date(quote.expirationDate);
+      if (quote.effectiveDate) effectiveDate = quote.effectiveDate;
+      if (quote.expirationDate) expirationDate = quote.expirationDate;
       limits = quote.limits || {};
       endorsements = quote.endorsements || [];
       specialNotes = quote.specialNotes || "";
@@ -362,7 +345,7 @@ export async function GET(
       subcontractorCosts: formatToUSD(formData.estimatedSubcontractingCosts || "0"),
       quoteNumber,
       proposalDate: formatDateMMDDYYYY(new Date()),
-      desiredCoverageDates: getPolicyDateRange(effectiveDate),
+      desiredCoverageDates: getPolicyDateRange(effectiveDate, expirationDate),
       companyName: formData.companyName || submission.clientContact?.name || "Unknown",
       dba: formData.dba,
       firstName: formData.firstName || "",
@@ -395,8 +378,8 @@ export async function GET(
       classCode: classCodes.length > 0 ? classCodes.join(", ") : (formData.classCode || ""),
       carrierName,
       programName: isBuildersRisk ? "Builders Risk" : programName,
-      effectiveDate: getPolicyDateRange(effectiveDate),
-      expirationDate: formatDateMMDDYYYY(expirationDate),
+      effectiveDate: getPolicyDateRange(effectiveDate, expirationDate),
+      expirationDate: formatCalendarDate(expirationDate) || (expirationDate ? formatDateMMDDYYYY(expirationDate) : ""),
       carrierQuoteUSD,
       premiumTaxPercent,
       premiumTaxAmountUSD,
@@ -456,7 +439,7 @@ export async function GET(
       buildersValuation: formatValuation(limits?.valuation || formData?.valuation),
       buildersBusinessIncome: formatBusinessIncome(limits, formData),
       buildersExistingStructure: formatExistingStructure(limits, formData),
-      buildersPolicyTerm: getPolicyDateRange(effectiveDate),
+      buildersPolicyTerm: getPolicyDateRange(effectiveDate, expirationDate),
       carrierFeesUSD: quote?.carrierFeesUSD != null ? quote.carrierFeesUSD : (quote?.policyFeeUSD != null ? quote.policyFeeUSD : 350),
       stampingFeePercent: quote?.stampingFeePercent ?? 0.18,
       stampingFeeAmountUSD: quote?.stampingFeeAmountUSD != null ? quote.stampingFeeAmountUSD : (quote?.carrierQuoteUSD ? Number((quote.carrierQuoteUSD * 0.0018).toFixed(2)) : 11.43),
@@ -485,7 +468,7 @@ export async function GET(
                          submission.programName?.toLowerCase().includes("construction equipment") ||
                          submission.programName?.toLowerCase().includes("equipment");
 
-    const templateType = useApartmentTemplate ? "apartment" : isCommercialProperty ? "commercial" : isContractors ? "contractors" : isBuildersRisk ? "builders-risk-v13" : "standard";
+    const templateType = useApartmentTemplate ? "apartment" : isCommercialProperty ? "commercial" : isContractors ? "contractors" : isBuildersRisk ? "builders-risk-v14" : "standard";
 
     // 🚀 CACHE CHECK: Hash the proposalData JSON for stability
     const isRefresh = req.nextUrl.searchParams.get("refresh") === "true" || req.nextUrl.searchParams.get("nocache") === "true";
