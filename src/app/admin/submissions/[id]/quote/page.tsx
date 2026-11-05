@@ -693,7 +693,7 @@ export default function AdminQuotePage() {
 
         console.log(`[Quote Page] Tax API response:`, data);
 
-        if (data.success && data.taxRate && data.taxAmount) {
+        if (data.success && data.taxRate !== undefined && data.taxAmount !== undefined) {
           setPremiumTaxPercent(data.taxRate.toFixed(2));
           setPremiumTaxAmountUSD(data.taxAmount.toString());
           if (data.filingFee) setStampingFeePerFilingUSD(data.filingFee.toString());

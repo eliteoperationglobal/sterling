@@ -14,6 +14,7 @@ import {
   getStampingFeePerFiling,
   getSLAServiceCharge,
 } from "@/lib/data/stateTaxRates";
+import { getStateCode } from "@/lib/utils/stateConverter";
 
 
 const STATE_NAME_TO_CODE: Record<string, string> = {
@@ -115,16 +116,13 @@ export async function POST(
     const rawState = (
       submission?.clientContact?.businessAddress?.state ||
       submission?.payload?.state ||
-      submission?.clientContact?.businessAddress?.state ||
       submission?.payload?.addressState ||
       submission?.state ||
       ""
-    ).toString().trim().toUpperCase();
+    ).toString().trim();
 
-    // If full name like "Pennsylvania" came in, convert to "PA"
-    const state = rawState.length > 2
-      ? (STATE_NAME_TO_CODE[rawState] || rawState)
-      : rawState;
+    // Convert state to 2-letter uppercase code (e.g. "Oregon" -> "OR")
+    const state = getStateCode(rawState);
 
 
     if (!submission) {
