@@ -204,6 +204,29 @@ export function generateProposalHTML(data: ProposalData): string {
 		titleFontSize = "2.5em";
 	}
 
+	const hasExcessLiability = Boolean(
+		((String(data?.addExcessLiability) === 'true' || data?.addExcessLiability === true || data?.isExcessOnlyProposal) &&
+		 (data?.excessLiabilityAmount !== undefined || data?.excessLiabilityLimit !== undefined)) ||
+		(data?.excessLiabilityLimit && String(data?.excessLiabilityLimit).trim() !== "")
+	);
+	const hasPollutionLiability = Boolean(
+		((String(data?.addPollutionLiability) === 'true' || data?.addPollutionLiability === true) && Boolean(data?.pollutionLiabilityLimit)) ||
+		(data?.pollutionLiabilityLimit && String(data?.pollutionLiabilityLimit).trim() !== "")
+	);
+	const hasProfessionalLiability = Boolean(
+		((String(data?.addProfessionalLiability) === 'true' || data?.addProfessionalLiability === true) && Boolean(data?.professionalLiabilityLimit)) ||
+		(data?.professionalLiabilityLimit && String(data?.professionalLiabilityLimit).trim() !== "")
+	);
+	const extraCoveragesCount = (hasExcessLiability ? 1 : 0) + (hasPollutionLiability ? 1 : 0) + (hasProfessionalLiability ? 1 : 0);
+	const isFourCoverages = !data.isBuildersRisk && !data.isExcessOnlyProposal && extraCoveragesCount >= 3;
+
+	const glTableTop = isFourCoverages ? "7.7em" : "8.3em";
+	const glTableMinHeight = isFourCoverages ? "20.2em" : "19.2em";
+	const glTableFontSize = isFourCoverages ? "0.82em" : "0.833333em";
+	const glTableLineHeight = isFourCoverages ? "1.25" : "1.3";
+	const glHeaderPadding = isFourCoverages ? "0.32em 0.5em" : "0.45em 0.5em";
+	const glRowPadding = isFourCoverages ? "0.30em 0.5em" : "0.52em 0.5em";
+
 	return `
 <!DOCTYPE html><!--[if IE]>  <html class="nsp1_ie"> <![endif]-->
 <html>
@@ -664,73 +687,73 @@ export function generateProposalHTML(data: ProposalData): string {
 						class="pdf24new_18 pdf24new_08 pdf24new_09" style="word-spacing:0.0002em;">Coverage Summary
 						&nbsp;</span></div>
 				<!-- White overlay: covers the entire background image table area exactly -->
-				<div style="position:absolute; left:4.5em; top:8.3em; width:42em; min-height:19.2em; background:#fff; z-index:1; box-sizing:border-box;">
+				<div style="position:absolute; left:4.5em; top:${glTableTop}; width:42em; min-height:${glTableMinHeight}; background:#fff; z-index:1; box-sizing:border-box;">
 
 					<!-- Coverage Summary HTML Table — matches background image table style -->
-					<table style="width:100%; border-collapse:collapse; table-layout:fixed; font-family:'FMLOAL+Arial',Arial,sans-serif; font-size:0.833333em; color:#1E1E1E; line-height:1.3;">
+					<table style="width:100%; border-collapse:collapse; table-layout:fixed; font-family:'FMLOAL+Arial',Arial,sans-serif; font-size:${glTableFontSize}; color:#1E1E1E; line-height:${glTableLineHeight};">
 						<colgroup>
 							<col style="width:60%;">
 							<col style="width:40%;">
 						</colgroup>
 						<thead>
 							<tr>
-								<th style="background:#D5E3F0; border:1px solid #9AAFC5; padding:0.45em 0.5em; text-align:center; font-weight:normal;">Coverage Type</th>
-								<th style="background:#D5E3F0; border:1px solid #9AAFC5; border-left:none; padding:0.45em 0.5em; text-align:center; font-weight:normal;">Limit</th>
+								<th style="background:#D5E3F0; border:1px solid #9AAFC5; padding:${glHeaderPadding}; text-align:center; font-weight:normal;">Coverage Type</th>
+								<th style="background:#D5E3F0; border:1px solid #9AAFC5; border-left:none; padding:${glHeaderPadding}; text-align:center; font-weight:normal;">Limit</th>
 							</tr>
 						</thead>
 						<tbody>
 								${!data.isExcessOnlyProposal ? `
 							<tr>
-								<td style="border:1px solid #9AAFC5; border-top:none; padding:0.52em 0.5em; text-align:center;">Each Occurrence Limit</td>
-								<td style="border:1px solid #9AAFC5; border-top:none; border-left:none; padding:0.52em 0.5em; text-align:center;">${data.occurrenceLimit || ""}</td>
+								<td style="border:1px solid #9AAFC5; border-top:none; padding:${glRowPadding}; text-align:center;">Each Occurrence Limit</td>
+								<td style="border:1px solid #9AAFC5; border-top:none; border-left:none; padding:${glRowPadding}; text-align:center;">${data.occurrenceLimit || ""}</td>
 							</tr>
 							<tr>
-								<td style="border:1px solid #9AAFC5; border-top:none; padding:0.52em 0.5em; text-align:center;">Damages to Premises Rented to You Limit</td>
-								<td style="border:1px solid #9AAFC5; border-top:none; border-left:none; padding:0.52em 0.5em; text-align:center;">${data.fireLegalLimit || ""}</td>
+								<td style="border:1px solid #9AAFC5; border-top:none; padding:${glRowPadding}; text-align:center;">Damages to Premises Rented to You Limit</td>
+								<td style="border:1px solid #9AAFC5; border-top:none; border-left:none; padding:${glRowPadding}; text-align:center;">${data.fireLegalLimit || ""}</td>
 							</tr>
 							<tr>
-								<td style="border:1px solid #9AAFC5; border-top:none; padding:0.52em 0.5em; text-align:center;">Medical Expense Limit</td>
-								<td style="border:1px solid #9AAFC5; border-top:none; border-left:none; padding:0.52em 0.5em; text-align:center;">${data.medPayLimit || "Not Applicable"}</td>
+								<td style="border:1px solid #9AAFC5; border-top:none; padding:${glRowPadding}; text-align:center;">Medical Expense Limit</td>
+								<td style="border:1px solid #9AAFC5; border-top:none; border-left:none; padding:${glRowPadding}; text-align:center;">${data.medPayLimit || "Not Applicable"}</td>
 							</tr>
 							<tr>
-								<td style="border:1px solid #9AAFC5; border-top:none; padding:0.52em 0.5em; text-align:center;">Personal &amp; Advertising Injury Limit</td>
-								<td style="border:1px solid #9AAFC5; border-top:none; border-left:none; padding:0.52em 0.5em; text-align:center;">${data.personalAdvertisingInjuryLimit || ""}</td>
+								<td style="border:1px solid #9AAFC5; border-top:none; padding:${glRowPadding}; text-align:center;">Personal &amp; Advertising Injury Limit</td>
+								<td style="border:1px solid #9AAFC5; border-top:none; border-left:none; padding:${glRowPadding}; text-align:center;">${data.personalAdvertisingInjuryLimit || ""}</td>
 							</tr>
 							<tr>
-								<td style="border:1px solid #9AAFC5; border-top:none; padding:0.52em 0.5em; text-align:center;">General Aggregate Limit</td>
-								<td style="border:1px solid #9AAFC5; border-top:none; border-left:none; padding:0.52em 0.5em; text-align:center;">${data.aggregateLimit || ""}</td>
+								<td style="border:1px solid #9AAFC5; border-top:none; padding:${glRowPadding}; text-align:center;">General Aggregate Limit</td>
+								<td style="border:1px solid #9AAFC5; border-top:none; border-left:none; padding:${glRowPadding}; text-align:center;">${data.aggregateLimit || ""}</td>
 							</tr>
 							<tr>
-								<td style="border:1px solid #9AAFC5; border-top:none; padding:0.52em 0.5em; text-align:center;">Products / Completed Operations Aggregate Limit</td>
-								<td style="border:1px solid #9AAFC5; border-top:none; border-left:none; padding:0.52em 0.5em; text-align:center;">${data.productsCompletedOpsLimit || ""}</td>
+								<td style="border:1px solid #9AAFC5; border-top:none; padding:${glRowPadding}; text-align:center;">Products / Completed Operations Aggregate Limit</td>
+								<td style="border:1px solid #9AAFC5; border-top:none; border-left:none; padding:${glRowPadding}; text-align:center;">${data.productsCompletedOpsLimit || ""}</td>
 							</tr>
 							<tr>
-								<td style="border:1px solid #9AAFC5; border-top:none; padding:0.52em 0.5em; text-align:center;">Deductible</td>
-								<td style="border:1px solid #9AAFC5; border-top:none; border-left:none; padding:0.52em 0.5em; text-align:center;">${data.selfInsuredRetention || "Not Applicable"}</td>
+								<td style="border:1px solid #9AAFC5; border-top:none; padding:${glRowPadding}; text-align:center;">Deductible</td>
+								<td style="border:1px solid #9AAFC5; border-top:none; border-left:none; padding:${glRowPadding}; text-align:center;">${data.selfInsuredRetention || "Not Applicable"}</td>
 							</tr>
 								` : ""}
-							${((String(data?.addExcessLiability) === 'true' || data?.isExcessOnlyProposal) && (data?.excessLiabilityAmount !== undefined || data?.excessLiabilityLimit !== undefined)) ? `
+							${hasExcessLiability ? `
 							<tr>
-								<td style="border:1px solid #9AAFC5; border-top:none; padding:0.52em 0.5em; text-align:center;">Excess Liability</td>
-								<td style="border:1px solid #9AAFC5; border-top:none; border-left:none; padding:0.52em 0.5em; text-align:center;">${data.excessLiabilityLimit || (data.excessLiabilityAmount ? `$${Number(data.excessLiabilityAmount).toLocaleString('en-US')}` : "")}</td>
+								<td style="border:1px solid #9AAFC5; border-top:none; padding:${glRowPadding}; text-align:center;">Excess Liability</td>
+								<td style="border:1px solid #9AAFC5; border-top:none; border-left:none; padding:${glRowPadding}; text-align:center;">${data.excessLiabilityLimit || (data.excessLiabilityAmount ? `$${Number(data.excessLiabilityAmount).toLocaleString('en-US')}` : "")}</td>
 							</tr>
 							` : ""}
-							${((String(data?.addPollutionLiability) === 'true' || data?.addPollutionLiability === true) && data?.pollutionLiabilityLimit) ? `
+							${hasPollutionLiability ? `
 							<tr>
-								<td style="border:1px solid #9AAFC5; border-top:none; padding:0.52em 0.5em; text-align:center;">Pollution Liability</td>
-								<td style="border:1px solid #9AAFC5; border-top:none; border-left:none; padding:0.52em 0.5em; text-align:center;">${data.pollutionLiabilityLimit}</td>
+								<td style="border:1px solid #9AAFC5; border-top:none; padding:${glRowPadding}; text-align:center;">Pollution Liability</td>
+								<td style="border:1px solid #9AAFC5; border-top:none; border-left:none; padding:${glRowPadding}; text-align:center;">${data.pollutionLiabilityLimit}</td>
 							</tr>
 							` : ""}
-							${((String(data?.addProfessionalLiability) === 'true' || data?.addProfessionalLiability === true) && data?.professionalLiabilityLimit) ? `
+							${hasProfessionalLiability ? `
 							<tr>
-								<td style="border:1px solid #9AAFC5; border-top:none; padding:0.52em 0.5em; text-align:center;">Professional Liability</td>
-								<td style="border:1px solid #9AAFC5; border-top:none; border-left:none; padding:0.52em 0.5em; text-align:center;">${data.professionalLiabilityLimit}</td>
+								<td style="border:1px solid #9AAFC5; border-top:none; padding:${glRowPadding}; text-align:center;">Professional Liability</td>
+								<td style="border:1px solid #9AAFC5; border-top:none; border-left:none; padding:${glRowPadding}; text-align:center;">${data.professionalLiabilityLimit}</td>
 							</tr>
 							` : ""}
 						</tbody>
 					</table>
 				</div>
-				<div class="pdf24new_01" style="left:21.9954em;top:28.7831em;"><span
+				<div class="pdf24new_01" style="left:21.9954em;top:28.7831em;z-index:2;"><span
 						class="pdf24new_15 pdf24new_11 pdf24new_12" style="word-spacing:0em;">Policy Details
 						&nbsp;</span></div>
 				<div style="position:absolute;left:16em;top:31.5em;width:28em;">
@@ -742,7 +765,7 @@ export function generateProposalHTML(data: ProposalData): string {
 							</tr>
 							<tr>
 								<td style="width:1%;white-space:nowrap;text-align:left;padding:0.22em 0.6em 0.22em 0;vertical-align:top;"><span class="pdf24new_21 pdf24new_11 pdf24new_12" style="word-spacing:-0.0075em;">Policy Form:</span></td>
-								<td style="text-align:left;padding:0.22em 0 0.22em 0.6em;vertical-align:top;"><span class="pdf24new_22 pdf24new_11 pdf24new_09">${data.isExcessOnlyProposal ? "Excess Liability" : `General Liability ${String(data?.addExcessLiability) === 'true' ? "&amp; Excess Liability" : ""}${String(data?.addPollutionLiability) === 'true' || data?.addPollutionLiability === true ? "&amp; Pollution Liability" : ""}${String(data?.addProfessionalLiability) === 'true' || data?.addProfessionalLiability === true ? "&amp; Professional Liability" : ""}`}</span></td>
+								<td style="text-align:left;padding:0.22em 0 0.22em 0.6em;vertical-align:top;"><span class="pdf24new_22 pdf24new_11 pdf24new_09">${data.isExcessOnlyProposal ? "Excess Liability" : `General Liability${hasExcessLiability ? " &amp; Excess Liability" : ""}${hasPollutionLiability ? " &amp; Pollution Liability" : ""}${hasProfessionalLiability ? " &amp; Professional Liability" : ""}`}</span></td>
 							</tr>
 							<tr>
 								<td style="width:1%;white-space:nowrap;text-align:left;padding:0.22em 0.6em 0.22em 0;vertical-align:top;"><span class="pdf24new_21 pdf24new_11 pdf24new_12" style="word-spacing:-0.0139em;">Active Owners:</span></td>

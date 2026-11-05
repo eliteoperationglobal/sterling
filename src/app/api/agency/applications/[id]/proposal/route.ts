@@ -471,8 +471,9 @@ export async function GET(
     const templateType = useApartmentTemplate ? "apartment" : isCommercialProperty ? "commercial" : isContractors ? "contractors" : isBuildersRisk ? "builders-risk-v14" : "standard";
 
     // 🚀 CACHE CHECK: Hash the proposalData JSON for stability
+    const TEMPLATE_VERSION = "v5_remove_extra_line";
     const isRefresh = req.nextUrl.searchParams.get("refresh") === "true" || req.nextUrl.searchParams.get("nocache") === "true";
-    const dataHash = crypto.createHash("md5").update(JSON.stringify(proposalData) + templateType).digest("hex");
+    const dataHash = crypto.createHash("md5").update(JSON.stringify(proposalData) + templateType + TEMPLATE_VERSION).digest("hex");
 
     if (!isRefresh) {
       try {
