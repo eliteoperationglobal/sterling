@@ -302,6 +302,7 @@ export async function POST(
       existingQuote.totalToBeSentUSD = totalToBeSentUSD;
       existingQuote.totalToFinanceCompanyUSD = totalToFinanceCompanyUSD;
       existingQuote.limits = limits || undefined;
+      existingQuote.markModified('limits');
       existingQuote.endorsements = endorsements || [];
       existingQuote.effectiveDate = effectiveDate
         ? new Date(effectiveDate)

@@ -90,12 +90,37 @@ interface SubmissionDetails {
 
 const formatCurrency = (val: any) => {
   if (val === undefined || val === null) return "—";
-  const num = Number(val);
+  const clean = typeof val === 'string' ? val.replace(/[^0-9.-]/g, '') : val;
+  const num = Number(clean);
   if (isNaN(num)) return "—";
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
   }).format(num);
+};
+
+const formatLimitCurrency = (val: any): string | null => {
+  if (val === undefined || val === null || val === '') return null;
+  const str = String(val).trim();
+  if (!str || str.toLowerCase() === 'undefined' || str.toLowerCase() === 'null') return null;
+  const lower = str.toLowerCase();
+  if (['included', 'excluded', 'demolished', 'not provided', 'acv', 'rcv', 'actual cash value', 'replacement cost', 'agreed value', 'n/a', 'none'].includes(lower)) {
+    return str;
+  }
+  const clean = str.replace(/[^0-9.]/g, '');
+  if (!clean) return str;
+  const num = Number(clean);
+  if (isNaN(num)) return str;
+  return `$${num.toLocaleString('en-US')}`;
+};
+
+const formatLimitCoinsurance = (val: any): string | null => {
+  if (val === undefined || val === null || val === '') return null;
+  const str = String(val).trim();
+  if (!str || str.toLowerCase() === 'undefined' || str.toLowerCase() === 'null') return null;
+  const clean = str.replace(/[^0-9]/g, '');
+  if (!clean) return null;
+  return `${clean}%`;
 };
 
 const RatingRow = ({ label, value }: { label: string; value: string | number }) => (
@@ -1896,8 +1921,8 @@ export default function AdminSubmissionDetailsPage() {
               <div className="flex">
                 <span className="w-28 text-gray-500">Cost:</span>
                 <span className="font-medium text-gray-900 leading-[18px] tracking-tight">
-                  {currentQuote?.finalAmountUSD
-                    ? `$${currentQuote.finalAmountUSD.toLocaleString('en-US')}`
+                  {currentQuote?.finalAmountUSD != null
+                    ? `$${Number(String(currentQuote.finalAmountUSD).replace(/[^0-9.]/g, '') || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
                     : "Not Quoted"}
                 </span>
               </div>
@@ -1973,56 +1998,116 @@ export default function AdminSubmissionDetailsPage() {
               </div>
             )}
 
-            {isBuildersRisk && currentQuote?.limits && (
+            {(isBuildersRisk || Boolean(currentQuote?.limits?.limitPerOccurrence || currentQuote?.limits?.completedValue || currentQuote?.limits?.totalInsurableValue || (currentQuote?.limits as any)?.allPerilsDeductible || (currentQuote?.limits as any)?.allPerils)) && currentQuote?.limits && (
               <div className="col-span-1 md:col-span-2 pt-4 border-t border-gray-100 grid grid-cols-2 sm:grid-cols-4 gap-4 bg-amber-50/50 p-4 rounded-xl border border-amber-200/60">
-                {currentQuote.limits.limitPerOccurrence && (
+                {formatLimitCurrency(currentQuote.limits.limitPerOccurrence) && (
                   <div>
                     <span className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">Limit Per Occurrence</span>
-                    <span className="font-bold text-gray-900 text-[15px]">${Number(currentQuote.limits.limitPerOccurrence).toLocaleString('en-US')}</span>
+                    <span className="font-bold text-gray-900 text-[15px]">{formatLimitCurrency(currentQuote.limits.limitPerOccurrence)}</span>
                   </div>
                 )}
-                {currentQuote.limits.completedValue && (
+                {formatLimitCurrency(currentQuote.limits.completedValue) && (
                   <div>
                     <span className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">Completed Value</span>
-                    <span className="font-bold text-gray-900 text-[15px]">${Number(currentQuote.limits.completedValue).toLocaleString('en-US')}</span>
+                    <span className="font-bold text-gray-900 text-[15px]">{formatLimitCurrency(currentQuote.limits.completedValue)}</span>
                   </div>
                 )}
-                {currentQuote.limits.totalInsurableValue && (
+                {formatLimitCurrency(currentQuote.limits.totalInsurableValue) && (
                   <div>
                     <span className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">Total Insurable Value</span>
-                    <span className="font-bold text-gray-900 text-[15px]">${Number(currentQuote.limits.totalInsurableValue).toLocaleString('en-US')}</span>
+                    <span className="font-bold text-gray-900 text-[15px]">{formatLimitCurrency(currentQuote.limits.totalInsurableValue)}</span>
                   </div>
                 )}
-                {currentQuote.limits.existingStructure && (
+                {formatLimitCurrency(currentQuote.limits.existingStructure) && (
                   <div>
                     <span className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">Existing Structure</span>
-                    <span className="font-bold text-gray-900 text-[15px]">{currentQuote.limits.existingStructure}</span>
+                    <span className="font-bold text-gray-900 text-[15px]">{formatLimitCurrency(currentQuote.limits.existingStructure)}</span>
                   </div>
                 )}
-                {currentQuote.limits.valuation && (
+                {formatLimitCurrency(currentQuote.limits.valuation) && (
                   <div>
                     <span className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">Valuation</span>
-                    <span className="font-bold text-gray-900 text-[15px]">{currentQuote.limits.valuation}</span>
+                    <span className="font-bold text-gray-900 text-[15px]">{formatLimitCurrency(currentQuote.limits.valuation)}</span>
                   </div>
                 )}
-                {currentQuote.limits.coinsurance && (
+                {formatLimitCoinsurance(currentQuote.limits.coinsurance) && (
                   <div>
                     <span className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">Coinsurance</span>
-                    <span className="font-bold text-gray-900 text-[15px]">{currentQuote.limits.coinsurance}%</span>
+                    <span className="font-bold text-gray-900 text-[15px]">{formatLimitCoinsurance(currentQuote.limits.coinsurance)}</span>
                   </div>
                 )}
-                {currentQuote.limits.waterDamageSublimit && (
+                {formatLimitCurrency(currentQuote.limits.waterDamageSublimit || (currentQuote.limits as any).waterDamage) && (
                   <div>
                     <span className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">Water Damage</span>
-                    <span className="font-bold text-gray-900 text-[15px]">{(() => { const clean = String(currentQuote.limits.waterDamageSublimit).replace(/[^0-9.]/g, ''); const num = Number(clean); return isNaN(num) || !clean ? currentQuote.limits.waterDamageSublimit : `$${num.toLocaleString('en-US')}`; })()}</span>
+                    <span className="font-bold text-gray-900 text-[15px]">{formatLimitCurrency(currentQuote.limits.waterDamageSublimit || (currentQuote.limits as any).waterDamage)}</span>
                   </div>
                 )}
-                {currentQuote.limits.softCostsSublimit && (
+                {formatLimitCurrency(currentQuote.limits.softCostsSublimit) && (
                   <div>
                     <span className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">Soft Costs</span>
-                    <span className="font-bold text-gray-900 text-[15px]">{currentQuote.limits.softCostsSublimit.startsWith('$') ? currentQuote.limits.softCostsSublimit : `$${currentQuote.limits.softCostsSublimit}`}</span>
+                    <span className="font-bold text-gray-900 text-[15px]">{formatLimitCurrency(currentQuote.limits.softCostsSublimit)}</span>
                   </div>
                 )}
+                {formatLimitCurrency(currentQuote.limits.delayInCompletionSublimit) && (
+                  <div>
+                    <span className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">Delay In Completion</span>
+                    <span className="font-bold text-gray-900 text-[15px]">{formatLimitCurrency(currentQuote.limits.delayInCompletionSublimit)}</span>
+                  </div>
+                )}
+                {formatLimitCurrency(currentQuote.limits.propertyInTransitSublimit) && (
+                  <div>
+                    <span className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">Property In Transit</span>
+                    <span className="font-bold text-gray-900 text-[15px]">{formatLimitCurrency(currentQuote.limits.propertyInTransitSublimit)}</span>
+                  </div>
+                )}
+                {formatLimitCurrency(currentQuote.limits.temporaryOffsiteStorageSublimit) && (
+                  <div>
+                    <span className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">Temporary Offsite Storage</span>
+                    <span className="font-bold text-gray-900 text-[15px]">{formatLimitCurrency(currentQuote.limits.temporaryOffsiteStorageSublimit)}</span>
+                  </div>
+                )}
+                {formatLimitCurrency(currentQuote.limits.debrisRemovalSublimit) && (
+                  <div>
+                    <span className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">Debris Removal</span>
+                    <span className="font-bold text-gray-900 text-[15px]">{formatLimitCurrency(currentQuote.limits.debrisRemovalSublimit)}</span>
+                  </div>
+                )}
+                {formatLimitCurrency(currentQuote.limits.pollutantCleanupSublimit) && (
+                  <div>
+                    <span className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">Pollutant Clean-up</span>
+                    <span className="font-bold text-gray-900 text-[15px]">{formatLimitCurrency(currentQuote.limits.pollutantCleanupSublimit)}</span>
+                  </div>
+                )}
+                {formatLimitCurrency(currentQuote.limits.ordinanceOrLawSublimit) && (
+                  <div>
+                    <span className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">Ordinance Or Law</span>
+                    <span className="font-bold text-gray-900 text-[15px]">{formatLimitCurrency(currentQuote.limits.ordinanceOrLawSublimit)}</span>
+                  </div>
+                )}
+                {formatLimitCurrency(currentQuote.limits.scaffoldingSublimit) && (
+                  <div>
+                    <span className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">Scaffolding</span>
+                    <span className="font-bold text-gray-900 text-[15px]">{formatLimitCurrency(currentQuote.limits.scaffoldingSublimit)}</span>
+                  </div>
+                )}
+                {formatLimitCurrency(currentQuote.limits.fireDeptServiceChargeSublimit) && (
+                  <div>
+                    <span className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">Fire Dept Service Charge</span>
+                    <span className="font-bold text-gray-900 text-[15px]">{formatLimitCurrency(currentQuote.limits.fireDeptServiceChargeSublimit)}</span>
+                  </div>
+                )}
+                <div>
+                  <span className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">All-Perils</span>
+                  <span className="font-bold text-gray-900 text-[15px]">{formatLimitCurrency((currentQuote.limits as any)?.allPerilsDeductible || (currentQuote.limits as any)?.allPerils) || "$0"}</span>
+                </div>
+                <div>
+                  <span className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">Fire Deductibles</span>
+                  <span className="font-bold text-gray-900 text-[15px]">{formatLimitCurrency((currentQuote.limits as any)?.fireDeductible || (currentQuote.limits as any)?.fireDeductibles) || "$0"}</span>
+                </div>
+                <div>
+                  <span className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">Building Value</span>
+                  <span className="font-bold text-gray-900 text-[15px]">{formatLimitCurrency((currentQuote.limits as any)?.buildingValue) || "$0"}</span>
+                </div>
               </div>
             )}
 

@@ -107,6 +107,9 @@ export default function AdminQuotePage() {
   const [buildersOrdinanceOrLaw, setBuildersOrdinanceOrLaw] = useState("0");
   const [buildersScaffolding, setBuildersScaffolding] = useState("0");
   const [buildersFireDeptServiceCharge, setBuildersFireDeptServiceCharge] = useState("0");
+  const [buildersAllPerils, setBuildersAllPerils] = useState("0");
+  const [buildersFireDeductible, setBuildersFireDeductible] = useState("0");
+  const [buildersBuildingValue, setBuildersBuildingValue] = useState("0");
 
   // Endorsements (will be auto-populated from application form)
   const [selectedEndorsements, setSelectedEndorsements] = useState<string[]>([]);
@@ -415,6 +418,12 @@ export default function AdminQuotePage() {
           if (formData.coinsurance) setBuildersCoinsurance(String(formData.coinsurance).replace(/[^0-9]/g, ''));
           const wd = formData.waterDamageSublimit || formData.waterDamage;
           if (wd) setBuildersWaterDamage(formatCurrencyInput(String(wd).replace(/[^0-9.]/g, '')));
+          const allPerils = formData.allPerilsDeductible || formData.allPerils || formData.deductible;
+          if (allPerils) setBuildersAllPerils(formatCurrencyInput(String(allPerils).replace(/[^0-9.]/g, '')));
+          const fireDed = formData.fireDeductible || formData.fireDeductibles;
+          if (fireDed) setBuildersFireDeductible(formatCurrencyInput(String(fireDed).replace(/[^0-9.]/g, '')));
+          const bldgVal = formData.buildingValue || formData.buildingLimit;
+          if (bldgVal) setBuildersBuildingValue(formatCurrencyInput(String(bldgVal).replace(/[^0-9.]/g, '')));
         }
       }
     }
@@ -515,6 +524,9 @@ export default function AdminQuotePage() {
           buildersOrdinanceOrLaw: q.limits?.ordinanceOrLawSublimit || "0",
           buildersScaffolding: q.limits?.scaffoldingSublimit || "0",
           buildersFireDeptServiceCharge: q.limits?.fireDeptServiceChargeSublimit || "0",
+          buildersAllPerils: (q.limits as any)?.allPerilsDeductible || (q.limits as any)?.allPerils || "0",
+          buildersFireDeductible: (q.limits as any)?.fireDeductible || (q.limits as any)?.fireDeductibles || "0",
+          buildersBuildingValue: (q.limits as any)?.buildingValue || "0",
           inlandMarineEndorsements: q.endorsements || [],
           selectedEndorsements: q.endorsements || [],
           effectiveDate: q.effectiveDate ? new Date(q.effectiveDate).toISOString().split("T")[0] : "",
@@ -607,6 +619,9 @@ export default function AdminQuotePage() {
           if (s.buildersOrdinanceOrLaw !== undefined && s.buildersOrdinanceOrLaw !== null) setBuildersOrdinanceOrLaw(s.buildersOrdinanceOrLaw);
           if (s.buildersScaffolding !== undefined && s.buildersScaffolding !== null) setBuildersScaffolding(s.buildersScaffolding);
           if (s.buildersFireDeptServiceCharge !== undefined && s.buildersFireDeptServiceCharge !== null) setBuildersFireDeptServiceCharge(s.buildersFireDeptServiceCharge);
+          if (s.buildersAllPerils !== undefined && s.buildersAllPerils !== null) setBuildersAllPerils(s.buildersAllPerils);
+          if (s.buildersFireDeductible !== undefined && s.buildersFireDeductible !== null) setBuildersFireDeductible(s.buildersFireDeductible);
+          if (s.buildersBuildingValue !== undefined && s.buildersBuildingValue !== null) setBuildersBuildingValue(s.buildersBuildingValue);
           setSelectedEndorsements(s.selectedEndorsements);
           setEffectiveDate(s.effectiveDate);
           setExpirationDate(s.expirationDate);
@@ -1000,6 +1015,9 @@ export default function AdminQuotePage() {
       buildersOrdinanceOrLaw,
       buildersScaffolding,
       buildersFireDeptServiceCharge,
+      buildersAllPerils,
+      buildersFireDeductible,
+      buildersBuildingValue,
       selectedEndorsements,
       effectiveDate,
       expirationDate,
@@ -1064,6 +1082,9 @@ export default function AdminQuotePage() {
       buildersOrdinanceOrLaw,
       buildersScaffolding,
       buildersFireDeptServiceCharge,
+      buildersAllPerils,
+      buildersFireDeductible,
+      buildersBuildingValue,
       selectedEndorsements,
       effectiveDate,
       expirationDate,
@@ -1124,6 +1145,9 @@ export default function AdminQuotePage() {
     buildersOrdinanceOrLaw,
     buildersScaffolding,
     buildersFireDeptServiceCharge,
+    buildersAllPerils,
+    buildersFireDeductible,
+    buildersBuildingValue,
     selectedEndorsements,
     effectiveDate,
     expirationDate,
@@ -1357,6 +1381,15 @@ export default function AdminQuotePage() {
           if (activeState.buildersFireDeptServiceCharge !== undefined && activeState.buildersFireDeptServiceCharge !== null && activeState.buildersFireDeptServiceCharge !== "") {
             setBuildersFireDeptServiceCharge(String(activeState.buildersFireDeptServiceCharge));
           }
+          if (activeState.buildersAllPerils !== undefined && activeState.buildersAllPerils !== null && activeState.buildersAllPerils !== "") {
+            setBuildersAllPerils(String(activeState.buildersAllPerils));
+          }
+          if (activeState.buildersFireDeductible !== undefined && activeState.buildersFireDeductible !== null && activeState.buildersFireDeductible !== "") {
+            setBuildersFireDeductible(String(activeState.buildersFireDeductible));
+          }
+          if (activeState.buildersBuildingValue !== undefined && activeState.buildersBuildingValue !== null && activeState.buildersBuildingValue !== "") {
+            setBuildersBuildingValue(String(activeState.buildersBuildingValue));
+          }
           console.log("[AdminQuote] Form fields restored from draft!");
         } else {
           console.log("[AdminQuote] No draft data found, using defaults");
@@ -1371,6 +1404,17 @@ export default function AdminQuotePage() {
   const buildPolicyPayload = (state: any, policyType: string) => {
     const isContractors = isContractorsEquipment && policyType === "GENERAL_LIABILITY";
     const isBuilders = isBuildersRisk && policyType === "GENERAL_LIABILITY";
+    const cleanLimit = (val: any) => {
+      if (val === undefined || val === null || val === '') return undefined;
+      const str = String(val).trim();
+      if (!str || str.toLowerCase() === 'undefined' || str.toLowerCase() === 'null') return undefined;
+      const clean = str.replace(/[^0-9.]/g, '');
+      if (clean && !isNaN(Number(clean))) {
+        return clean;
+      }
+      return str;
+    };
+
     const limits = isContractors ? {
       scheduledEquipment: state.scheduledEquipment || undefined,
       unscheduledTools: state.unscheduledTools || undefined,
@@ -1381,22 +1425,27 @@ export default function AdminQuotePage() {
       coinsurance: state.coinsurance || undefined,
       valuation: state.valuation || undefined,
     } : isBuilders ? {
-      limitPerOccurrence: state.buildersLimitPerOccurrence || undefined,
-      completedValue: state.buildersCompletedValue || undefined,
-      totalInsurableValue: state.buildersTotalInsurableValue || undefined,
+      limitPerOccurrence: cleanLimit(state.buildersLimitPerOccurrence),
+      completedValue: cleanLimit(state.buildersCompletedValue),
+      totalInsurableValue: cleanLimit(state.buildersTotalInsurableValue),
       existingStructure: state.buildersExistingStructure || undefined,
       valuation: state.buildersValuation || undefined,
-      coinsurance: state.buildersCoinsurance || undefined,
-      waterDamageSublimit: state.buildersWaterDamage || undefined,
-      softCostsSublimit: state.buildersSoftCosts || undefined,
-      delayInCompletionSublimit: state.buildersDelayInCompletion || undefined,
-      propertyInTransitSublimit: state.buildersPropertyInTransit || undefined,
-      temporaryOffsiteStorageSublimit: state.buildersTemporaryStorage || undefined,
-      debrisRemovalSublimit: state.buildersDebrisRemoval || undefined,
-      pollutantCleanupSublimit: state.buildersPollutantCleanup || undefined,
-      ordinanceOrLawSublimit: state.buildersOrdinanceOrLaw || undefined,
-      scaffoldingSublimit: state.buildersScaffolding || undefined,
-      fireDeptServiceChargeSublimit: state.buildersFireDeptServiceCharge || undefined,
+      coinsurance: cleanLimit(state.buildersCoinsurance),
+      waterDamageSublimit: cleanLimit(state.buildersWaterDamage),
+      softCostsSublimit: cleanLimit(state.buildersSoftCosts),
+      delayInCompletionSublimit: cleanLimit(state.buildersDelayInCompletion),
+      propertyInTransitSublimit: cleanLimit(state.buildersPropertyInTransit),
+      temporaryOffsiteStorageSublimit: cleanLimit(state.buildersTemporaryStorage),
+      debrisRemovalSublimit: cleanLimit(state.buildersDebrisRemoval),
+      pollutantCleanupSublimit: cleanLimit(state.buildersPollutantCleanup),
+      ordinanceOrLawSublimit: cleanLimit(state.buildersOrdinanceOrLaw),
+      scaffoldingSublimit: cleanLimit(state.buildersScaffolding),
+      fireDeptServiceChargeSublimit: cleanLimit(state.buildersFireDeptServiceCharge),
+      allPerilsDeductible: cleanLimit(state.buildersAllPerils),
+      allPerils: cleanLimit(state.buildersAllPerils),
+      fireDeductible: cleanLimit(state.buildersFireDeductible),
+      fireDeductibles: cleanLimit(state.buildersFireDeductible),
+      buildingValue: cleanLimit(state.buildersBuildingValue),
     } : {
       generalLiability: state.generalLiabilityLimit || undefined,
       aggregateLimit: state.aggregateLimit || undefined,
@@ -1507,6 +1556,9 @@ export default function AdminQuotePage() {
         buildersOrdinanceOrLaw,
         buildersScaffolding,
         buildersFireDeptServiceCharge,
+        buildersAllPerils,
+        buildersFireDeductible,
+        buildersBuildingValue,
         selectedEndorsements,
         effectiveDate,
         expirationDate,
@@ -1626,6 +1678,9 @@ export default function AdminQuotePage() {
         buildersOrdinanceOrLaw,
         buildersScaffolding,
         buildersFireDeptServiceCharge,
+        buildersAllPerils,
+        buildersFireDeductible,
+        buildersBuildingValue,
         selectedEndorsements,
         effectiveDate,
         expirationDate,
@@ -1796,6 +1851,9 @@ export default function AdminQuotePage() {
       buildersOrdinanceOrLaw,
       buildersScaffolding,
       buildersFireDeptServiceCharge,
+      buildersAllPerils,
+      buildersFireDeductible,
+      buildersBuildingValue,
       selectedEndorsements,
       effectiveDate,
       expirationDate,
@@ -1872,6 +1930,9 @@ export default function AdminQuotePage() {
     setBuildersOrdinanceOrLaw(nextState.buildersOrdinanceOrLaw || "0");
     setBuildersScaffolding(nextState.buildersScaffolding || "0");
     setBuildersFireDeptServiceCharge(nextState.buildersFireDeptServiceCharge || "0");
+    setBuildersAllPerils(nextState.buildersAllPerils || "0");
+    setBuildersFireDeductible(nextState.buildersFireDeductible || "0");
+    setBuildersBuildingValue(nextState.buildersBuildingValue || "0");
     setSelectedEndorsements(nextState.selectedEndorsements || []);
     setEffectiveDate(nextState.effectiveDate || "");
     setExpirationDate(nextState.expirationDate || "");
@@ -3292,6 +3353,75 @@ export default function AdminQuotePage() {
                           }
                           const parsed = parseCurrency(e.target.value);
                           setBuildersFireDeptServiceCharge(!isNaN(parsed) && parsed >= 0 ? parsed.toString() : '');
+                        }}
+                        className="w-full pl-9 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-900 font-semibold focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all hover:border-gray-300 !text-gray-900"
+                        placeholder="0"
+                      />
+                    </div>
+                  </div>
+
+                  {/* 1 All-Perils */}
+                  <div>
+                    <label className="block text-sm font-bold text-gray-900 mb-2">All-Perils</label>
+                    <div className="relative">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-semibold">$</span>
+                      <input
+                        type="text"
+                        value={buildersAllPerils ? formatCurrencyInput(buildersAllPerils) : ''}
+                        onChange={(e) => setBuildersAllPerils(formatCurrencyInput(e.target.value))}
+                        onBlur={(e) => {
+                          if (e.target.value.trim() === '') {
+                            setBuildersAllPerils('');
+                            return;
+                          }
+                          const parsed = parseCurrency(e.target.value);
+                          setBuildersAllPerils(!isNaN(parsed) && parsed >= 0 ? parsed.toString() : '');
+                        }}
+                        className="w-full pl-9 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-900 font-semibold focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all hover:border-gray-300 !text-gray-900"
+                        placeholder="0"
+                      />
+                    </div>
+                  </div>
+
+                  {/* 2 Fire Deductibles */}
+                  <div>
+                    <label className="block text-sm font-bold text-gray-900 mb-2">Fire Deductibles</label>
+                    <div className="relative">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-semibold">$</span>
+                      <input
+                        type="text"
+                        value={buildersFireDeductible ? formatCurrencyInput(buildersFireDeductible) : ''}
+                        onChange={(e) => setBuildersFireDeductible(formatCurrencyInput(e.target.value))}
+                        onBlur={(e) => {
+                          if (e.target.value.trim() === '') {
+                            setBuildersFireDeductible('');
+                            return;
+                          }
+                          const parsed = parseCurrency(e.target.value);
+                          setBuildersFireDeductible(!isNaN(parsed) && parsed >= 0 ? parsed.toString() : '');
+                        }}
+                        className="w-full pl-9 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-900 font-semibold focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all hover:border-gray-300 !text-gray-900"
+                        placeholder="0"
+                      />
+                    </div>
+                  </div>
+
+                  {/* 3 Building Value */}
+                  <div>
+                    <label className="block text-sm font-bold text-gray-900 mb-2">Building Value</label>
+                    <div className="relative">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-semibold">$</span>
+                      <input
+                        type="text"
+                        value={buildersBuildingValue ? formatCurrencyInput(buildersBuildingValue) : ''}
+                        onChange={(e) => setBuildersBuildingValue(formatCurrencyInput(e.target.value))}
+                        onBlur={(e) => {
+                          if (e.target.value.trim() === '') {
+                            setBuildersBuildingValue('');
+                            return;
+                          }
+                          const parsed = parseCurrency(e.target.value);
+                          setBuildersBuildingValue(!isNaN(parsed) && parsed >= 0 ? parsed.toString() : '');
                         }}
                         className="w-full pl-9 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-900 font-semibold focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all hover:border-gray-300 !text-gray-900"
                         placeholder="0"

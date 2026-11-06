@@ -48,6 +48,11 @@ export interface ILimits {
   ordinanceOrLawSublimit?: string;
   scaffoldingSublimit?: string;
   fireDeptServiceChargeSublimit?: string;
+  allPerilsDeductible?: string;
+  allPerils?: string;
+  fireDeductible?: string;
+  fireDeductibles?: string;
+  buildingValue?: string;
 }
 
 export type PolicyType = 'GENERAL_LIABILITY' | 'EXCESS_LIABILITY' | 'PROFESSIONAL_LIABILITY' | 'POLLUTION_LIABILITY';
@@ -171,7 +176,12 @@ const LimitsSchema: Schema = new Schema({
   ordinanceOrLawSublimit: String,
   scaffoldingSublimit: String,
   fireDeptServiceChargeSublimit: String,
-}, { _id: false });
+  allPerilsDeductible: String,
+  allPerils: String,
+  fireDeductible: String,
+  fireDeductibles: String,
+  buildingValue: String,
+}, { _id: false, strict: false });
 
 const QuoteSchema: Schema = new Schema(
   {
