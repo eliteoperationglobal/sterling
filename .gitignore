@@ -5,6 +5,7 @@ node_modules/
 .env
 .env.local
 .env.*
+!.env.example
 
 # build output
 .next/
@@ -15,9 +16,11 @@ build/
 .vscode/
 .vercel
 
-# Exclude .md documentation from repo (except README)
+# Exclude .md documentation from repo (except README and docs)
 *.md
 !README.md
+!DOCUMENTATION.md
+!PROJECT_DOCUMENTATION.md
 
 # archive
 _archive/

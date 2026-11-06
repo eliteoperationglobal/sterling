@@ -1,276 +1,181 @@
 # Sterling Wholesale Insurance Portal
 
-A California-focused wholesale insurance portal built with Next.js, MongoDB, and TypeScript. This portal enables agencies to submit risks, receive quotes, finance policies, sign documents, and bind coverage—all in one integrated system.
+[![Next.js](https://img.shields.io/badge/Next.js-14.2-black?logo=next.js)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue?logo=typescript)](https://www.typescriptlang.org/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-Atlas%20%2F%20Mongoose-green?logo=mongodb)](https://www.mongodb.com/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-38bdf8?logo=tailwind-css)](https://tailwindcss.com/)
+[![License](https://img.shields.io/badge/License-Proprietary-red)]()
 
-## 🎯 Project Overview
+An enterprise-grade wholesale commercial insurance portal built with **Next.js 14 (App Router)**, **TypeScript**, and **MongoDB**. Designed specifically for US commercial lines and surplus lines brokerage operations, this platform enables retail agencies to submit complex commercial risks, receive formal underwriting proposals, finance policies via EMI installments, execute digital e-signatures, and bind coverage in a unified web platform.
 
-This is a simplified clone of an enterprise wholesale insurance portal, specifically designed for US/California operations. The system includes:
-
-- **Agency Management**: Multi-user per agency with role-based access control
-- **Dynamic Industry Forms**: CA-specific templates (Restaurant, Contractor, Trucking, and more)
-- **Automatic Carrier Routing**: Intelligent submission routing based on risk type and location
-- **Quote Management**: Admin quote entry with automatic wholesale fee calculation
-- **Finance Integration**: EMI calculator via Sterling Financial Partners API
-- **Payment Processing**: Credit Card, ACH, and Apple Pay via Sterling Payment Solutions
-- **E-Signature**: Document generation and e-signature workflow (ESIGN/UETA compliant)
-- **Policy Management**: Bind requests and policy issuance tracking
-- **Admin Dashboard**: Comprehensive reporting and CSV exports
-
-## 🛠️ Tech Stack
-
-- **Framework**: Next.js 14+ (App Router) + TypeScript
-- **Database**: MongoDB (Mongoose)
-- **Authentication**: NextAuth.js (Credentials Provider)
-- **Styling**: Tailwind CSS
-- **Forms**: react-hook-form + zod
-- **File Uploads**: multer/formidable
-- **Additional**: bcryptjs, jsonwebtoken, dayjs, csv-stringify
-
-## 📋 4-Day MVP Schedule (CA Client)
-
-### Day 1: Foundation & Auth
-- ✅ Next.js + TypeScript setup
-- ✅ MongoDB connection (Mongoose)
-- ✅ Agency + User models
-- ✅ NextAuth with Credentials Provider
-- ✅ RBAC middleware
-- ✅ Basic dashboard structure
-
-### Day 2: Dynamic Forms & Submissions
-- ✅ FormTemplate + Industry models
-- ✅ Seed CA-specific templates (Restaurant, Contractor, Trucking)
-- ✅ DynamicForm React component
-- ✅ Industry selection page
-- ✅ Submission form with file upload
-- ✅ POST /api/submissions API
-- ✅ Agency submissions dashboard
-
-### Day 3: Routing, Quotes & Finance
-- ✅ Carrier routing engine
-- ✅ Admin quote entry + wholesale fee calculation
-- ✅ Agency quote view + broker fee input
-- ✅ Finance EMI calculator (mock)
-- ✅ Payment processing mock (Card/ACH/Apple Pay)
-
-### Day 4: E-Sign, Bind & Reports
-- ✅ Document generation & e-sign workflow
-- ✅ Bind request system
-- ✅ Policy upload & management
-- ✅ Admin dashboard with stats
-- ✅ CSV export functionality
-- ✅ Testing & seed scripts
-
-## 🚀 Quick Start
-
-### Prerequisites
-
-- Node.js 18+ (v22.17.0 recommended)
-- MongoDB Atlas account (or local MongoDB)
-- npm or pnpm
-
-### Installation
-
-```bash
-# Install dependencies
-npm install
-
-# Copy environment variables
-cp .env.example .env.local
-
-# Update .env.local with your MongoDB URI and secrets
-# MONGODB_URI="mongodb+srv://..."
-# NEXTAUTH_SECRET="your-secret-here"
-# JWT_SECRET="your-jwt-secret"
-# NODE_ENV="development"
-
-# Seed the database
-npm run seed
-
-# Run development server
-npm run dev
-```
-
-Visit `http://localhost:3000` to see the application.
-
-## 📁 Project Structure
-
-```
-sterling-portal-backend/
-├── src/
-│   ├── app/                    # Next.js App Router pages
-│   │   ├── (auth)/             # Auth pages (signin, signup)
-│   │   ├── (agency)/           # Agency routes
-│   │   │   ├── dashboard/      # Agency dashboard
-│   │   │   ├── submit/         # Submission forms
-│   │   │   ├── quotes/         # Quote management
-│   │   │   ├── policies/       # Bound policies
-│   │   │   ├── payments/       # Payment processing
-│   │   │   ├── docs/           # Documents & e-sign
-│   │   │   └── bind/           # Bind requests
-│   │   ├── (admin)/            # Admin routes
-│   │   │   ├── dashboard/      # Admin dashboard
-│   │   │   ├── submissions/    # Submission management
-│   │   │   └── quotes/         # Quote entry
-│   │   ├── api/                # API routes
-│   │   │   ├── auth/           # Authentication
-│   │   │   ├── forms/          # Form templates
-│   │   │   ├── submissions/    # Submission CRUD
-│   │   │   ├── quotes/         # Quote management
-│   │   │   ├── finance/        # Finance calculator
-│   │   │   ├── payments/       # Payment processing
-│   │   │   ├── docs/            # Document management
-│   │   │   ├── bind/            # Bind requests
-│   │   │   └── admin/          # Admin APIs
-│   │   ├── layout.tsx          # Root layout
-│   │   ├── page.tsx            # Homepage
-│   │   └── globals.css         # Global styles
-│   ├── components/             # React components
-│   │   ├── DynamicForm.tsx     # Dynamic form renderer
-│   │   ├── FinanceOption.tsx   # Finance calculator UI
-│   │   └── providers.tsx       # NextAuth SessionProvider
-│   ├── lib/                    # Utilities
-│   │   ├── mongodb.ts          # MongoDB connection
-│   │   └── auth.ts             # Auth helpers (hash/verify)
-│   ├── models/                 # Mongoose models
-│   │   ├── Agency.ts
-│   │   ├── User.ts
-│   │   ├── FormTemplate.ts
-│   │   ├── Industry.ts
-│   │   ├── Submission.ts
-│   │   ├── Carrier.ts
-│   │   ├── RoutingRule.ts
-│   │   ├── RoutingLog.ts
-│   │   ├── Quote.ts
-│   │   ├── FinancePlan.ts
-│   │   ├── Payment.ts
-│   │   ├── Document.ts
-│   │   └── Policy.ts
-│   ├── services/               # Business logic
-│   │   ├── RoutingEngine.ts    # Carrier routing
-│   │   ├── FinanceService.ts   # EMI calculations
-│   │   ├── DocumentService.ts  # Document generation
-│   │   └── ESignService.ts     # E-signature (mock)
-│   └── utils/                  # Helper functions
-│       ├── fileUpload.ts       # File upload handler
-│       ├── documentGenerator.ts # PDF generation
-│       └── csvExporter.ts      # CSV export
-├── scripts/                    # Seed & utility scripts
-│   ├── seedForms.ts            # Seed form templates
-│   ├── seedAll.ts              # Complete seed script
-│   └── seedRoutingRules.ts    # Seed routing rules
-├── tests/                      # Test files
-│   ├── DynamicForm.test.ts
-│   ├── RoutingEngine.test.ts
-│   └── FinanceService.test.ts
-├── public/                     # Static assets
-├── uploads/                    # Uploaded files (gitignored)
-├── .env.example                # Environment variables template
-├── .env.local                  # Local environment (gitignored)
-├── next.config.js              # Next.js configuration
-├── tsconfig.json               # TypeScript configuration
-├── tailwind.config.js          # Tailwind CSS configuration
-├── package.json                # Dependencies & scripts
-├── Dockerfile                  # Docker configuration
-├── docker-compose.yml          # Docker Compose setup
-└── README.md                   # This file
-```
-
-## 📝 Available Scripts
-
-```bash
-# Development
-npm run dev          # Start development server (http://localhost:3000)
-
-# Production
-npm run build        # Build for production
-npm run start        # Start production server
-
-# Database
-npm run seed         # Seed database with sample data
-
-# Testing
-npm test             # Run tests
-```
-
-## 🔐 Environment Variables
-
-Create a `.env.local` file with the following variables:
-
-```env
-# MongoDB
-MONGODB_URI="mongodb+srv://username:password@cluster.mongodb.net/sterling_portal?retryWrites=true&w=majority"
-
-# NextAuth
-NEXTAUTH_SECRET="your-nextauth-secret-here"
-NEXTAUTH_URL="http://localhost:3000"
-
-# JWT
-JWT_SECRET="your-jwt-secret-here"
-
-# Environment
-NODE_ENV="development"
-
-# File Upload
-UPLOAD_DIR="./uploads"
-MAX_FILE_SIZE=10485760
-```
-
-## 🎨 California-Specific Features
-
-- **CA License Fields**: CSLB contractor license, CA DOT #, Health Permit #, EIN, CA business registration
-- **CCPA Compliance**: Privacy checkbox on public forms with link to Privacy Policy
-- **E-Sign Compliance**: ESIGN/UETA compliance notes in UI
-- **State-Specific Routing**: Automatic carrier routing based on CA operations
-- **USD Currency**: All amounts in USD
-
-## 📊 Demo Flow (Viva)
-
-1. **Agency Registration**: Create agency account
-2. **Login**: Agency user logs in
-3. **Select Industry**: Choose Restaurant/Contractor/Trucking
-4. **Fill Dynamic Form**: Complete CA-specific fields
-5. **Submit Application**: Upload documents, confirm CCPA consent
-6. **Automatic Routing**: System routes to appropriate carrier
-7. **Admin Quote Entry**: Admin enters carrier quote, system calculates wholesale fee
-8. **Agency Quote View**: Agency sees quote, enters broker fee
-9. **Finance Option**: Calculate EMI with down payment
-10. **Payment**: Process payment (mock)
-11. **E-Sign Documents**: Generate and send for signature
-12. **Bind Request**: Agency requests bind
-13. **Policy Issuance**: Admin uploads final policy
-14. **View Bound Policies**: Agency sees completed policy
-
-## 🧪 Testing
-
-```bash
-# Run tests
-npm test
-
-# Test specific features
-npm test -- DynamicForm
-npm test -- RoutingEngine
-npm test -- FinanceService
-```
-
-## 🐳 Docker Support
-
-```bash
-# Build and run with Docker Compose
-docker-compose up -d
-
-# This will start:
-# - MongoDB (port 27017)
-# - Next.js app (port 3000)
-```
-
-## 📄 License
-
-Proprietary - Sterling Wholesale Insurance
-
-## 👥 Support
-
-For questions or issues, contact: info@sterlingwholesaleinsurance.com
+> 📖 **Full System Documentation**: For the detailed 14-section architectural breakdown, data models, state machines, and comprehensive API catalog, please refer to [**DOCUMENTATION.md**](./DOCUMENTATION.md).
 
 ---
 
-**Built for Sterling Wholesale Insurance** | California-focused wholesale insurance portal
+## 🚀 Key Modules & Capabilities
+
+- **🏛️ Multi-Tier Architecture & RBAC**
+  - **Underwriter Admin Console (`/admin/*`)**: Complete submission intake review, carrier quote rating, surplus lines tax and fee calculations, proposal generation, bind approvals, policy issuance, and mid-term audit management.
+  - **Retail Agency Portal (`/agency/*`)**: Multi-user agency management, customized risk intake forms, broker fee markup configuration, digital signature dispatch, payment authorization, and real-time policy binding.
+  - **Public Prospect Intake (`/apply/*`)**: Single-use tokenized intake links allowing prospect insureds to enter application data and upload documents securely.
+
+- **📋 Supported Commercial Insurance Programs**
+  - **Builders Risk**: Ground-up, renovations, soft costs, water damage, delay in completion, all-perils deductibles, fire deductibles, and building value limits.
+  - **Contractors Equipment (Inland Marine)**: Scheduled tools, unscheduled tools, employee tools, and rented/leased machinery.
+  - **Manufacturers**: Commercial General Liability (CGL), Products & Completed Operations, Property, Equipment Breakdown, with independent options for Professional & Pollution Liability.
+  - **Apartment Buildings / Habitational**: Multi-unit habitational questionnaires, building limits, business income, and ordinance/law coverage.
+  - **Commercial Property & General Liability**: Full ISO classification, payroll, subcontractor costs, and gross receipts rating.
+
+- **📄 Dynamic PDF Generation & Proposal Engine**
+  - Pixel-perfect server-side PDF generation using Puppeteer and Sparticuz Chromium.
+  - Instant rendering of ACORD 125/126 applications, formal wholesale carrier proposals, invoices, payment authorizations, and policy binders.
+
+- **💰 State Surplus Lines Tax & Financing Integration**
+  - Automated surplus lines tax and stamping fee calculation engine for California (CA SLA 0.25% + 3.0% Tax), Texas, Florida, and all 50 US states.
+  - Dynamic EMI Premium Financing calculator with custom down-payment percentages, loan installments, APR calculations, and digital Premium Finance Agreement (PFA) generation.
+
+- **🔒 Enterprise Security & 2FA**
+  - NextAuth.js authentication with JWT session cookies and bcrypt password hashing.
+  - Optional Email OTP Two-Factor Authentication (2FA) with trusted device fingerprinting.
+
+---
+
+## 🛠️ Technology Stack
+
+| Layer | Technologies |
+|---|---|
+| **Framework** | Next.js 14.2 (App Router, Server Components & Server Actions) |
+| **Language** | TypeScript 5 |
+| **Database** | MongoDB Atlas via Mongoose ODM v8.3 |
+| **Authentication** | NextAuth.js v4 + JWT + bcryptjs + crypto OTP |
+| **Styling** | Tailwind CSS + Lucide Icons + Sonner Toasts |
+| **Object Storage** | Backblaze B2 (AWS S3 Client SDK v3) |
+| **PDF Engine** | Puppeteer v24, Sparticuz Chromium v131, React-PDF |
+| **Email Service** | Resend API + Nodemailer fallback |
+| **Form Management** | React Hook Form + Zod Schema Validation |
+
+---
+
+## ⚡ Quick Start Guide
+
+### Prerequisites
+- **Node.js**: v18.17.0+ or v20.x LTS
+- **MongoDB**: Active MongoDB Atlas cluster or local MongoDB instance
+- **npm**: v9+ or v10+
+
+### 1. Clone & Install
+```bash
+git clone https://github.com/eliteoperationglobal/sterling.git
+cd sterling
+npm install
+```
+
+### 2. Configure Environment Variables
+Create your local environment file:
+```bash
+cp .env.example .env.local
+```
+Configure your `.env.local` settings:
+```env
+MONGODB_URI=mongodb+srv://<user>:<password>@cluster0.mongodb.net/sterling?retryWrites=true&w=majority
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=your_32_character_nextauth_secret
+JWT_SECRET=your_32_character_jwt_secret
+NODE_ENV=development
+```
+*(See [`.env.example`](./.env.example) for the full list of Backblaze B2, Resend, and SmartyStreets keys)*
+
+### 3. Seed Database
+Seed default underwriting carriers, form templates, routing rules, agencies, and admin accounts:
+```bash
+npm run seed
+```
+
+### 4. Run Development Server
+```bash
+npm run dev
+```
+Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+---
+
+## 👥 Default Test Accounts (From Seed)
+
+| Portal | Role | Email | Password |
+|---|---|---|---|
+| **Admin Console** | System Admin / Underwriter | `admin@sterling.com` | `Admin123!` |
+| **Agency Portal** | Agency Admin (Broker) | `agent@gamaty.com` | `Agent123!` |
+| **Agency Portal** | Agency Admin (Broker) | `agent@blueangel.com` | `Agent123!` |
+
+---
+
+## 📁 Repository Structure
+
+```
+sterling/
+├── src/
+│   ├── app/                      # Next.js App Router
+│   │   ├── admin/                # Admin underwriting portal (submissions, quotes, bind, audits)
+│   │   ├── agency/               # Retail agency portal (applications, quotes, documents, team)
+│   │   ├── api/                  # RESTful backend API routes
+│   │   │   ├── admin/            # Underwriting management endpoints
+│   │   │   ├── agency/           # Retail broker endpoints
+│   │   │   ├── auth/             # NextAuth session & credentials route
+│   │   │   ├── finance/          # Premium financing EMI & PFA routes
+│   │   │   ├── public/           # Tokenized client intake endpoints
+│   │   │   └── tax/              # Surplus lines tax calculation route
+│   │   └── signin/               # Authentication & login UI
+│   ├── components/               # Reusable React UI components
+│   │   ├── audits/               # Policy audit tabs & forms
+│   │   ├── finance/              # Premium finance calculators
+│   │   ├── layout/               # Topbar, navigation & responsive wrappers
+│   │   └── ui/                   # Buttons, dialogs, modals, and input fields
+│   ├── lib/                      # Core business logic & services
+│   │   ├── data/                 # State tax rates (CA, TX, FL, etc.)
+│   │   ├── services/
+│   │   │   ├── email/            # Resend / Nodemailer transactional mailer
+│   │   │   └── pdf/              # Puppeteer HTML-to-PDF templates & mappers
+│   │   ├── authOptions.ts        # NextAuth configuration
+│   │   └── mongodb.ts            # Mongoose singleton connection
+│   ├── models/                   # Mongoose schemas (Quote, Submission, User, Agency, Audit, etc.)
+│   └── utils/                    # Number formatters, date utilities, URL helpers
+├── scripts/                      # Database seeders (seedAll.ts, seedForms.ts, etc.)
+├── nginx/                        # Nginx reverse proxy configuration template
+├── check-deployment-ready.ps1    # Automated pre-deployment verification script
+├── docker-compose.yml            # Multi-container orchestration
+├── Dockerfile                    # Multi-stage production container build
+├── ecosystem.config.js           # PM2 process configuration for self-hosted servers
+├── .env.example                  # Environment variable reference
+└── DOCUMENTATION.md              # In-depth system documentation & architecture guide
+```
+
+---
+
+## 📦 Production Deployment
+
+### Automated Pre-Flight Check
+Before deploying to production, run the built-in diagnostic script:
+```powershell
+./check-deployment-ready.ps1
+```
+
+### Docker Deployment
+```bash
+docker-compose up -d --build
+```
+
+### Vercel Deployment
+Deploy directly to Vercel by importing the repository and adding the environment variables specified in `.env.example`.
+
+### Self-Hosted (PM2 + Nginx)
+```bash
+npm run build
+pm2 start ecosystem.config.js
+```
+
+---
+
+## 📄 License & Maintainers
+
+- **Owner**: Sterling Wholesale Insurance / [eliteoperationglobal](https://github.com/eliteoperationglobal/sterling)
+- **Support**: Review [DOCUMENTATION.md](./DOCUMENTATION.md) for complete technical guides and endpoint specifications.
